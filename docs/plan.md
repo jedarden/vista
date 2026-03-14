@@ -2041,6 +2041,126 @@ Each card supports two display modes: "Card only" (isolated preview) and "In con
 
 ## Deployment
 
+### Container Registry
+
+Images published to GitHub Container Registry: `ghcr.io/jedarden/vista`
+
+- No storage limits for public repos
+- No pull rate limits (unlike Docker Hub)
+- Same GitHub token handles both code and image access
+
+### CI/CD — GitHub Actions
+
+A single workflow at `.github/workflows/build-container.yml` handles the full build-and-release pipeline.
+
+**Trigger:** Push to `main` that changes files in the container area (`src/`, `public/`, `Dockerfile`, `package.json`, `package-lock.json`).
+
+**Flow:**
+
+```
+Push to main
+  │
+  ├─ Changed files in container area?
+  │    No → skip
+  │    Yes ↓
+  │
+  ├─ Was VERSION file changed in this commit?
+  │    Yes → use that version as-is
+  │    No  → auto-bump patch version (1.0.0 → 1.0.1), commit VERSION back to repo
+  │          ↓
+  │
+  ├─ Build container image
+  │    ↓
+  ├─ Push to ghcr.io/jedarden/vista:<version>
+  ├─ Push to ghcr.io/jedarden/vista:latest
+  │    ↓
+  └─ Create GitHub Release with tag v<version>
+```
+
+**Workflow:**
+
+```yaml
+name: Build & Release Container
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'Dockerfile'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'VERSION'
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check if VERSION was changed
+        id: version-check
+        run: |
+          if git diff --name-only HEAD~1 HEAD | grep -q '^VERSION$'; then
+            echo "bumped=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "bumped=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Auto-bump patch version
+        if: steps.version-check.outputs.bumped == 'false'
+        run: |
+          CURRENT=$(cat VERSION | tr -d '[:space:]')
+          MAJOR=$(echo "$CURRENT" | cut -d. -f1)
+          MINOR=$(echo "$CURRENT" | cut -d. -f2)
+          PATCH=$(echo "$CURRENT" | cut -d. -f3)
+          NEW_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))"
+          echo "$NEW_VERSION" > VERSION
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add VERSION
+          git commit -m "chore: bump version to ${NEW_VERSION}"
+          git push
+
+      - name: Read version
+        id: version
+        run: echo "version=$(cat VERSION | tr -d '[:space:]')" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/jedarden/vista:${{ steps.version.outputs.version }}
+            ghcr.io/jedarden/vista:latest
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: v${{ steps.version.outputs.version }}
+          generate_release_notes: true
+```
+
+**Version file:** A `VERSION` file at the repo root (e.g. `0.1.0`). Developers can bump it manually in a commit for major/minor releases. If they don't, CI auto-bumps the patch number.
+
 ### Docker
 
 ```dockerfile
@@ -2057,21 +2177,107 @@ CMD ["node", "src/server.js"]
 
 ### Kubernetes (apexalgo-iad)
 
+**Domain:** `vista.ardenone.com`
+
 Deployed via ArgoCD from `ardenone-cluster/cluster-configuration/apexalgo-iad/vista/`.
 
-Manifests needed:
-- `namespace.yml`
-- `deployment.yml` (1 replica, stateless)
-- `service.yml` (ClusterIP, port 3000)
-- `ingressroute.yml` (Traefik, e.g. `vista.ardenone.com`)
+Manifests:
 
-Resource requests:
-- CPU: 100m / limit 500m
-- Memory: 128Mi / limit 256Mi
+**`namespace.yml`**
+```yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: vista
+  labels:
+    app.kubernetes.io/managed-by: argocd
+```
 
-### CI
+**`deployment.yml`**
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vista
+  namespace: vista
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vista
+  template:
+    metadata:
+      labels:
+        app: vista
+    spec:
+      containers:
+        - name: vista
+          image: ghcr.io/jedarden/vista:latest
+          ports:
+            - containerPort: 3000
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 3
+            periodSeconds: 10
+```
 
-Container builds via the existing `container-build` WorkflowTemplate in Argo Workflows. Place `Dockerfile` and `VERSION` file in `containers/vista/` within the appropriate repo, or build from this standalone repo via the same Argo Events pipeline (add `vista` to the GitHub EventSource and container-build sensor).
+**`service.yml`**
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: vista
+  namespace: vista
+spec:
+  selector:
+    app: vista
+  ports:
+    - port: 3000
+      targetPort: 3000
+```
+
+**`ingressroute.yml`**
+```yaml
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: vista
+  namespace: vista
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`vista.ardenone.com`)
+      kind: Rule
+      services:
+        - name: vista
+          port: 3000
+  tls:
+    certResolver: letsencrypt
+```
+
+**DNS:** Create an A/CNAME record for `vista.ardenone.com` in Cloudflare pointing to the apexalgo-iad cluster ingress IP.
+
+**ArgoCD auto-discovery:** The `apexalgo-iad-applicationset.yml` automatically discovers new namespace directories, so adding `vista/` with these manifests is sufficient — no manual Application creation needed.
+
+**Image update strategy:** The deployment uses `image: ghcr.io/jedarden/vista:latest`. To trigger a rollout after a new image push, either:
+- Use an image updater (Argo CD Image Updater) to watch GHCR for new tags
+- Or add a `deploy-sha` annotation to the pod template and update it via CI after the image push
 
 ---
 

@@ -1365,6 +1365,327 @@ The inspection URL doubles as a shareable link. Zero storage, completely statele
 
 ---
 
+## User Experience
+
+### Design Principles
+
+1. **Start simple, reveal depth.** A first-time user should be productive in 3 seconds: paste URL, hit Enter, see results. Every advanced feature is one click away but never in the way.
+2. **Answers before data.** Lead with the score card and actionable fixes. Raw metadata is available but not the default view.
+3. **Respect attention.** 31 platforms is overwhelming. Show the ones that matter most by default, let users expand.
+4. **No dead ends.** Every diagnostic finding links to its fix. Every fix links to its code snippet. Every snippet links to the cache invalidation for that platform.
+
+---
+
+### Page Layout
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│  VISTA logo          [Inspect] [Editor] [Compare] [Audit]   │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │  🔗 Enter URL or paste HTML...          [Inspect ▶]   │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌─ Summary Bar ─────────────────────────────────────────┐  │
+│  │  Overall: B+  │  23 ✓  5 ⚠  3 ✗  │  [Fix all] [Share]│  │
+│  └───────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌─ Tabs ────────────────────────────────────────────────┐  │
+│  │  [Previews]  [Diagnostics]  [Raw Tags]  [Cache]      │  │
+│  └───────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌─ Preview Grid ────────────────────────────────────────┐  │
+│  │                                                        │  │
+│  │  ▼ Top Platforms (expanded by default)                 │  │
+│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐              │  │
+│  │  │ Google   │ │ Facebook │ │ X/Twitter│              │  │
+│  │  │  [A+]    │ │  [B]     │ │  [A]     │              │  │
+│  │  └──────────┘ └──────────┘ └──────────┘              │  │
+│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐              │  │
+│  │  │ LinkedIn │ │ Slack    │ │ Discord  │              │  │
+│  │  │  [A]     │ │  [C]     │ │  [A]     │              │  │
+│  │  └──────────┘ └──────────┘ └──────────┘              │  │
+│  │                                                        │  │
+│  │  ▶ Messaging (collapsed — click to expand)             │  │
+│  │  ▶ Collaboration (collapsed)                           │  │
+│  │  ▶ Content, Email & RSS (collapsed)                    │  │
+│  └───────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌─ Footer ──────────────────────────────────────────────┐  │
+│  │  VISTA — Visual Inspector of Social Tags & Attributes  │  │
+│  └───────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### Information Hierarchy
+
+**Layer 1 — Glanceable (always visible after inspection):**
+- Summary bar: overall letter grade, platform pass/warn/fail counts
+- "Fix all" button (applies auto-fixes to Live Editor)
+- "Share" button (copies shareable URL)
+
+**Layer 2 — Primary (Previews tab, default view):**
+- **Top Platforms** section: expanded by default, shows the 6 highest-traffic platforms (Google, Facebook, X, LinkedIn, Slack, Discord). Each card shows its letter grade badge.
+- Remaining categories collapsed with a count label: "Messaging (11) — 8 passing, 2 warnings, 1 failing"
+
+**Layer 3 — Diagnostic (Diagnostics tab):**
+- Common mistakes (errors first, then warnings, then info)
+- Redirect chain diagram
+- Response header findings
+- Each item has a "Fix" button that jumps to the relevant field in the Editor
+
+**Layer 4 — Reference (Raw Tags tab):**
+- Full table of every extracted meta tag with source line numbers
+- "What If" toggles next to each tag
+- JSON-LD viewer with syntax highlighting
+
+**Layer 5 — Actions (Cache tab):**
+- Cache invalidation hub with per-platform purge links
+- Image crop safe zone visualizer
+- Screenshot download buttons
+
+---
+
+### Progressive Disclosure
+
+**Before inspection (empty state):**
+- Clean hero with the URL input centered vertically
+- Below: "or paste HTML | upload file" toggle links (subtle, not competing for attention)
+- Below that: three example URLs as clickable chips ("Try: github.com, stripe.com, your-site.com")
+- No tabs, no grid, no features visible — just the input
+
+**After inspection (results state):**
+- Input bar shrinks to a compact bar at the top (stays accessible for re-inspection)
+- Summary bar appears with score and action buttons
+- Tabs appear: Previews (active), Diagnostics, Raw Tags, Cache
+- Preview grid loads with Top Platforms expanded, rest collapsed
+- If the score is below B, the Diagnostics tab pulses briefly to draw attention
+
+**Editor mode:**
+- Split pane appears: editor form on left (40%), preview grid on right (60%)
+- Character budget gauges appear below title and description fields only
+- Gauges start collapsed as a single summary line ("Title: OK on 28/31 platforms") — click to expand the full gauge set
+- Code snippet generator appears as a floating "Copy code" button in the top-right of the editor pane
+
+---
+
+### Card Component Design
+
+Each platform preview card follows a consistent wrapper pattern:
+
+```
+┌─────────────────────────────┐
+│ [icon] Platform Name  [A+]  │  ← Header: platform icon, name, letter grade
+├─────────────────────────────┤
+│                             │
+│   [Platform-specific card   │  ← Body: styled to match the real platform
+│    rendered here]           │
+│                             │
+├─────────────────────────────┤
+│ ⚠ Image too small (800×400) │  ← Footer: warnings/diagnostics (if any)
+│ 📋 Copy  📸 Screenshot      │  ← Actions: copy card HTML, download PNG
+└─────────────────────────────┘
+```
+
+**Card states:**
+- **Healthy** (score A/A+): subtle green left border, grade badge is green
+- **Warning** (score B/C): yellow left border, grade badge is yellow, footer shows warnings
+- **Failing** (score D/F): red left border, grade badge is red, footer shows errors with fix buttons
+- **Loading**: skeleton card with shimmer animation matching the card's expected layout
+- **Expanded**: clicking a card expands it to full-width, showing the "In context" mockup and full diagnostic details
+
+**Card interactions:**
+- **Hover**: subtle lift shadow, "Click to expand" hint on first use
+- **Click**: expand to full-width detail view with contextualized mockup
+- **Right-click / long-press**: context menu with "Copy screenshot", "Open in editor", "View raw tags"
+- **Drag**: reorder cards (position saved to localStorage)
+
+---
+
+### Mode-Specific Layouts
+
+**Inspect Mode:**
+```
+┌─────────────────────────────────────────┐
+│ [URL input bar]                         │
+│ [Summary bar: score + actions]          │
+│ [Tabs: Previews | Diagnostics | ...]    │
+│ [Content area: grid/list/table]         │
+└─────────────────────────────────────────┘
+```
+Full-width. Content area changes based on active tab.
+
+**Editor Mode:**
+```
+┌──────────────────┬──────────────────────┐
+│ Editor Panel     │ Preview Grid         │
+│                  │                      │
+│ [Title ____]     │ ┌────┐ ┌────┐       │
+│ [gauges]         │ │Goog│ │ FB │       │
+│ [Description __] │ └────┘ └────┘       │
+│ [gauges]         │ ┌────┐ ┌────┐       │
+│ [og:image ____]  │ │ X  │ │Link│       │
+│ [template btn]   │ └────┘ └────┘       │
+│ [snippet btn]    │                      │
+│                  │ [What If toggles]    │
+└──────────────────┴──────────────────────┘
+```
+Resizable split pane (drag the divider). Editor panel scrolls independently. Preview grid updates live on every keystroke.
+
+**Compare Mode:**
+```
+┌──────────────────┬──────────────────────┐
+│ URL A: [____]    │ URL B: [____]        │
+├──────────────────┼──────────────────────┤
+│ [Summary A]      │ [Summary B]          │
+├──────────────────┼──────────────────────┤
+│ ┌────────────┐   │ ┌────────────┐       │
+│ │ Facebook A │   │ │ Facebook B │       │
+│ └────────────┘   │ └────────────┘       │
+│ ┌────────────┐   │ ┌────────────┐       │
+│ │ Twitter A  │   │ │ Twitter B  │       │
+│ └────────────┘   │ └────────────┘       │
+└──────────────────┴──────────────────────┘
+```
+Side-by-side scroll-locked columns. Diff highlights in green/red between the two.
+
+**Audit Mode:**
+```
+┌─────────────────────────────────────────┐
+│ [Sitemap URL: ____]  [Scan ▶]           │
+├─────────────────────────────────────────┤
+│ Progress: ████████░░ 47/62 pages        │
+├──────┬──────┬──────┬──────┬──────┬──────┤
+│ Page │ Score│Google│  FB  │  X   │ ...  │
+├──────┼──────┼──────┼──────┼──────┼──────┤
+│ /    │  A+  │  ✓   │  ✓   │  ✓   │      │
+│ /blog│  C   │  ✓   │  ⚠   │  ✗   │      │
+│ /about│ F   │  ✗   │  ✗   │  ✗   │      │
+└──────┴──────┴──────┴──────┴──────┴──────┘
+```
+Sortable data table. Click any cell to jump to that page's full Inspect view.
+
+---
+
+### Responsive Design
+
+**Desktop (≥ 1200px):**
+- 3-column card grid (Top Platforms section)
+- Full split-pane editor
+- Side-by-side compare
+
+**Tablet (768px – 1199px):**
+- 2-column card grid
+- Editor switches to stacked layout (editor on top, preview below) with a toggle to swap
+- Compare uses tabbed view instead of side-by-side (Tab A | Tab B with a diff summary)
+
+**Mobile (< 768px):**
+- Single-column card stack
+- Editor is full-screen with a "Preview" button that slides in the preview panel from the right
+- Compare uses tabbed view
+- Audit table becomes card list (one card per page, each showing the score and top issues)
+- URL input takes full width, paste/upload modes accessible via bottom sheet
+
+**Touch interactions:**
+- Swipe left/right on cards to navigate between platforms
+- Swipe down on expanded card to collapse
+- Long-press for context menu (screenshot, edit, raw tags)
+
+---
+
+### Loading & Performance
+
+**Inspection loading sequence (progressive rendering):**
+1. **Instant** (0ms): URL accepted, input bar shows spinner, skeleton grid appears
+2. **HTML fetched** (~500ms): Summary bar populates with score. Skeleton cards get titles as text is extracted first.
+3. **Meta tags parsed** (~600ms): All text-based card previews render (Google, text portions of all cards)
+4. **Image probed** (~1–3s): Image dimensions arrive. Cards with images fill in. Crop visualizer becomes available.
+5. **Headers analyzed** (~600ms, parallel): Diagnostics tab populates with header findings
+6. **Complete**: Loading spinner stops. All cards fully rendered.
+
+Each card transitions from skeleton → content with a subtle fade (150ms). Cards that complete first render immediately — no waiting for the slowest card.
+
+**Perceived performance optimizations:**
+- Skeleton cards match the expected layout of each platform (different skeletons for image-on-top vs. thumbnail-on-left)
+- Score card appears as soon as tags are parsed (before image probing completes)
+- "Top Platforms" section loads first since it's visible; collapsed sections defer rendering until expanded
+- Image thumbnails in cards use a blurhash placeholder while the full OG image loads
+
+---
+
+### Onboarding
+
+**First visit:**
+- No tutorial, no modal, no tooltip tour — just the clean input with example URLs as chips
+- First inspection triggers a brief toast: "Click any card to expand. Try the Diagnostics tab for issues." (dismissible, shown once, saved to localStorage)
+
+**Feature discovery:**
+- Features are discoverable through the natural workflow:
+  - Low score → "Fix all" button → Editor opens automatically
+  - Editor opens → gauges appear below fields
+  - Diagnostics tab shows issues → each issue has a "Fix" link → scrolls to the relevant Editor field
+  - User edits a tag → "Copy code" button appears → snippet generator revealed
+- Advanced features have subtle affordances: the cache tab shows a badge count if the URL has cache issues; the "What If" panel shows a toggle icon next to each tag in the Raw Tags view
+
+**Empty state messaging:**
+- No URL entered: "Paste any URL to see how it looks when shared on 31 platforms"
+- URL entered but page has no meta tags: "This page has no Open Graph or Twitter Card tags. Want to create them?" → opens Editor with template picker
+
+---
+
+### Accessibility
+
+- All interactive elements are keyboard-navigable (Tab, Enter, Escape)
+- Card grid supports arrow key navigation
+- Screen reader announcements for score changes, loading completion, and diagnostic findings
+- Color is never the only indicator — letter grades, icons, and text labels accompany all color coding
+- Respects `prefers-reduced-motion` — disables card transitions, skeleton shimmer, and toast animations
+- Respects `prefers-color-scheme` — VISTA itself has a light/dark mode (separate from the platform dark mode toggle for card previews)
+- Focus ring visible on all interactive elements
+- Minimum tap target size of 44×44px on mobile
+
+---
+
+### Visual Design
+
+**Color palette:**
+- Neutral base: white/gray background, dark text (not competing with platform card colors)
+- Accent: single brand color for VISTA UI elements (buttons, links, active tab)
+- Semantic: green (pass), yellow (warning), red (fail) — used only for scores and diagnostics
+- Platform cards render in their own brand colors — VISTA's chrome stays neutral to avoid visual conflict
+
+**Typography:**
+- System font stack (`-apple-system, BlinkMacSystemFont, ...`) for VISTA UI
+- Platform cards use the closest available web font to each platform's actual font (e.g., `Segoe UI` for Discord, `SF Pro` for iMessage, `Roboto` for Google)
+
+**Card rendering fidelity:**
+- Cards should be visually recognizable as "that's what it looks like on Facebook" at a glance
+- Rounded corners, shadows, padding, and font sizes match the real platform as closely as possible
+- Platform icons (SVG) in card headers for instant recognition
+- Cards don't need to be pixel-perfect — close enough to be useful for decision-making
+
+---
+
+### Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `/` or `Cmd+K` | Focus URL input |
+| `Enter` | Run inspection |
+| `1` – `4` | Switch tabs (Previews, Diagnostics, Raw Tags, Cache) |
+| `E` | Toggle Editor mode |
+| `C` | Toggle Compare mode |
+| `←` `→` | Navigate between cards (when grid is focused) |
+| `Enter` | Expand focused card |
+| `Escape` | Collapse expanded card / close modal |
+| `Cmd+Shift+C` | Copy code snippet |
+| `Cmd+Shift+S` | Copy share link |
+
+---
+
 ## Application Architecture
 
 ### Container: `vista`

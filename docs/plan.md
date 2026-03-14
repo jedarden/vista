@@ -1033,6 +1033,131 @@ twitter:image → og:image → page images → [none]
 
 ---
 
+## Power Features
+
+### Live Meta Tag Editor
+
+The core differentiator. An editable panel alongside the preview grid lets users modify any meta tag and see all 31 platform previews update instantly. The workflow inverts from "deploy → check → fix → redeploy" to "design → perfect → deploy once."
+
+**Implementation:**
+- Left panel: form fields for every tag group (`<title>`, `meta description`, all `og:*`, all `twitter:*`, `theme-color`, JSON-LD)
+- Right panel: live-updating preview grid
+- Fields pre-populated from the fetched URL (or blank in paste-HTML mode)
+- Changes are client-side only — no server round-trips for re-rendering
+- "Copy HTML" button generates the final `<head>` block
+
+---
+
+### Paste Raw HTML (Pre-Deploy Preview)
+
+Don't require a live URL. Users can paste raw HTML or drag-drop an `.html` file and see all 31 previews before the page is live. Critical for development workflows — see the result without pushing to production.
+
+**Implementation:**
+- Tab toggle in the input area: "URL" | "Paste HTML" | "Upload File"
+- Paste/upload modes send the HTML body directly to the parser (same cheerio pipeline, skip the fetch step)
+- Server endpoint: `POST /api/preview` with `Content-Type: text/html` body
+- Image URLs in pasted HTML are resolved relative to a user-provided base URL (optional field)
+
+---
+
+### Image Crop Safe Zone Visualizer
+
+The OG image overlaid with semi-transparent colored rectangles showing exactly where each platform would crop. Pinterest crops to 2:3 vertical, Twitter to ~2:1, iMessage takes a large hero, LinkedIn center-crops — one image, 31 different crop windows.
+
+**Implementation:**
+- Fetch the OG image and display at full resolution
+- Overlay `<div>` masks for each platform's crop region, color-coded by category
+- Toggle individual platforms on/off
+- Show percentage of image visible per platform
+- Highlight "safe zone" — the intersection of all crop regions where content is guaranteed visible everywhere
+
+---
+
+### Platform-Contextualized Mockups
+
+Show each card not in isolation but embedded inside a realistic platform UI frame. The link card sitting inside a tweet timeline, inside a Slack channel conversation, inside a Discord server with messages above and below, inside a Facebook feed between other posts.
+
+**Implementation:**
+- Toggle per card: "Card only" | "In context"
+- Context frames are static CSS/HTML shells mimicking each platform's UI chrome (avatar, username, timestamp, surrounding messages/posts)
+- Use neutral placeholder content around the card so it doesn't distract
+- Dark/light mode toggle for platforms that support both (Discord, Slack, X)
+
+---
+
+### Sitemap Crawler with Site-Wide Report Card
+
+Point VISTA at a `sitemap.xml` and it crawls every URL, generating a heatmap report: which pages are missing OG images, which have truncated titles, which platforms each page is optimized for. Surfaces the worst-performing pages first.
+
+**Implementation:**
+- Input: sitemap URL (auto-detected from `robots.txt` if user provides domain)
+- Server fetches and parses the sitemap XML, then runs `/api/preview` for each URL (concurrency-limited, e.g. 5 at a time)
+- Results aggregated into a summary table:
+  - Per-page row with platform coverage score (0–31)
+  - Color-coded cells: green (all tags present), yellow (partial), red (missing critical tags)
+  - Sortable by worst-performing pages first
+- Downloadable as CSV or JSON
+- Endpoint: `GET /api/audit?sitemap=https://example.com/sitemap.xml`
+
+---
+
+### Auto-Fix Generator
+
+Don't just flag problems — generate the fix. Missing `og:image`? Here's the tag to add. Title truncates on Facebook at character 47? Here's a suggested rewrite. No `twitter:card`? Here's the tag with the correct type inferred from image dimensions.
+
+**Implementation:**
+- After analysis, a "Fixes" panel shows actionable items sorted by impact
+- Each fix includes:
+  - What's wrong (e.g. "Missing `twitter:card` — X will use default summary type")
+  - The fix (e.g. `<meta name="twitter:card" content="summary_large_image">`)
+  - Which platforms benefit
+- "Apply all fixes" button populates the Live Editor with the suggested values
+- "Copy all fixes" button outputs a unified HTML snippet
+
+---
+
+### Side-by-Side URL Comparison with Diff Highlighting
+
+Enter two URLs and see them compared across all 31 platforms with visual diff highlighting. Three use cases: compare your site vs. a competitor, compare staging vs. production, compare before vs. after a meta tag update.
+
+**Implementation:**
+- Two URL input fields, side-by-side
+- Each platform card rendered twice (left/right) with diff markers:
+  - Green highlight on text that differs
+  - Red badge on missing tags present in the other URL
+  - Image diff overlay (side-by-side or onion-skin toggle)
+- Summary bar at top: "17 platforms identical, 8 differ, 6 missing tags on URL B"
+- Endpoint: `GET /api/compare?a=https://...&b=https://...`
+
+---
+
+### Code Snippet Generator with Framework Detection
+
+After analysis or editing, VISTA generates paste-ready code for the user's framework. One click copies framework-specific output.
+
+**Implementation:**
+- Dropdown: Plain HTML, Next.js (`<Head>`), Nuxt (`useHead()`), Remix (`meta export`), Astro (`<head>`), SvelteKit, Gatsby (`gatsby-plugin-react-helmet`), Hugo (`{{ partial "head" }}`), Jekyll (`{% seo %}`)
+- Generates only the tags — not a full page template
+- Syntax-highlighted code block with copy button
+- Updates live as the user edits tags in the Live Editor
+- Includes comments noting which platforms each tag serves
+
+---
+
+### Character Budget Gauges
+
+As the user types in the Live Editor, 31 tiny horizontal gauges show the remaining character/pixel budget per platform simultaneously. Green → yellow → red as the text approaches each platform's truncation point.
+
+**Implementation:**
+- Rendered below each editable field (title, description)
+- Each gauge is a thin horizontal bar labeled with the platform icon
+- A vertical "cut line" marker shows exactly where truncation occurs
+- Gauges grouped by category, collapsible
+- Tooltip on hover shows: "Facebook: 43/60 chars used — truncates after 'infrastructure'"
+- For Google (pixel-based), use a monospace approximation or character-width lookup table
+
+---
+
 ## Application Architecture
 
 ### Container: `vista`
@@ -1045,22 +1170,35 @@ vista/
 ├── package.json
 ├── src/
 │   ├── server.js           # Express server — serves API + static files
-│   ├── fetcher.js          # URL fetcher with meta tag extraction
-│   └── parser.js           # HTML → structured metadata object
+│   ├── fetcher.js          # URL fetcher with timeout, size limits, SSRF protection
+│   ├── parser.js           # HTML → structured metadata object
+│   ├── image-probe.js      # Image dimension/format detection via partial download
+│   └── snippet-gen.js      # Framework-specific code snippet generator
 ├── public/
 │   ├── index.html          # Single-page app
 │   ├── style.css           # Platform-accurate card styles
-│   └── app.js              # Frontend logic — renders preview cards
+│   ├── app.js              # Frontend logic — renders preview cards
+│   ├── editor.js           # Live meta tag editor with real-time preview
+│   ├── gauges.js           # Character budget gauge rendering
+│   ├── crop-visualizer.js  # Image crop safe zone overlay
+│   └── platforms/          # Per-platform card renderer modules
+│       ├── google.js
+│       ├── facebook.js
+│       └── ...
 └── docs/
     └── plan.md
 ```
 
 ### API
 
-Single endpoint:
+Endpoints:
 
 ```
-GET /api/preview?url=https://example.com
+GET  /api/preview?url=https://example.com        # Fetch URL and extract metadata
+POST /api/preview  (Content-Type: text/html)      # Parse raw HTML directly
+GET  /api/compare?a=https://...&b=https://...     # Side-by-side comparison
+GET  /api/audit?sitemap=https://example.com/sitemap.xml  # Sitemap bulk audit
+GET  /api/snippet?format=nextjs                   # Generate framework code snippet
 ```
 
 Response:
@@ -1109,19 +1247,23 @@ Response:
 
 ### Frontend
 
-Single-page app. User enters a URL, hits "Inspect", and sees a grid of 31 platform preview cards organized by category.
+Single-page app with three modes:
 
-Each card component:
-1. Applies the platform's tag fallback logic (e.g., Twitter falls back from `twitter:title` → `og:title` → `<title>`)
-2. Truncates text at the platform's character/pixel limits
-3. Renders the card in a mock frame styled to match the platform's actual appearance
-4. Shows a warning icon if required tags are missing or image doesn't meet minimum size
+**Inspect Mode** (default): Enter a URL (or paste HTML / upload file), hit "Inspect", and see a grid of 31 platform preview cards organized by category. Each card applies the platform's tag fallback logic, truncates text at the correct limits, and shows warning icons for missing/inadequate tags.
 
-Card categories in the UI:
+**Editor Mode**: Split-pane layout. Left panel: editable form fields for every meta tag, with character budget gauges below each field. Right panel: live-updating preview grid. "Copy HTML" and framework-specific "Copy Snippet" buttons at the top.
+
+**Compare Mode**: Two URL inputs side-by-side. Each platform card rendered twice with diff highlighting showing what changed between the two pages.
+
+**Audit Mode**: Enter a domain or sitemap URL. Table view of all pages with per-platform coverage heatmap, sortable by worst-performing.
+
+Card categories in all modes:
 - **Social & Microblogging** (10 cards)
 - **Messaging** (11 cards)
 - **Collaboration** (5 cards)
 - **Content, Email & RSS** (5 cards)
+
+Each card supports two display modes: "Card only" (isolated preview) and "In context" (embedded in a realistic platform UI frame).
 
 ### Stateless Design
 
@@ -1178,24 +1320,26 @@ Container builds via the existing `container-build` WorkflowTemplate in Argo Wor
 
 ## Implementation Phases
 
-### Phase 1: Core (10 platforms)
-- Express server with `/api/preview` endpoint
+### Phase 1: Core
+- Express server with `/api/preview` endpoint (GET for URL, POST for raw HTML)
 - HTML fetcher with meta tag parser (cheerio)
-- Static frontend with URL input
+- Image dimension probing (HTTP HEAD + partial download)
+- Static frontend with URL input + paste HTML toggle
 - Card renderers: Google, Facebook, X, LinkedIn, Reddit, Slack, Discord, WhatsApp, iMessage, Telegram
+- Auto-fix generator with copy-paste snippets
 - Dockerfile
 
-### Phase 2: Full Platform Coverage (+21 platforms)
-- Mastodon, Bluesky, Threads, Tumblr, Pinterest
-- Signal, Teams, Google Chat, Zoom, Line, KakaoTalk
-- Notion, Jira/Confluence, GitHub, Trello, Figma
-- Medium, Substack, Outlook, Gmail, Feedly/RSS
-- Image dimension probing (HTTP HEAD / partial download)
+### Phase 2: Editor & Full Coverage
+- Live Meta Tag Editor with real-time preview updates
+- Character budget gauges below editable fields
+- Code snippet generator (Plain HTML, Next.js, Nuxt, Remix, Astro, SvelteKit)
+- Remaining 21 platform card renderers
 - Missing-tag warnings per platform
 
-### Phase 3: Polish
-- Copy-to-clipboard for individual card screenshots
-- Tag completeness scorecard (% of platforms fully covered)
-- Suggested fixes (e.g. "Add og:image for Facebook previews")
-- Dark mode variants for platforms that support it (Discord, Slack)
-- Raw metadata viewer (show all extracted tags in a table)
+### Phase 3: Advanced Features
+- Image crop safe zone visualizer
+- Platform-contextualized mockups (cards inside realistic UI frames)
+- Side-by-side URL comparison with diff highlighting
+- Sitemap crawler with site-wide report card
+- Dark/light mode toggle for platforms that support both
+- Raw metadata viewer (all extracted tags in a table)

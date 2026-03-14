@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VISTA — Visual Inspector of Social Tags &amp; Attributes</title>
+  <meta name="description" content="Preview how your URL will appear when shared on 31 platforms: Google, Facebook, X, LinkedIn, Slack, Discord, WhatsApp, and more." />
+  <meta property="og:title" content="VISTA — Social Tag Inspector" />
+  <meta property="og:description" content="Preview how your URL will appear when shared across 31 platforms." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23111'/><text y='24' x='4' font-size='22' fill='%23fff'>V</text></svg>" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="/" class="logo">
+        <span class="logo-mark">V</span>
+        <span class="logo-text">VISTA</span>
+      </a>
+      <nav class="header-nav">
+        <button class="nav-btn active" id="navInspect">Inspect</button>
+        <button class="nav-btn" id="navPaste">Paste HTML</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main>
+    <!-- Hero / Input -->
+    <section class="hero" id="hero">
+      <div class="hero-inner">
+        <div class="hero-tagline" id="heroTagline">
+          <h1>How does your link look<br/>when shared?</h1>
+          <p>Inspect any URL and see accurate previews across 31 platforms instantly.</p>
+        </div>
+
+        <!-- URL Mode -->
+        <div class="input-block" id="urlMode">
+          <form class="input-form" id="urlForm">
+            <div class="input-row">
+              <span class="input-icon">&#128279;</span>
+              <input
+                type="url"
+                id="urlInput"
+                placeholder="https://example.com/page"
+                autocomplete="off"
+                spellcheck="false"
+              />
+              <button type="submit" class="inspect-btn" id="inspectBtn">
+                Inspect &#9654;
+              </button>
+            </div>
+          </form>
+          <div class="input-mode-toggle">
+            <span>or</span>
+            <button class="toggle-link" id="switchToPaste">paste HTML</button>
+          </div>
+          <div class="example-chips">
+            <span class="chips-label">Try:</span>
+            <button class="chip" data-url="https://github.com">github.com</button>
+            <button class="chip" data-url="https://stripe.com">stripe.com</button>
+            <button class="chip" data-url="https://vercel.com">vercel.com</button>
+          </div>
+        </div>
+
+        <!-- HTML Paste Mode -->
+        <div class="input-block hidden" id="pasteMode">
+          <form class="paste-form" id="pasteForm">
+            <textarea
+              id="htmlInput"
+              placeholder="Paste your HTML here..."
+              rows="8"
+              spellcheck="false"
+            ></textarea>
+            <div class="paste-meta">
+              <input type="url" id="baseUrlInput" placeholder="Base URL (optional, for resolving relative URLs)" />
+            </div>
+            <div class="paste-actions">
+              <button type="submit" class="inspect-btn">Analyze HTML &#9654;</button>
+              <button type="button" class="toggle-link" id="switchToUrl">&#8592; Back to URL mode</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- Results -->
+    <section class="results-section hidden" id="resultsSection">
+
+      <!-- Summary bar -->
+      <div class="summary-bar" id="summaryBar">
+        <div class="summary-inner">
+          <div class="summary-grade">
+            <span class="grade-label">Overall</span>
+            <span class="grade-badge" id="overallGrade">-</span>
+          </div>
+          <div class="summary-counts" id="summaryCounts"></div>
+          <div class="summary-url" id="summaryUrl"></div>
+          <div class="summary-actions">
+            <button class="action-btn primary" id="shareBtn">&#128279; Share</button>
+            <button class="action-btn" id="newInspectBtn">New Inspect</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs-bar">
+        <div class="tabs-inner">
+          <button class="tab-btn active" data-tab="previews">Previews</button>
+          <button class="tab-btn" data-tab="diagnostics">
+            Diagnostics
+            <span class="tab-badge" id="diagBadge"></span>
+          </button>
+          <button class="tab-btn" data-tab="rawtags">Raw Tags</button>
+          <button class="tab-btn" data-tab="redirects">Redirects &amp; Headers</button>
+          <button class="tab-btn" data-tab="fixes">Auto-Fix</button>
+        </div>
+      </div>
+
+      <!-- Tab content -->
+      <div class="tab-content">
+
+        <!-- Previews tab -->
+        <div class="tab-pane" id="tabPreviews">
+          <div class="preview-grid" id="previewGrid"></div>
+        </div>
+
+        <!-- Diagnostics tab -->
+        <div class="tab-pane hidden" id="tabDiagnostics">
+          <div class="diag-panel" id="diagPanel"></div>
+        </div>
+
+        <!-- Raw Tags tab -->
+        <div class="tab-pane hidden" id="tabRawtags">
+          <div class="raw-tags-panel" id="rawTagsPanel"></div>
+        </div>
+
+        <!-- Redirects tab -->
+        <div class="tab-pane hidden" id="tabRedirects">
+          <div class="redirect-panel" id="redirectPanel"></div>
+        </div>
+
+        <!-- Auto-Fix tab -->
+        <div class="tab-pane hidden" id="tabFixes">
+          <div class="fixes-panel" id="fixesPanel"></div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- Recent inspections -->
+  <div class="recent-bar" id="recentBar"></div>
+
+  <!-- Loading overlay -->
+  <div class="loading-overlay hidden" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+    <p class="loading-text">Fetching and analyzing<span class="loading-dots">...</span></p>
+  </div>
+
+  <!-- Toast notification -->
+  <div class="toast hidden" id="toast"></div>
+
+  <footer class="site-footer">
+    <span>VISTA &mdash; Visual Inspector of Social Tags &amp; Attributes</span>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

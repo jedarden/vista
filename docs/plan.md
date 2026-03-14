@@ -1244,7 +1244,7 @@ A-through-F letter grade per platform with color coding. Makes optimization gami
 - Overall score: weighted average (social platforms weighted higher than niche ones)
 - Summary bar at top of preview grid: "Overall: B+ (23 platforms A/B, 5 platforms C, 3 platforms D/F)"
 - Each grade is clickable — expands to show exactly what's missing and the auto-fix for it
-- Exportable as a badge/shield image (like CI badges): `![VISTA Score](vista.ardenone.com/api/badge?url=...)`
+- Exportable as a badge/shield image (like CI badges): `![VISTA Score](vista.jedarden.com/api/badge?url=...)`
 
 ---
 
@@ -1353,7 +1353,7 @@ One-click meta tag templates for common page types. Populates the Live Editor wi
 The inspection URL doubles as a shareable link. Zero storage, completely stateless.
 
 **Implementation:**
-- URL structure: `vista.ardenone.com/?url=https://example.com`
+- URL structure: `vista.jedarden.com/?url=https://example.com`
 - Opening the link auto-runs the inspection and displays results
 - "Copy share link" button in the UI copies the current URL with the inspected target encoded as a query parameter
 - Additional state encoded in the URL hash (stateless, no server storage):
@@ -2177,7 +2177,7 @@ CMD ["node", "src/server.js"]
 
 ### Kubernetes (apexalgo-iad)
 
-**Domain:** `vista.ardenone.com`
+**Domain:** `vista.jedarden.com`
 
 Deployed via ArgoCD from `ardenone-cluster/cluster-configuration/apexalgo-iad/vista/`.
 
@@ -2262,7 +2262,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`vista.ardenone.com`)
+    - match: Host(`vista.jedarden.com`)
       kind: Rule
       services:
         - name: vista
@@ -2271,7 +2271,7 @@ spec:
     certResolver: letsencrypt
 ```
 
-**DNS:** Create an A/CNAME record for `vista.ardenone.com` in Cloudflare pointing to the apexalgo-iad cluster ingress IP.
+**DNS:** Create an A/CNAME record for `vista.jedarden.com` in Cloudflare pointing to the apexalgo-iad cluster ingress IP.
 
 **ArgoCD auto-discovery:** The `apexalgo-iad-applicationset.yml` automatically discovers new namespace directories, so adding `vista/` with these manifests is sufficient — no manual Application creation needed.
 

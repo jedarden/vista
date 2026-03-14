@@ -1158,6 +1158,213 @@ As the user types in the Live Editor, 31 tiny horizontal gauges show the remaini
 
 ---
 
+### Cache Invalidation Hub
+
+After fixing meta tags, every platform still shows the old preview because they cache aggressively. VISTA shows a "Refresh Caches" panel with one-click links to each platform's cache invalidation tool, pre-populated with the inspected URL.
+
+**Implementation:**
+- Panel appears after inspection with a button per platform
+- Direct links (pre-populated with the URL):
+  - Facebook: `https://developers.facebook.com/tools/debug/?q={url}`
+  - X/Twitter: `https://cards-dev.twitter.com/validator` (manual paste)
+  - LinkedIn: `https://www.linkedin.com/post-inspector/inspect/{url}`
+  - Telegram: link to `@WebPageBot` with instructions
+  - Google: `https://search.google.com/test/rich-results?url={url}`
+  - Discord: note that cache expires after ~24h (no manual purge)
+- For platforms with purge APIs (Facebook Graph API `?scrape=true`), offer a direct "Purge" button that hits the API server-side
+- Endpoint: `POST /api/purge?url=https://...&platform=facebook`
+
+---
+
+### "What If" Tag Toggle
+
+Checkboxes next to each meta tag in the analysis view. Uncheck a tag and instantly see which platforms break, which fall back gracefully, which are unaffected. Answers "which tags can I safely remove?" and "what would happen if this tag was missing?"
+
+**Implementation:**
+- Each extracted tag in the metadata panel gets a toggle checkbox (default: on)
+- Unchecking a tag removes it from the data fed to the card renderers
+- All 31 previews re-render instantly (pure client-side — no API call)
+- Visual indicators on cards that changed: green border = unaffected, yellow = fell back to another tag, red = lost content
+- "Essential tags" summary: the minimum set of tags needed for all 31 platforms to render acceptably
+- Reset button to restore all toggles
+
+---
+
+### OG Image Generator
+
+A simple builder for creating social card images without Figma or Photoshop. Addresses the root cause of bad social cards — most developers skip OG images because creating one feels like a design task.
+
+**Implementation:**
+- Canvas-based editor in the browser:
+  - Background: solid color picker, gradient builder, or upload an image
+  - Title text: font selector (system fonts), size, color, position (drag to place)
+  - Subtitle text: same controls
+  - Logo: upload and position (drag to place, resize handles)
+- Live preview at 1200×630px (the universal safe size)
+- Side panel shows how the generated image would look on each platform (using crop safe zone data)
+- "Download PNG" button — renders via `<canvas>` `toBlob()`
+- "Use as OG image" button — populates the Live Editor's `og:image` field with a data URL (for local preview) or uploads to a temporary endpoint
+- Pre-built color themes for quick starts
+- Server-side rendering not required — entirely client-side via Canvas API
+
+---
+
+### Common Mistakes Detector
+
+Structural HTML analysis that catches real-world bugs beyond missing tags. These are the silent failures that cause social cards to break in production.
+
+**Implementation:**
+- Checks run automatically after fetching, results shown in a "Diagnostics" panel
+- Detections:
+  - **Wrong attribute**: `<meta name="og:title">` instead of `<meta property="og:title">` (platforms ignore `name` for OG tags)
+  - **Relative image URLs**: `og:image="/img/hero.jpg"` — no platform resolves relative URLs
+  - **HTTP image URLs**: `og:image="http://..."` — WhatsApp, Signal, and others silently ignore non-HTTPS
+  - **Tags past 32KB**: Slack only reads the first 32KB of HTML — tags buried deeper are invisible
+  - **Tags past 750KB**: Google Chat and Gmail stop reading after 750KB
+  - **Duplicate/conflicting tags**: two `og:title` tags with different values — show which one platforms would use (first vs. last varies by platform)
+  - **Client-side-only tags**: compare raw HTML source vs. parsed DOM — if meta tags only appear after JS execution, most crawlers won't see them
+  - **Missing protocol**: `og:url="example.com"` without `https://`
+  - **Empty tags**: `<meta property="og:image" content="">` — worse than missing (some platforms treat it as "no image" instead of falling back)
+- Each diagnostic includes severity (error/warning/info) and a one-line fix
+
+---
+
+### Platform Score Card
+
+A-through-F letter grade per platform with color coding. Makes optimization gamified — satisfying to take a page from C to A+.
+
+**Implementation:**
+- Scoring criteria per platform:
+  - A+: All tags present, image meets recommended size, text within optimal length
+  - A: All required tags present, image meets minimum size
+  - B: Required tags present but image undersized or text truncated
+  - C: Some required tags missing but fallbacks produce acceptable result
+  - D: Critical tags missing, card renders poorly
+  - F: Card essentially broken (no title, no image where required)
+- Overall score: weighted average (social platforms weighted higher than niche ones)
+- Summary bar at top of preview grid: "Overall: B+ (23 platforms A/B, 5 platforms C, 3 platforms D/F)"
+- Each grade is clickable — expands to show exactly what's missing and the auto-fix for it
+- Exportable as a badge/shield image (like CI badges): `![VISTA Score](vista.ardenone.com/api/badge?url=...)`
+
+---
+
+### Card Screenshot API
+
+Render any platform's mocked card as a PNG image via API. Enables embedding previews in GitHub PRs, documentation, Slack messages, and presentations.
+
+**Implementation:**
+- Endpoint: `GET /api/screenshot?url=https://...&platform=facebook&theme=light`
+- Parameters:
+  - `platform`: any of the 31 supported platforms (required)
+  - `theme`: `light` or `dark` (for platforms that support both)
+  - `scale`: `1x` or `2x` (retina)
+- Server-side rendering via SVG template → sharp PNG conversion (no headless browser needed)
+  - Each platform has an SVG template with placeholder tokens for title, description, image, domain
+  - Text is measured and truncated server-side using the platform's rules
+  - OG image is fetched, resized, and embedded as base64 in the SVG
+  - Sharp converts the composed SVG to PNG
+- Response: `Content-Type: image/png` with appropriate cache headers
+- "Download screenshot" button on each card in the frontend UI
+- Bulk endpoint: `GET /api/screenshots?url=https://...&platforms=facebook,twitter,slack` returns a ZIP
+
+---
+
+### Redirect Chain Analyzer
+
+Follow all HTTP redirects, display the full chain, parse meta tags at each hop. Warn when a redirect strips or changes meta tags.
+
+**Implementation:**
+- When fetching a URL, use `redirect: 'manual'` and follow each hop explicitly
+- At each hop, record:
+  - URL
+  - Status code (301, 302, 307, 308)
+  - Response headers (especially `Location`, `Cache-Control`)
+  - Meta tags found (if the response is HTML)
+- Display as a vertical chain diagram:
+  ```
+  https://example.com → 301 → https://www.example.com → 200 ✓
+  ```
+- Warnings:
+  - "Redirect from HTTP to HTTPS — some platforms may not follow this"
+  - "Meta tags at hop 1 differ from hop 3 — platforms may see different previews depending on how many redirects they follow"
+  - "Chain is 5 hops deep — some platforms give up after 3"
+  - "302 (temporary) redirect — platforms may cache the redirect URL instead of the final URL"
+- Show which meta tags each platform would see based on its known redirect-following behavior
+
+---
+
+### Response Header Analyzer
+
+HTTP headers silently affect social card rendering. VISTA already makes the fetch — inspect the response headers for issues.
+
+**Implementation:**
+- Checks run automatically as part of the fetch, results shown in a "Headers" tab in Diagnostics
+- Header checks:
+  - **`X-Frame-Options`**: if `DENY` or `SAMEORIGIN`, warn that some platforms may not render interactive previews
+  - **`Content-Security-Policy`**: check `img-src` directive — if restrictive, OG images may not load on some platforms
+  - **`Cache-Control`**: show TTL — explains why platforms show stale previews. Warn if `no-cache` (forces re-fetch every time, slow)
+  - **`Content-Type`**: must be `text/html` — some crawlers skip non-HTML responses entirely
+  - **Image URL headers**: HEAD request on `og:image` URL to check:
+    - CORS headers (`Access-Control-Allow-Origin`) — some platforms require CORS
+    - `Content-Type` — warn if image serves wrong MIME type
+    - `Content-Length` — warn if image exceeds platform size limits (8MB Facebook, 5MB Twitter, 300KB WhatsApp)
+    - Response time — warn if image takes >3s to load (some platforms time out)
+- Each finding includes severity and actionable fix
+
+---
+
+### Template Library
+
+One-click meta tag templates for common page types. Populates the Live Editor with best-practice defaults so users customize from a solid baseline instead of starting from scratch.
+
+**Implementation:**
+- Templates stored as JSON configs:
+  ```json
+  {
+    "name": "Blog Post",
+    "tags": {
+      "og:type": "article",
+      "twitter:card": "summary_large_image",
+      "og:image": "[Your hero image URL]",
+      ...
+    },
+    "notes": "Use your post's hero image as og:image. Keep title under 60 chars."
+  }
+  ```
+- Available templates:
+  - **Blog Post** — article type, summary_large_image, author tags
+  - **SaaS Landing Page** — website type, product-focused description
+  - **E-Commerce Product** — product type, price/availability structured data
+  - **Portfolio / Personal Site** — Person schema, profile-focused
+  - **Event Page** — event type, date/location structured data
+  - **Recipe** — recipe schema, cooking time, ingredients preview
+  - **Podcast Episode** — audio type, episode metadata
+  - **Documentation / Docs Site** — minimal, text-focused
+  - **Open Source Project** — GitHub-style, repo stats
+  - **Newsletter / Substack** — article type, subscribe CTA
+- "Start from template" button in the Live Editor opens a template picker
+- Templates are additive — they don't overwrite tags the user has already set
+- Community template submissions (future: allow users to share templates via GitHub PR to the repo)
+
+---
+
+### Shareable Results via URL
+
+The inspection URL doubles as a shareable link. Zero storage, completely stateless.
+
+**Implementation:**
+- URL structure: `vista.ardenone.com/?url=https://example.com`
+- Opening the link auto-runs the inspection and displays results
+- "Copy share link" button in the UI copies the current URL with the inspected target encoded as a query parameter
+- Additional state encoded in the URL hash (stateless, no server storage):
+  - Mode: `#mode=compare&b=https://other.com`
+  - Disabled tags (What If mode): `#without=og:image,twitter:card`
+  - Active tab: `#tab=diagnostics`
+- QR code generator — click to generate a QR code of the share link (useful for mobile testing: scan with phone to see how the URL previews in mobile apps)
+- When shared in platforms that support OG cards (Slack, Twitter, etc.), VISTA itself renders a meta card showing the inspected URL's score — recursive social card preview
+
+---
+
 ## Application Architecture
 
 ### Container: `vista`
@@ -1172,15 +1379,26 @@ vista/
 │   ├── server.js           # Express server — serves API + static files
 │   ├── fetcher.js          # URL fetcher with timeout, size limits, SSRF protection
 │   ├── parser.js           # HTML → structured metadata object
+│   ├── diagnostics.js      # Common mistakes detector + response header analyzer
+│   ├── scorer.js           # Platform score card (A+ through F grading)
 │   ├── image-probe.js      # Image dimension/format detection via partial download
-│   └── snippet-gen.js      # Framework-specific code snippet generator
+│   ├── screenshot.js       # SVG template → PNG card screenshot renderer
+│   ├── snippet-gen.js      # Framework-specific code snippet generator
+│   └── templates/          # Meta tag template library (JSON configs)
+│       ├── blog-post.json
+│       ├── saas-landing.json
+│       ├── ecommerce-product.json
+│       └── ...
 ├── public/
 │   ├── index.html          # Single-page app
 │   ├── style.css           # Platform-accurate card styles
 │   ├── app.js              # Frontend logic — renders preview cards
 │   ├── editor.js           # Live meta tag editor with real-time preview
 │   ├── gauges.js           # Character budget gauge rendering
+│   ├── what-if.js          # "What If" tag toggle logic
+│   ├── og-image-gen.js     # Canvas-based OG image generator
 │   ├── crop-visualizer.js  # Image crop safe zone overlay
+│   ├── cache-hub.js        # Cache invalidation hub — platform purge links
 │   └── platforms/          # Per-platform card renderer modules
 │       ├── google.js
 │       ├── facebook.js
@@ -1199,6 +1417,12 @@ POST /api/preview  (Content-Type: text/html)      # Parse raw HTML directly
 GET  /api/compare?a=https://...&b=https://...     # Side-by-side comparison
 GET  /api/audit?sitemap=https://example.com/sitemap.xml  # Sitemap bulk audit
 GET  /api/snippet?format=nextjs                   # Generate framework code snippet
+POST /api/purge?url=https://...&platform=facebook # Trigger platform cache purge
+GET  /api/screenshot?url=...&platform=facebook    # Render card preview as PNG
+GET  /api/screenshots?url=...&platforms=facebook,twitter  # Bulk PNG (ZIP)
+GET  /api/badge?url=https://example.com           # Score badge image (SVG)
+GET  /api/templates                               # List available templates
+GET  /api/templates/:name                         # Get a specific template
 ```
 
 Response:
@@ -1322,24 +1546,35 @@ Container builds via the existing `container-build` WorkflowTemplate in Argo Wor
 
 ### Phase 1: Core
 - Express server with `/api/preview` endpoint (GET for URL, POST for raw HTML)
-- HTML fetcher with meta tag parser (cheerio)
+- HTML fetcher with meta tag parser (cheerio), redirect chain tracking, response header capture
 - Image dimension probing (HTTP HEAD + partial download)
 - Static frontend with URL input + paste HTML toggle
 - Card renderers: Google, Facebook, X, LinkedIn, Reddit, Slack, Discord, WhatsApp, iMessage, Telegram
+- Common mistakes detector (wrong attributes, relative URLs, HTTP images, tags past 32KB)
+- Platform score card (A+ through F letter grades)
 - Auto-fix generator with copy-paste snippets
+- Shareable results via URL query parameters
 - Dockerfile
 
 ### Phase 2: Editor & Full Coverage
 - Live Meta Tag Editor with real-time preview updates
+- "What If" tag toggle (uncheck tags to see fallback behavior)
 - Character budget gauges below editable fields
 - Code snippet generator (Plain HTML, Next.js, Nuxt, Remix, Astro, SvelteKit)
+- Template library (blog, SaaS, e-commerce, portfolio, event, recipe, podcast, docs, OSS, newsletter)
+- Cache invalidation hub (one-click links + API purge for Facebook)
 - Remaining 21 platform card renderers
 - Missing-tag warnings per platform
 
 ### Phase 3: Advanced Features
 - Image crop safe zone visualizer
+- OG image generator (canvas-based: background + text + logo → 1200×630 PNG)
 - Platform-contextualized mockups (cards inside realistic UI frames)
 - Side-by-side URL comparison with diff highlighting
 - Sitemap crawler with site-wide report card
+- Card screenshot API (SVG template → PNG, per-platform)
+- Redirect chain analyzer (visual chain diagram with per-hop meta tag diff)
+- Response header analyzer (CSP, CORS, Cache-Control, image headers)
 - Dark/light mode toggle for platforms that support both
 - Raw metadata viewer (all extracted tags in a table)
+- Score badge API (embeddable SVG badge)

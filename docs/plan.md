@@ -1673,16 +1673,228 @@ Each card transitions from skeleton → content with a subtle fade (150ms). Card
 
 | Shortcut | Action |
 |----------|--------|
-| `/` or `Cmd+K` | Focus URL input |
-| `Enter` | Run inspection |
+| `Cmd+K` | Open command palette |
+| `/` | Focus URL input |
+| `Enter` | Run inspection (when input focused) |
 | `1` – `4` | Switch tabs (Previews, Diagnostics, Raw Tags, Cache) |
 | `E` | Toggle Editor mode |
 | `C` | Toggle Compare mode |
-| `←` `→` | Navigate between cards (when grid is focused) |
+| `←` `→` | Navigate between cards (when grid focused) |
 | `Enter` | Expand focused card |
-| `Escape` | Collapse expanded card / close modal |
+| `Escape` | Collapse card / close modal / close palette |
 | `Cmd+Shift+C` | Copy code snippet |
 | `Cmd+Shift+S` | Copy share link |
+| `Cmd+Z` | Undo last edit (in editor/inline edit) |
+
+---
+
+### UX Power Features
+
+#### Inline Card Editing
+
+Click directly on rendered text inside any platform card preview and it becomes editable in place. Type a new title inside the Facebook card and every other card's title updates in real-time. The character gauge appears below the text being edited. No separate form, no split pane — you edit the output directly.
+
+**Implementation:**
+- `contenteditable` attribute on rendered text elements (title, description) within card previews
+- `input` event listener propagates changes to the shared metadata state object
+- All other cards re-render reactively from the shared state (debounced at 50ms)
+- A subtle blue outline and cursor change indicate editable regions on hover
+- Pressing `Escape` reverts to the original value; `Tab` moves to the next editable field in the same card
+- Edited values are marked with a blue dot indicator in the Raw Tags tab
+- Works alongside the split-pane editor — changes in either location sync bidirectionally
+
+---
+
+#### Command Palette
+
+`Cmd+K` opens a search-everything bar that makes every feature reachable from one consistent interface.
+
+**Implementation:**
+- Modal overlay with a text input and filtered results list
+- Fuzzy matching against a command registry:
+  - Mode switching: "inspect", "editor", "compare", "audit"
+  - Actions: "screenshot facebook", "copy nextjs snippet", "share link", "export all screenshots"
+  - Filters: "show broken", "show only social", "hide messaging"
+  - What If: "what if no og:image", "what if no twitter:card"
+  - Navigation: "go to diagnostics", "go to cache", "go to raw tags"
+  - Templates: "template blog post", "template saas landing"
+- Results show the action name, a brief description, and keyboard shortcut (if any)
+- Arrow keys to navigate results, `Enter` to execute, `Escape` to dismiss
+- Recently used commands appear first when the palette is empty
+- Extensible registry — new features automatically appear in the palette
+
+---
+
+#### Smart Platform Ordering
+
+Auto-detect the page type and reorder platform cards by likely relevance, so the most important cards appear first without manual configuration.
+
+**Implementation:**
+- Detection heuristics (checked in order, first match wins):
+  - `og:type` value: `article` → blog ordering, `product` → e-commerce ordering
+  - JSON-LD `@type`: `Recipe` → Pinterest first, `SoftwareApplication` → GitHub/Discord first
+  - URL patterns: `github.com/*` → GitHub, Slack, Discord first; `*.substack.com` → Substack, X, LinkedIn first
+  - Content keywords: "recipe", "ingredients" → Pinterest; "download", "pricing" → SaaS ordering
+  - Fallback: default ordering (Google, Facebook, X, LinkedIn, Slack, Discord, ...)
+- Predefined orderings:
+  - **Blog/Article**: Google, Facebook, X, LinkedIn, Reddit, Slack, Mastodon, ...
+  - **SaaS/Product**: Google, LinkedIn, X, Facebook, Slack, Product Hunt, ...
+  - **Recipe**: Pinterest, Google, Facebook, WhatsApp, iMessage, ...
+  - **Open Source**: GitHub, X, Slack, Discord, Reddit, Mastodon, ...
+  - **Portfolio**: LinkedIn, Google, X, Facebook, GitHub, ...
+  - **E-commerce**: Google, Facebook, Pinterest, Instagram, WhatsApp, ...
+- Subtle label above the grid: "Ordered by relevance for: Blog post" with an "×" to revert to default
+- User's favorites (starred platforms) always override smart ordering
+
+---
+
+#### Diagnostic Resolution Tracking
+
+When an issue is fixed in the editor, the corresponding diagnostic visually resolves — creating a rewarding fix-and-verify loop.
+
+**Implementation:**
+- Each diagnostic item has a unique ID tied to the specific tag and check that triggered it
+- After every editor change, diagnostics re-run against the current (edited) metadata state
+- Resolved diagnostics:
+  - Strikethrough text with a green checkmark icon
+  - Fade to 50% opacity (but remain visible so the user sees progress)
+  - Slide to the bottom of the diagnostics list
+- Diagnostic count badge on the tab updates in real-time: "Diagnostics (5)" → "Diagnostics (3)"
+- Summary bar score re-calculates and animates to the new value
+- Affected card borders transition from red/yellow to green
+- Progress indicator in the diagnostics tab: "Fixed 3/5 issues — score improved C → A"
+- Undo support: if the user reverts an edit, the diagnostic reappears
+
+---
+
+#### Platform Favorites & Custom Layout
+
+Star platforms to pin them to a "Your Platforms" section. Drag to reorder. Hide platforms you never care about. All saved to localStorage.
+
+**Implementation:**
+- Star icon (☆/★) in each card's header bar — click to toggle
+- Starred platforms appear in a "Your Platforms" section at the top of the grid, above category sections
+- Drag-and-drop within and between sections (HTML Drag and Drop API or a lightweight library like SortableJS)
+- "Hide" option in each card's context menu (right-click or overflow menu)
+- Hidden platforms collected in a collapsible "Hidden (7)" expander at the bottom
+  - Hidden platforms are still analyzed and scored — hiding is display-only
+  - Score summary still reflects all 31 platforms
+- Settings persist in localStorage under a `vista-preferences` key:
+  ```json
+  {
+    "favorites": ["google", "facebook", "twitter", "slack"],
+    "hidden": ["kakaotalk", "tumblr", "line"],
+    "order": ["google", "facebook", "twitter", "slack", "linkedin", ...]
+  }
+  ```
+- "Reset to defaults" button in a minimal settings popover
+- First-time users see the default "Top Platforms" layout; the favorites section appears only after the first star
+
+---
+
+#### Paste Auto-Detection
+
+The URL input analyzes clipboard content and adapts the input mode automatically — no explicit mode toggle needed.
+
+**Implementation:**
+- `paste` event listener on the input field inspects the pasted content:
+  - Starts with `http://` or `https://` → URL mode (default)
+  - Starts with `<` or `<!DOCTYPE` or contains `<html` → auto-switch to HTML mode, show "Detected HTML — previewing as raw markup" toast
+  - Contains `sitemap.xml` in the URL → show a suggestion chip: "This looks like a sitemap. Switch to Audit mode?"
+  - Contains two or more URLs separated by newlines → show a suggestion chip: "Multiple URLs detected. Switch to Compare mode?"
+  - Contains a shortened URL (`bit.ly`, `t.co`, etc.) → show a note: "Shortened URL — VISTA will follow redirects"
+- Suggestion chips are dismissible and non-blocking — the user can ignore and proceed normally
+- Mode auto-switch is animated: the input bar smoothly transforms (URL field → HTML textarea with syntax hints)
+- `Cmd+Z` after auto-switch reverts to URL mode with the original pasted content
+
+---
+
+#### Score Improvement Predictions
+
+Next to each diagnostic, show the exact quantified impact of fixing it — not just "this is broken" but "here's what fixing it gets you."
+
+**Implementation:**
+- Each diagnostic runs a simulation: temporarily apply the fix to the metadata, re-score all 31 platforms, calculate the delta
+- Display format: "Add `og:image` (1200×630) → **B to A+** on Facebook, LinkedIn, Reddit, Slack, WhatsApp **(+5 platforms)**"
+- Predictions sorted by impact: the fix that improves the most platforms appears first
+- Color-coded impact labels:
+  - High impact (5+ platforms improved): bold green
+  - Medium impact (2–4 platforms): yellow
+  - Low impact (1 platform): gray
+- In the editor, each field shows a micro-label below it: "Editing this affects 24 platforms"
+- The "Fix all" button shows a preview: "Apply 5 fixes → overall score C to A+ (estimated)"
+- Impact simulation is client-side only — no additional API calls, runs the scoring function against modified metadata
+
+---
+
+#### Progressive Card Cascade
+
+Cards appear with a staggered waterfall animation, with platform-specific skeleton placeholders and progressive content filling.
+
+**Implementation:**
+- Skeleton cards rendered immediately (0ms) — each skeleton matches the expected layout of its platform:
+  - Facebook/LinkedIn/Reddit: tall skeleton (image-on-top region + text lines below)
+  - WhatsApp/Slack/Notion: short skeleton (thumbnail-left + text lines right)
+  - Google: text-only skeleton (two lines, no image region)
+- Skeletons have a subtle shimmer animation (CSS `@keyframes` with `background: linear-gradient`)
+- Cards stagger in with a 50ms delay between each: card 1 at 0ms, card 2 at 50ms, card 3 at 100ms, etc.
+- Each card transitions from skeleton → content with a 150ms crossfade (`opacity` + `transform: translateY(4px)`)
+- Content fills progressively as data arrives:
+  1. Text-only cards (Google) render first (after HTML parse, ~500ms)
+  2. Cards with images show a CSS `background-color` placeholder extracted from the image's dominant color (or a neutral gray)
+  3. OG image loads asynchronously — when ready, crossfades in over the color placeholder
+- `prefers-reduced-motion` media query disables all animations — cards appear instantly without cascade or crossfade
+
+---
+
+#### Cached Recent Inspections
+
+Last 10 inspections stored in localStorage for instant recall, with change tracking between visits.
+
+**Implementation:**
+- After each successful inspection, store to localStorage:
+  ```json
+  {
+    "url": "https://example.com",
+    "timestamp": "2026-03-13T14:30:00Z",
+    "score": "B+",
+    "platformScores": { "google": "A+", "facebook": "B", ... },
+    "metadata": { ... },
+    "favicon": "https://example.com/favicon.ico"
+  }
+  ```
+- Landing page (before inspection) shows a "Recent" strip below the URL input:
+  ```
+  Recent: [🌐 example.com B+ · 2h ago] [🌐 jedarden.com A+ · 1d ago] [...]
+  ```
+- Click a recent item → show cached results instantly (no network request)
+- Prominent "Re-fetch" button at the top of cached results
+- After re-fetching, if the score changed, show a change indicator:
+  - "↑ Score improved: B+ → A (since 2 hours ago)"
+  - "↓ Score decreased: A → C (since 1 day ago)" with a diff of what changed
+  - "= No changes since last inspection"
+- Max 10 entries, FIFO eviction
+- "Clear history" link in the recent strip
+- Total localStorage budget: ~500KB (metadata is compact; images are URLs, not stored)
+
+---
+
+#### Confetti on Perfect Score
+
+When all 31 platforms score A+ — a rare achievement requiring every tag present, every image correctly sized, every description within limits — the app celebrates.
+
+**Implementation:**
+- Trigger condition: every platform's individual score === "A+"
+- Animation: canvas-based confetti burst (lightweight library like `canvas-confetti`, ~6KB gzipped)
+  - Duration: 2 seconds
+  - Colors: VISTA's brand accent + green
+  - Particle count: ~150 (performant on mobile)
+- Toast notification: "Perfect score! Your page is fully optimized across all 31 platforms." with a share button
+- Share button generates a shareable card: "jedarden.com scored A+ on all 31 platforms — verified by VISTA"
+- Score badge in the summary bar gets a subtle golden glow for the session
+- Respects `prefers-reduced-motion`: if enabled, skip confetti, show only the toast
+- Does NOT trigger on cached results — only on fresh inspections (prevents repeated confetti on page reload)
+- Does NOT trigger in Compare or Audit modes (only Inspect and Editor)
 
 ---
 
@@ -1869,21 +2081,28 @@ Container builds via the existing `container-build` WorkflowTemplate in Argo Wor
 - Express server with `/api/preview` endpoint (GET for URL, POST for raw HTML)
 - HTML fetcher with meta tag parser (cheerio), redirect chain tracking, response header capture
 - Image dimension probing (HTTP HEAD + partial download)
-- Static frontend with URL input + paste HTML toggle
+- Static frontend with URL input, paste auto-detection (URL vs HTML vs sitemap)
+- Progressive card cascade (platform-specific skeletons, staggered entrance, crossfade)
 - Card renderers: Google, Facebook, X, LinkedIn, Reddit, Slack, Discord, WhatsApp, iMessage, Telegram
 - Common mistakes detector (wrong attributes, relative URLs, HTTP images, tags past 32KB)
 - Platform score card (A+ through F letter grades)
-- Auto-fix generator with copy-paste snippets
+- Auto-fix generator with score improvement predictions
 - Shareable results via URL query parameters
+- Cached recent inspections (localStorage, last 10, change tracking)
 - Dockerfile
 
 ### Phase 2: Editor & Full Coverage
 - Live Meta Tag Editor with real-time preview updates
+- Inline card editing (contenteditable on rendered text, bidirectional sync with editor)
 - "What If" tag toggle (uncheck tags to see fallback behavior)
 - Character budget gauges below editable fields
+- Diagnostic resolution tracking (strikethrough fixes, live score updates)
 - Code snippet generator (Plain HTML, Next.js, Nuxt, Remix, Astro, SvelteKit)
 - Template library (blog, SaaS, e-commerce, portfolio, event, recipe, podcast, docs, OSS, newsletter)
 - Cache invalidation hub (one-click links + API purge for Facebook)
+- Platform favorites & custom layout (star, reorder, hide — localStorage)
+- Smart platform ordering (auto-detect page type, reorder by relevance)
+- Command palette (Cmd+K — search all features, actions, modes, commands)
 - Remaining 21 platform card renderers
 - Missing-tag warnings per platform
 
@@ -1899,3 +2118,4 @@ Container builds via the existing `container-build` WorkflowTemplate in Argo Wor
 - Dark/light mode toggle for platforms that support both
 - Raw metadata viewer (all extracted tags in a table)
 - Score badge API (embeddable SVG badge)
+- Confetti on perfect score (all 31 platforms A+, respects prefers-reduced-motion)

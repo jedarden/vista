@@ -498,3 +498,52 @@ body.has-results { padding-bottom: 48px; }
   .cropper-group-platforms { grid-template-columns: 1fr; }
   .cropper-controls-header { flex-direction: column; }
 }
+
+/* ── OG Generator ── */
+.oggen-container { display: flex; flex-direction: column; gap: 20px; }
+.oggen-main { display: flex; gap: 24px; }
+.oggen-preview-panel { flex: 1; min-width: 0; }
+.oggen-preview-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.oggen-preview-header h3 { font-size: 14px; font-weight: 600; color: var(--text2); }
+.oggen-preview-scale { font-size: 12px; color: var(--text3); }
+.oggen-preview-area { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.oggen-preview-area canvas { max-width: 100%; height: auto; box-shadow: var(--shadow); }
+
+.oggen-controls-panel { width: 320px; flex-shrink: 0; display: flex; flex-direction: column; gap: 16px; }
+.oggen-controls-section { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+.oggen-section-title { font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.06em; }
+.oggen-control-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+.oggen-control-row:last-child { margin-bottom: 0; }
+.oggen-label { font-size: 13px; color: var(--text3); min-width: 70px; flex-shrink: 0; }
+.oggen-select { flex: 1; background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; font-size: 13px; color: var(--text); outline: none; }
+.oggen-select:focus { border-color: var(--accent); }
+.oggen-select-small { background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 12px; color: var(--text); outline: none; }
+.oggen-select-small:focus { border-color: var(--accent); }
+.oggen-color-input { width: 40px; height: 36px; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; background: none; padding: 0; }
+.oggen-color-input::-webkit-color-swatch-wrapper { padding: 0; }
+.oggen-color-input::-webkit-color-swatch { border: none; border-radius: 4px; }
+.oggen-text-input { flex: 1; background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; font-size: 13px; color: var(--text); outline: none; }
+.oggen-text-input:focus { border-color: var(--accent); }
+.oggen-number-input { width: 70px; background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 13px; color: var(--text); outline: none; }
+.oggen-number-input:focus { border-color: var(--accent); }
+.oggen-unit { font-size: 12px; color: var(--text3); }
+.oggen-file-input { flex: 1; font-size: 12px; color: var(--text3); background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; }
+.oggen-file-input::-webkit-file-upload-button { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; padding: 4px 10px; margin-right: 8px; color: var(--text2); font-size: 12px; cursor: pointer; }
+
+.oggen-gradient-inputs { display: flex; align-items: center; gap: 8px; flex: 1; }
+.oggen-gradient-inputs span { color: var(--text3); font-size: 12px; }
+
+.oggen-actions { display: flex; flex-direction: column; gap: 8px; }
+.oggen-actions .action-btn { width: 100%; justify-content: center; display: flex; align-items: center; gap: 8px; }
+
+/* OG Generator Responsive */
+@media (max-width: 900px) {
+  .oggen-main { flex-direction: column; }
+  .oggen-controls-panel { width: 100%; }
+}
+
+@media (max-width: 640px) {
+  .oggen-control-row { flex-direction: column; align-items: stretch; }
+  .oggen-label { min-width: auto; margin-bottom: 4px; }
+  .oggen-preview-area { padding: 10px; }
+}

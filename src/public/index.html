@@ -10,6 +10,9 @@
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23111'/><text y='24' x='4' font-size='22' fill='%23fff'>V</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;600;700&family=Montserrat:wght@400;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -121,6 +124,7 @@
           <button class="tab-btn" data-tab="rawtags">Raw Tags</button>
           <button class="tab-btn" data-tab="redirects">Redirects &amp; Headers</button>
           <button class="tab-btn" data-tab="fixes">Auto-Fix</button>
+          <button class="tab-btn" data-tab="oggen">OG Generator</button>
         </div>
       </div>
 
@@ -176,6 +180,118 @@
         <!-- Auto-Fix tab -->
         <div class="tab-pane hidden" id="tabFixes">
           <div class="fixes-panel" id="fixesPanel"></div>
+        </div>
+
+        <!-- OG Generator tab -->
+        <div class="tab-pane hidden" id="tabOggen">
+          <div class="oggen-container" id="oggenContainer">
+            <div class="oggen-main">
+              <div class="oggen-preview-panel">
+                <div class="oggen-preview-header">
+                  <h3>Live Preview (1200×630)</h3>
+                  <span class="oggen-preview-scale">Scale: 50%</span>
+                </div>
+                <div class="oggen-preview-area" id="oggenPreviewArea">
+                  <canvas id="oggenCanvas" width="1200" height="630"></canvas>
+                </div>
+              </div>
+              <div class="oggen-controls-panel">
+                <div class="oggen-controls-section">
+                  <h4 class="oggen-section-title">Background</h4>
+                  <div class="oggen-control-row">
+                    <label class="oggen-label">Type:</label>
+                    <select id="oggenBgType" class="oggen-select">
+                      <option value="solid">Solid Color</option>
+                      <option value="gradient">Gradient</option>
+                      <option value="image">Image Upload</option>
+                    </select>
+                  </div>
+                  <div class="oggen-control-row" id="oggenBgColorRow">
+                    <label class="oggen-label">Color:</label>
+                    <input type="color" id="oggenBgColor" value="#1a1a2e" class="oggen-color-input" />
+                  </div>
+                  <div class="oggen-control-row hidden" id="oggenBgGradientRow">
+                    <label class="oggen-label">Gradient:</label>
+                    <div class="oggen-gradient-inputs">
+                      <input type="color" id="oggenGradientStart" value="#1a1a2e" class="oggen-color-input" />
+                      <span>→</span>
+                      <input type="color" id="oggenGradientEnd" value="#16213e" class="oggen-color-input" />
+                      <select id="oggenGradientDir" class="oggen-select-small">
+                        <option value="horizontal">Horizontal</option>
+                        <option value="vertical">Vertical</option>
+                        <option value="diagonal">Diagonal</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="oggen-control-row hidden" id="oggenBgImageRow">
+                    <label class="oggen-label">Image:</label>
+                    <input type="file" id="oggenBgImageInput" accept="image/*" class="oggen-file-input" />
+                    <select id="oggenBgImageSize" class="oggen-select-small">
+                      <option value="cover">Cover</option>
+                      <option value="contain">Contain</option>
+                      <option value="stretch">Stretch</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="oggen-controls-section">
+                  <h4 class="oggen-section-title">Content</h4>
+                  <div class="oggen-control-row">
+                    <label class="oggen-label">Title:</label>
+                    <input type="text" id="oggenTitle" placeholder="Your title here" class="oggen-text-input" maxlength="200" />
+                  </div>
+                  <div class="oggen-control-row">
+                    <label class="oggen-label">Subtitle:</label>
+                    <input type="text" id="oggenSubtitle" placeholder="Optional subtitle" class="oggen-text-input" maxlength="300" />
+                  </div>
+                  <div class="oggen-control-row">
+                    <label class="oggen-label">Font:</label>
+                    <select id="oggenFont" class="oggen-select">
+                      <option value="system">System UI</option>
+                      <option value="serif">Serif</option>
+                      <option value="mono">Monospace</option>
+                      <option value="inter">Inter (Google)</option>
+                      <option value="roboto">Roboto (Google)</option>
+                      <option value="open-sans">Open Sans (Google)</option>
+                      <option value="montserrat">Montserrat (Google)</option>
+                      <option value="playfair">Playfair Display (Google)</option>
+                    </select>
+                  </div>
+                  <div class="oggen-control-row">
+                    <label class="oggen-label">Text Color:</label>
+                    <input type="color" id="oggenTextColor" value="#ffffff" class="oggen-color-input" />
+                  </div>
+                </div>
+
+                <div class="oggen-controls-section">
+                  <h4 class="oggen-section-title">Logo</h4>
+                  <div class="oggen-control-row">
+                    <label class="oggen-label">Position:</label>
+                    <select id="oggenLogoPos" class="oggen-select">
+                      <option value="none">None</option>
+                      <option value="top-left">Top Left</option>
+                      <option value="top-right">Top Right</option>
+                      <option value="bottom-left">Bottom Left</option>
+                      <option value="bottom-right">Bottom Right</option>
+                      <option value="center">Center</option>
+                    </select>
+                  </div>
+                  <div class="oggen-control-row" id="oggenLogoUploadRow">
+                    <label class="oggen-label">Logo:</label>
+                    <input type="file" id="oggenLogoInput" accept="image/*" class="oggen-file-input" />
+                    <input type="number" id="oggenLogoSize" value="80" min="20" max="300" class="oggen-number-input" />
+                    <span class="oggen-unit">px</span>
+                  </div>
+                </div>
+
+                <div class="oggen-actions">
+                  <button class="action-btn primary" id="oggenDownloadBtn">&#128190; Download PNG</button>
+                  <button class="action-btn" id="oggenUseInEditorBtn">&#128279; Use in Editor</button>
+                  <button class="action-btn" id="oggenResetBtn">&#8634; Reset</button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
       </div>

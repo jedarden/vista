@@ -41,6 +41,30 @@ const safeZoneInfo = $('#safeZoneInfo');
 const imageInfo = $('#imageInfo');
 const cropperBadge = $('#cropperBadge');
 
+// OG Generator DOM refs
+const oggenCanvas = $('#oggenCanvas');
+const oggenBgType = $('#oggenBgType');
+const oggenBgColor = $('#oggenBgColor');
+const oggenBgGradientRow = $('#oggenBgGradientRow');
+const oggenGradientStart = $('#oggenGradientStart');
+const oggenGradientEnd = $('#oggenGradientEnd');
+const oggenGradientDir = $('#oggenGradientDir');
+const oggenBgImageRow = $('#oggenBgImageRow');
+const oggenBgImageInput = $('#oggenBgImageInput');
+const oggenBgImageSize = $('#oggenBgImageSize');
+const oggenBgColorRow = $('#oggenBgColorRow');
+const oggenTitle = $('#oggenTitle');
+const oggenSubtitle = $('#oggenSubtitle');
+const oggenFont = $('#oggenFont');
+const oggenTextColor = $('#oggenTextColor');
+const oggenLogoPos = $('#oggenLogoPos');
+const oggenLogoInput = $('#oggenLogoInput');
+const oggenLogoSize = $('#oggenLogoSize');
+const oggenLogoUploadRow = $('#oggenLogoUploadRow');
+const oggenDownloadBtn = $('#oggenDownloadBtn');
+const oggenUseInEditorBtn = $('#oggenUseInEditorBtn');
+const oggenResetBtn = $('#oggenResetBtn');
+
 // ── Event listeners ──
 urlForm.addEventListener('submit', (e) => { e.preventDefault(); inspectUrl(urlInput.value.trim()); });
 pasteForm.addEventListener('submit', (e) => { e.preventDefault(); inspectHtml(htmlInput.value.trim(), baseUrlInput.value.trim()); });
@@ -52,6 +76,25 @@ navPaste.addEventListener('click', () => switchMode('paste'));
 
 $('#shareBtn').addEventListener('click', shareResults);
 $('#newInspectBtn').addEventListener('click', resetToHero);
+
+// OG Generator event listeners
+oggenBgType?.addEventListener('change', handleBgTypeChange);
+oggenBgColor?.addEventListener('input', updateOggenCanvas);
+oggenGradientStart?.addEventListener('input', updateOggenCanvas);
+oggenGradientEnd?.addEventListener('input', updateOggenCanvas);
+oggenGradientDir?.addEventListener('change', updateOggenCanvas);
+oggenBgImageInput?.addEventListener('change', handleBgImageUpload);
+oggenBgImageSize?.addEventListener('change', updateOggenCanvas);
+oggenTitle?.addEventListener('input', updateOggenCanvas);
+oggenSubtitle?.addEventListener('input', updateOggenCanvas);
+oggenFont?.addEventListener('change', updateOggenCanvas);
+oggenTextColor?.addEventListener('input', updateOggenCanvas);
+oggenLogoPos?.addEventListener('change', handleLogoPosChange);
+oggenLogoInput?.addEventListener('change', handleLogoUpload);
+oggenLogoSize?.addEventListener('input', updateOggenCanvas);
+oggenDownloadBtn?.addEventListener('click', downloadOggenImage);
+oggenResetBtn?.addEventListener('click', resetOggen);
+oggenUseInEditorBtn?.addEventListener('click', useOggenInEditor);
 
 // Tab switching
 document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -70,6 +113,7 @@ document.querySelectorAll('.chip').forEach(chip => {
 // Auto-load from URL param on page load
 window.addEventListener('DOMContentLoaded', () => {
   loadRecents();
+  initOgGenerator();
   const params = new URLSearchParams(window.location.search);
   const urlParam = params.get('url');
   if (urlParam) {
@@ -1286,4 +1330,360 @@ function fallbackCopy(text) {
   ta.select();
   try { document.execCommand('copy'); } catch (_) {}
   document.body.removeChild(ta);
+}
+
+// ── OG Generator ──
+let oggenState = {
+  bgType: 'solid',
+  bgColor: '#1a1a2e',
+  gradientStart: '#1a1a2e',
+  gradientEnd: '#16213e',
+  gradientDir: 'horizontal',
+  bgImage: null,
+  bgImageSize: 'cover',
+  title: '',
+  subtitle: '',
+  font: 'system',
+  textColor: '#ffffff',
+  logoPos: 'none',
+  logoImage: null,
+  logoSize: 80
+};
+
+const OGGEN_FONTS = {
+  system: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+  serif: 'Georgia, "Times New Roman", Times, serif',
+  mono: '"SF Mono", "Fira Code", Consolas, monospace',
+  inter: 'Inter, sans-serif',
+  roboto: 'Roboto, sans-serif',
+  'open-sans': '"Open Sans", sans-serif',
+  montserrat: 'Montserrat, sans-serif',
+  playfair: '"Playfair Display", serif'
+};
+
+function initOgGenerator() {
+  if (!oggenCanvas) return;
+  updateOggenCanvas();
+}
+
+function handleBgTypeChange() {
+  oggenState.bgType = oggenBgType.value;
+
+  // Toggle visibility of background controls
+  oggenBgColorRow.classList.toggle('hidden', oggenState.bgType !== 'solid');
+  oggenBgGradientRow.classList.toggle('hidden', oggenState.bgType !== 'gradient');
+  oggenBgImageRow.classList.toggle('hidden', oggenState.bgType !== 'image');
+
+  updateOggenCanvas();
+}
+
+function handleBgImageUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const img = new Image();
+    img.onload = () => {
+      oggenState.bgImage = img;
+      updateOggenCanvas();
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleLogoPosChange() {
+  oggenState.logoPos = oggenLogoPos.value;
+  const showUpload = oggenState.logoPos !== 'none';
+  oggenLogoUploadRow.classList.toggle('hidden', !showUpload);
+  updateOggenCanvas();
+}
+
+function handleLogoUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const img = new Image();
+    img.onload = () => {
+      oggenState.logoImage = img;
+      updateOggenCanvas();
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function updateOggenCanvas() {
+  if (!oggenCanvas) return;
+
+  const ctx = oggenCanvas.getContext('2d');
+  const width = 1200;
+  const height = 630;
+
+  // Clear canvas
+  ctx.clearRect(0, 0, width, height);
+
+  // Draw background
+  drawBackground(ctx, width, height);
+
+  // Draw content
+  drawContent(ctx, width, height);
+
+  // Draw logo
+  drawLogo(ctx, width, height);
+}
+
+function drawBackground(ctx, width, height) {
+  switch (oggenState.bgType) {
+    case 'solid':
+      ctx.fillStyle = oggenBgColor.value;
+      ctx.fillRect(0, 0, width, height);
+      break;
+
+    case 'gradient':
+      let gradient;
+      const startColor = oggenGradientStart.value;
+      const endColor = oggenGradientEnd.value;
+      const dir = oggenGradientDir.value;
+
+      if (dir === 'horizontal') {
+        gradient = ctx.createLinearGradient(0, 0, width, 0);
+      } else if (dir === 'vertical') {
+        gradient = ctx.createLinearGradient(0, 0, 0, height);
+      } else {
+        gradient = ctx.createLinearGradient(0, 0, width, height);
+      }
+
+      gradient.addColorStop(0, startColor);
+      gradient.addColorStop(1, endColor);
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, width, height);
+      break;
+
+    case 'image':
+      if (oggenState.bgImage) {
+        const img = oggenState.bgImage;
+        const mode = oggenBgImageSize.value;
+
+        if (mode === 'stretch') {
+          ctx.drawImage(img, 0, 0, width, height);
+        } else if (mode === 'contain') {
+          const scale = Math.min(width / img.width, height / img.height);
+          const w = img.width * scale;
+          const h = img.height * scale;
+          const x = (width - w) / 2;
+          const y = (height - h) / 2;
+          ctx.drawImage(img, x, y, w, h);
+        } else {
+          // cover
+          const scale = Math.max(width / img.width, height / img.height);
+          const w = img.width * scale;
+          const h = img.height * scale;
+          const x = (width - w) / 2;
+          const y = (height - h) / 2;
+          ctx.drawImage(img, x, y, w, h);
+        }
+      } else {
+        // Fallback to solid color
+        ctx.fillStyle = oggenBgColor.value;
+        ctx.fillRect(0, 0, width, height);
+      }
+      break;
+  }
+}
+
+function drawContent(ctx, width, height) {
+  const title = oggenTitle.value.trim();
+  const subtitle = oggenSubtitle.value.trim();
+  const textColor = oggenTextColor.value;
+  const font = OGGEN_FONTS[oggenFont.value] || OGGEN_FONTS.system;
+
+  if (!title && !subtitle) return;
+
+  ctx.fillStyle = textColor;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  // Calculate content area (leave space for logo)
+  const padding = 60;
+  let topY = padding;
+  let bottomY = height - padding;
+
+  if (oggenState.logoPos === 'top-left' || oggenState.logoPos === 'top-right') {
+    topY += oggenState.logoSize + 20;
+  }
+  if (oggenState.logoPos === 'bottom-left' || oggenState.logoPos === 'bottom-right') {
+    bottomY -= oggenState.logoSize + 20;
+  }
+
+  const availableHeight = bottomY - topY;
+
+  // Draw title with auto-sizing
+  if (title) {
+    const maxFontSize = 64;
+    const minFontSize = 24;
+    let fontSize = maxFontSize;
+
+    ctx.font = `700 ${fontSize}px ${font}`;
+
+    // Measure and truncate to fit
+    let measuredTitle = fitText(ctx, title, width - padding * 2);
+    let metrics = ctx.measureText(measuredTitle);
+    let textWidth = metrics.width;
+    let textHeight = fontSize * 1.2;
+
+    // Auto-size down if too wide
+    while (textWidth > width - padding * 2 && fontSize > minFontSize) {
+      fontSize -= 2;
+      ctx.font = `700 ${fontSize}px ${font}`;
+      measuredTitle = fitText(ctx, title, width - padding * 2);
+      metrics = ctx.measureText(measuredTitle);
+      textWidth = metrics.width;
+      textHeight = fontSize * 1.2;
+    }
+
+    const titleY = subtitle ? topY + availableHeight / 3 : height / 2;
+    ctx.fillText(measuredTitle, width / 2, titleY);
+
+    // Draw subtitle if present
+    if (subtitle) {
+      const subFontSize = Math.min(fontSize * 0.5, 36);
+      ctx.font = `400 ${subFontSize}px ${font}`;
+      const measuredSub = fitText(ctx, subtitle, width - padding * 2);
+      ctx.fillText(measuredSub, width / 2, titleY + textHeight + 20);
+    }
+  } else if (subtitle) {
+    // Only subtitle
+    const fontSize = 40;
+    ctx.font = `400 ${fontSize}px ${font}`;
+    const measuredSub = fitText(ctx, subtitle, width - padding * 2);
+    ctx.fillText(measuredSub, width / 2, height / 2);
+  }
+}
+
+function fitText(ctx, text, maxWidth) {
+  const metrics = ctx.measureText(text);
+  if (metrics.width <= maxWidth) return text;
+
+  // Binary search for best fit
+  let left = 0;
+  let right = text.length;
+
+  while (left < right) {
+    const mid = Math.ceil((left + right) / 2);
+    const truncated = text.slice(0, mid);
+    if (ctx.measureText(truncated + '…').width <= maxWidth) {
+      left = mid;
+    } else {
+      right = mid - 1;
+    }
+  }
+
+  return text.slice(0, left) + '…';
+}
+
+function drawLogo(ctx, width, height) {
+  if (oggenState.logoPos === 'none' || !oggenState.logoImage) return;
+
+  const img = oggenState.logoImage;
+  const size = parseInt(oggenLogoSize.value) || 80;
+  const padding = 40;
+
+  let x, y;
+
+  switch (oggenState.logoPos) {
+    case 'top-left':
+      x = padding;
+      y = padding;
+      break;
+    case 'top-right':
+      x = width - size - padding;
+      y = padding;
+      break;
+    case 'bottom-left':
+      x = padding;
+      y = height - size - padding;
+      break;
+    case 'bottom-right':
+      x = width - size - padding;
+      y = height - size - padding;
+      break;
+    case 'center':
+      x = (width - size) / 2;
+      y = (height - size) / 2;
+      break;
+  }
+
+  ctx.drawImage(img, x, y, size, size);
+}
+
+function downloadOggenImage() {
+  if (!oggenCanvas) return;
+
+  oggenCanvas.toBlob((blob) => {
+    if (!blob) return;
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'og-image-1200x630.png';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    showToast('OG image downloaded!', 2000);
+  }, 'image/png');
+}
+
+function useOggenInEditor() {
+  // For now, show a message about how to use the generated image
+  showToast('Download the image and upload it to your server.', 3000);
+}
+
+function resetOggen() {
+  oggenState = {
+    bgType: 'solid',
+    bgColor: '#1a1a2e',
+    gradientStart: '#1a1a2e',
+    gradientEnd: '#16213e',
+    gradientDir: 'horizontal',
+    bgImage: null,
+    bgImageSize: 'cover',
+    title: '',
+    subtitle: '',
+    font: 'system',
+    textColor: '#ffffff',
+    logoPos: 'none',
+    logoImage: null,
+    logoSize: 80
+  };
+
+  // Reset form controls
+  if (oggenBgType) oggenBgType.value = 'solid';
+  if (oggenBgColor) oggenBgColor.value = '#1a1a2e';
+  if (oggenGradientStart) oggenGradientStart.value = '#1a1a2e';
+  if (oggenGradientEnd) oggenGradientEnd.value = '#16213e';
+  if (oggenGradientDir) oggenGradientDir.value = 'horizontal';
+  if (oggenBgImageSize) oggenBgImageSize.value = 'cover';
+  if (oggenTitle) oggenTitle.value = '';
+  if (oggenSubtitle) oggenSubtitle.value = '';
+  if (oggenFont) oggenFont.value = 'system';
+  if (oggenTextColor) oggenTextColor.value = '#ffffff';
+  if (oggenLogoPos) oggenLogoPos.value = 'none';
+  if (oggenLogoSize) oggenLogoSize.value = 80;
+  if (oggenBgImageInput) oggenBgImageInput.value = '';
+  if (oggenLogoInput) oggenLogoInput.value = '';
+
+  // Reset UI state
+  if (oggenBgColorRow) oggenBgColorRow.classList.remove('hidden');
+  if (oggenBgGradientRow) oggenBgGradientRow.classList.add('hidden');
+  if (oggenBgImageRow) oggenBgImageRow.classList.add('hidden');
+  if (oggenLogoUploadRow) oggenLogoUploadRow.classList.add('hidden');
+
+  updateOggenCanvas();
+  showToast('OG Generator reset', 1500);
 }

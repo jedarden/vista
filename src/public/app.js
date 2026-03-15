@@ -3,8 +3,9 @@
 
 // ── State ──
 let currentData = null;
-let currentMode = 'url'; // 'url' | 'paste'
+let currentMode = 'url'; // 'url' | 'paste' | 'compare'
 let cardContextState = {}; // Track context mode per platform: { pid: { context: boolean, theme: 'dark'|'light' } }
+let compareData = { before: null, after: null, swapped: false }; // Comparison state
 
 // ── DOM refs ──
 const $ = (sel) => document.querySelector(sel);
@@ -32,6 +33,14 @@ const fixesPanel = $('#fixesPanel');
 const recentBar = $('#recentBar');
 const navInspect = $('#navInspect');
 const navPaste = $('#navPaste');
+const navCompare = $('#navCompare');
+const compareMode = $('#compareMode');
+const compareForm = $('#compareForm');
+const compareUrl1 = $('#compareUrl1');
+const compareUrl2 = $('#compareUrl2');
+const compareBtn = $('#compareBtn');
+const swapUrlsBtn = $('#swapUrlsBtn');
+const tabCompareBtn = $('#tabCompareBtn');
 const cropperViewport = $('#cropperViewport');
 const cropperImage = $('#cropperImage');
 const cropperOverlay = $('#cropperOverlay');
@@ -74,6 +83,10 @@ $('#switchToPaste').addEventListener('click', () => switchMode('paste'));
 $('#switchToUrl').addEventListener('click', () => switchMode('url'));
 navInspect.addEventListener('click', () => switchMode('url'));
 navPaste.addEventListener('click', () => switchMode('paste'));
+navCompare.addEventListener('click', () => switchMode('compare'));
+$('#switchToInspectFromCompare').addEventListener('click', () => switchMode('url'));
+compareForm.addEventListener('submit', (e) => { e.preventDefault(); handleCompareSubmit(); });
+swapUrlsBtn.addEventListener('click', handleSwapUrls);
 
 $('#shareBtn').addEventListener('click', shareResults);
 $('#newInspectBtn').addEventListener('click', resetToHero);
@@ -129,13 +142,26 @@ function switchMode(mode) {
   if (mode === 'url') {
     urlMode.classList.remove('hidden');
     pasteMode.classList.add('hidden');
+    compareMode.classList.add('hidden');
     navInspect.classList.add('active');
     navPaste.classList.remove('active');
-  } else {
+    navCompare?.classList.remove('active');
+    tabCompareBtn?.classList.add('hidden');
+  } else if (mode === 'paste') {
     urlMode.classList.add('hidden');
     pasteMode.classList.remove('hidden');
+    compareMode.classList.add('hidden');
     navPaste.classList.add('active');
     navInspect.classList.remove('active');
+    navCompare?.classList.remove('active');
+    tabCompareBtn?.classList.add('hidden');
+  } else if (mode === 'compare') {
+    urlMode.classList.add('hidden');
+    pasteMode.classList.add('hidden');
+    compareMode.classList.remove('hidden');
+    navCompare?.classList.add('active');
+    navInspect.classList.remove('active');
+    navPaste.classList.remove('active');
   }
 }
 
@@ -2633,4 +2659,262 @@ function resetOggen() {
 
   updateOggenCanvas();
   showToast('OG Generator reset', 1500);
+}
+
+// ── Compare Mode Functions ──
+
+async function handleCompareSubmit() {
+  const url1 = compareUrl1.value.trim();
+  const url2 = compareUrl2.value.trim();
+
+  if (!url1 || !url2) {
+    showToast('Please enter both URLs to compare', 2000);
+    return;
+  }
+
+  // Normalize URLs
+  const normalizedUrl1 = url1.startsWith('http://') || url1.startsWith('https://') ? url1 : 'https://' + url1;
+  const normalizedUrl2 = url2.startsWith('http://') || url2.startsWith('https://') ? url2 : 'https://' + url2;
+
+  showLoading();
+
+  try {
+    // Fetch both URLs in parallel
+    const [resp1, resp2] = await Promise.all([
+      fetch(`/api/preview?url=${encodeURIComponent(normalizedUrl1)}`),
+      fetch(`/api/preview?url=${encodeURIComponent(normalizedUrl2)}`)
+    ]);
+
+    const [data1, data2] = await Promise.all([
+      resp1.json(),
+      resp2.json()
+    ]);
+
+    if (!resp1.ok) throw new Error(`URL 1: ${data1.error || 'Fetch failed'}`);
+    if (!resp2.ok) throw new Error(`URL 2: ${data2.error || 'Fetch failed'}`);
+
+    // Store comparison data
+    compareData.before = data1;
+    compareData.after = data2;
+    compareData.swapped = false;
+
+    // Show results
+    hideLoading();
+    renderComparisonResults();
+
+    // Update hero
+    hero.classList.add('compact');
+    document.body.classList.add('has-results');
+    resultsSection.classList.remove('hidden');
+
+    // Show compare tab
+    tabCompareBtn?.classList.remove('hidden');
+    switchTab('compare');
+
+    // Scroll to results
+    resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  } catch (err) {
+    hideLoading();
+    showToast('Error: ' + err.message, 3000);
+  }
+}
+
+function handleSwapUrls() {
+  if (!compareData.before || !compareData.after) return;
+
+  // Swap the data
+  const temp = compareData.before;
+  compareData.before = compareData.after;
+  compareData.after = temp;
+  compareData.swapped = !compareData.swapped;
+
+  // Re-render
+  renderComparisonResults();
+  showToast('URLs swapped (A/B Test mode)', 1500);
+}
+
+function renderComparisonResults() {
+  if (!compareData.before || !compareData.after) return;
+
+  const data1 = compareData.before;
+  const data2 = compareData.after;
+
+  // Render score comparison
+  renderScoreComparison(data1, data2);
+
+  // Render meta tag diff
+  renderMetaTagDiff(data1.meta, data2.meta);
+
+  // Render platform comparison
+  renderPlatformComparison(data1.scoring.scores, data2.scoring.scores);
+}
+
+function renderScoreComparison(data1, data2) {
+  const grade1 = data1.scoring.overall.grade;
+  const grade2 = data2.scoring.overall.grade;
+
+  const grade1El = document.getElementById('scoreGrade1');
+  const grade2El = document.getElementById('scoreGrade2');
+  const url1El = document.getElementById('scoreUrl1');
+  const url2El = document.getElementById('scoreUrl2');
+
+  if (grade1El) {
+    grade1El.textContent = grade1;
+    grade1El.className = 'score-col-grade ' + gradeClass(grade1);
+  }
+
+  if (grade2El) {
+    grade2El.textContent = grade2;
+    grade2El.className = 'score-col-grade ' + gradeClass(grade2);
+  }
+
+  if (url1El) {
+    url1El.textContent = data1.finalUrl || data1.url;
+  }
+
+  if (url2El) {
+    url2El.textContent = data2.finalUrl || data2.url;
+  }
+}
+
+function renderMetaTagDiff(meta1, meta2) {
+  const tbody = document.getElementById('diffTableBody');
+  if (!tbody) return;
+
+  tbody.innerHTML = '';
+
+  // Collect all tag keys from both meta objects
+  const allKeys = new Set([...Object.keys(flattenMeta(meta1)), ...Object.keys(flattenMeta(meta2))]);
+
+  // Track if any diffs found
+  let hasChanges = false;
+
+  allKeys.forEach(key => {
+    const val1 = getMetaValue(meta1, key);
+    const val2 = getMetaValue(meta2, key);
+
+    if (val1 !== val2) {
+      hasChanges = true;
+      const row = document.createElement('tr');
+
+      // Determine the type of change
+      let rowClass = '';
+      let val1Class = '';
+      let val2Class = '';
+
+      if (val1 === null) {
+        rowClass = 'diff-row-added';
+        val2Class = 'diff-value-added';
+      } else if (val2 === null) {
+        rowClass = 'diff-row-removed';
+        val1Class = 'diff-value-removed';
+      } else {
+        rowClass = 'diff-row-changed';
+        val1Class = 'diff-value-changed';
+        val2Class = 'diff-value-changed';
+      }
+
+      row.className = rowClass;
+
+      row.innerHTML = `
+        <td><span class="diff-tag-key">${escHtml(key)}</span></td>
+        <td>${val1 !== null ? `<span class="${val1Class}">${escHtml(String(val1))}</span>` : '<span class="diff-empty">(missing)</span>'}</td>
+        <td>${val2 !== null ? `<span class="${val2Class}">${escHtml(String(val2))}</span>` : '<span class="diff-empty">(missing)</span>'}</td>
+      `;
+
+      tbody.appendChild(row);
+    }
+  });
+
+  if (!hasChanges) {
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text3);padding:20px;">No differences found in meta tags</td></tr>';
+  }
+}
+
+function renderPlatformComparison(scores1, scores2) {
+  const grid = document.getElementById('platformComparisonGrid');
+  if (!grid) return;
+
+  grid.innerHTML = '';
+
+  // Get all platform IDs
+  const allPids = new Set([...Object.keys(scores1), ...Object.keys(scores2)]);
+
+  allPids.forEach(pid => {
+    const score1 = scores1[pid];
+    const score2 = scores2[pid];
+
+    if (!score1 || !score2) return;
+
+    const grade1 = score1.grade;
+    const grade2 = score2.grade;
+
+    // Calculate change direction
+    const gradeOrder = ['F', 'D', 'C', 'B', 'A', 'A+'];
+    const idx1 = gradeOrder.indexOf(grade1);
+    const idx2 = gradeOrder.indexOf(grade2);
+
+    let changeClass = 'unchanged';
+    let changeText = 'No change';
+
+    if (idx2 > idx1) {
+      changeClass = 'improved';
+      changeText = '↑ Improved';
+    } else if (idx2 < idx1) {
+      changeClass = 'degraded';
+      changeText = '↓ Degraded';
+    }
+
+    const row = document.createElement('div');
+    row.className = 'platform-comparison-row';
+    row.innerHTML = `
+      <div class="platform-comparison-name">
+        <span>${PLATFORM_ICONS[pid] || '🌐'}</span>
+        <span>${escHtml(PLATFORM_NAMES[pid] || pid)}</span>
+      </div>
+      <div class="platform-comparison-score">
+        <span class="platform-comparison-grade ${gradeClass(grade1)}">${grade1}</span>
+        <span class="platform-comparison-change ${changeClass}">${changeText}</span>
+      </div>
+      <div class="platform-comparison-score">
+        <span class="platform-comparison-grade ${gradeClass(grade2)}">${grade2}</span>
+      </div>
+    `;
+
+    grid.appendChild(row);
+  });
+}
+
+// Helper function to flatten meta object for comparison
+function flattenMeta(meta, prefix = '') {
+  const result = {};
+
+  for (const [key, value] of Object.entries(meta)) {
+    const fullKey = prefix ? `${prefix}.${key}` : key;
+
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      Object.assign(result, flattenMeta(value, fullKey));
+    } else if (value !== null && value !== undefined && value !== '') {
+      result[fullKey] = value;
+    }
+  }
+
+  return result;
+}
+
+// Helper function to get meta value by dot-notation key
+function getMetaValue(meta, key) {
+  const parts = key.split('.');
+  let current = meta;
+
+  for (const part of parts) {
+    if (current && typeof current === 'object' && part in current) {
+      current = current[part];
+    } else {
+      return null;
+    }
+  }
+
+  return current;
 }

@@ -26,6 +26,7 @@
       <nav class="header-nav">
         <button class="nav-btn active" id="navInspect">Inspect</button>
         <button class="nav-btn" id="navPaste">Paste HTML</button>
+        <button class="nav-btn" id="navCompare">Compare</button>
       </nav>
     </div>
   </header>
@@ -87,6 +88,58 @@
             </div>
           </form>
         </div>
+
+        <!-- Compare Mode -->
+        <div class="input-block hidden" id="compareMode">
+          <form class="compare-form" id="compareForm">
+            <div class="compare-inputs">
+              <div class="compare-input-col">
+                <div class="compare-col-header">
+                  <span class="compare-col-label">Before</span>
+                </div>
+                <div class="input-row">
+                  <span class="input-icon">&#128279;</span>
+                  <input
+                    type="url"
+                    id="compareUrl1"
+                    placeholder="https://example.com/before"
+                    autocomplete="off"
+                    spellcheck="false"
+                  />
+                </div>
+              </div>
+              <div class="compare-divider">
+                <span>VS</span>
+              </div>
+              <div class="compare-input-col">
+                <div class="compare-col-header">
+                  <span class="compare-col-label">After</span>
+                </div>
+                <div class="input-row">
+                  <span class="input-icon">&#128279;</span>
+                  <input
+                    type="url"
+                    id="compareUrl2"
+                    placeholder="https://example.com/after"
+                    autocomplete="off"
+                    spellcheck="false"
+                  />
+                </div>
+              </div>
+            </div>
+            <div class="compare-actions">
+              <button type="submit" class="inspect-btn" id="compareBtn">
+                Compare URLs &#9654;
+              </button>
+              <button type="button" class="action-btn" id="swapUrlsBtn" title="A/B Test: Swap positions">
+                &#8646; Swap
+              </button>
+            </div>
+          </form>
+          <div class="compare-mode-toggle">
+            <button class="toggle-link" id="switchToInspectFromCompare">&#8592; Back to Inspect mode</button>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -125,6 +178,7 @@
           <button class="tab-btn" data-tab="redirects">Redirects &amp; Headers</button>
           <button class="tab-btn" data-tab="fixes">Auto-Fix</button>
           <button class="tab-btn" data-tab="oggen">OG Generator</button>
+          <button class="tab-btn hidden" id="tabCompareBtn" data-tab="compare">Compare</button>
         </div>
       </div>
 
@@ -289,6 +343,54 @@
                   <button class="action-btn" id="oggenUseInEditorBtn">&#128279; Use in Editor</button>
                   <button class="action-btn" id="oggenResetBtn">&#8634; Reset</button>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Compare tab -->
+        <div class="tab-pane hidden" id="tabCompare">
+          <div class="compare-container" id="compareContainer">
+            <!-- Score comparison summary -->
+            <div class="compare-summary">
+              <h3 class="compare-heading">Score Comparison</h3>
+              <div class="score-comparison-grid">
+                <div class="score-col" id="scoreCol1">
+                  <div class="score-col-header">Before</div>
+                  <div class="score-col-grade" id="scoreGrade1">-</div>
+                  <div class="score-col-url" id="scoreUrl1"></div>
+                </div>
+                <div class="score-vs-divider">VS</div>
+                <div class="score-col" id="scoreCol2">
+                  <div class="score-col-header">After</div>
+                  <div class="score-col-grade" id="scoreGrade2">-</div>
+                  <div class="score-col-url" id="scoreUrl2"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Meta tag diff -->
+            <div class="compare-diff">
+              <h3 class="compare-heading">Meta Tag Changes</h3>
+              <div class="diff-table-wrapper">
+                <table class="diff-table" id="diffTable">
+                  <thead>
+                    <tr>
+                      <th>Tag</th>
+                      <th>Before</th>
+                      <th>After</th>
+                    </tr>
+                  </thead>
+                  <tbody id="diffTableBody">
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Platform-by-platform comparison -->
+            <div class="compare-platforms">
+              <h3 class="compare-heading">Platform-by-Platform Comparison</h3>
+              <div class="platform-comparison-grid" id="platformComparisonGrid">
               </div>
             </div>
           </div>

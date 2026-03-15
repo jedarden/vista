@@ -50,11 +50,12 @@ async function fetchUrl(url) {
 
     // Try to parse meta tags for this hop (for redirect analysis)
     let hopMeta = null;
+    let hopHtml = null; // save html so we don't read the body stream twice
     if (isHtml && response.status === 200) {
       try {
         const buffer = await readBodyLimited(response, MAX_BODY_BYTES);
-        const html = buffer.toString('utf8');
-        hopMeta = parseMetaTags(html, currentUrl);
+        hopHtml = buffer.toString('utf8');
+        hopMeta = parseMetaTags(hopHtml, currentUrl);
         hop.meta = extractCriticalMetaTags(hopMeta);
 
         // Calculate diff from previous hop
@@ -106,9 +107,14 @@ async function fetchUrl(url) {
       hop.warning = `Chain is ${hops + 1} hops deep — some platforms give up after 3`;
     }
 
-    // Read body (limited) for final response
-    const buffer = await readBodyLimited(response, MAX_BODY_BYTES);
-    const html = buffer.toString('utf8');
+    // Use already-read body if available, otherwise read now
+    let html;
+    if (hopHtml !== null) {
+      html = hopHtml;
+    } else {
+      const buffer = await readBodyLimited(response, MAX_BODY_BYTES);
+      html = buffer.toString('utf8');
+    }
 
     // Parse final meta tags if not already done
     if (!hopMeta && isHtml) {

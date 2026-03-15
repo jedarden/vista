@@ -343,6 +343,11 @@ function handleResult(data) {
   renderRedirects(data.redirectChain, data.responseHeaders, data.headerAnalysis);
   renderFixes(data.autoFixes);
 
+  // Phase 2: Initialize editor and new features
+  initEditor(data);
+  initCacheHub();
+  generateCodeSnippet();
+
   // Show results
   resultsSection.classList.remove('hidden');
   switchTab('previews');
@@ -4091,4 +4096,1415 @@ function downloadFile(content, filename, mimeType) {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+}
+
+// ── Phase 2: Editor & Additional Features ──
+
+// Editor state
+let editorState = {
+  original: {},
+  edited: {},
+  dirty: false
+};
+
+// Platform customization state
+let platformPrefs = {
+  favorites: new Set(),
+  hidden: new Set(),
+  columnCount: 3,
+  smartOrdering: true
+};
+
+// Command palette state
+let commandPaletteOpen = false;
+let commandPaletteSelectedIndex = 0;
+let recentCommands = [];
+
+// Initialize editor when results are loaded
+function initEditor(data) {
+  if (!data || !data.meta) return;
+
+  editorState.original = {
+    title: data.meta.title || '',
+    description: data.meta.description || '',
+    'og.title': data.meta.og?.title || '',
+    'og.description': data.meta.og?.description || '',
+    'og.image': data.meta.og?.image || '',
+    'og.url': data.meta.og?.url || '',
+    'og.site_name': data.meta.og?.site_name || '',
+    'og.type': data.meta.og?.type || '',
+    'twitter.card': data.meta.twitter?.card || '',
+    'twitter.title': data.meta.twitter?.title || '',
+    'twitter.description': data.meta.twitter?.description || '',
+    'twitter.image': data.meta.twitter?.image || ''
+  };
+
+  editorState.edited = { ...editorState.original };
+  editorState.dirty = false;
+
+  // Populate form fields
+  populateEditorForm();
+  updateEditorCharCounts();
+}
+
+function populateEditorForm() {
+  const fields = [
+    { id: 'editTitle', tag: 'title' },
+    { id: 'editDescription', tag: 'description' },
+    { id: 'editOgTitle', tag: 'og.title' },
+    { id: 'editOgDescription', tag: 'og.description' },
+    { id: 'editOgImage', tag: 'og.image' },
+    { id: 'editOgUrl', tag: 'og.url' },
+    { id: 'editOgSiteName', tag: 'og.site_name' },
+    { id: 'editOgType', tag: 'og.type' },
+    { id: 'editTwitterCard', tag: 'twitter.card' },
+    { id: 'editTwitterTitle', tag: 'twitter.title' },
+    { id: 'editTwitterDescription', tag: 'twitter.description' },
+    { id: 'editTwitterImage', tag: 'twitter.image' }
+  ];
+
+  fields.forEach(field => {
+    const el = document.getElementById(field.id);
+    if (el) {
+      el.value = editorState.original[field.tag] || '';
+      el.classList.remove('modified');
+    }
+  });
+}
+
+function updateEditorCharCounts() {
+  const fields = [
+    { id: 'editTitle', countId: 'editTitleCount', max: 200 },
+    { id: 'editDescription', countId: 'editDescriptionCount', max: 300 },
+    { id: 'editOgTitle', countId: 'editOgTitleCount', max: 200 },
+    { id: 'editOgDescription', countId: 'editOgDescriptionCount', max: 300 },
+    { id: 'editTwitterTitle', countId: 'editTwitterTitleCount', max: 200 },
+    { id: 'editTwitterDescription', countId: 'editTwitterDescriptionCount', max: 300 }
+  ];
+
+  fields.forEach(field => {
+    const el = document.getElementById(field.id);
+    const countEl = document.getElementById(field.countId);
+    if (el && countEl) {
+      const len = el.value.length;
+      countEl.textContent = len;
+      if (len > field.max) {
+        countEl.style.color = 'var(--red)';
+      } else if (len > field.max * 0.9) {
+        countEl.style.color = 'var(--yellow)';
+      } else {
+        countEl.style.color = 'var(--text3)';
+      }
+    }
+  });
+}
+
+function handleEditorInput(e) {
+  const el = e.target;
+  const tag = el.dataset.tag;
+  if (!tag) return;
+
+  editorState.edited[tag] = el.value;
+  editorState.dirty = true;
+
+  // Mark as modified
+  if (el.value !== editorState.original[tag]) {
+    el.classList.add('modified');
+  } else {
+    el.classList.remove('modified');
+  }
+
+  updateEditorCharCounts();
+
+  // Debounced preview update
+  clearTimeout(editorState.previewTimeout);
+  editorState.previewTimeout = setTimeout(() => {
+    updatePreviewsWithEdits();
+  }, 300);
+}
+
+function updatePreviewsWithEdits() {
+  if (!currentData) return;
+
+  // Create modified meta object
+  const modifiedMeta = { ...currentData.meta };
+
+  // Apply edits
+  if (editorState.edited.title) modifiedMeta.title = editorState.edited.title;
+  if (editorState.edited.description) modifiedMeta.description = editorState.edited.description;
+  if (editorState.edited['og.title']) modifiedMeta.og = { ...modifiedMeta.og, title: editorState.edited['og.title'] };
+  if (editorState.edited['og.description']) modifiedMeta.og = { ...modifiedMeta.og, description: editorState.edited['og.description'] };
+  if (editorState.edited['og.image']) modifiedMeta.og = { ...modifiedMeta.og, image: editorState.edited['og.image'] };
+  if (editorState.edited['og.url']) modifiedMeta.og = { ...modifiedMeta.og, url: editorState.edited['og.url'] };
+  if (editorState.edited['og.site_name']) modifiedMeta.og = { ...modifiedMeta.og, site_name: editorState.edited['og.site_name'] };
+  if (editorState.edited['og.type']) modifiedMeta.og = { ...modifiedMeta.og, type: editorState.edited['og.type'] };
+  if (editorState.edited['twitter.card']) modifiedMeta.twitter = { ...modifiedMeta.twitter, card: editorState.edited['twitter.card'] };
+  if (editorState.edited['twitter.title']) modifiedMeta.twitter = { ...modifiedMeta.twitter, title: editorState.edited['twitter.title'] };
+  if (editorState.edited['twitter.description']) modifiedMeta.twitter = { ...modifiedMeta.twitter, description: editorState.edited['twitter.description'] };
+  if (editorState.edited['twitter.image']) modifiedMeta.twitter = { ...modifiedMeta.twitter, image: editorState.edited['twitter.image'] };
+
+  // Re-render previews with modified data
+  const modifiedData = { ...currentData, meta: modifiedMeta };
+  renderPreviews(modifiedData);
+}
+
+function resetEditor() {
+  editorState.edited = { ...editorState.original };
+  editorState.dirty = false;
+  populateEditorForm();
+  updateEditorCharCounts();
+
+  // Reset previews
+  if (currentData) {
+    renderPreviews(currentData);
+  }
+
+  showToast('Editor reset to original values', 2000);
+}
+
+// Editor event listeners
+document.addEventListener('DOMContentLoaded', () => {
+  // Editor input listeners
+  const editorInputs = document.querySelectorAll('.editor-input, .editor-textarea, .editor-select');
+  editorInputs.forEach(input => {
+    input.addEventListener('input', handleEditorInput);
+  });
+
+  // Reset button
+  document.getElementById('editorResetBtn')?.addEventListener('click', resetEditor);
+
+  // Apply button (just shows confirmation - edits don't persist)
+  document.getElementById('editorApplyBtn')?.addEventListener('click', () => {
+    showToast('Changes applied to preview. Remember to update your actual website!', 3000);
+  });
+
+  // Code snippet framework selector
+  document.getElementById('snippetFramework')?.addEventListener('change', generateCodeSnippet);
+
+  // Code snippet copy button
+  document.getElementById('snippetCopyBtn')?.addEventListener('click', copyCodeSnippet);
+
+  // Column layout selector
+  document.querySelectorAll('.layout-btn').forEach(btn => {
+    btn.addEventListener('click', () => setColumnLayout(parseInt(btn.dataset.columns)));
+  });
+
+  // Export preferences
+  document.getElementById('exportPrefsBtn')?.addEventListener('click', exportPreferences);
+
+  // Import preferences
+  document.getElementById('importPrefsBtn')?.addEventListener('click', () => {
+    document.getElementById('importPrefsInput').click();
+  });
+
+  document.getElementById('importPrefsInput')?.addEventListener('change', importPreferences);
+
+  // Facebook purge button
+  document.getElementById('fbPurgeBtn')?.addEventListener('click', handleFbPurge);
+
+  // Initialize templates
+  initTemplates();
+
+  // Load platform preferences
+  loadPlatformPrefs();
+
+  // Initialize command palette
+  initCommandPalette();
+
+  // Initialize cache hub links
+  initCacheHub();
+});
+
+// ── Code Snippet Generator ──
+function generateCodeSnippet() {
+  const framework = document.getElementById('snippetFramework')?.value || 'html';
+  const codeEl = document.getElementById('snippetCode');
+
+  if (!codeEl || !currentData) return;
+
+  const meta = editorState.dirty ? editorState.edited : {
+    title: currentData.meta?.title || '',
+    description: currentData.meta?.description || '',
+    'og.title': currentData.meta?.og?.title || '',
+    'og.description': currentData.meta?.og?.description || '',
+    'og.image': currentData.meta?.og?.image || '',
+    'og.type': currentData.meta?.og?.type || 'website',
+    'twitter.card': currentData.meta?.twitter?.card || 'summary_large_image'
+  };
+
+  let code = '';
+
+  switch (framework) {
+    case 'html':
+      code = generateHtmlSnippet(meta);
+      break;
+    case 'nextjs':
+      code = generateNextJsSnippet(meta);
+      break;
+    case 'nuxt':
+      code = generateNuxtSnippet(meta);
+      break;
+    case 'remix':
+      code = generateRemixSnippet(meta);
+      break;
+    case 'astro':
+      code = generateAstroSnippet(meta);
+      break;
+    case 'sveltekit':
+      code = generateSvelteKitSnippet(meta);
+      break;
+  }
+
+  codeEl.querySelector('code').textContent = code;
+}
+
+function generateHtmlSnippet(meta) {
+  return `<!-- Primary Meta Tags -->
+<title>${escHtml(meta.title || '')}</title>
+<meta name="title" content="${escHtml(meta.title || '')}" />
+<meta name="description" content="${escHtml(meta.description || '')}" />
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="${escHtml(meta['og.type'] || 'website')}" />
+<meta property="og:url" content="${escHtml(currentData?.finalUrl || currentData?.url || '')}" />
+<meta property="og:title" content="${escHtml(meta['og.title'] || meta.title || '')}" />
+<meta property="og:description" content="${escHtml(meta['og.description'] || meta.description || '')}" />
+<meta property="og:image" content="${escHtml(meta['og.image'] || '')}" />
+
+<!-- Twitter -->
+<meta property="twitter:card" content="${escHtml(meta['twitter.card'] || 'summary_large_image')}" />
+<meta property="twitter:url" content="${escHtml(currentData?.finalUrl || currentData?.url || '')}" />
+<meta property="twitter:title" content="${escHtml(meta['og.title'] || meta.title || '')}" />
+<meta property="twitter:description" content="${escHtml(meta['og.description'] || meta.description || '')}" />
+<meta property="twitter:image" content="${escHtml(meta['og.image'] || '')}" />`;
+}
+
+function generateNextJsSnippet(meta) {
+  return `import Head from 'next/head';
+
+export default function MetaTags() {
+  return (
+    <Head>
+      <title>${escHtml(meta.title || '')}</title>
+      <meta name="description" content="${escHtml(meta.description || '')}" />
+
+      {/* Open Graph */}
+      <meta property="og:type" content="${escHtml(meta['og.type'] || 'website')}" />
+      <meta property="og:title" content="${escHtml(meta['og.title'] || meta.title || '')}" />
+      <meta property="og:description" content="${escHtml(meta['og.description'] || meta.description || '')}" />
+      <meta property="og:image" content="${escHtml(meta['og.image'] || '')}" />
+
+      {/* Twitter */}
+      <meta name="twitter:card" content="${escHtml(meta['twitter.card'] || 'summary_large_image')}" />
+      <meta name="twitter:title" content="${escHtml(meta['og.title'] || meta.title || '')}" />
+      <meta name="twitter:description" content="${escHtml(meta['og.description'] || meta.description || '')}" />
+      <meta name="twitter:image" content="${escHtml(meta['og.image'] || '')}" />
+    </Head>
+  );
+}`;
+}
+
+function generateNuxtSnippet(meta) {
+  return `<script setup>
+useHead({
+  title: '${escHtml(meta.title || '')}',
+  meta: [
+    { name: 'description', content: '${escHtml(meta.description || '')}' },
+    { property: 'og:type', content: '${escHtml(meta['og.type'] || 'website')}' },
+    { property: 'og:title', content: '${escHtml(meta['og.title'] || meta.title || '')}' },
+    { property: 'og:description', content: '${escHtml(meta['og.description'] || meta.description || '')}' },
+    { property: 'og:image', content: '${escHtml(meta['og.image'] || '')}' },
+    { name: 'twitter:card', content: '${escHtml(meta['twitter.card'] || 'summary_large_image')}' },
+    { name: 'twitter:title', content: '${escHtml(meta['og.title'] || meta.title || '')}' },
+    { name: 'twitter:description', content: '${escHtml(meta['og.description'] || meta.description || '')}' },
+    { name: 'twitter:image', content: '${escHtml(meta['og.image'] || '')}' }
+  ]
+})
+</script>`;
+}
+
+function generateRemixSnippet(meta) {
+  return `import { MetaFunction } from '@remix-run/node';
+
+export const meta: MetaFunction = () => {
+  return [
+    { title: "${escHtml(meta.title || '')}" },
+    { name: "description", content: "${escHtml(meta.description || '')}" },
+    { property: "og:type", content: "${escHtml(meta['og.type'] || 'website')}" },
+    { property: "og:title", content: "${escHtml(meta['og.title'] || meta.title || '')}" },
+    { property: "og:description", content: "${escHtml(meta['og.description'] || meta.description || '')}" },
+    { property: "og:image", content: "${escHtml(meta['og.image'] || '')}" },
+    { name: "twitter:card", content: "${escHtml(meta['twitter.card'] || 'summary_large_image')}" },
+    { name: "twitter:title", content: "${escHtml(meta['og.title'] || meta.title || '')}" },
+    { name: "twitter:description", content: "${escHtml(meta['og.description'] || meta.description || '')}" },
+    { name: "twitter:image", content: "${escHtml(meta['og.image'] || '')}" }
+  ];
+};`;
+}
+
+function generateAstroSnippet(meta) {
+  return `---
+import Layout from '../layouts/Layout.astro';
+
+const meta = {
+  title: '${escHtml(meta.title || '')}',
+  description: '${escHtml(meta.description || '')}',
+  ogType: '${escHtml(meta['og.type'] || 'website')}',
+  ogTitle: '${escHtml(meta['og.title'] || meta.title || '')}',
+  ogDescription: '${escHtml(meta['og.description'] || meta.description || '')}',
+  ogImage: '${escHtml(meta['og.image'] || '')}',
+  twitterCard: '${escHtml(meta['twitter.card'] || 'summary_large_image')}'
+};
+---
+
+<Layout title={meta.title}>
+  <meta name="description" content={meta.description} />
+  <meta property="og:type" content={meta.ogType} />
+  <meta property="og:title" content={meta.ogTitle} />
+  <meta property="og:description" content={meta.ogDescription} />
+  <meta property="og:image" content={meta.ogImage} />
+  <meta name="twitter:card" content={meta.twitterCard} />
+  <meta name="twitter:title" content={meta.ogTitle} />
+  <meta name="twitter:description" content={meta.ogDescription} />
+  <meta name="twitter:image" content={meta.ogImage} />
+
+  <slot />
+</Layout>`;
+}
+
+function generateSvelteKitSnippet(meta) {
+  return `<script>
+  export let ssr = true;
+
+  const meta = {
+    title: '${escHtml(meta.title || '')}',
+    description: '${escHtml(meta.description || '')}',
+    ogType: '${escHtml(meta['og.type'] || 'website')}',
+    ogTitle: '${escHtml(meta['og.title'] || meta.title || '')}',
+    ogDescription: '${escHtml(meta['og.description'] || meta.description || '')}',
+    ogImage: '${escHtml(meta['og.image'] || '')}',
+    twitterCard: '${escHtml(meta['twitter.card'] || 'summary_large_image')}'
+  };
+
+  if (ssr) {
+    import('svelte-head').then(({ setHead }) => {
+      setHead({
+        title: meta.title,
+        meta: [
+          { name: 'description', content: meta.description },
+          { property: 'og:type', content: meta.ogType },
+          { property: 'og:title', content: meta.ogTitle },
+          { property: 'og:description', content: meta.ogDescription },
+          { property: 'og:image', content: meta.ogImage },
+          { name: 'twitter:card', content: meta.twitterCard },
+          { name: 'twitter:title', content: meta.ogTitle },
+          { name: 'twitter:description', content: meta.ogDescription },
+          { name: 'twitter:image', content: meta.ogImage }
+        ]
+      });
+    });
+  }
+</script>
+
+<svelte:head>
+  <title>{meta.title}</title>
+  <meta name="description" content={meta.description} />
+  <meta property="og:type" content={meta.ogType} />
+  <meta property="og:title" content={meta.ogTitle} />
+  <meta property="og:description" content={meta.ogDescription} />
+  <meta property="og:image" content={meta.ogImage} />
+  <meta name="twitter:card" content={meta.twitterCard} />
+  <meta name="twitter:title" content={meta.ogTitle} />
+  <meta name="twitter:description" content={meta.ogDescription} />
+  <meta name="twitter:image" content={meta.ogImage} />
+</svelte:head>
+
+<slot />`;
+}
+
+function copyCodeSnippet() {
+  const codeEl = document.getElementById('snippetCode');
+  if (!codeEl) return;
+
+  const code = codeEl.querySelector('code')?.textContent;
+  if (!code) return;
+
+  navigator.clipboard.writeText(code).then(() => {
+    showToast('Code snippet copied to clipboard', 2000);
+  }).catch(() => {
+    showToast('Failed to copy code', 2000);
+  });
+}
+
+// ── Template Library ──
+const TEMPLATES = [
+  {
+    id: 'blog',
+    icon: '📝',
+    title: 'Blog Post',
+    desc: 'Optimized for articles and blog content',
+    tags: ['article', 'blog'],
+    values: {
+      'og.type': 'article',
+      'twitter.card': 'summary_large_image'
+    }
+  },
+  {
+    id: 'saas',
+    icon: '💼',
+    title: 'SaaS Landing',
+    desc: 'Perfect for software product pages',
+    tags: ['product', 'saas'],
+    values: {
+      'og.type': 'website',
+      'twitter.card': 'summary_large_image'
+    }
+  },
+  {
+    id: 'ecommerce',
+    icon: '🛒',
+    title: 'E-commerce',
+    desc: 'Product and shopping pages',
+    tags: ['product', 'shop'],
+    values: {
+      'og.type': 'product',
+      'twitter.card': 'summary_large_image'
+    }
+  },
+  {
+    id: 'portfolio',
+    icon: '🎨',
+    title: 'Portfolio',
+    desc: 'Personal portfolio and showcase',
+    tags: ['website', 'personal'],
+    values: {
+      'og.type': 'website',
+      'twitter.card': 'summary_large_image'
+    }
+  },
+  {
+    id: 'event',
+    icon: '📅',
+    title: 'Event',
+    desc: 'Conferences, meetups, and events',
+    tags: ['event', 'calendar'],
+    values: {
+      'og.type': 'website',
+      'twitter.card': 'summary_large_image'
+    }
+  },
+  {
+    id: 'recipe',
+    icon: '🍳',
+    title: 'Recipe',
+    desc: 'Food blog and recipe pages',
+    tags: ['article', 'food'],
+    values: {
+      'og.type': 'article',
+      'twitter.card': 'summary_large_image'
+    }
+  },
+  {
+    id: 'podcast',
+    icon: '🎙️',
+    title: 'Podcast',
+    desc: 'Audio content and episodes',
+    tags: ['audio', 'podcast'],
+    values: {
+      'og.type': 'website',
+      'twitter.card': 'summary_large_image'
+    }
+  },
+  {
+    id: 'docs',
+    icon: '📚',
+    title: 'Documentation',
+    desc: 'Technical docs and knowledge base',
+    tags: ['docs', 'reference'],
+    values: {
+      'og.type': 'website',
+      'twitter.card': 'summary'
+    }
+  },
+  {
+    id: 'oss',
+    icon: '🐙',
+    title: 'Open Source',
+    desc: 'GitHub projects and OSS pages',
+    tags: ['github', 'code'],
+    values: {
+      'og.type': 'website',
+      'twitter.card': 'summary_large_image'
+    }
+  },
+  {
+    id: 'newsletter',
+    icon: '📧',
+    title: 'Newsletter',
+    desc: 'Email subscriptions and archives',
+    tags: ['email', 'content'],
+    values: {
+      'og.type': 'website',
+      'twitter.card': 'summary_large_image'
+    }
+  }
+];
+
+function initTemplates() {
+  const grid = document.getElementById('templatesGrid');
+  if (!grid) return;
+
+  grid.innerHTML = TEMPLATES.map(tpl => `
+    <div class="template-card" data-template="${tpl.id}">
+      <div class="template-icon">${tpl.icon}</div>
+      <div class="template-title">${escHtml(tpl.title)}</div>
+      <div class="template-desc">${escHtml(tpl.desc)}</div>
+      <div class="template-tags">
+        ${tpl.tags.map(tag => `<span class="template-tag">${escHtml(tag)}</span>`).join('')}
+      </div>
+    </div>
+  `).join('');
+
+  // Add click handlers
+  grid.querySelectorAll('.template-card').forEach(card => {
+    card.addEventListener('click', () => applyTemplate(card.dataset.template));
+  });
+}
+
+function applyTemplate(templateId) {
+  const template = TEMPLATES.find(t => t.id === templateId);
+  if (!template || !currentData) return;
+
+  // Apply template values to editor state
+  Object.entries(template.values).forEach(([key, value]) => {
+    editorState.edited[key] = value;
+  });
+
+  // Update form
+  populateEditorForm();
+
+  // Update modified classes
+  document.querySelectorAll('.editor-input, .editor-select').forEach(el => {
+    const tag = el.dataset.tag;
+    if (tag && editorState.edited[tag] !== editorState.original[tag]) {
+      el.classList.add('modified');
+    }
+  });
+
+  // Update previews
+  updatePreviewsWithEdits();
+
+  showToast(`Applied "${template.title}" template`, 2000);
+
+  // Switch to editor tab
+  switchTab('editor');
+}
+
+// ── Cache Hub ──
+function initCacheHub() {
+  // Update cache hub links when currentData changes
+  if (!currentData) return;
+
+  const url = encodeURIComponent(currentData.finalUrl || currentData.url || '');
+
+  document.getElementById('cacheFb')?.setAttribute('href', `https://developers.facebook.com/tools/debug/?q=${url}`);
+  document.getElementById('cacheTwitter')?.setAttribute('href', `https://cards-dev.twitter.com/validator`);
+  document.getElementById('cacheLinkedin')?.setAttribute('href', `https://www.linkedin.com/post-inspector/`);
+  document.getElementById('cacheWhatsapp')?.setAttribute('href', `https://faq.whatsapp.com/general/how-to-create-click-to-chat-link`);
+}
+
+async function handleFbPurge() {
+  if (!currentData) return;
+
+  const token = document.getElementById('fbAppToken')?.value;
+  if (!token) {
+    showToast('Please enter a Facebook App Token', 2000);
+    return;
+  }
+
+  const url = currentData.finalUrl || currentData.url;
+  if (!url) {
+    showToast('No URL available', 2000);
+    return;
+  }
+
+  try {
+    const response = await fetch(`https://graph.facebook.com/v18.0/?id=${encodeURIComponent(url)}&scrape=true&access_token=${encodeURIComponent(token)}`);
+    const data = await response.json();
+
+    if (data.error) {
+      showToast('Error: ' + data.error.message, 3000);
+    } else {
+      showToast('Facebook cache purged successfully!', 2000);
+    }
+  } catch (err) {
+    showToast('Failed to purge Facebook cache', 2000);
+  }
+}
+
+// ── Platform Customization ──
+function loadPlatformPrefs() {
+  const saved = localStorage.getItem('vista-platform-prefs');
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      platformPrefs.favorites = new Set(parsed.favorites || []);
+      platformPrefs.hidden = new Set(parsed.hidden || []);
+      platformPrefs.columnCount = parsed.columnCount || 3;
+      platformPrefs.smartOrdering = parsed.smartOrdering !== false;
+    } catch (e) {
+      console.warn('Failed to load platform preferences', e);
+    }
+  }
+
+  updateColumnLayoutUI();
+  updateFavoritesList();
+  updateHiddenList();
+}
+
+function savePlatformPrefs() {
+  const prefs = {
+    favorites: Array.from(platformPrefs.favorites),
+    hidden: Array.from(platformPrefs.hidden),
+    columnCount: platformPrefs.columnCount,
+    smartOrdering: platformPrefs.smartOrdering
+  };
+  localStorage.setItem('vista-platform-prefs', JSON.stringify(prefs));
+}
+
+function setColumnLayout(count) {
+  platformPrefs.columnCount = count;
+  savePlatformPrefs();
+  updateColumnLayoutUI();
+
+  // Update grid layout
+  if (previewGrid) {
+    previewGrid.style.gridTemplateColumns = `repeat(${count}, 1fr)`;
+  }
+}
+
+function updateColumnLayoutUI() {
+  document.querySelectorAll('.layout-btn').forEach(btn => {
+    btn.classList.toggle('active', parseInt(btn.dataset.columns) === platformPrefs.columnCount);
+  });
+}
+
+function toggleFavorite(pid) {
+  if (platformPrefs.favorites.has(pid)) {
+    platformPrefs.favorites.delete(pid);
+  } else {
+    platformPrefs.favorites.add(pid);
+  }
+  savePlatformPrefs();
+  updateFavoritesList();
+}
+
+function toggleHidden(pid) {
+  if (platformPrefs.hidden.has(pid)) {
+    platformPrefs.hidden.delete(pid);
+  } else {
+    platformPrefs.hidden.add(pid);
+  }
+  savePlatformPrefs();
+  updateHiddenList();
+  renderPreviews(currentData); // Re-render to apply hiding
+}
+
+function updateFavoritesList() {
+  const list = document.getElementById('favoritesList');
+  if (!list) return;
+
+  if (platformPrefs.favorites.size === 0) {
+    list.innerHTML = '<p class="empty-state">No favorites yet</p>';
+    return;
+  }
+
+  list.innerHTML = Array.from(platformPrefs.favorites).map(pid => `
+    <div class="platform-item">
+      <span class="platform-item-icon">${PLATFORM_ICONS[pid] || '🌐'}</span>
+      <span class="platform-item-name">${escHtml(PLATFORM_NAMES[pid] || pid)}</span>
+      <button class="platform-item-remove" data-pid="${pid}">&times;</button>
+    </div>
+  `).join('');
+
+  list.querySelectorAll('.platform-item-remove').forEach(btn => {
+    btn.addEventListener('click', () => toggleFavorite(btn.dataset.pid));
+  });
+}
+
+function updateHiddenList() {
+  const list = document.getElementById('hiddenPlatformsList');
+  if (!list) return;
+
+  if (platformPrefs.hidden.size === 0) {
+    list.innerHTML = '<p class="empty-state">No hidden platforms</p>';
+    return;
+  }
+
+  list.innerHTML = Array.from(platformPrefs.hidden).map(pid => `
+    <div class="platform-item">
+      <span class="platform-item-icon">${PLATFORM_ICONS[pid] || '🌐'}</span>
+      <span class="platform-item-name">${escHtml(PLATFORM_NAMES[pid] || pid)}</span>
+      <button class="platform-item-remove" data-pid="${pid}">&times;</button>
+    </div>
+  `).join('');
+
+  list.querySelectorAll('.platform-item-remove').forEach(btn => {
+    btn.addEventListener('click', () => toggleHidden(btn.dataset.pid));
+  });
+}
+
+function exportPreferences() {
+  const prefs = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    favorites: Array.from(platformPrefs.favorites),
+    hidden: Array.from(platformPrefs.hidden),
+    columnCount: platformPrefs.columnCount,
+    smartOrdering: platformPrefs.smartOrdering
+  };
+
+  const blob = new Blob([JSON.stringify(prefs, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'vista-preferences.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  showToast('Preferences exported', 2000);
+}
+
+function importPreferences(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    try {
+      const prefs = JSON.parse(event.target.result);
+      platformPrefs.favorites = new Set(prefs.favorites || []);
+      platformPrefs.hidden = new Set(prefs.hidden || []);
+      platformPrefs.columnCount = prefs.columnCount || 3;
+      platformPrefs.smartOrdering = prefs.smartOrdering !== false;
+
+      savePlatformPrefs();
+      updateColumnLayoutUI();
+      updateFavoritesList();
+      updateHiddenList();
+
+      if (currentData) {
+        renderPreviews(currentData);
+      }
+
+      showToast('Preferences imported', 2000);
+    } catch (err) {
+      showToast('Failed to import preferences', 2000);
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = ''; // Reset input
+}
+
+// ── What If Toggle ──
+let whatIfMode = false;
+let disabledTags = new Set();
+
+function toggleWhatIfMode() {
+  whatIfMode = !whatIfMode;
+
+  const btn = document.getElementById('whatIfToggleBtn');
+  if (btn) {
+    btn.classList.toggle('active', whatIfMode);
+    btn.textContent = whatIfMode ? '✓ What If On' : '🔍 What If';
+  }
+
+  if (whatIfMode) {
+    showWhatIfPanel();
+  } else {
+    disabledTags.clear();
+    if (currentData) {
+      renderPreviews(currentData);
+    }
+  }
+}
+
+function showWhatIfPanel() {
+  // Show a modal or panel with tag toggles
+  const panel = document.createElement('div');
+  panel.className = 'what-if-panel';
+  panel.id = 'whatIfPanel';
+  panel.innerHTML = `
+    <div class="what-if-header">
+      <h4>What If Mode</h4>
+      <p class="what-if-subtitle">Toggle tags off to see fallback behavior</p>
+      <button class="what-if-close" id="whatIfClose">&times;</button>
+    </div>
+    <div class="what-if-body">
+      <div class="what-if-section">
+        <h5>Open Graph Tags</h5>
+        <label class="what-if-toggle"><input type="checkbox" data-tag="og.title" checked /> og:title</label>
+        <label class="what-if-toggle"><input type="checkbox" data-tag="og.description" checked /> og:description</label>
+        <label class="what-if-toggle"><input type="checkbox" data-tag="og.image" checked /> og:image</label>
+        <label class="what-if-toggle"><input type="checkbox" data-tag="og.type" checked /> og:type</label>
+        <label class="what-if-toggle"><input type="checkbox" data-tag="og.url" checked /> og:url</label>
+      </div>
+      <div class="what-if-section">
+        <h5>Twitter Card Tags</h5>
+        <label class="what-if-toggle"><input type="checkbox" data-tag="twitter.card" checked /> twitter:card</label>
+        <label class="what-if-toggle"><input type="checkbox" data-tag="twitter.title" checked /> twitter:title</label>
+        <label class="what-if-toggle"><input type="checkbox" data-tag="twitter.description" checked /> twitter:description</label>
+        <label class="what-if-toggle"><input type="checkbox" data-tag="twitter.image" checked /> twitter:image</label>
+      </div>
+      <div class="what-if-section">
+        <h5>Basic Tags</h5>
+        <label class="what-if-toggle"><input type="checkbox" data-tag="title" checked /> title</label>
+        <label class="what-if-toggle"><input type="checkbox" data-tag="description" checked /> description</label>
+      </div>
+    </div>
+    <div class="what-if-footer">
+      <button class="action-btn" id="whatIfReset">Reset All</button>
+      <button class="action-btn primary" id="whatIfApply">Update Previews</button>
+    </div>
+  `;
+
+  document.body.appendChild(panel);
+
+  // Add event listeners
+  panel.querySelectorAll('.what-if-toggle input').forEach(cb => {
+    cb.addEventListener('change', () => {
+      if (!cb.checked) {
+        disabledTags.add(cb.dataset.tag);
+      } else {
+        disabledTags.delete(cb.dataset.tag);
+      }
+    });
+  });
+
+  document.getElementById('whatIfClose')?.addEventListener('click', closeWhatIfPanel);
+  document.getElementById('whatIfReset')?.addEventListener('click', resetWhatIfToggles);
+  document.getElementById('whatIfApply')?.addEventListener('click', applyWhatIfChanges);
+}
+
+function closeWhatIfPanel() {
+  const panel = document.getElementById('whatIfPanel');
+  if (panel) {
+    panel.remove();
+  }
+  whatIfMode = false;
+  const btn = document.getElementById('whatIfToggleBtn');
+  if (btn) {
+    btn.classList.remove('active');
+    btn.textContent = '🔍 What If';
+  }
+}
+
+function resetWhatIfToggles() {
+  document.querySelectorAll('#whatIfPanel .what-if-toggle input').forEach(cb => {
+    cb.checked = true;
+  });
+  disabledTags.clear();
+}
+
+function applyWhatIfChanges() {
+  if (!currentData) return;
+
+  // Create modified meta with disabled tags removed
+  const modifiedMeta = { ...currentData.meta };
+
+  disabledTags.forEach(tag => {
+    const parts = tag.split('.');
+    if (parts.length === 1) {
+      delete modifiedMeta[tag];
+    } else {
+      const [namespace, key] = parts;
+      if (modifiedMeta[namespace]) {
+        const temp = { ...modifiedMeta[namespace] };
+        delete temp[key];
+        modifiedMeta[namespace] = Object.keys(temp).length > 0 ? temp : undefined;
+      }
+    }
+  });
+
+  // Re-render with modified data
+  const modifiedData = { ...currentData, meta: modifiedMeta };
+  renderPreviews(modifiedData);
+
+  // Show warnings for missing tags
+  showMissingTagWarnings(modifiedMeta);
+
+  closeWhatIfPanel();
+  showToast('Previews updated with What If changes', 2000);
+}
+
+function showMissingTagWarnings(meta) {
+  // Add warning indicators to platforms affected by missing tags
+  const warnings = [];
+
+  if (!meta.og?.title && !meta.title) {
+    warnings.push('Missing: og:title or title');
+  }
+  if (!meta.og?.description && !meta.description) {
+    warnings.push('Missing: og:description or description');
+  }
+  if (!meta.og?.image) {
+    warnings.push('Missing: og:image');
+  }
+
+  if (warnings.length > 0) {
+    showToast('What If: ' + warnings.join(', '), 4000);
+  }
+}
+
+// Add event listener for What If button
+document.getElementById('whatIfToggleBtn')?.addEventListener('click', toggleWhatIfMode);
+
+// ── Inline Card Editing ──
+function initInlineEditing() {
+  // Add contenteditable to card titles and descriptions
+  document.addEventListener('click', (e) => {
+    const target = e.target;
+
+    // Check if clicking on an editable element
+    if (target.classList.contains('editable-title') || target.classList.contains('editable-desc')) {
+      if (!target.isContentEditable) {
+        target.contentEditable = 'true';
+        target.dataset.originalContent = target.textContent;
+        target.focus();
+        document.execCommand('selectAll', false, null);
+      }
+    }
+  });
+
+  document.addEventListener('blur', (e) => {
+    const target = e.target;
+    if (target.classList.contains('editable-title') || target.classList.contains('editable-desc')) {
+      if (target.isContentEditable) {
+        target.contentEditable = 'false';
+        const newContent = target.textContent;
+        const originalContent = target.dataset.originalContent;
+
+        if (newContent !== originalContent) {
+          // Sync to editor
+          syncInlineEditToEditor(target.dataset.tag, newContent);
+        }
+
+        delete target.dataset.originalContent;
+      }
+    }
+  }, true);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.target.classList.contains('editable-title') || e.target.classList.contains('editable-desc')) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        e.target.blur();
+      }
+      if (e.key === 'Escape') {
+        e.target.textContent = e.target.dataset.originalContent || '';
+        e.target.blur();
+      }
+    }
+  });
+}
+
+function syncInlineEditToEditor(tag, value) {
+  if (!tag) return;
+
+  // Update editor state
+  editorState.edited[tag] = value;
+  editorState.dirty = true;
+
+  // Update editor form if visible
+  const formField = document.querySelector(`[data-tag="${tag}"]`);
+  if (formField && formField.tagName !== 'DIV') {
+    formField.value = value;
+    formField.classList.add('modified');
+  }
+
+  // Update all cards with this tag
+  document.querySelectorAll(`[data-tag="${tag}"].editable-title, [data-tag="${tag}"].editable-desc`).forEach(el => {
+    el.textContent = value;
+  });
+
+  showToast('Card updated in editor', 1500);
+}
+
+// ── Diagnostic Tracking ──
+let fixedDiagnostics = new Set();
+
+function initDiagnosticTracking() {
+  // Track which diagnostics have been fixed
+  if (!currentData?.diagnostics) return;
+
+  fixedDiagnostics.clear();
+
+  // Add "Fix" buttons to diagnostics
+  document.querySelectorAll('.diag-item').forEach((item, index) => {
+    if (item.dataset.fixed === 'true') return;
+
+    const fixBtn = document.createElement('button');
+    fixBtn.className = 'diag-fix-btn';
+    fixBtn.innerHTML = '&#10003; Fix';
+    fixBtn.dataset.index = index;
+
+    fixBtn.addEventListener('click', () => applyDiagnosticFix(index));
+
+    const actionsDiv = item.querySelector('.diag-actions') || document.createElement('div');
+    actionsDiv.className = 'diag-actions';
+    actionsDiv.appendChild(fixBtn);
+    item.appendChild(actionsDiv);
+  });
+}
+
+function applyDiagnosticFix(index) {
+  if (!currentData?.diagnostics) return;
+
+  const diagnostic = currentData.diagnostics[index];
+  if (!diagnostic) return;
+
+  // Extract suggested value from diagnostic
+  const suggestedValue = extractSuggestedValue(diagnostic);
+  if (!suggestedValue) {
+    showToast('No suggested fix available', 2000);
+    return;
+  }
+
+  // Apply to editor
+  const tagMatch = diagnostic.fix?.match(/meta\s+(\S+)\s*=/);
+  if (tagMatch) {
+    const tag = tagMatch[1].replace(/['"]/g, '');
+    const normalizedTag = normalizeTagKey(tag);
+
+    editorState.edited[normalizedTag] = suggestedValue;
+    editorState.dirty = true;
+
+    // Update form
+    const formField = document.querySelector(`[data-tag="${normalizedTag}"]`);
+    if (formField) {
+      formField.value = suggestedValue;
+      formField.classList.add('modified');
+    }
+
+    // Mark diagnostic as fixed
+    fixedDiagnostics.add(index);
+
+    // Update UI
+    const diagItem = document.querySelectorAll('.diag-item')[index];
+    if (diagItem) {
+      diagItem.classList.add('fixed');
+      diagItem.dataset.fixed = 'true';
+      const fixBtn = diagItem.querySelector('.diag-fix-btn');
+      if (fixBtn) fixBtn.remove();
+    }
+
+    // Update previews
+    updatePreviewsWithEdits();
+
+    // Update score
+    recalculateScore();
+
+    showToast('Fix applied to editor', 2000);
+  }
+}
+
+function extractSuggestedValue(diagnostic) {
+  // Try to extract suggested value from diagnostic message or fix
+  const fix = diagnostic.fix || '';
+  const contentMatch = fix.match(/content="([^"]+)"/);
+  if (contentMatch) return contentMatch[1];
+
+  const valueMatch = fix.match(/value="([^"]+)"/);
+  if (valueMatch) return valueMatch[1];
+
+  // Try message
+  const msg = diagnostic.msg || '';
+  const suggestedMatch = msg.match(/suggested[:\s]+"([^"]+)"/i);
+  if (suggestedMatch) return suggestedMatch[1];
+
+  return null;
+}
+
+function normalizeTagKey(tag) {
+  // Convert various tag formats to our internal format
+  const mapping = {
+    'og:title': 'og.title',
+    'og:description': 'og.description',
+    'og:image': 'og.image',
+    'og:type': 'og.type',
+    'twitter:card': 'twitter.card',
+    'twitter:title': 'twitter.title',
+    'twitter:description': 'twitter.description',
+    'twitter:image': 'twitter.image',
+    'title': 'title',
+    'description': 'description'
+  };
+  return mapping[tag] || tag;
+}
+
+function recalculateScore() {
+  if (!currentData) return;
+
+  // Simple score recalculation - in a real app, this would call the backend
+  const totalDiagnostics = currentData.diagnostics?.length || 0;
+  const fixedCount = fixedDiagnostics.size;
+  const remaining = totalDiagnostics - fixedCount;
+
+  if (remaining > 0) {
+    showToast(`${fixedCount} issue${fixedCount !== 1 ? 's' : ''} fixed. ${remaining} remaining.`, 2000);
+  } else {
+    showToast('All diagnostics fixed! 🎉', 2000);
+    triggerConfetti();
+  }
+}
+
+// ── Smart Platform Ordering ──
+function detectPageType(meta) {
+  if (!meta) return 'website';
+
+  // Check og:type first
+  const ogType = meta.og?.type?.toLowerCase();
+  if (ogType) {
+    if (ogType.includes('article')) return 'article';
+    if (ogType.includes('product')) return 'product';
+    if (ogType.includes('video')) return 'video';
+    if (ogType.includes('profile')) return 'profile';
+  }
+
+  // Check schema.org
+  if (meta.schema) {
+    const schema = JSON.stringify(meta.schema).toLowerCase();
+    if (schema.includes('article') || schema.includes('blogposting')) return 'article';
+    if (schema.includes('product')) return 'product';
+    if (schema.includes('video')) return 'video';
+  }
+
+  // Check URL patterns
+  const url = (meta.og?.url || meta.canonical || '').toLowerCase();
+  if (url.includes('/blog/') || url.includes('/article/') || url.includes('/post/')) return 'article';
+  if (url.includes('/product/') || url.includes('/shop/') || url.includes('/item/')) return 'product';
+
+  return 'website';
+}
+
+function getPlatformOrderForPageType(pageType) {
+  const orders = {
+    article: ['twitter', 'facebook', 'linkedin', 'reddit', 'bluesky', 'threads', 'mastodon'],
+    product: ['pinterest', 'facebook', 'instagram', 'twitter', 'linkedin'],
+    video: ['twitter', 'facebook', 'youtube', 'tiktok', 'instagram'],
+    website: ['google', 'facebook', 'twitter', 'linkedin', 'slack', 'discord']
+  };
+
+  return orders[pageType] || orders.website;
+}
+
+function applySmartOrdering() {
+  if (!currentData || !platformPrefs.smartOrdering) return;
+
+  const pageType = detectPageType(currentData.meta);
+  const preferredOrder = getPlatformOrderForPageType(pageType);
+
+  // Update platform groups to show relevance
+  PLATFORM_GROUPS.forEach(group => {
+    group.platforms.sort((a, b) => {
+      const aIndex = preferredOrder.indexOf(a);
+      const bIndex = preferredOrder.indexOf(b);
+      if (aIndex === -1 && bIndex === -1) return 0;
+      if (aIndex === -1) return 1;
+      if (bIndex === -1) return -1;
+      return aIndex - bIndex;
+    });
+  });
+
+  // Re-render previews
+  renderPreviews(currentData);
+
+  showToast(`Page type detected: ${pageType}. Platforms reordered.`, 2000);
+}
+
+// ── Initialize inline editing on DOM ready ──
+document.addEventListener('DOMContentLoaded', () => {
+  initInlineEditing();
+});
+
+// ── Hook into renderDiagnostics for tracking ──
+const originalRenderDiagnostics = renderDiagnostics;
+renderDiagnostics = function(diagnostics) {
+  originalRenderDiagnostics(diagnostics);
+  setTimeout(initDiagnosticTracking, 100);
+};
+
+// ── Hook into handleResult for smart ordering ──
+const originalHandleResult2 = handleResult;
+handleResult = function(data) {
+  originalHandleResult2(data);
+  if (platformPrefs.smartOrdering) {
+    setTimeout(applySmartOrdering, 200);
+  }
+};
+
+// ── Command Palette ──
+const COMMANDS = [
+  { id: 'inspect', icon: '🔍', label: 'Inspect URL', category: 'Actions', shortcut: '↵', action: () => switchMode('url') },
+  { id: 'paste', icon: '📋', label: 'Paste HTML', category: 'Actions', shortcut: '', action: () => switchMode('paste') },
+  { id: 'compare', icon: '⚖️', label: 'Compare URLs', category: 'Actions', shortcut: '', action: () => switchMode('compare') },
+  { id: 'sitemap', icon: '🗺️', label: 'Crawl Sitemap', category: 'Actions', shortcut: '', action: () => switchMode('sitemap') },
+  { id: 'reset', icon: '🔄', label: 'New Inspection', category: 'Actions', shortcut: '', action: resetToHero },
+  { id: 'tab-previews', icon: '👁️', label: 'Go to Previews', category: 'Tabs', shortcut: '', action: () => switchTab('previews') },
+  { id: 'tab-editor', icon: '✏️', label: 'Go to Editor', category: 'Tabs', shortcut: '', action: () => switchTab('editor') },
+  { id: 'tab-diagnostics', icon: '🔧', label: 'Go to Diagnostics', category: 'Tabs', shortcut: '', action: () => switchTab('diagnostics') },
+  { id: 'tab-codesnippet', icon: '📝', label: 'Go to Code Snippet', category: 'Tabs', shortcut: '', action: () => switchTab('codesnippet') },
+  { id: 'tab-templates', icon: '📦', label: 'Go to Templates', category: 'Tabs', shortcut: '', action: () => switchTab('templates') },
+  { id: 'tab-cachehub', icon: '🗑️', label: 'Go to Cache Hub', category: 'Tabs', shortcut: '', action: () => switchTab('cachehub') },
+  { id: 'tab-customize', icon: '⚙️', label: 'Go to Customize', category: 'Tabs', shortcut: '', action: () => switchTab('customization') },
+  { id: 'theme', icon: '🌓', label: 'Toggle Dark/Light Mode', category: 'Settings', shortcut: '', action: toggleGlobalTheme },
+  { id: 'export', icon: '💾', label: 'Export Preferences', category: 'Settings', shortcut: '', action: exportPreferences },
+];
+
+function initCommandPalette() {
+  // Create command palette overlay
+  const overlay = document.createElement('div');
+  overlay.className = 'command-palette-overlay hidden';
+  overlay.id = 'commandPalette';
+  overlay.innerHTML = `
+    <div class="command-palette">
+      <input type="text" class="command-palette-input" id="commandInput" placeholder="Type a command or search..." autocomplete="off" />
+      <div class="command-palette-results" id="commandResults"></div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  // Add event listeners
+  const input = document.getElementById('commandInput');
+  input.addEventListener('input', filterCommands);
+  input.addEventListener('keydown', handleCommandKeydown);
+
+  // Close on overlay click
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) closeCommandPalette();
+  });
+
+  // Global keyboard shortcut
+  document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault();
+      toggleCommandPalette();
+    }
+    if (e.key === 'Escape') {
+      closeCommandPalette();
+    }
+  });
+}
+
+function toggleCommandPalette() {
+  const palette = document.getElementById('commandPalette');
+  if (!palette) return;
+
+  commandPaletteOpen = !commandPaletteOpen;
+
+  if (commandPaletteOpen) {
+    palette.classList.remove('hidden');
+    document.getElementById('commandInput').focus();
+    renderCommands(COMMANDS);
+  } else {
+    closeCommandPalette();
+  }
+}
+
+function closeCommandPalette() {
+  const palette = document.getElementById('commandPalette');
+  if (palette) palette.classList.add('hidden');
+  commandPaletteOpen = false;
+  commandPaletteSelectedIndex = 0;
+}
+
+function renderCommands(commands) {
+  const results = document.getElementById('commandResults');
+  if (!results) return;
+
+  const grouped = {};
+  commands.forEach(cmd => {
+    if (!grouped[cmd.category]) grouped[cmd.category] = [];
+    grouped[cmd.category].push(cmd);
+  });
+
+  let html = '';
+  let index = 0;
+
+  Object.entries(grouped).forEach(([category, cmds]) => {
+    html += `<div class="command-palette-category">${escHtml(category)}</div>`;
+    cmds.forEach(cmd => {
+      const isRecent = recentCommands.includes(cmd.id);
+      html += `
+        <div class="command-palette-item ${index === commandPaletteSelectedIndex ? 'selected' : ''} ${isRecent ? 'recent' : ''}" data-cmd="${cmd.id}">
+          <span class="command-palette-item-icon">${cmd.icon}</span>
+          <span class="command-palette-item-label">${escHtml(cmd.label)}</span>
+          ${cmd.shortcut ? `<span class="command-palette-item-shortcut">${cmd.shortcut}</span>` : ''}
+        </div>
+      `;
+      index++;
+    });
+  });
+
+  results.innerHTML = html;
+
+  // Add click handlers
+  results.querySelectorAll('.command-palette-item').forEach(item => {
+    item.addEventListener('click', () => executeCommand(item.dataset.cmd));
+  });
+}
+
+function filterCommands(e) {
+  const query = e.target.value.toLowerCase().trim();
+  commandPaletteSelectedIndex = 0;
+
+  if (!query) {
+    renderCommands(COMMANDS);
+    return;
+  }
+
+  const filtered = COMMANDS.filter(cmd =>
+    cmd.label.toLowerCase().includes(query) ||
+    cmd.category.toLowerCase().includes(query)
+  );
+
+  renderCommands(filtered);
+}
+
+function handleCommandKeydown(e) {
+  const items = document.querySelectorAll('.command-palette-item');
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    commandPaletteSelectedIndex = Math.min(commandPaletteSelectedIndex + 1, items.length - 1);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    commandPaletteSelectedIndex = Math.max(commandPaletteSelectedIndex - 1, 0);
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    const selected = items[commandPaletteSelectedIndex];
+    if (selected) {
+      executeCommand(selected.dataset.cmd);
+    }
+    return;
+  }
+
+  items.forEach((item, i) => {
+    item.classList.toggle('selected', i === commandPaletteSelectedIndex);
+  });
+}
+
+function executeCommand(id) {
+  const cmd = COMMANDS.find(c => c.id === id);
+  if (!cmd) return;
+
+  // Add to recent commands
+  recentCommands = recentCommands.filter(c => c !== id);
+  recentCommands.unshift(id);
+  recentCommands = recentCommands.slice(0, 5);
+
+  closeCommandPalette();
+  cmd.action();
 }

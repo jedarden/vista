@@ -215,6 +215,11 @@
           <button class="tab-btn" data-tab="rawtags">Raw Tags</button>
           <button class="tab-btn" data-tab="redirects">Redirects &amp; Headers</button>
           <button class="tab-btn" data-tab="fixes">Auto-Fix</button>
+          <button class="tab-btn" data-tab="editor">Editor</button>
+          <button class="tab-btn" data-tab="codesnippet">Code Snippet</button>
+          <button class="tab-btn" data-tab="templates">Templates</button>
+          <button class="tab-btn" data-tab="cachehub">Cache Hub</button>
+          <button class="tab-btn" data-tab="customization">Customize</button>
           <button class="tab-btn" data-tab="oggen">OG Generator</button>
           <button class="tab-btn hidden" id="tabCompareBtn" data-tab="compare">Compare</button>
           <button class="tab-btn hidden" id="tabSitemapBtn" data-tab="sitemap">Sitemap Report</button>
@@ -476,6 +481,225 @@
                 <div class="progress-fill" id="progressFill"></div>
               </div>
               <div class="progress-text" id="progressText">Initializing...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Editor tab -->
+        <div class="tab-pane hidden" id="tabEditor">
+          <div class="editor-container" id="editorContainer">
+            <div class="editor-header">
+              <h3>Meta Tag Editor</h3>
+              <div class="editor-actions">
+                <button class="action-btn" id="whatIfToggleBtn" title="What If Mode">🔍 What If</button>
+                <button class="action-btn" id="editorResetBtn">&#8634; Reset to Original</button>
+                <button class="action-btn primary" id="editorApplyBtn">&#10003; Apply Changes</button>
+              </div>
+            </div>
+            <div class="editor-body">
+              <div class="editor-section">
+                <h4 class="editor-section-title">Basic Meta Tags</h4>
+                <div class="editor-field">
+                  <label class="editor-label">Title</label>
+                  <input type="text" id="editTitle" class="editor-input" data-tag="title" maxlength="200" />
+                  <span class="editor-char-count"><span id="editTitleCount">0</span>/200</span>
+                </div>
+                <div class="editor-field">
+                  <label class="editor-label">Description</label>
+                  <textarea id="editDescription" class="editor-textarea" data-tag="description" rows="3" maxlength="300"></textarea>
+                  <span class="editor-char-count"><span id="editDescriptionCount">0</span>/300</span>
+                </div>
+              </div>
+
+              <div class="editor-section">
+                <h4 class="editor-section-title">Open Graph Tags</h4>
+                <div class="editor-field">
+                  <label class="editor-label">og:title</label>
+                  <input type="text" id="editOgTitle" class="editor-input" data-tag="og.title" maxlength="200" />
+                  <span class="editor-char-count"><span id="editOgTitleCount">0</span>/200</span>
+                </div>
+                <div class="editor-field">
+                  <label class="editor-label">og:description</label>
+                  <textarea id="editOgDescription" class="editor-textarea" data-tag="og.description" rows="3" maxlength="300"></textarea>
+                  <span class="editor-char-count"><span id="editOgDescriptionCount">0</span>/300</span>
+                </div>
+                <div class="editor-field">
+                  <label class="editor-label">og:image</label>
+                  <input type="url" id="editOgImage" class="editor-input" data-tag="og.image" placeholder="https://example.com/image.jpg" />
+                </div>
+                <div class="editor-field">
+                  <label class="editor-label">og:url</label>
+                  <input type="url" id="editOgUrl" class="editor-input" data-tag="og.url" placeholder="https://example.com/page" />
+                </div>
+                <div class="editor-field">
+                  <label class="editor-label">og:site_name</label>
+                  <input type="text" id="editOgSiteName" class="editor-input" data-tag="og.site_name" maxlength="100" />
+                </div>
+                <div class="editor-field">
+                  <label class="editor-label">og:type</label>
+                  <select id="editOgType" class="editor-select" data-tag="og.type">
+                    <option value="">(none)</option>
+                    <option value="website">website</option>
+                    <option value="article">article</option>
+                    <option value="video.other">video.other</option>
+                    <option value="product">product</option>
+                    <option value="profile">profile</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="editor-section">
+                <h4 class="editor-section-title">Twitter Card Tags</h4>
+                <div class="editor-field">
+                  <label class="editor-label">twitter:card</label>
+                  <select id="editTwitterCard" class="editor-select" data-tag="twitter.card">
+                    <option value="">(none)</option>
+                    <option value="summary">summary</option>
+                    <option value="summary_large_image">summary_large_image</option>
+                    <option value="app">app</option>
+                    <option value="player">player</option>
+                  </select>
+                </div>
+                <div class="editor-field">
+                  <label class="editor-label">twitter:title</label>
+                  <input type="text" id="editTwitterTitle" class="editor-input" data-tag="twitter.title" maxlength="200" />
+                  <span class="editor-char-count"><span id="editTwitterTitleCount">0</span>/200</span>
+                </div>
+                <div class="editor-field">
+                  <label class="editor-label">twitter:description</label>
+                  <textarea id="editTwitterDescription" class="editor-textarea" data-tag="twitter.description" rows="3" maxlength="300"></textarea>
+                  <span class="editor-char-count"><span id="editTwitterDescriptionCount">0</span>/300</span>
+                </div>
+                <div class="editor-field">
+                  <label class="editor-label">twitter:image</label>
+                  <input type="url" id="editTwitterImage" class="editor-input" data-tag="twitter.image" placeholder="https://example.com/image.jpg" />
+                </div>
+              </div>
+            </div>
+            <div class="editor-preview-notice">
+              <span class="notice-icon">&#9432;</span>
+              <span>Previews will update automatically as you type. Changes are local only and won't affect your actual website.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Code Snippet tab -->
+        <div class="tab-pane hidden" id="tabCodesnippet">
+          <div class="codesnippet-container" id="codesnippetContainer">
+            <div class="codesnippet-header">
+              <h3>Code Snippet Generator</h3>
+              <div class="codesnippet-actions">
+                <select id="snippetFramework" class="codesnippet-select">
+                  <option value="html">Plain HTML</option>
+                  <option value="nextjs">Next.js</option>
+                  <option value="nuxt">Nuxt</option>
+                  <option value="remix">Remix</option>
+                  <option value="astro">Astro</option>
+                  <option value="sveltekit">SvelteKit</option>
+                </select>
+                <button class="action-btn primary" id="snippetCopyBtn">&#128203; Copy Code</button>
+              </div>
+            </div>
+            <div class="codesnippet-body">
+              <pre class="codesnippet-code" id="snippetCode"><code><!-- Select a framework to generate code --></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Templates tab -->
+        <div class="tab-pane hidden" id="tabTemplates">
+          <div class="templates-container" id="templatesContainer">
+            <div class="templates-header">
+              <h3>Template Library</h3>
+              <p class="templates-subtitle">Pre-built meta tag configurations for common page types</p>
+            </div>
+            <div class="templates-grid" id="templatesGrid">
+              <!-- Templates will be injected here -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Cache Hub tab -->
+        <div class="tab-pane hidden" id="tabCachehub">
+          <div class="cachehub-container" id="cachehubContainer">
+            <div class="cachehub-header">
+              <h3>Cache Invalidation Hub</h3>
+              <p class="cachehub-subtitle">Clear platform caches and debug preview issues</p>
+            </div>
+            <div class="cachehub-body">
+              <div class="cachehub-section">
+                <h4>Platform Debug Tools</h4>
+                <div class="cachehub-links">
+                  <a href="#" target="_blank" id="cacheFb" class="cachehub-link">
+                    <span class="cachehub-icon">&#128246;</span>
+                    <span class="cachehub-name">Facebook Sharing Debugger</span>
+                    <span class="cachehub-arrow">&nearr;</span>
+                  </a>
+                  <a href="#" target="_blank" id="cacheTwitter" class="cachehub-link">
+                    <span class="cachehub-icon">&#128246;</span>
+                    <span class="cachehub-name">Twitter Card Validator</span>
+                    <span class="cachehub-arrow">&nearr;</span>
+                  </a>
+                  <a href="#" target="_blank" id="cacheLinkedin" class="cachehub-link">
+                    <span class="cachehub-icon">&#128246;</span>
+                    <span class="cachehub-name">LinkedIn Post Inspector</span>
+                    <span class="cachehub-arrow">&nearr;</span>
+                  </a>
+                  <a href="#" target="_blank" id="cacheWhatsapp" class="cachehub-link">
+                    <span class="cachehub-icon">&#8505;</span>
+                    <span class="cachehub-name">WhatsApp Link Preview Info</span>
+                    <span class="cachehub-arrow">&nearr;</span>
+                  </a>
+                </div>
+              </div>
+              <div class="cachehub-section">
+                <h4>Facebook Graph API Purge</h4>
+                <p class="cachehub-note">Force Facebook to re-scrape your page using the Graph API.</p>
+                <div class="cachehub-form">
+                  <input type="text" id="fbAppToken" class="cachehub-input" placeholder="Enter your Facebook App Token (optional)" />
+                  <button class="action-btn primary" id="fbPurgeBtn">&#128254; Purge Cache</button>
+                </div>
+                <div class="cachehub-help">
+                  <a href="https://developers.facebook.com/tools/explorer/" target="_blank" rel="noopener">Get an App Token &nearr;</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Customization tab -->
+        <div class="tab-pane hidden" id="tabCustomization">
+          <div class="customization-container" id="customizationContainer">
+            <div class="customization-header">
+              <h3>Platform Customization</h3>
+              <div class="customization-actions">
+                <button class="action-btn" id="exportPrefsBtn">&#128190; Export Preferences</button>
+                <button class="action-btn" id="importPrefsBtn">&#128193; Import Preferences</button>
+                <input type="file" id="importPrefsInput" class="hidden" accept=".json" />
+              </div>
+            </div>
+            <div class="customization-body">
+              <div class="customization-section">
+                <h4>Column Layout</h4>
+                <div class="column-layout-selector">
+                  <button class="layout-btn" data-columns="2" title="2 columns">2</button>
+                  <button class="layout-btn active" data-columns="3" title="3 columns">3</button>
+                  <button class="layout-btn" data-columns="4" title="4 columns">4</button>
+                </div>
+              </div>
+              <div class="customization-section">
+                <h4>Hidden Platforms</h4>
+                <div class="hidden-platforms-list" id="hiddenPlatformsList">
+                  <p class="empty-state">No hidden platforms</p>
+                </div>
+              </div>
+              <div class="customization-section">
+                <h4>Favorite Platforms</h4>
+                <p class="customization-note">Star platforms in the preview to add them to favorites</p>
+                <div class="favorites-list" id="favoritesList">
+                  <p class="empty-state">No favorites yet</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

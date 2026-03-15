@@ -6,6 +6,7 @@ const { fetchUrl, parseMetaTags, probeImage } = require('./fetcher');
 const { detectMistakes } = require('./diagnostics');
 const { scoreAll, PLATFORMS } = require('./scorer');
 const { generateScreenshot, checkRateLimit, isValidPlatform } = require('./screenshot');
+const { analyzeResponseHeaders } = require('./header-analyzer');
 const cheerio = require('cheerio');
 
 const app = express();
@@ -374,6 +375,9 @@ async function buildPreviewResult({ html, baseUrl, redirectChain, responseHeader
   // Auto-fixes
   const autoFixes = buildAutoFixes(meta, diagnostics, scoring);
 
+  // Header analysis
+  const headerAnalysis = analyzeResponseHeaders(responseHeaders, imageProbe, meta);
+
   return {
     url: sourceUrl,
     finalUrl: baseUrl,
@@ -385,6 +389,7 @@ async function buildPreviewResult({ html, baseUrl, redirectChain, responseHeader
     autoFixes,
     redirectChain,
     responseHeaders,
+    headerAnalysis,
   };
 }
 

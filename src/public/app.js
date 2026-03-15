@@ -273,7 +273,7 @@ function handleResult(data) {
   initCropper(data);
   renderDiagnostics(data.diagnostics);
   renderRawTags(data.meta);
-  renderRedirects(data.redirectChain, data.responseHeaders);
+  renderRedirects(data.redirectChain, data.responseHeaders, data.headerAnalysis);
   renderFixes(data.autoFixes);
 
   // Show results
@@ -2236,15 +2236,14 @@ function metaRow(key, value, isImage) {
 }
 
 // ── Redirects & Headers ──
-function renderRedirects(chain, headers) {
+function renderRedirects(chain, headers, headerAnalysis = null) {
   let html = '';
 
-  // Add JSON export button if we have a redirect chain
-  if (chain && chain.length > 0) {
-    html += `<div class="redirect-actions">
-      <button class="action-btn" id="exportRedirectJson" onclick="exportRedirectChain()">&#128190; Export Chain as JSON</button>
-    </div>`;
-  }
+  // Add JSON export buttons
+  html += `<div class="redirect-actions">
+    ${chain && chain.length > 0 ? `<button class="action-btn" id="exportRedirectJson" onclick="exportRedirectChain()">&#128190; Export Chain as JSON</button>` : ''}
+    <button class="action-btn" id="exportHeadersJson" onclick="exportHeadersAsJson()">&#128190; Export Headers as JSON</button>
+  </div>`;
 
   if (chain && chain.length > 0) {
     html += `<h2 class="section-heading">Redirect Chain</h2><div class="redirect-chain">`;
@@ -2284,9 +2283,18 @@ function renderRedirects(chain, headers) {
     html += `<p style="color:var(--text2);margin-bottom:24px">No redirects — direct response.</p>`;
   }
 
+  // Header Analysis Section
+  if (headerAnalysis) {
+    html += renderHeaderAnalysis(headerAnalysis);
+  }
+
+  // Raw Headers Table
   if (headers && Object.keys(headers).length > 0) {
-    html += `<h2 class="section-heading">Response Headers</h2>
+    html += `<h2 class="section-heading">All Response Headers</h2>
       <table class="headers-table">
+        <thead>
+          <tr><th>Header Name</th><th>Value</th></tr>
+        </thead>
         <tbody>
           ${Object.entries(headers).map(([k, v]) => `<tr><td class="header-name">${escHtml(k)}</td><td class="header-val">${escHtml(v)}</td></tr>`).join('')}
         </tbody>
@@ -2294,6 +2302,207 @@ function renderRedirects(chain, headers) {
   }
 
   redirectPanel.innerHTML = html;
+}
+
+/**
+ * Render header analysis with issues and recommendations.
+ */
+function renderHeaderAnalysis(analysis) {
+  let html = '<div class="header-analysis-section">';
+
+  // Image Headers Section
+  if (analysis.imageHeaders) {
+    html += renderImageHeaders(analysis.imageHeaders);
+  }
+
+  // Issues Section
+  if (analysis.issues && analysis.issues.length > 0) {
+    html += `<h2 class="section-heading">Header Issues</h2>`;
+    html += '<div class="header-issues-list">';
+    for (const issue of analysis.issues) {
+      html += renderHeaderIssue(issue);
+    }
+    html += '</div>';
+  }
+
+  // Recommendations Section
+  if (analysis.recommendations && analysis.recommendations.length > 0) {
+    html += `<h2 class="section-heading">Header Recommendations</h2>`;
+    html += '<div class="header-recommendations-list">';
+    for (const rec of analysis.recommendations) {
+      html += renderHeaderRecommendation(rec);
+    }
+    html += '</div>';
+  }
+
+  // Key Headers Summary
+  if (analysis.headers && Object.keys(analysis.headers).length > 0) {
+    html += `<h2 class="section-heading">Key Headers</h2>
+      <table class="headers-table">
+        <thead>
+          <tr><th>Header</th><th>Value</th></tr>
+        </thead>
+        <tbody>
+          ${Object.entries(analysis.headers).map(([k, v]) => `<tr><td class="header-name">${escHtml(k)}</td><td class="header-val">${escHtml(v)}</td></tr>`).join('')}
+        </tbody>
+      </table>`;
+  }
+
+  html += '</div>';
+  return html;
+}
+
+/**
+ * Render image headers section.
+ */
+function renderImageHeaders(imageHeaders) {
+  let html = '<div class="image-headers-section">';
+  html += '<h2 class="section-heading">og:image Response Headers</h2>';
+
+  const hasIssue = !imageHeaders.cors;
+
+  html += '<div class="image-headers-grid">';
+  html += `<div class="image-header-row">
+    <span class="image-header-label">URL:</span>
+    <span class="image-header-value"><a href="${escHtml(imageHeaders.url)}" target="_blank" rel="noopener">${escHtml(truncateUrl(imageHeaders.url))}</a></span>
+  </div>`;
+  html += `<div class="image-header-row">
+    <span class="image-header-label">Status:</span>
+    <span class="image-header-value">${imageHeaders.statusCode}</span>
+  </div>`;
+  html += `<div class="image-header-row">
+    <span class="image-header-label">Content-Type:</span>
+    <span class="image-header-value">${escHtml(imageHeaders.contentType || 'N/A')}</span>
+  </div>`;
+  html += `<div class="image-header-row">
+    <span class="image-header-label">Content-Length:</span>
+    <span class="image-header-value">${imageHeaders.contentLength ? formatBytes(imageHeaders.contentLength) : 'N/A'}</span>
+  </div>`;
+  html += `<div class="image-header-row">
+    <span class="image-header-label">CORS:</span>
+    <span class="image-header-value ${hasIssue ? 'header-issue' : ''}">${escHtml(imageHeaders.cors || '<span class="missing-header">Not set</span>')}</span>
+  </div>`;
+  html += '</div>';
+
+  if (hasIssue) {
+    html += `<div class="header-notice warning">
+      <span class="notice-icon">&#9888;</span>
+      <span>Missing CORS header on og:image. Some platforms (Facebook, LinkedIn) may fail to display your image.</span>
+    </div>`;
+  }
+
+  html += '</div>';
+  return html;
+}
+
+/**
+ * Render a single header issue.
+ */
+function renderHeaderIssue(issue) {
+  const severityClass = issue.severity || 'info';
+  const icon = severityClass === 'error' ? '&#10006;' : severityClass === 'warning' ? '&#9888;' : '&#8505;';
+  const severityLabel = severityClass === 'error' ? 'Error' : severityClass === 'warning' ? 'Warning' : 'Info';
+
+  let html = `<div class="header-issue ${severityClass}">
+    <div class="header-issue-header">
+      <span class="header-issue-icon">${icon}</span>
+      <span class="header-issue-title">${escHtml(issue.message)}</span>
+      <span class="header-issue-severity">${severityLabel}</span>
+    </div>`;
+
+  if (issue.header) {
+    html += `<div class="header-issue-detail">
+      <span class="issue-detail-label">Header:</span>
+      <code class="issue-detail-value">${escHtml(issue.header)}</code>
+    </div>`;
+  }
+
+  if (issue.detail) {
+    html += `<div class="header-issue-detail">
+      <span class="issue-detail-label">Detail:</span>
+      <span class="issue-detail-value">${escHtml(issue.detail)}</span>
+    </div>`;
+  }
+
+  if (issue.affectedPlatforms) {
+    html += `<div class="header-issue-detail">
+      <span class="issue-detail-label">Affected:</span>
+      <span class="issue-detail-value">${escHtml(Array.isArray(issue.affectedPlatforms) ? issue.affectedPlatforms.join(', ') : issue.affectedPlatforms)}</span>
+    </div>`;
+  }
+
+  if (issue.recommendation) {
+    html += `<div class="header-issue-fix">
+      <span class="issue-fix-label">&#10003; Fix:</span>
+      <span class="issue-fix-value">${escHtml(issue.recommendation)}</span>
+    </div>`;
+  }
+
+  html += '</div>';
+  return html;
+}
+
+/**
+ * Render a single header recommendation.
+ */
+function renderHeaderRecommendation(rec) {
+  let html = `<div class="header-recommendation">
+    <div class="header-rec-header">
+      <span class="header-rec-icon">&#128161;</span>
+      <span class="header-rec-title">${escHtml(rec.message)}</span>
+    </div>`;
+
+  if (rec.detail) {
+    html += `<div class="header-rec-detail">${escHtml(rec.detail)}</div>`;
+  }
+
+  if (rec.recommendation) {
+    html += `<div class="header-rec-fix">
+      <span class="rec-fix-label">Recommendation:</span>
+      <span class="rec-fix-value">${escHtml(rec.recommendation)}</span>
+    </div>`;
+  }
+
+  html += '</div>';
+  return html;
+}
+
+/**
+ * Format bytes to human-readable string.
+ */
+function formatBytes(bytes) {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+}
+
+/**
+ * Export headers as JSON.
+ */
+function exportHeadersAsJson() {
+  if (!currentData) return;
+
+  const exportData = {
+    url: currentData.url,
+    finalUrl: currentData.finalUrl,
+    timestamp: new Date().toISOString(),
+    responseHeaders: currentData.responseHeaders,
+    headerAnalysis: currentData.headerAnalysis || null,
+  };
+
+  const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `headers-${new Date().getTime()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  showToast('Headers exported as JSON');
 }
 
 /**

@@ -500,6 +500,9 @@ function buildCard(pid, scoreData, data, animDelay) {
           <span class="theme-icon">${cardContextState[pid].theme === 'dark' ? '🌙' : '☀️'}</span>
         </button>
       ` : ''}
+      <button class="card-screenshot-btn" data-pid="${pid}" title="Download screenshot">
+        <span>&#128190;</span>
+      </button>
       <button class="card-context-toggle" data-pid="${pid}" title="Toggle context view">
         <span class="context-icon">${cardContextState[pid].context ? '🖼️' : '🃏'}</span>
         <span class="context-label">${cardContextState[pid].context ? 'In context' : 'Card only'}</span>
@@ -536,6 +539,9 @@ function buildCard(pid, scoreData, data, animDelay) {
   }
 
   // Event listeners for toggles
+  const screenshotBtn = header.querySelector('.card-screenshot-btn');
+  screenshotBtn.addEventListener('click', () => downloadScreenshot(pid, data));
+
   const contextToggle = header.querySelector('.card-context-toggle');
   contextToggle.addEventListener('click', () => toggleCardContext(pid, data));
 
@@ -545,6 +551,58 @@ function buildCard(pid, scoreData, data, animDelay) {
   }
 
   return card;
+}
+
+// ── Screenshot download ──
+async function downloadScreenshot(pid, data) {
+  const btn = document.querySelector(`.card-screenshot-btn[data-pid="${pid}"]`);
+  if (!btn) return;
+
+  // Show loading state
+  const originalContent = btn.innerHTML;
+  btn.innerHTML = '<span class="loading-spinner-small"></span>';
+  btn.disabled = true;
+
+  try {
+    const response = await fetch('/api/screenshot', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        platform: pid,
+        meta: data.meta,
+        imageProbe: data.imageProbe,
+        url: data.finalUrl || data.url,
+        format: 'svg',
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to generate screenshot');
+    }
+
+    // Get the blob
+    const blob = await response.blob();
+
+    // Create download link
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${pid}-card.svg`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    showToast('Screenshot downloaded!', 2000);
+  } catch (err) {
+    console.error('Screenshot download error:', err);
+    showToast('Error: ' + err.message, 3000);
+  } finally {
+    // Restore button state
+    btn.innerHTML = originalContent;
+    btn.disabled = false;
+  }
 }
 
 // Platforms that support dark/light mode

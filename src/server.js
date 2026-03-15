@@ -5,6 +5,7 @@ const path = require('path');
 const { fetchUrl, parseMetaTags, probeImage } = require('./fetcher');
 const { detectMistakes } = require('./diagnostics');
 const { scoreAll, PLATFORMS } = require('./scorer');
+const { generateScreenshot, checkRateLimit, isValidPlatform } = require('./screenshot');
 const cheerio = require('cheerio');
 
 const app = express();
@@ -251,6 +252,95 @@ app.get('/api/sitemap', async (req, res) => {
   } catch (err) {
     console.error('Sitemap error:', err.message);
     res.status(502).json({ error: `Failed to process sitemap: ${err.message}` });
+  }
+});
+
+/**
+ * POST /api/screenshot — Generate PNG screenshot of a platform card
+ */
+app.post('/api/screenshot', async (req, res) => {
+  const { platform, url, meta, imageProbe, withFrame = false, format = 'svg' } = req.body;
+
+  // Rate limiting
+  const clientIp = req.ip || req.connection.remoteAddress || 'unknown';
+  const rateLimit = checkRateLimit(clientIp, 30);
+  if (!rateLimit.allowed) {
+    return res.status(429).json({
+      error: 'Rate limit exceeded',
+      message: 'Too many screenshot requests. Please try again later.',
+      retryAfter: 3600
+    });
+  }
+
+  // Validate platform
+  if (!platform || !isValidPlatform(platform)) {
+    return res.status(400).json({
+      error: 'Invalid platform',
+      message: `Platform must be one of: ${PLATFORMS.map(p => p.id).join(', ')}`
+    });
+  }
+
+  // If URL is provided, fetch the metadata
+  let finalMeta = meta;
+  let finalImageProbe = imageProbe;
+  let finalUrl = url;
+
+  if (url && !meta) {
+    try {
+      const parsedUrl = new URL(url);
+      if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+        return res.status(400).json({ error: 'Only http and https URLs are supported' });
+      }
+
+      const { html, finalUrl: fetchedUrl, redirectChain, responseHeaders, statusCode } =
+        await fetchUrl(url);
+
+      finalMeta = parseMetaTags(html, fetchedUrl);
+      finalUrl = fetchedUrl;
+
+      // Probe image dimensions
+      const imageUrl = finalMeta.og.image || finalMeta.twitter.image;
+      if (imageUrl) {
+        try {
+          finalImageProbe = await probeImage(imageUrl);
+        } catch (_) {
+          // non-fatal
+        }
+      }
+    } catch (err) {
+      return res.status(502).json({ error: `Failed to fetch URL: ${err.message}` });
+    }
+  }
+
+  if (!finalMeta) {
+    return res.status(400).json({ error: 'Missing metadata. Provide either meta object or url.' });
+  }
+
+  try {
+    // Generate screenshot
+    const screenshot = generateScreenshot(
+      platform,
+      finalMeta,
+      finalImageProbe,
+      finalUrl || url,
+      { withFrame, format }
+    );
+
+    // Set response headers
+    res.setHeader('X-RateLimit-Remaining', rateLimit.remaining.toString());
+
+    if (format === 'png') {
+      res.setHeader('Content-Type', 'image/png');
+      res.setHeader('Content-Disposition', `attachment; filename="${platform}-card.png"`);
+    } else {
+      res.setHeader('Content-Type', 'image/svg+xml');
+      res.setHeader('Content-Disposition', `attachment; filename="${platform}-card.svg"`);
+    }
+
+    res.send(screenshot.buffer);
+  } catch (err) {
+    console.error('Screenshot generation error:', err.message);
+    res.status(500).json({ error: `Failed to generate screenshot: ${err.message}` });
   }
 });
 

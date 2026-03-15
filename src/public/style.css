@@ -568,6 +568,28 @@ html[data-theme='light'] .github-domain { color: #57606a; }
 .toast { position: fixed; bottom: 72px; left: 50%; transform: translateX(-50%); background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 10px 20px; font-size: 14px; color: var(--text); z-index: 300; animation: toastIn 0.2s ease; box-shadow: var(--shadow); white-space: nowrap; }
 @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(8px); } to { opacity: 1; transform: translateX(-50%); } }
 
+/* Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(15,17,23,0.85); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 400; animation: modalIn 0.2s ease; }
+@keyframes modalIn { from { opacity: 0; } to { opacity: 1; } }
+.modal { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); max-width: 540px; width: 90%; max-height: 90vh; overflow: auto; }
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+.modal-header h3 { font-size: 18px; font-weight: 600; color: var(--text); margin: 0; }
+.modal-close { background: none; border: none; font-size: 28px; color: var(--text3); cursor: pointer; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius); }
+.modal-close:hover { background: var(--bg2); color: var(--text); }
+.modal-body { padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+
+/* Badge Modal */
+.badge-preview { display: flex; align-items: center; justify-content: center; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; min-height: 80px; }
+.badge-preview img { max-width: 100%; }
+.badge-style-selector { display: flex; align-items: center; gap: 10px; }
+.badge-style-selector label { font-size: 14px; color: var(--text); font-weight: 500; }
+.badge-style-select { padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg2); color: var(--text); font-size: 14px; cursor: pointer; }
+.badge-embed-section, .badge-url-section { display: flex; flex-direction: column; gap: 8px; }
+.badge-embed-section label, .badge-url-section label { font-size: 13px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; }
+.badge-embed-code { min-height: 80px; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg2); color: var(--text); font-family: 'SF Mono', 'Menlo', monospace; font-size: 13px; resize: vertical; }
+.badge-direct-url { padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg2); color: var(--text); font-size: 14px; }
+.badge-embed-section .action-btn, .badge-url-section .action-btn { align-self: flex-start; }
+
 /* Footer */
 .site-footer { text-align: center; padding: 20px; font-size: 13px; color: var(--text3); border-top: 1px solid var(--border); margin-top: auto; }
 body.has-results { padding-bottom: 48px; }

@@ -346,11 +346,250 @@ app.post('/api/screenshot', async (req, res) => {
 });
 
 /**
- * Health check
+ * GET /api/badge?score=25&platforms=31&style=flat
+ * Generate SVG badge showing platform score
+ */
+app.get('/api/badge', (req, res) => {
+  const score = parseInt(req.query.score || '0', 10);
+  const platforms = parseInt(req.query.platforms || '0', 10);
+  const style = req.query.style || 'flat';
+
+  // Validate style
+  const validStyles = ['flat', 'flat-square', 'plastic', 'for-the-badge'];
+  if (!validStyles.includes(style)) {
+    return res.status(400).json({ error: `Invalid style. Must be one of: ${validStyles.join(', ')}` });
+  }
+
+  // Validate score range
+  const clampedScore = Math.max(0, Math.min(100, score));
+  const grade = getGradeForScore(clampedScore);
+  const color = getGradeColor(grade);
+
+  // Generate SVG
+  const svg = generateBadgeSvg(clampedScore, platforms, style, color);
+
+  // Set cache headers (1 hour)
+  res.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');
+  res.setHeader('Cache-Control', 'public, max-age=3600, immutable');
+  res.setHeader('X-RateLimit-Remaining', '999');
+
+  res.send(svg);
+});
+
+/**
+ * GET /api/health
  */
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', version: '1.0.0' });
 });
+
+/**
+ * GET /api/badge/preview - Preview badge HTML for current URL
+ * Returns embed code for the badge
+ */
+app.get('/api/badge/preview', async (req, res) => {
+  const url = req.query.url;
+  if (!url) {
+    return res.status(400).json({ error: 'Missing ?url= parameter' });
+  }
+
+  try {
+    const parsedUrl = new URL(url);
+    if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+      return res.status(400).json({ error: 'Only http and https URLs are supported' });
+    }
+  } catch (_) {
+    return res.status(400).json({ error: 'Invalid URL' });
+  }
+
+  try {
+    const { html, finalUrl } = await fetchUrl(url);
+    const { scoreAll } = require('./scorer');
+    const { parseMetaTags } = require('./fetcher');
+    const { probeImage } = require('./fetcher');
+
+    const meta = parseMetaTags(html, finalUrl);
+
+    // Probe image dimensions
+    let imageProbe = null;
+    const imageUrl = meta.og.image || meta.twitter.image;
+    if (imageUrl) {
+      try {
+        imageProbe = await probeImage(imageUrl);
+      } catch (_) {
+        // non-fatal
+      }
+    }
+
+    const scoring = scoreAll(meta, imageProbe);
+    const score = scoring.overall.score;
+    const platformCount = Object.keys(scoring.scores).length;
+
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    res.json({
+      url,
+      score,
+      platforms: platformCount,
+      grade: scoring.overall.grade,
+      embedCode: generateEmbedCode(score, platformCount, baseUrl),
+    });
+  } catch (err) {
+    console.error('Badge preview error:', err.message);
+    res.status(502).json({ error: `Failed to fetch URL: ${err.message}` });
+  }
+});
+
+// Badge utility functions
+
+function getGradeForScore(score) {
+  if (score >= 97) return 'A+';
+  if (score >= 93) return 'A';
+  if (score >= 90) return 'A-';
+  if (score >= 87) return 'B+';
+  if (score >= 83) return 'B';
+  if (score >= 80) return 'B-';
+  if (score >= 77) return 'C+';
+  if (score >= 73) return 'C';
+  if (score >= 70) return 'C-';
+  if (score >= 67) return 'D+';
+  if (score >= 63) return 'D';
+  if (score >= 60) return 'D-';
+  return 'F';
+}
+
+function getGradeColor(grade) {
+  const colors = {
+    'A+': '#4c1', 'A': '#4c1', 'A-': '#4c1',
+    'B+': '#97ca00', 'B': '#97ca00', 'B-': '#97ca00',
+    'C+': '#dfb317', 'C': '#dfb317', 'C-': '#dfb317',
+    'D+': '#fe7d37', 'D': '#fe7d37', 'D-': '#fe7d37',
+    'F': '#e05d44'
+  };
+  return colors[grade] || '#9f9f9f';
+}
+
+function generateBadgeSvg(score, platforms, style, color) {
+  const label = 'platform score';
+  const message = `${score}/100`;
+  const width = calculateBadgeWidth(label, message, style);
+
+  if (style === 'for-the-badge') {
+    return generateForTheBadge(label, message, color);
+  } else if (style === 'plastic') {
+    return generatePlastic(label, message, color);
+  } else if (style === 'flat-square') {
+    return generateFlatSquare(label, message, color);
+  }
+  return generateFlat(label, message, color);
+}
+
+function calculateBadgeWidth(label, message, style) {
+  // Approximate character widths (average)
+  const labelWidth = label.length * 7;
+  const messageWidth = message.length * 7;
+  const padding = style === 'for-the-badge' ? 10 : 13;
+  return labelWidth + messageWidth + (padding * 3);
+}
+
+function generateFlat(label, message, color) {
+  const labelWidth = Math.ceil(label.length * 7) + 13;
+  const messageWidth = Math.ceil(message.length * 7) + 13;
+  const totalWidth = labelWidth + messageWidth;
+  const height = 20;
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${totalWidth}" height="${height}">
+  <linearGradient id="b" x2="0" y2="100%">
+    <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
+    <stop offset="1" stop-opacity=".1"/>
+  </linearGradient>
+  <mask id="a">
+    <rect width="${totalWidth}" height="${height}" rx="3" fill="#fff"/>
+  </mask>
+  <g mask="url(#a)">
+    <path fill="#555" d="M0 0h${labelWidth}v${height}H0z"/>
+    <path fill="${color}" d="M${labelWidth} 0h${messageWidth}v${height}H${labelWidth}z"/>
+    <path fill="url(#b)" d="M0 0h${totalWidth}v${height}H0z"/>
+  </g>
+  <g fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="11">
+    <text x="${labelWidth / 2}" y="15" fill="#010101" fill-opacity=".3">${label}</text>
+    <text x="${labelWidth / 2}" y="14">${label}</text>
+    <text x="${labelWidth + messageWidth / 2}" y="15" fill="#010101" fill-opacity=".3">${message}</text>
+    <text x="${labelWidth + messageWidth / 2}" y="14">${message}</text>
+  </g>
+</svg>`;
+}
+
+function generateFlatSquare(label, message, color) {
+  const labelWidth = Math.ceil(label.length * 7) + 13;
+  const messageWidth = Math.ceil(message.length * 7) + 13;
+  const totalWidth = labelWidth + messageWidth;
+  const height = 20;
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${totalWidth}" height="${height}">
+  <g shape-rendering="crispEdges">
+    <path fill="#555" d="M0 0h${labelWidth}v${height}H0z"/>
+    <path fill="${color}" d="M${labelWidth} 0h${messageWidth}v${height}H${labelWidth}z"/>
+  </g>
+  <g fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="11">
+    <text x="${labelWidth / 2}" y="15" fill="#010101" fill-opacity=".3">${label}</text>
+    <text x="${labelWidth / 2}" y="14">${label}</text>
+    <text x="${labelWidth + messageWidth / 2}" y="15" fill="#010101" fill-opacity=".3">${message}</text>
+    <text x="${labelWidth + messageWidth / 2}" y="14">${message}</text>
+  </g>
+</svg>`;
+}
+
+function generatePlastic(label, message, color) {
+  const labelWidth = Math.ceil(label.length * 7) + 13;
+  const messageWidth = Math.ceil(message.length * 7) + 13;
+  const totalWidth = labelWidth + messageWidth;
+  const height = 20;
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${totalWidth}" height="${height}">
+  <defs>
+    <linearGradient id="a" x2="0" y2="100%">
+      <stop offset="0" stop-color="#fff" stop-opacity=".4"/>
+      <stop offset=".1" stop-color="#aaa" stop-opacity=".1"/>
+      <stop offset=".9" stop-color="#000" stop-opacity=".3"/>
+      <stop offset="1" stop-color="#000" stop-opacity=".5"/>
+    </linearGradient>
+  </defs>
+  <g>
+    <path fill="#555" d="M0 0h${labelWidth}v${height}H0z"/>
+    <path fill="${color}" d="M${labelWidth} 0h${messageWidth}v${height}H${labelWidth}z"/>
+    <path fill="url(#a)" d="M0 0h${totalWidth}v${height}H0z"/>
+  </g>
+  <g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,sans-serif" font-size="11">
+    <text x="${labelWidth / 2}" y="15">${label}</text>
+    <text x="${labelWidth + messageWidth / 2}" y="15">${message}</text>
+  </g>
+</svg>`;
+}
+
+function generateForTheBadge(label, message, color) {
+  const labelWidth = Math.ceil(label.length * 8.5) + 10;
+  const messageWidth = Math.ceil(message.length * 8.5) + 10;
+  const totalWidth = labelWidth + messageWidth;
+  const height = 28;
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${totalWidth}" height="${height}">
+  <g shape-rendering="crispEdges">
+    <path fill="#555" d="M0 0h${labelWidth}v${height}H0z"/>
+    <path fill="${color}" d="M${labelWidth} 0h${messageWidth}v${height}H${labelWidth}z"/>
+  </g>
+  <g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,sans-serif" text-transform="uppercase" font-size="10">
+    <text x="${labelWidth / 2}" y="18" font-weight="bold">${label}</text>
+    <text x="${labelWidth + messageWidth / 2}" y="18" font-weight="bold">${message}</text>
+  </g>
+</svg>`;
+}
+
+function generateEmbedCode(score, platforms, baseUrl) {
+  // Note: baseUrl should be provided from the client side
+  return `<a href="${baseUrl}/api/badge?score=${score}&platforms=${platforms}">
+  <img src="${baseUrl}/api/badge?score=${score}&platforms=${platforms}" alt="Platform Score Badge" />
+</a>`;
+}
 
 app.get('/health', (req, res) => res.json({ ok: true }));
 

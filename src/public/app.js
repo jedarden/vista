@@ -90,6 +90,17 @@ const safeZoneInfo = $('#safeZoneInfo');
 const imageInfo = $('#imageInfo');
 const cropperBadge = $('#cropperBadge');
 
+// Badge modal DOM refs
+const badgeBtn = $('#badgeBtn');
+const badgeModal = $('#badgeModal');
+const badgeModalClose = $('#badgeModalClose');
+const badgePreview = $('#badgePreview');
+const badgeStyleSelect = $('#badgeStyleSelect');
+const badgeEmbedCode = $('#badgeEmbedCode');
+const badgeCopyBtn = $('#badgeCopyBtn');
+const badgeDirectUrl = $('#badgeDirectUrl');
+const badgeUrlCopyBtn = $('#badgeUrlCopyBtn');
+
 // OG Generator DOM refs
 const oggenCanvas = $('#oggenCanvas');
 const oggenBgType = $('#oggenBgType');
@@ -150,6 +161,18 @@ swapUrlsBtn.addEventListener('click', handleSwapUrls);
 
 $('#shareBtn').addEventListener('click', shareResults);
 $('#newInspectBtn').addEventListener('click', resetToHero);
+
+// Badge modal event listeners
+badgeBtn?.addEventListener('click', openBadgeModal);
+badgeModalClose?.addEventListener('click', closeBadgeModal);
+badgeStyleSelect?.addEventListener('change', updateBadgePreview);
+badgeCopyBtn?.addEventListener('click', copyBadgeEmbedCode);
+badgeUrlCopyBtn?.addEventListener('click', copyBadgeUrl);
+
+// Close modal on overlay click
+badgeModal?.addEventListener('click', (e) => {
+  if (e.target === badgeModal) closeBadgeModal();
+});
 
 // OG Generator event listeners
 oggenBgType?.addEventListener('change', handleBgTypeChange);
@@ -2991,6 +3014,56 @@ function shareResults() {
   const url = window.location.href;
   copyText(url);
   showToast('Share link copied!', 2000);
+}
+
+// ── Badge Modal ──
+function openBadgeModal() {
+  if (!currentData) return;
+
+  const score = currentData.scoring.overall.score;
+  const platforms = Object.keys(currentData.scoring.scores).length;
+
+  updateBadgePreview();
+  badgeModal.classList.remove('hidden');
+}
+
+function closeBadgeModal() {
+  badgeModal.classList.add('hidden');
+}
+
+function updateBadgePreview() {
+  if (!currentData) return;
+
+  const score = currentData.scoring.overall.score;
+  const platforms = Object.keys(currentData.scoring.scores).length;
+  const style = badgeStyleSelect?.value || 'flat';
+
+  const baseUrl = `${window.location.protocol}//${window.location.host}`;
+  const badgeUrl = `${baseUrl}/api/badge?score=${score}&platforms=${platforms}&style=${style}`;
+
+  // Update preview
+  badgePreview.innerHTML = `<img src="${badgeUrl}" alt="Platform Score Badge" />`;
+
+  // Update embed code
+  const embedCode = `<a href="${baseUrl}/api/badge?score=${score}&platforms=${platforms}&style=${style}">
+  <img src="${badgeUrl}" alt="Platform Score Badge" />
+</a>`;
+  badgeEmbedCode.value = embedCode;
+
+  // Update direct URL
+  badgeDirectUrl.value = badgeUrl;
+}
+
+function copyBadgeEmbedCode() {
+  if (!badgeEmbedCode.value) return;
+  copyText(badgeEmbedCode.value);
+  showToast('Embed code copied!', 2000);
+}
+
+function copyBadgeUrl() {
+  if (!badgeDirectUrl.value) return;
+  copyText(badgeDirectUrl.value);
+  showToast('Badge URL copied!', 2000);
 }
 
 // ── Reset ──

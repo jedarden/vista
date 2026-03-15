@@ -7,6 +7,45 @@ let currentMode = 'url'; // 'url' | 'paste' | 'compare'
 let cardContextState = {}; // Track context mode per platform: { pid: { context: boolean, theme: 'dark'|'light' } }
 let compareData = { before: null, after: null, swapped: false }; // Comparison state
 
+// ── Theme State ──
+let globalTheme = 'dark'; // 'dark' | 'light'
+
+// Initialize theme from localStorage or system preference
+function initTheme() {
+  const savedTheme = localStorage.getItem('vista-theme');
+  if (savedTheme) {
+    globalTheme = savedTheme;
+  } else {
+    // Check system preference
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+      globalTheme = 'light';
+    }
+  }
+  applyTheme(globalTheme);
+}
+
+function applyTheme(theme) {
+  globalTheme = theme;
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('vista-theme', theme);
+
+  // Update theme toggle icon
+  const themeToggle = document.getElementById('globalThemeToggle');
+  if (themeToggle) {
+    themeToggle.querySelector('.theme-icon-light').style.display = theme === 'dark' ? 'inline' : 'none';
+    themeToggle.querySelector('.theme-icon-dark').style.display = theme === 'light' ? 'inline' : 'none';
+  }
+}
+
+function toggleGlobalTheme() {
+  const newTheme = globalTheme === 'dark' ? 'light' : 'dark';
+  applyTheme(newTheme);
+  // Re-render cards that support theme to update their appearance
+  if (currentData) {
+    renderPreviews(currentData);
+  }
+}
+
 // ── DOM refs ──
 const $ = (sel) => document.querySelector(sel);
 const hero = $('#hero');
@@ -164,6 +203,7 @@ document.querySelectorAll('.chip').forEach(chip => {
 
 // Auto-load from URL param on page load
 window.addEventListener('DOMContentLoaded', () => {
+  initTheme();
   loadRecents();
   initOgGenerator();
   const params = new URLSearchParams(window.location.search);
@@ -173,6 +213,9 @@ window.addEventListener('DOMContentLoaded', () => {
     inspectUrl(urlParam);
   }
 });
+
+// Global theme toggle listener
+document.getElementById('globalThemeToggle')?.addEventListener('click', toggleGlobalTheme);
 
 // ── Mode switching ──
 function switchMode(mode) {
@@ -607,7 +650,7 @@ async function downloadScreenshot(pid, data) {
 }
 
 // Platforms that support dark/light mode
-const PLATFORMS_WITH_THEME = ['discord', 'slack', 'twitter', 'telegram'];
+const PLATFORMS_WITH_THEME = ['discord', 'slack', 'twitter', 'telegram', 'github'];
 
 function toggleCardContext(pid, data) {
   cardContextState[pid].context = !cardContextState[pid].context;
@@ -1018,7 +1061,7 @@ function renderPlatformWithContext(pid, meta, imageProbe, baseUrl, theme = 'dark
       return renderJiraContext(ogTitle, ogDesc, ogImage, domain);
 
     case 'github':
-      return renderGitHubContext(ogTitle, ogDesc, ogImage, domain);
+      return renderGitHubContext(ogTitle, ogDesc, ogImage, domain, theme);
 
     case 'trello':
       return renderTrelloContext(ogTitle, ogDesc, ogImage, domain);
@@ -1606,9 +1649,10 @@ function renderJiraContext(title, desc, image, domain) {
   </div>`;
 }
 
-function renderGitHubContext(title, desc, image, domain) {
+function renderGitHubContext(title, desc, image, domain, theme = 'dark') {
   const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
-  return `<div class="context-frame github-context">
+  const isDark = theme === 'dark';
+  return `<div class="context-frame github-context ${isDark ? 'gh-dark' : 'gh-light'}">
     <div class="gh-header">
       <div class="gh-repo">owner/repository</div>
       <div class="gh-tabs">Code · Issues · Pull requests</div>

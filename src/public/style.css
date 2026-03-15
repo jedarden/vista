@@ -429,9 +429,52 @@ html[data-theme='light'] .github-domain { color: #57606a; }
 .diag-fix { font-size: 12px; color: var(--text3); font-family: var(--font-mono); background: var(--bg3); border-radius: 4px; padding: 6px 10px; margin-top: 6px; word-break: break-all; line-height: 1.6; }
 .diag-platforms { font-size: 12px; color: var(--accent); margin-top: 4px; }
 
-/* Raw Tags */
+/* Raw Tags / Metadata Viewer */
 .raw-section { margin-bottom: 28px; }
 .raw-section h3 { font-size: 14px; font-weight: 600; color: var(--text2); margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+
+/* Metadata Viewer */
+.metadata-viewer { }
+.metadata-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+.metadata-filter { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 200px; }
+.metadata-filter input { flex: 1; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg2); color: var(--text); font-size: 13px; }
+.metadata-filter input:focus { outline: none; border-color: var(--accent); }
+.filter-count { font-size: 12px; color: var(--text3); white-space: nowrap; }
+.metadata-actions { display: flex; gap: 8px; }
+
+.metadata-table-wrapper { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.metadata-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.metadata-table th { text-align: left; padding: 10px 12px; background: var(--bg3); color: var(--text3); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid var(--border); }
+.metadata-table th.col-tag { width: 30%; }
+.metadata-table th.col-value { width: 55%; }
+.metadata-table th.col-source { width: 10%; }
+.metadata-table th.col-copy { width: 5%; }
+
+.metadata-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); color: var(--text); word-break: break-word; vertical-align: top; }
+.metadata-table tbody tr:hover td { background: var(--bg3); }
+.metadata-table tbody tr.row-empty td { color: var(--text3); }
+.metadata-table .no-results { text-align: center; color: var(--text3); padding: 32px; font-style: italic; }
+
+/* Tag column */
+.col-tag .hierarchy-indicator { color: var(--accent); margin-right: 6px; font-size: 14px; }
+.col-tag .tag-name { color: var(--accent); font-family: var(--font-mono); font-size: 12px; }
+
+/* Value column */
+.col-value { font-size: 13px; line-height: 1.5; }
+.col-value .empty-value { color: var(--text3); font-style: italic; }
+
+/* Source column */
+.source-badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+.source-badge.source-html { background: rgba(59,130,246,0.15); color: #60a5fa; }
+.source-badge.source-parsed { background: rgba(168,85,247,0.15); color: #c084fc; }
+.source-badge.source-default { background: rgba(148,163,184,0.15); color: #94a3b8; }
+
+/* Copy column */
+.col-copy { text-align: center; }
+.copy-btn { background: transparent; border: none; cursor: pointer; padding: 4px 8px; color: var(--text3); font-size: 14px; border-radius: 4px; transition: all 0.15s ease; }
+.copy-btn:hover { background: var(--bg3); color: var(--text); }
+
+/* Legacy tags-table support */
 .tags-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .tags-table th { text-align: left; padding: 8px 12px; background: var(--bg3); color: var(--text3); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid var(--border); }
 .tags-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); color: var(--text); word-break: break-all; vertical-align: top; }

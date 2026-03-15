@@ -2214,69 +2214,273 @@ function renderDiagnostics(diags) {
   }).join('');
 }
 
-// ── Raw Tags ──
+// ── Raw Tags (Metadata Viewer) ──
+// Store all metadata globally for export/filtering
+let allMetadataRows = [];
+
 function renderRawTags(meta) {
-  let html = '';
+  allMetadataRows = [];
+
+  // Helper to determine source
+  const getSource = (value, field) => {
+    if (!value && value !== 0) return 'default';
+    // For og:image:url, check if it's from the parsed structure
+    if (field.startsWith('og:image:') && meta.og._image) return 'parsed';
+    return 'html';
+  };
 
   // Core tags
-  html += `<div class="raw-section"><h3>Core Tags</h3>
-    <table class="tags-table">
-      <thead><tr><th>Tag</th><th>Value</th></tr></thead>
-      <tbody>
-        ${metaRow('title', meta.title)}
-        ${metaRow('description', meta.description)}
-        ${metaRow('robots', meta.robots)}
-        ${metaRow('theme-color', meta.themeColor)}
-        ${metaRow('favicon', meta.favicon)}
-      </tbody>
-    </table>
-  </div>`;
+  const coreFields = [
+    { key: 'title', value: meta.title },
+    { key: 'description', value: meta.description },
+    { key: 'robots', value: meta.robots },
+    { key: 'theme-color', value: meta.themeColor },
+    { key: 'favicon', value: meta.favicon },
+  ];
+  coreFields.forEach(f => {
+    allMetadataRows.push({
+      tag: f.key,
+      value: f.value,
+      source: getSource(f.value, f.key),
+      isImage: f.key === 'favicon',
+    });
+  });
 
-  // Open Graph
-  const ogKeys = Object.keys(meta.og).filter(k => !k.startsWith('_'));
-  if (ogKeys.length > 0) {
-    html += `<div class="raw-section"><h3>Open Graph (og:*)</h3>
-      <table class="tags-table">
-        <thead><tr><th>Property</th><th>Value</th></tr></thead>
-        <tbody>
-          ${ogKeys.map(k => metaRow('og:' + k, meta.og[k], k === 'image')).join('')}
-        </tbody>
-      </table>
-    </div>`;
+  // Open Graph tags
+  Object.keys(meta.og).forEach(k => {
+    if (k.startsWith('_')) return;
+    const value = meta.og[k];
+    const isImage = k === 'image' || k.startsWith('image');
+    allMetadataRows.push({
+      tag: 'og:' + k,
+      value: value,
+      source: getSource(value, 'og:' + k),
+      isImage: isImage,
+    });
+
+    // Handle hierarchical og:image:* sub-properties
+    if (k === 'image' && meta.og._image) {
+      // Add og:image:url if it's different from og:image
+      if (meta.og._image.url && meta.og._image.url !== value) {
+        allMetadataRows.push({
+          tag: 'og:image:url',
+          value: meta.og._image.url,
+          source: 'parsed',
+          isImage: true,
+          parentTag: 'og:image',
+        });
+      }
+      // Add og:image:secure_url
+      if (meta.og._image.secure_url && meta.og._image.secure_url !== meta.og._image.url) {
+        allMetadataRows.push({
+          tag: 'og:image:secure_url',
+          value: meta.og._image.secure_url,
+          source: 'parsed',
+          isImage: true,
+          parentTag: 'og:image',
+        });
+      }
+      // Add og:image:width
+      if (meta.og._image.width) {
+        allMetadataRows.push({
+          tag: 'og:image:width',
+          value: meta.og._image.width,
+          source: 'parsed',
+          isImage: false,
+          parentTag: 'og:image',
+        });
+      }
+      // Add og:image:height
+      if (meta.og._image.height) {
+        allMetadataRows.push({
+          tag: 'og:image:height',
+          value: meta.og._image.height,
+          source: 'parsed',
+          isImage: false,
+          parentTag: 'og:image',
+        });
+      }
+      // Add og:image:alt
+      if (meta.og._image.alt) {
+        allMetadataRows.push({
+          tag: 'og:image:alt',
+          value: meta.og._image.alt,
+          source: 'parsed',
+          isImage: false,
+          parentTag: 'og:image',
+        });
+      }
+      // Add og:image:type
+      if (meta.og._image.type) {
+        allMetadataRows.push({
+          tag: 'og:image:type',
+          value: meta.og._image.type,
+          source: 'parsed',
+          isImage: false,
+          parentTag: 'og:image',
+        });
+      }
+    }
+  });
+
+  // Twitter Card tags
+  Object.keys(meta.twitter).forEach(k => {
+    const value = meta.twitter[k];
+    const isImage = k === 'image' || k.startsWith('image');
+    allMetadataRows.push({
+      tag: 'twitter:' + k,
+      value: value,
+      source: getSource(value, 'twitter:' + k),
+      isImage: isImage,
+    });
+  });
+
+  // Other meta tags
+  if (meta.other) {
+    Object.keys(meta.other).forEach(k => {
+      const value = meta.other[k];
+      allMetadataRows.push({
+        tag: 'meta:' + k,
+        value: value,
+        source: 'html',
+        isImage: false,
+      });
+    });
   }
 
-  // Twitter Card
-  const twKeys = Object.keys(meta.twitter);
-  if (twKeys.length > 0) {
-    html += `<div class="raw-section"><h3>Twitter Card (twitter:*)</h3>
-      <table class="tags-table">
-        <thead><tr><th>Name</th><th>Value</th></tr></thead>
-        <tbody>
-          ${twKeys.map(k => metaRow('twitter:' + k, meta.twitter[k], k === 'image')).join('')}
-        </tbody>
-      </table>
-    </div>`;
-  }
-
-  // JSON-LD
+  // JSON-LD (count as entries)
   if (meta.jsonLd && meta.jsonLd.length > 0) {
-    html += `<div class="raw-section"><h3>JSON-LD Structured Data</h3>
-      ${meta.jsonLd.map(j => `<pre class="jsonld-block">${escHtml(JSON.stringify(j, null, 2))}</pre>`).join('')}
-    </div>`;
+    meta.jsonLd.forEach((j, i) => {
+      const type = j['@type'] || 'unknown';
+      allMetadataRows.push({
+        tag: `json-ld[${i}]:@type`,
+        value: type,
+        source: 'html',
+        isImage: false,
+      });
+    });
   }
 
-  rawTagsPanel.innerHTML = html;
+  renderMetadataTable();
 }
 
-function metaRow(key, value, isImage) {
-  if (!value && value !== 0) {
-    return `<tr><td class="tag-key">${escHtml(key)}</td><td class="tag-val" style="color:var(--text3);font-style:italic">—</td></tr>`;
+function renderMetadataTable(filter = '') {
+  const filteredRows = filter
+    ? allMetadataRows.filter(r =>
+        r.tag.toLowerCase().includes(filter.toLowerCase()) ||
+        (r.value && String(r.value).toLowerCase().includes(filter.toLowerCase()))
+      )
+    : allMetadataRows;
+
+  let html = `<div class="metadata-viewer">
+    <div class="metadata-toolbar">
+      <div class="metadata-filter">
+        <input type="text" id="metadataFilterInput" placeholder="Filter tags..." value="${escHtml(filter)}" />
+        <span class="filter-count">${filteredRows.length} of ${allMetadataRows.length} tags</span>
+      </div>
+      <div class="metadata-actions">
+        <button class="action-btn" onclick="exportMetadataAsJson()">&#128190; Export JSON</button>
+        <button class="action-btn" onclick="exportMetadataAsCsv()">&#128190; Export CSV</button>
+      </div>
+    </div>
+    <div class="metadata-table-wrapper">
+      <table class="metadata-table">
+        <thead>
+          <tr>
+            <th class="col-tag">Tag Name</th>
+            <th class="col-value">Value</th>
+            <th class="col-source">Source</th>
+            <th class="col-copy"></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${filteredRows.length > 0 ? filteredRows.map((row, idx) => renderMetadataRow(row, idx)).join('') : '<tr><td colspan="4" class="no-results">No tags match your filter</td></tr>'}
+        </tbody>
+      </table>
+    </div>`;
+
+  // Add JSON-LD section at bottom if present
+  const hasJsonLd = allMetadataRows.some(r => r.tag.startsWith('json-ld'));
+  if (hasJsonLd && !filter) {
+    html += `<div class="raw-section">
+      <h3>JSON-LD Structured Data</h3>
+      ${currentData?.meta?.jsonLd?.map(j => `<pre class="jsonld-block">${escHtml(JSON.stringify(j, null, 2))}</pre>`).join('') || ''}
+    </div>`;
   }
-  let valHtml = escHtml(String(value));
-  if (isImage && value) {
-    valHtml += `<br><img class="tag-image-thumb" src="${escHtml(value)}" alt="" onerror="this.style.display='none'" loading="lazy" />`;
+
+  html += '</div>';
+  rawTagsPanel.innerHTML = html;
+
+  // Attach filter listener
+  const filterInput = document.getElementById('metadataFilterInput');
+  if (filterInput) {
+    filterInput.addEventListener('input', (e) => {
+      renderMetadataTable(e.target.value);
+    });
   }
-  return `<tr><td class="tag-key">${escHtml(key)}</td><td class="tag-val">${valHtml}</td></tr>`;
+}
+
+function renderMetadataRow(row, idx) {
+  const hasValue = row.value || row.value === 0;
+  const valueDisplay = hasValue
+    ? (row.isImage && row.value ? escHtml(row.value) + `<br><img class="tag-image-thumb" src="${escHtml(row.value)}" alt="" onerror="this.style.display='none'" loading="lazy" />` : escHtml(String(row.value)))
+    : '<span class="empty-value">—</span>';
+
+  const sourceClass = row.source === 'html' ? 'source-html' : row.source === 'parsed' ? 'source-parsed' : 'source-default';
+  const sourceLabel = row.source === 'html' ? 'HTML' : row.source === 'parsed' ? 'Parsed' : 'Default';
+  const hierarchyIndicator = row.parentTag ? `<span class="hierarchy-indicator" title="Child of ${row.parentTag}">↳</span>` : '';
+
+  return `<tr class="metadata-row ${hasValue ? '' : 'row-empty'}">
+    <td class="col-tag">
+      ${hierarchyIndicator}
+      <span class="tag-name">${escHtml(row.tag)}</span>
+    </td>
+    <td class="col-value">${valueDisplay}</td>
+    <td class="col-source"><span class="source-badge ${sourceClass}">${sourceLabel}</span></td>
+    <td class="col-copy">
+      ${hasValue ? `<button class="copy-btn" onclick="copyMetadataValue('${escHtml(String(row.value)).replace(/'/g, "\\'")}')" title="Copy value">&#128203;</button>` : ''}
+    </td>
+  </tr>`;
+}
+
+function copyMetadataValue(value) {
+  copyText(value);
+  showToast('Copied to clipboard', 1500);
+}
+
+function exportMetadataAsJson() {
+  if (!allMetadataRows.length || !currentData) return;
+
+  const exportData = {
+    url: currentData.url,
+    finalUrl: currentData.finalUrl,
+    timestamp: new Date().toISOString(),
+    metadata: allMetadataRows.map(r => ({
+      tag: r.tag,
+      value: r.value,
+      source: r.source,
+    })),
+    rawMeta: currentData.meta,
+  };
+
+  downloadFile(JSON.stringify(exportData, null, 2), 'metadata.json', 'application/json');
+  showToast('Metadata exported as JSON', 2000);
+}
+
+function exportMetadataAsCsv() {
+  if (!allMetadataRows.length) return;
+
+  const headers = ['Tag', 'Value', 'Source'];
+  const rows = allMetadataRows.map(r => [
+    escapeCsv(r.tag),
+    escapeCsv(String(r.value ?? '')),
+    r.source,
+  ]);
+
+  const csv = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+
+  downloadFile(csv, 'metadata.csv', 'text/csv');
+  showToast('Metadata exported as CSV', 2000);
 }
 
 // ── Redirects & Headers ──

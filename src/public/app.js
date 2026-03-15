@@ -260,6 +260,7 @@ async function inspectHtml(html, base) {
 function handleResult(data) {
   hideLoading();
   currentData = data;
+  window.currentRedirectChain = data.redirectChain || null;
   saveToRecents(data);
 
   // Compact hero
@@ -2238,6 +2239,13 @@ function metaRow(key, value, isImage) {
 function renderRedirects(chain, headers) {
   let html = '';
 
+  // Add JSON export button if we have a redirect chain
+  if (chain && chain.length > 0) {
+    html += `<div class="redirect-actions">
+      <button class="action-btn" id="exportRedirectJson" onclick="exportRedirectChain()">&#128190; Export Chain as JSON</button>
+    </div>`;
+  }
+
   if (chain && chain.length > 0) {
     html += `<h2 class="section-heading">Redirect Chain</h2><div class="redirect-chain">`;
     chain.forEach((hop, i) => {
@@ -2246,19 +2254,32 @@ function renderRedirects(chain, headers) {
       let sCls = 's2xx';
       if (sc >= 300 && sc < 400) sCls = 's3xx';
       else if (sc >= 400) sCls = 's4xx';
-      html += `<div class="redirect-hop">
+
+      html += `<div class="redirect-hop" data-hop-index="${i}">
         <div class="hop-connector">
           <div class="hop-dot${isFinal ? ' final' : ''}"></div>
           ${i < chain.length - 1 ? '<div class="hop-line"></div>' : ''}
         </div>
         <div class="hop-info">
-          <div class="hop-url"><span class="hop-status ${sCls}">${sc}</span>${escHtml(hop.url)}</div>
+          <div class="hop-url"><span class="hop-status ${sCls}">${sc}</span>${escHtml(truncateUrl(hop.url))}</div>
           ${hop.warning ? `<div class="hop-warning">&#9888; ${escHtml(hop.warning)}</div>` : ''}
-          ${hop.redirectsTo ? `<div style="font-size:12px;color:var(--text3);margin-top:3px">&#8594; ${escHtml(hop.redirectsTo)}</div>` : ''}
+          ${hop.redirectsTo ? `<div class="hop-redirect">&#8594; ${escHtml(truncateUrl(hop.redirectsTo))}</div>` : ''}
+
+          ${hop.meta ? renderHopMeta(hop.meta, hop.metaDiff) : ''}
+
+          ${hop.metaError ? `<div class="hop-meta-error">Meta tags unavailable: ${escHtml(hop.metaError)}</div>` : ''}
         </div>
       </div>`;
     });
     html += '</div>';
+
+    // Add meta tag diff legend
+    html += `<div class="diff-legend">
+      <span class="legend-item"><span class="legend-dot changed"></span> Changed</span>
+      <span class="legend-item"><span class="legend-dot added"></span> Added</span>
+      <span class="legend-item"><span class="legend-dot removed"></span> Removed</span>
+      <span class="legend-item"><span class="legend-dot critical"></span> Critical (og:image, twitter:image)</span>
+    </div>`;
   } else {
     html += `<p style="color:var(--text2);margin-bottom:24px">No redirects — direct response.</p>`;
   }
@@ -2273,6 +2294,166 @@ function renderRedirects(chain, headers) {
   }
 
   redirectPanel.innerHTML = html;
+}
+
+/**
+ * Render meta tags for a single hop with diff highlighting.
+ */
+function renderHopMeta(meta, diff) {
+  if (!meta) return '';
+
+  const fields = [
+    { key: 'title', label: 'Title' },
+    { key: 'description', label: 'Description' },
+    { key: 'ogTitle', label: 'OG Title' },
+    { key: 'ogDescription', label: 'OG Description' },
+    { key: 'ogImage', label: 'OG Image', isImage: true },
+    { key: 'ogType', label: 'OG Type' },
+    { key: 'ogUrl', label: 'OG URL' },
+    { key: 'twitterCard', label: 'Twitter Card' },
+    { key: 'twitterTitle', label: 'Twitter Title' },
+    { key: 'twitterDescription', label: 'Twitter Description' },
+    { key: 'twitterImage', label: 'Twitter Image', isImage: true },
+  ];
+
+  let hasContent = false;
+  let metaHtml = '<div class="hop-meta">';
+
+  for (const field of fields) {
+    const value = meta[field.key];
+    if (!value) continue;
+
+    hasContent = true;
+    const changeClass = getFieldChangeClass(diff, field.key);
+    const isCritical = field.isImage;
+
+    metaHtml += `<div class="hop-meta-row ${changeClass} ${isCritical ? 'critical' : ''}">
+      <span class="hop-meta-label">${field.label}:</span>
+      <span class="hop-meta-value">${isImageField(field.key) ? renderMetaImage(value) : escHtml(truncateValue(value))}</span>
+      ${renderChangeIndicator(diff, field.key)}
+    </div>`;
+  }
+
+  metaHtml += '</div>';
+  return hasContent ? metaHtml : '';
+}
+
+/**
+ * Get CSS class for a field based on diff status.
+ */
+function getFieldChangeClass(diff, field) {
+  if (!diff) return '';
+
+  const changed = diff.changed?.find(c => toCamelCase(c.field) === field);
+  if (changed) return 'changed';
+
+  const added = diff.added?.find(a => toCamelCase(a.field) === field);
+  if (added) return 'added';
+
+  const removed = diff.removed?.find(r => toCamelCase(r.field) === field);
+  if (removed) return 'removed';
+
+  return '';
+}
+
+/**
+ * Render change indicator (arrow/icon) for a field.
+ */
+function renderChangeIndicator(diff, field) {
+  if (!diff) return '';
+
+  const changed = diff.changed?.find(c => toCamelCase(c.field) === field);
+  if (changed) {
+    return `<span class="change-indicator changed" title="Changed from: ${escHtml(truncateValue(changed.from))}">&#8694;</span>`;
+  }
+
+  const added = diff.added?.find(a => toCamelCase(a.field) === field);
+  if (added) {
+    return `<span class="change-indicator added" title="Added at this hop">+</span>`;
+  }
+
+  const removed = diff.removed?.find(r => toCamelCase(r.field) === field);
+  if (removed) {
+    return `<span class="change-indicator removed" title="Removed at this hop">&minus;</span>`;
+  }
+
+  return '';
+}
+
+/**
+ * Check if a field is an image field.
+ */
+function isImageField(field) {
+  return field === 'ogImage' || field === 'twitterImage';
+}
+
+/**
+ * Render meta image with thumbnail.
+ */
+function renderMetaImage(url) {
+  const truncated = truncateUrl(url);
+  return `<span class="meta-image-link">${escHtml(truncated)}</span>`;
+}
+
+/**
+ * Convert kebab-case to camelCase.
+ */
+function toCamelCase(str) {
+  return str.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+}
+
+/**
+ * Truncate URL for display.
+ */
+function truncateUrl(url) {
+  if (!url) return '';
+  if (url.length <= 60) return url;
+  return url.substring(0, 30) + '...' + url.substring(url.length - 25);
+}
+
+/**
+ * Truncate value for display.
+ */
+function truncateValue(value) {
+  if (!value) return '';
+  if (value.length <= 100) return value;
+  return value.substring(0, 100) + '...';
+}
+
+/**
+ * Export redirect chain as JSON file.
+ */
+function exportRedirectChain() {
+  const chain = window.currentRedirectChain;
+  if (!chain) {
+    showToast('No redirect chain data available');
+    return;
+  }
+
+  const data = {
+    exportedAt: new Date().toISOString(),
+    chain: chain.map(hop => ({
+      url: hop.url,
+      statusCode: hop.statusCode,
+      isFinal: hop.isFinal,
+      redirectsTo: hop.redirectsTo || null,
+      warning: hop.warning || null,
+      meta: hop.meta || null,
+      metaDiff: hop.metaDiff || null,
+    })),
+  };
+
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `redirect-chain-${Date.now()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  showToast('Redirect chain exported as JSON');
 }
 
 // ── Auto-Fixes ──

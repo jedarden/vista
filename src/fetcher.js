@@ -13,12 +13,15 @@ const MAX_BODY_BYTES = 1024 * 1024; // 1 MB read limit for HTML
 /**
  * Fetch a URL following redirects manually so we can record each hop.
  * Returns { html, redirectChain, finalUrl, responseHeaders, statusCode }.
+ *
+ * Redirect chain now includes per-hop metadata for meta tag diff analysis.
  */
 async function fetchUrl(url) {
   const redirectChain = [];
   let currentUrl = url;
   let hops = 0;
   let lastResponse = null;
+  let lastMeta = null; // Track previous hop's meta tags for diff
 
   while (hops < MAX_REDIRECTS) {
     const controller = new AbortController();
@@ -36,11 +39,34 @@ async function fetchUrl(url) {
       clearTimeout(timer);
     }
 
+    const contentType = response.headers.get('content-type') || '';
+    const isHtml = contentType.includes('text/html');
+
     const hop = {
       url: currentUrl,
       statusCode: response.status,
       headers: Object.fromEntries(response.headers.entries()),
     };
+
+    // Try to parse meta tags for this hop (for redirect analysis)
+    let hopMeta = null;
+    if (isHtml && response.status === 200) {
+      try {
+        const buffer = await readBodyLimited(response, MAX_BODY_BYTES);
+        const html = buffer.toString('utf8');
+        hopMeta = parseMetaTags(html, currentUrl);
+        hop.meta = extractCriticalMetaTags(hopMeta);
+
+        // Calculate diff from previous hop
+        if (lastMeta) {
+          hop.metaDiff = calculateMetaDiff(lastMeta, hop.meta);
+        }
+        lastMeta = hop.meta;
+      } catch (e) {
+        // If we fail to read body, continue without meta
+        hop.metaError = e.message;
+      }
+    }
 
     const isRedirect = [301, 302, 303, 307, 308].includes(response.status);
     if (isRedirect) {
@@ -80,9 +106,18 @@ async function fetchUrl(url) {
       hop.warning = `Chain is ${hops + 1} hops deep — some platforms give up after 3`;
     }
 
-    // Read body (limited)
+    // Read body (limited) for final response
     const buffer = await readBodyLimited(response, MAX_BODY_BYTES);
     const html = buffer.toString('utf8');
+
+    // Parse final meta tags if not already done
+    if (!hopMeta && isHtml) {
+      const finalMeta = parseMetaTags(html, currentUrl);
+      hop.meta = extractCriticalMetaTags(finalMeta);
+      if (lastMeta) {
+        hop.metaDiff = calculateMetaDiff(lastMeta, hop.meta);
+      }
+    }
 
     return {
       html,
@@ -94,6 +129,67 @@ async function fetchUrl(url) {
   }
 
   throw new Error(`Too many redirects (> ${MAX_REDIRECTS}) for ${url}`);
+}
+
+/**
+ * Extract critical meta tags for redirect chain diff analysis.
+ * Returns a simplified object with only the most important tags.
+ */
+function extractCriticalMetaTags(meta) {
+  return {
+    title: meta.title || null,
+    description: meta.description || null,
+    ogTitle: meta.og.title || null,
+    ogDescription: meta.og.description || null,
+    ogImage: meta.og.image || null,
+    ogType: meta.og.type || null,
+    ogUrl: meta.og.url || null,
+    twitterCard: meta.twitter.card || null,
+    twitterTitle: meta.twitter.title || null,
+    twitterDescription: meta.twitter.description || null,
+    twitterImage: meta.twitter.image || null,
+    canonical: meta.canonical || null,
+  };
+}
+
+/**
+ * Calculate diff between two meta tag objects.
+ * Returns an object showing which tags changed.
+ */
+function calculateMetaDiff(prevMeta, currentMeta) {
+  const diff = {
+    changed: [],
+    added: [],
+    removed: [],
+  };
+
+  const criticalFields = [
+    'title', 'description',
+    'ogTitle', 'ogDescription', 'ogImage', 'ogType', 'ogUrl',
+    'twitterCard', 'twitterTitle', 'twitterDescription', 'twitterImage',
+    'canonical'
+  ];
+
+  for (const field of criticalFields) {
+    const prevVal = prevMeta[field];
+    const currVal = currentMeta[field];
+
+    if (prevVal && !currVal) {
+      diff.removed.push({ field, value: prevVal });
+    } else if (!prevVal && currVal) {
+      diff.added.push({ field, value: currVal });
+    } else if (prevVal && currVal && prevVal !== currVal) {
+      diff.changed.push({ field, from: prevVal, to: currVal });
+    }
+  }
+
+  // Check for critical image changes
+  const imageChange = diff.changed.find(c => c.field === 'ogImage' || c.field === 'twitterImage');
+  if (imageChange) {
+    diff.hasImageChange = true;
+  }
+
+  return diff;
 }
 
 /**
@@ -283,4 +379,4 @@ async function probeImage(imageUrl) {
   }
 }
 
-module.exports = { fetchUrl, parseMetaTags, probeImage, resolveUrl };
+module.exports = { fetchUrl, parseMetaTags, probeImage, resolveUrl, extractCriticalMetaTags, calculateMetaDiff };

@@ -31,6 +31,15 @@ const fixesPanel = $('#fixesPanel');
 const recentBar = $('#recentBar');
 const navInspect = $('#navInspect');
 const navPaste = $('#navPaste');
+const cropperViewport = $('#cropperViewport');
+const cropperImage = $('#cropperImage');
+const cropperOverlay = $('#cropperOverlay');
+const cropperControls = $('#cropperControls');
+const cropperContainer = $('#cropperContainer');
+const downloadOverlayBtn = $('#downloadOverlayBtn');
+const safeZoneInfo = $('#safeZoneInfo');
+const imageInfo = $('#imageInfo');
+const cropperBadge = $('#cropperBadge');
 
 // ── Event listeners ──
 urlForm.addEventListener('submit', (e) => { e.preventDefault(); inspectUrl(urlInput.value.trim()); });
@@ -134,6 +143,7 @@ function handleResult(data) {
   // Render all panels
   renderSummaryBar(data);
   renderPreviews(data);
+  initCropper(data);
   renderDiagnostics(data.diagnostics);
   renderRawTags(data.meta);
   renderRedirects(data.redirectChain, data.responseHeaders);
@@ -221,6 +231,83 @@ const PLATFORM_NAMES = {
   notion: 'Notion', jira: 'Jira / Confluence', github: 'GitHub', trello: 'Trello', figma: 'Figma',
   medium: 'Medium', substack: 'Substack', outlook: 'Outlook', gmail: 'Gmail', feedly: 'Feedly / RSS',
 };
+
+// ── Platform Crop Specifications ──
+// Each platform has: aspect ratio (min/max), crop mode (center/cover/contain), display size
+const PLATFORM_CROPS = {
+  // Social & Microblogging (blue)
+  google: { category: 'social', aspect: { min: 0, max: Infinity }, cropMode: 'contain', displaySize: null, note: 'Uses full OG image, no fixed crop' },
+  facebook: { category: 'social', aspect: { min: 1.91, max: 1.91 }, cropMode: 'cover', displaySize: { w: 1200, h: 630 }, note: '1200×630 optimal' },
+  twitter: { category: 'social', aspect: { min: 1.91, max: 1.91 }, cropMode: 'cover', displaySize: { w: 1200, h: 630 }, note: 'summary_large_image: 1200×630' },
+  linkedin: { category: 'social', aspect: { min: 1.91, max: 1.91 }, cropMode: 'cover', displaySize: { w: 1200, h: 627 }, note: '1200×627 optimal' },
+  reddit: { category: 'social', aspect: { min: 1, max: 1.91 }, cropMode: 'contain', displaySize: null, note: 'Flexible, max 1.91:1' },
+  mastodon: { category: 'social', aspect: { min: 1.91, max: 1.91 }, cropMode: 'cover', displaySize: { w: 1200, h: 630 }, note: '1200×630 optimal' },
+  bluesky: { category: 'social', aspect: { min: 1.91, max: 1.91 }, cropMode: 'cover', displaySize: { w: 1200, h: 630 }, note: '1200×630 optimal' },
+  threads: { category: 'social', aspect: { min: 1.91, max: 1.91 }, cropMode: 'cover', displaySize: { w: 1200, h: 630 }, note: '1200×630 optimal' },
+  tumblr: { category: 'social', aspect: { min: 1, max: 1 }, cropMode: 'cover', displaySize: { w: 500, h: 500 }, note: '1:1 square crop' },
+  pinterest: { category: 'social', aspect: { min: 0.67, max: 0.67 }, cropMode: 'cover', displaySize: { w: 1000, h: 1500 }, note: '2:3 vertical preferred' },
+
+  // Messaging (green)
+  slack: { category: 'messaging', aspect: { min: 0, max: Infinity }, cropMode: 'contain', displaySize: null, note: 'Full image shown' },
+  discord: { category: 'messaging', aspect: { min: 1.91, max: 1.91 }, cropMode: 'cover', displaySize: { w: 1200, h: 630 }, note: '1200×630 optimal' },
+  whatsapp: { category: 'messaging', aspect: { min: 1, max: 1 }, cropMode: 'cover', displaySize: { w: 400, h: 400 }, note: 'Square thumbnail ~68×68px' },
+  imessage: { category: 'messaging', aspect: { min: 1.5, max: 1.5 }, cropMode: 'cover', displaySize: { w: 600, h: 400 }, note: '3:2 landscape' },
+  telegram: { category: 'messaging', aspect: { min: 1.91, max: 1.91 }, cropMode: 'cover', displaySize: { w: 1200, h: 630 }, note: '1200×630 optimal' },
+  signal: { category: 'messaging', aspect: { min: 1, max: 1 }, cropMode: 'cover', displaySize: { w: 300, h: 300 }, note: 'Square thumbnail 76×76px' },
+  teams: { category: 'messaging', aspect: { min: 1.91, max: 1.91 }, cropMode: 'cover', displaySize: { w: 1200, h: 630 }, note: '1200×630 optimal' },
+  googlechat: { category: 'messaging', aspect: { min: 1.91, max: 1.91 }, cropMode: 'cover', displaySize: { w: 1200, h: 630 }, note: '1200×630 optimal' },
+  zoom: { category: 'messaging', aspect: { min: 1.91, max: 1.91 }, cropMode: 'cover', displaySize: { w: 1200, h: 630 }, note: '1200×630 optimal' },
+  line: { category: 'messaging', aspect: { min: 1.91, max: 1.91 }, cropMode: 'cover', displaySize: { w: 1200, h: 630 }, note: '1200×630 optimal' },
+  kakaotalk: { category: 'messaging', aspect: { min: 1.91, max: 1.91 }, cropMode: 'cover', displaySize: { w: 1200, h: 630 }, note: '1200×630 optimal' },
+
+  // Collaboration (purple)
+  notion: { category: 'collaboration', aspect: { min: 1.5, max: 1.5 }, cropMode: 'cover', displaySize: { w: 600, h: 400 }, note: '56px wide thumbnail' },
+  jira: { category: 'collaboration', aspect: { min: 1.5, max: 1.5 }, cropMode: 'cover', displaySize: { w: 600, h: 400 }, note: '56px wide thumbnail' },
+  github: { category: 'collaboration', aspect: { min: 1.91, max: 1.91 }, cropMode: 'cover', displaySize: { w: 1200, h: 630 }, note: '1200×630 optimal' },
+  trello: { category: 'collaboration', aspect: { min: 1, max: 1 }, cropMode: 'cover', displaySize: { w: 300, h: 300 }, note: '56px wide thumbnail' },
+  figma: { category: 'collaboration', aspect: { min: 1.5, max: 1.5 }, cropMode: 'cover', displaySize: { w: 600, h: 400 }, note: '56px wide thumbnail' },
+
+  // Content (orange)
+  medium: { category: 'content', aspect: { min: 1.91, max: 1.91 }, cropMode: 'cover', displaySize: { w: 1200, h: 630 }, note: '1200×630 optimal' },
+  substack: { category: 'content', aspect: { min: 1.91, max: 1.91 }, cropMode: 'cover', displaySize: { w: 1200, h: 630 }, note: '1200×630 optimal' },
+
+  // Email (yellow)
+  outlook: { category: 'email', aspect: { min: 1.5, max: 1.5 }, cropMode: 'cover', displaySize: { w: 600, h: 400 }, note: '80×80px thumbnail' },
+  gmail: { category: 'email', aspect: { min: 1.5, max: 1.5 }, cropMode: 'cover', displaySize: { w: 600, h: 400 }, note: '80×80px thumbnail' },
+
+  // RSS (pink)
+  feedly: { category: 'rss', aspect: { min: 1.28, max: 1.28 }, cropMode: 'cover', displaySize: { w: 512, h: 400 }, note: '90×70px thumbnail' },
+};
+
+// Category colors
+const CATEGORY_COLORS = {
+  social: '#3b82f6',      // blue
+  messaging: '#22c55e',   // green
+  collaboration: '#a855f7', // purple
+  content: '#f97316',     // orange
+  email: '#eab308',       // yellow
+  rss: '#ec4899',         // pink
+};
+
+const CATEGORY_LABELS = {
+  social: 'Social & Microblogging',
+  messaging: 'Messaging',
+  collaboration: 'Collaboration & Productivity',
+  content: 'Content Platforms',
+  email: 'Email',
+  rss: 'RSS / Readers',
+};
+
+// Cropper state
+let cropperState = {
+  enabledPlatforms: new Set(Object.keys(PLATFORM_CROPS)),
+  imageNaturalWidth: 0,
+  imageNaturalHeight: 0,
+  imageAspectRatio: 0,
+};
+
+// Toggle all platforms on by default
+Object.keys(PLATFORM_CROPS).forEach(pid => cropperState.enabledPlatforms.add(pid));
 
 function renderPreviews(data) {
   previewGrid.innerHTML = '';
@@ -595,6 +682,336 @@ function renderPlatformCard(pid, meta, imageProbe, baseUrl) {
         </div>
       </div>`;
   }
+}
+
+// ── Crop Visualizer ──
+function initCropper(data) {
+  const ogImage = data.meta.og.image || data.meta.twitter.image;
+  if (!ogImage) {
+    cropperContainer.innerHTML = '<div class="cropper-empty">No image found in meta tags.</div>';
+    cropperBadge.textContent = '';
+    return;
+  }
+
+  cropperBadge.textContent = Object.keys(PLATFORM_CROPS).length;
+
+  // Load image
+  cropperImage.src = ogImage;
+  cropperImage.onload = () => {
+    cropperState.imageNaturalWidth = cropperImage.naturalWidth;
+    cropperState.imageNaturalHeight = cropperImage.naturalHeight;
+    cropperState.imageAspectRatio = cropperImage.naturalWidth / cropperImage.naturalHeight;
+
+    renderImageInfo(data.imageProbe);
+    renderCropperControls();
+    updateCropperOverlay();
+  };
+
+  cropperImage.onerror = () => {
+    cropperContainer.innerHTML = '<div class="cropper-empty">Failed to load image.</div>';
+  };
+
+  // Download button handler
+  downloadOverlayBtn.onclick = exportCropperOverlay;
+}
+
+function renderImageInfo(imageProbe) {
+  const w = cropperState.imageNaturalWidth;
+  const h = cropperState.imageNaturalHeight;
+  const ar = cropperState.imageAspectRatio.toFixed(2);
+  const mp = ((w * h) / 1000000).toFixed(2);
+
+  imageInfo.innerHTML = `
+    <div class="info-row"><span class="info-label">Dimensions:</span> <span class="info-value">${w} × ${h} px</span></div>
+    <div class="info-row"><span class="info-label">Aspect Ratio:</span> <span class="info-value">${ar}:1</span></div>
+    <div class="info-row"><span class="info-label">Megapixels:</span> <span class="info-value">${mp} MP</span></div>
+    ${imageProbe?.contentType ? `<div class="info-row"><span class="info-label">Type:</span> <span class="info-value">${imageProbe.contentType}</span></div>` : ''}
+  `;
+}
+
+function renderCropperControls() {
+  const groups = [
+    { id: 'social', label: 'Social & Microblogging', platforms: ['google','facebook','twitter','linkedin','reddit','mastodon','bluesky','threads','tumblr','pinterest'] },
+    { id: 'messaging', label: 'Messaging', platforms: ['slack','discord','whatsapp','imessage','telegram','signal','teams','googlechat','zoom','line','kakaotalk'] },
+    { id: 'collaboration', label: 'Collaboration & Productivity', platforms: ['notion','jira','github','trello','figma'] },
+    { id: 'content', label: 'Content Platforms', platforms: ['medium','substack'] },
+    { id: 'email', label: 'Email', platforms: ['outlook','gmail'] },
+    { id: 'rss', label: 'RSS / Readers', platforms: ['feedly'] },
+  ];
+
+  let html = '<div class="cropper-controls-inner">';
+  html += '<div class="cropper-controls-header">';
+  html += '<button class="action-btn" id="selectAllPlatforms">Select All</button>';
+  html += '<button class="action-btn" id="clearAllPlatforms">Clear All</button>';
+  html += '</div>';
+
+  groups.forEach(group => {
+    const color = CATEGORY_COLORS[group.id];
+    html += `<div class="cropper-group" style="--group-color:${color}">`;
+    html += `<div class="cropper-group-header">`;
+    html += `<input type="checkbox" class="cropper-group-toggle" data-group="${group.id}" checked />`;
+    html += `<span class="cropper-group-title">${escHtml(group.label)}</span>`;
+    html += `<span class="cropper-group-count">${group.platforms.length}</span>`;
+    html += '</div>';
+
+    html += '<div class="cropper-group-platforms">';
+    group.platforms.forEach(pid => {
+      const crop = PLATFORM_CROPS[pid];
+      if (!crop) return;
+      const pct = calculateVisiblePercentage(crop);
+      html += `<label class="cropper-platform-toggle">`;
+      html += `<input type="checkbox" data-platform="${pid}" checked />`;
+      html += `<span class="platform-checkbox" style="border-color:${color}"></span>`;
+      html += `<span class="platform-name">${escHtml(PLATFORM_NAMES[pid] || pid)}</span>`;
+      html += `<span class="platform-pct">${pct}%</span>`;
+      html += `</label>`;
+    });
+    html += '</div></div>';
+  });
+
+  html += '</div>';
+  cropperControls.innerHTML = html;
+
+  // Add event listeners
+  document.querySelectorAll('.cropper-group-toggle').forEach(cb => {
+    cb.addEventListener('change', (e) => {
+      const group = e.target.dataset.group;
+      const platforms = groups.find(g => g.id === group)?.platforms || [];
+      platforms.forEach(pid => {
+        const cb = document.querySelector(`input[data-platform="${pid}"]`);
+        if (cb) cb.checked = e.target.checked;
+      });
+      updateEnabledPlatforms();
+      updateCropperOverlay();
+    });
+  });
+
+  document.querySelectorAll('.cropper-platform-toggle input').forEach(cb => {
+    cb.addEventListener('change', () => {
+      updateEnabledPlatforms();
+      updateCropperOverlay();
+    });
+  });
+
+  document.getElementById('selectAllPlatforms')?.addEventListener('click', () => {
+    document.querySelectorAll('.cropper-platform-toggle input').forEach(cb => cb.checked = true);
+    document.querySelectorAll('.cropper-group-toggle').forEach(cb => cb.checked = true);
+    updateEnabledPlatforms();
+    updateCropperOverlay();
+  });
+
+  document.getElementById('clearAllPlatforms')?.addEventListener('click', () => {
+    document.querySelectorAll('.cropper-platform-toggle input').forEach(cb => cb.checked = false);
+    document.querySelectorAll('.cropper-group-toggle').forEach(cb => cb.checked = false);
+    updateEnabledPlatforms();
+    updateCropperOverlay();
+  });
+}
+
+function updateEnabledPlatforms() {
+  cropperState.enabledPlatforms.clear();
+  document.querySelectorAll('.cropper-platform-toggle input:checked').forEach(cb => {
+    cropperState.enabledPlatforms.add(cb.dataset.platform);
+  });
+}
+
+function calculateVisiblePercentage(crop) {
+  const imgW = cropperState.imageNaturalWidth;
+  const imgH = cropperState.imageNaturalHeight;
+  if (!imgW || !imgH) return 100;
+
+  const imgAR = imgW / imgH;
+  const cropAR = crop.aspect.max || crop.aspect.min;
+
+  let visiblePct = 100;
+
+  if (crop.cropMode === 'contain') {
+    // Full image visible
+    visiblePct = 100;
+  } else if (crop.cropMode === 'cover') {
+    // Calculate how much of the source image is visible
+    if (imgAR > cropAR) {
+      // Image is wider than crop - sides are cropped
+      visiblePct = Math.round((cropAR / imgAR) * 100);
+    } else if (imgAR < cropAR) {
+      // Image is taller than crop - top/bottom are cropped
+      visiblePct = Math.round((imgAR / cropAR) * 100);
+    }
+    visiblePct = Math.max(0, Math.min(100, visiblePct));
+  }
+
+  return visiblePct;
+}
+
+function updateCropperOverlay() {
+  const imgW = cropperState.imageNaturalWidth;
+  const imgH = cropperState.imageNaturalHeight;
+  if (!imgW || !imgH) return;
+
+  const svg = cropperOverlay;
+  svg.setAttribute('viewBox', `0 0 ${imgW} ${imgH}`);
+  svg.innerHTML = '';
+
+  // Calculate all crop rectangles
+  const crops = [];
+  const enabledPids = Array.from(cropperState.enabledPlatforms);
+
+  // Find intersection (safe zone)
+  let safeZone = { x: 0, y: 0, w: imgW, h: imgH };
+
+  enabledPids.forEach(pid => {
+    const crop = PLATFORM_CROPS[pid];
+    if (!crop) return;
+
+    const rect = calculateCropRect(crop, imgW, imgH);
+    if (rect) {
+      crops.push({ pid, rect, color: CATEGORY_COLORS[crop.category] });
+
+      // Intersect with safe zone
+      safeZone.x = Math.max(safeZone.x, rect.x);
+      safeZone.y = Math.max(safeZone.y, rect.y);
+      safeZone.w = Math.min(safeZone.w, rect.x + rect.w) - safeZone.x;
+      safeZone.h = Math.min(safeZone.h, rect.y + rect.h) - safeZone.y;
+    }
+  });
+
+  // Draw all platform crops (semi-transparent)
+  crops.forEach(({ rect, color }) => {
+    const rectEl = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    rectEl.setAttribute('x', rect.x);
+    rectEl.setAttribute('y', rect.y);
+    rectEl.setAttribute('width', rect.w);
+    rectEl.setAttribute('height', rect.h);
+    rectEl.setAttribute('fill', color);
+    rectEl.setAttribute('fill-opacity', '0.15');
+    rectEl.setAttribute('stroke', color);
+    rectEl.setAttribute('stroke-width', '2');
+    rectEl.setAttribute('stroke-dasharray', '8,4');
+    svg.appendChild(rectEl);
+  });
+
+  // Draw safe zone (intersection of all)
+  if (enabledPids.length > 0 && safeZone.w > 0 && safeZone.h > 0) {
+    const safeRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    safeRect.setAttribute('x', safeZone.x);
+    safeRect.setAttribute('y', safeZone.y);
+    safeRect.setAttribute('width', safeZone.w);
+    safeRect.setAttribute('height', safeZone.h);
+    safeRect.setAttribute('fill', 'none');
+    safeRect.setAttribute('stroke', '#ffffff');
+    safeRect.setAttribute('stroke-width', '4');
+    safeRect.setAttribute('stroke-dasharray', '12,6');
+    safeRect.classList.add('safe-zone-rect');
+    svg.appendChild(safeRect);
+
+    // Safe zone label
+    const safePct = ((safeZone.w * safeZone.h) / (imgW * imgH) * 100).toFixed(1);
+    safeZoneInfo.innerHTML = `
+      <div class="info-row"><span class="info-label">Safe Zone:</span> <span class="info-value">${Math.round(safeZone.w)} × ${Math.round(safeZone.h)} px</span></div>
+      <div class="info-row"><span class="info-label">Coverage:</span> <span class="info-value">${safePct}% of image</span></div>
+      <div class="info-row"><span class="info-label">Platforms:</span> <span class="info-value">${enabledPids.length} selected</span></div>
+    `;
+  } else {
+    safeZoneInfo.innerHTML = '<div class="info-row">Select platforms to see safe zone</div>';
+  }
+
+  // Update cropper badge count
+  cropperBadge.textContent = enabledPids.length;
+}
+
+function calculateCropRect(crop, imgW, imgH) {
+  const imgAR = imgW / imgH;
+  const cropAR = crop.aspect.max || crop.aspect.min;
+
+  if (crop.cropMode === 'contain') {
+    // Full image is visible
+    return { x: 0, y: 0, w: imgW, h: imgH };
+  }
+
+  if (crop.cropMode === 'cover') {
+    let cropW, cropH;
+
+    if (imgAR > cropAR) {
+      // Image is wider - crop sides
+      cropW = imgH * cropAR;
+      cropH = imgH;
+    } else {
+      // Image is taller - crop top/bottom
+      cropW = imgW;
+      cropH = imgW / cropAR;
+    }
+
+    // Center the crop
+    const x = (imgW - cropW) / 2;
+    const y = (imgH - cropH) / 2;
+
+    return { x, y, w: cropW, h: cropH };
+  }
+
+  return null;
+}
+
+async function exportCropperOverlay() {
+  const canvas = document.createElement('canvas');
+  canvas.width = cropperState.imageNaturalWidth;
+  canvas.height = cropperState.imageNaturalHeight;
+  const ctx = canvas.getContext('2d');
+
+  // Draw image
+  ctx.drawImage(cropperImage, 0, 0);
+
+  // Draw overlays
+  const enabledPids = Array.from(cropperState.enabledPlatforms);
+
+  enabledPids.forEach(pid => {
+    const crop = PLATFORM_CROPS[pid];
+    if (!crop) return;
+
+    const rect = calculateCropRect(crop, canvas.width, canvas.height);
+    if (rect) {
+      const color = CATEGORY_COLORS[crop.category];
+      // Semi-transparent fill
+      ctx.fillStyle = color + '40'; // hex + 25% alpha
+      ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+      // Stroke
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 4;
+      ctx.setLineDash([16, 8]);
+      ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
+    }
+  });
+
+  // Draw safe zone
+  let safeZone = { x: 0, y: 0, w: canvas.width, h: canvas.height };
+  enabledPids.forEach(pid => {
+    const crop = PLATFORM_CROPS[pid];
+    if (!crop) return;
+    const rect = calculateCropRect(crop, canvas.width, canvas.height);
+    if (rect) {
+      safeZone.x = Math.max(safeZone.x, rect.x);
+      safeZone.y = Math.max(safeZone.y, rect.y);
+      safeZone.w = Math.min(safeZone.w, rect.x + rect.w) - safeZone.x;
+      safeZone.h = Math.min(safeZone.h, rect.y + rect.h) - safeZone.y;
+    }
+  });
+
+  if (enabledPids.length > 0 && safeZone.w > 0 && safeZone.h > 0) {
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 6;
+    ctx.setLineDash([24, 12]);
+    ctx.strokeRect(safeZone.x, safeZone.y, safeZone.w, safeZone.h);
+  }
+
+  // Export
+  canvas.toBlob((blob) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'vista-crop-overlay.png';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Overlay exported!', 2000);
+  }, 'image/png');
 }
 
 // ── Diagnostics ──

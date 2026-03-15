@@ -6,6 +6,7 @@ let currentData = null;
 let currentMode = 'url'; // 'url' | 'paste' | 'compare'
 let cardContextState = {}; // Track context mode per platform: { pid: { context: boolean, theme: 'dark'|'light' } }
 let compareData = { before: null, after: null, swapped: false }; // Comparison state
+let hasCelebratedPerfectScore = false; // Track one-time celebration per session
 
 // ── Theme State ──
 let globalTheme = 'dark'; // 'dark' | 'light'
@@ -355,6 +356,74 @@ function handleResult(data) {
   }
 }
 
+// ── Perfect Score Celebration ──
+function isPerfectScore(data) {
+  if (!data.scoring || !data.scoring.scores) return false;
+  const scores = data.scoring.scores;
+  const platformIds = Object.keys(scores);
+  // Check if all 31 platforms have A+ grade
+  if (platformIds.length !== 31) return false;
+  return platformIds.every(pid => scores[pid]?.grade === 'A+');
+}
+
+function triggerConfetti() {
+  // Respect prefers-reduced-motion
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (prefersReducedMotion) return;
+
+  // Check if canvas-confetti is available
+  if (typeof confetti === 'undefined') {
+    console.warn('canvas-confetti not loaded');
+    return;
+  }
+
+  // Trigger a subtle confetti burst from the center
+  const duration = 3000;
+  const end = Date.now() + duration;
+
+  // Create a subtle celebration effect
+  (function frame() {
+    confetti({
+      particleCount: 3,
+      angle: 60,
+      spread: 55,
+      origin: { x: 0 },
+      colors: ['#3b82f6', '#22c55e', '#a855f7', '#f97316', '#eab308', '#ec4899'],
+      scalar: 0.8,
+      drift: 0.5,
+    });
+    confetti({
+      particleCount: 3,
+      angle: 120,
+      spread: 55,
+      origin: { x: 1 },
+      colors: ['#3b82f6', '#22c55e', '#a855f7', '#f97316', '#eab308', '#ec4899'],
+      scalar: 0.8,
+      drift: -0.5,
+    });
+
+    if (Date.now() < end) {
+      requestAnimationFrame(frame);
+    }
+  }());
+
+  // Optional: Play subtle sound (muted by default, respect user preferences)
+  // Sound is opt-in via a future settings toggle
+}
+
+function checkAndCelebrate(data) {
+  // One-time celebration per session
+  if (hasCelebratedPerfectScore) return;
+
+  if (isPerfectScore(data)) {
+    hasCelebratedPerfectScore = true;
+    // Small delay to let the results render first
+    setTimeout(() => {
+      triggerConfetti();
+    }, 300);
+  }
+}
+
 // ── Summary bar ──
 function renderSummaryBar(data) {
   const g = data.scoring.overall.grade;
@@ -375,6 +444,9 @@ function renderSummaryBar(data) {
   const warnCount = (data.diagnostics || []).filter(d => d.severity === 'warning').length;
   const total = errCount + warnCount;
   diagBadge.textContent = total > 0 ? String(total) : '';
+
+  // Check for perfect score and trigger celebration
+  checkAndCelebrate(data);
 }
 
 // ── Preview Grid ──

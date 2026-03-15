@@ -4,6 +4,7 @@
 // ── State ──
 let currentData = null;
 let currentMode = 'url'; // 'url' | 'paste'
+let cardContextState = {}; // Track context mode per platform: { pid: { context: boolean, theme: 'dark'|'light' } }
 
 // ── DOM refs ──
 const $ = (sel) => document.querySelector(sel);
@@ -397,21 +398,46 @@ function buildCard(pid, scoreData, data, animDelay) {
   const card = document.createElement('div');
   card.className = `platform-card ${gradeClass(scoreData.grade)}`;
   card.style.animationDelay = animDelay + 'ms';
+  card.dataset.pid = pid;
 
-  // Header
+  // Initialize context state for this card
+  if (!cardContextState[pid]) {
+    cardContextState[pid] = { context: false, theme: 'dark' };
+  }
+
+  // Header with context toggle
   const header = document.createElement('div');
   header.className = 'card-header';
+  const supportsTheme = PLATFORMS_WITH_THEME.includes(pid);
+
   header.innerHTML = `
     <span class="card-platform-icon">${PLATFORM_ICONS[pid] || '🌐'}</span>
     <span class="card-platform-name">${escHtml(PLATFORM_NAMES[pid] || pid)}</span>
-    <span class="card-grade ${gradeClass(scoreData.grade)}">${scoreData.grade}</span>
+    <div class="card-header-controls">
+      ${supportsTheme ? `
+        <button class="card-theme-toggle" data-pid="${pid}" title="Toggle theme">
+          <span class="theme-icon">${cardContextState[pid].theme === 'dark' ? '🌙' : '☀️'}</span>
+        </button>
+      ` : ''}
+      <button class="card-context-toggle" data-pid="${pid}" title="Toggle context view">
+        <span class="context-icon">${cardContextState[pid].context ? '🖼️' : '🃏'}</span>
+        <span class="context-label">${cardContextState[pid].context ? 'In context' : 'Card only'}</span>
+      </button>
+      <span class="card-grade ${gradeClass(scoreData.grade)}">${scoreData.grade}</span>
+    </div>
   `;
   card.appendChild(header);
 
   // Body — platform-specific renderer
   const body = document.createElement('div');
   body.className = 'card-body';
-  body.innerHTML = renderPlatformCard(pid, data.meta, data.imageProbe, data.finalUrl);
+  body.id = `card-body-${pid}`;
+
+  if (cardContextState[pid].context) {
+    body.innerHTML = renderPlatformWithContext(pid, data.meta, data.imageProbe, data.finalUrl, cardContextState[pid].theme);
+  } else {
+    body.innerHTML = renderPlatformCard(pid, data.meta, data.imageProbe, data.finalUrl);
+  }
   card.appendChild(body);
 
   // Footer with issues
@@ -428,7 +454,60 @@ function buildCard(pid, scoreData, data, animDelay) {
     card.appendChild(footer);
   }
 
+  // Event listeners for toggles
+  const contextToggle = header.querySelector('.card-context-toggle');
+  contextToggle.addEventListener('click', () => toggleCardContext(pid, data));
+
+  const themeToggle = header.querySelector('.card-theme-toggle');
+  if (themeToggle) {
+    themeToggle.addEventListener('click', () => toggleCardTheme(pid, data));
+  }
+
   return card;
+}
+
+// Platforms that support dark/light mode
+const PLATFORMS_WITH_THEME = ['discord', 'slack', 'twitter', 'telegram'];
+
+function toggleCardContext(pid, data) {
+  cardContextState[pid].context = !cardContextState[pid].context;
+  const body = document.getElementById(`card-body-${pid}`);
+  if (body) {
+    if (cardContextState[pid].context) {
+      body.innerHTML = renderPlatformWithContext(pid, data.meta, data.imageProbe, data.finalUrl, cardContextState[pid].theme);
+    } else {
+      body.innerHTML = renderPlatformCard(pid, data.meta, data.imageProbe, data.finalUrl);
+    }
+  }
+  updateCardHeader(pid);
+}
+
+function toggleCardTheme(pid, data) {
+  cardContextState[pid].theme = cardContextState[pid].theme === 'dark' ? 'light' : 'dark';
+  if (cardContextState[pid].context) {
+    const body = document.getElementById(`card-body-${pid}`);
+    if (body) {
+      body.innerHTML = renderPlatformWithContext(pid, data.meta, data.imageProbe, data.finalUrl, cardContextState[pid].theme);
+    }
+  }
+  updateCardHeader(pid);
+}
+
+function updateCardHeader(pid) {
+  const card = document.querySelector(`.platform-card[data-pid="${pid}"]`);
+  if (!card) return;
+
+  const contextToggle = card.querySelector('.card-context-toggle');
+  const themeToggle = card.querySelector('.card-theme-toggle');
+
+  if (contextToggle) {
+    contextToggle.querySelector('.context-icon').textContent = cardContextState[pid].context ? '🖼️' : '🃏';
+    contextToggle.querySelector('.context-label').textContent = cardContextState[pid].context ? 'In context' : 'Card only';
+  }
+
+  if (themeToggle) {
+    themeToggle.querySelector('.theme-icon').textContent = cardContextState[pid].theme === 'dark' ? '🌙' : '☀️';
+  }
 }
 
 // ── Platform card renderers ──
@@ -726,6 +805,874 @@ function renderPlatformCard(pid, meta, imageProbe, baseUrl) {
         </div>
       </div>`;
   }
+}
+
+// ── Platform Context Frame Renderers ──
+function renderPlatformWithContext(pid, meta, imageProbe, baseUrl, theme = 'dark') {
+  const ogTitle = meta.og.title || meta.title || '';
+  const ogDesc = meta.og.description || meta.description || '';
+  const ogImage = meta.og.image || meta.twitter.image || '';
+  const ogSite = meta.og.site_name || '';
+  const domain = getDomain(baseUrl);
+  const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
+
+  switch (pid) {
+    case 'google':
+      return renderGoogleContext(ogTitle, ogDesc, domain);
+
+    case 'facebook':
+      return renderFacebookContext(ogTitle, ogDesc, ogImage, domain, ogSite);
+
+    case 'twitter':
+      return renderTwitterContext(ogTitle, ogDesc, ogImage, domain, theme);
+
+    case 'linkedin':
+      return renderLinkedInContext(ogTitle, ogDesc, ogImage, domain);
+
+    case 'reddit':
+      return renderRedditContext(ogTitle, ogDesc, ogImage, domain);
+
+    case 'slack':
+      return renderSlackContext(ogTitle, ogDesc, ogImage, domain, ogSite, theme);
+
+    case 'discord':
+      return renderDiscordContext(ogTitle, ogDesc, ogImage, domain, ogSite, theme);
+
+    case 'whatsapp':
+      return renderWhatsAppContext(ogTitle, ogDesc, ogImage, domain);
+
+    case 'imessage':
+      return renderiMessageContext(ogTitle, ogDesc, ogImage, domain);
+
+    case 'telegram':
+      return renderTelegramContext(ogTitle, ogDesc, ogImage, domain, theme);
+
+    case 'signal':
+      return renderSignalContext(ogTitle, ogDesc, ogImage, domain);
+
+    case 'teams':
+      return renderTeamsContext(ogTitle, ogDesc, ogImage, domain);
+
+    case 'googlechat':
+      return renderGoogleChatContext(ogTitle, ogDesc, ogImage, domain);
+
+    case 'mastodon':
+      return renderMastodonContext(ogTitle, ogDesc, ogImage, domain);
+
+    case 'bluesky':
+      return renderBlueskyContext(ogTitle, ogDesc, ogImage, domain);
+
+    case 'threads':
+      return renderThreadsContext(ogTitle, ogDesc, ogImage, domain);
+
+    case 'tumblr':
+      return renderTumblrContext(ogTitle, ogDesc, ogImage, domain);
+
+    case 'pinterest':
+      return renderPinterestContext(ogTitle, ogDesc, ogImage, domain);
+
+    case 'notion':
+      return renderNotionContext(ogTitle, ogDesc, ogImage, domain);
+
+    case 'jira':
+      return renderJiraContext(ogTitle, ogDesc, ogImage, domain);
+
+    case 'github':
+      return renderGitHubContext(ogTitle, ogDesc, ogImage, domain);
+
+    case 'trello':
+      return renderTrelloContext(ogTitle, ogDesc, ogImage, domain);
+
+    case 'figma':
+      return renderFigmaContext(ogTitle, ogDesc, ogImage, domain);
+
+    case 'medium':
+      return renderMediumContext(ogTitle, ogDesc, ogImage, domain);
+
+    case 'substack':
+      return renderSubstackContext(ogTitle, ogDesc, ogImage, domain);
+
+    case 'outlook':
+    case 'gmail':
+      return renderEmailContext(ogTitle, ogDesc, ogImage, domain, pid);
+
+    case 'feedly':
+      return renderFeedlyContext(ogTitle, ogDesc, ogImage, domain);
+
+    case 'zoom':
+    case 'line':
+    case 'kakaotalk':
+      return renderGenericMessagingContext(ogTitle, ogDesc, ogImage, domain, pid);
+
+    default:
+      return `<div class="context-frame generic-context">
+        <div class="context-header"><span class="context-title">${escHtml(PLATFORM_NAMES[pid] || pid)}</span></div>
+        <div class="context-body">${renderPlatformCard(pid, meta, imageProbe, baseUrl)}</div>
+      </div>`;
+  }
+}
+
+// Context frame implementations
+function renderGoogleContext(title, desc, domain) {
+  const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
+  return `<div class="context-frame google-context">
+    <div class="google-search-bar">
+      <span class="search-icon">🔍</span>
+      <span class="search-text">Search...</span>
+    </div>
+    <div class="google-results">
+      <div class="google-result-item">
+        <div class="google-breadcrumb">
+          <span class="google-favicon">🌐</span>
+          <span class="google-domain">${escHtml(domain)}</span>
+        </div>
+        <div class="google-title">${escHtml(trunc(title || 'Page Title', 60))}</div>
+        <div class="google-desc">${escHtml(trunc(desc || 'Page description appears here...', 158))}</div>
+      </div>
+      <div class="google-result-item google-result-dim">
+        <div class="google-breadcrumb"><span class="google-favicon">📄</span><span class="google-domain">Another result</span></div>
+        <div class="google-title">Related Search Result</div>
+      </div>
+      <div class="google-result-item google-result-dim">
+        <div class="google-breadcrumb"><span class="google-favicon">📄</span><span class="google-domain">More results</span></div>
+        <div class="google-title">Additional Result Link</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderFacebookContext(title, desc, image, domain, site) {
+  const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
+  return `<div class="context-frame facebook-context">
+    <div class="fb-post-header">
+      <div class="fb-avatar"></div>
+      <div class="fb-post-meta">
+        <span class="fb-author-name">Jane Smith</span>
+        <span class="fb-post-time">2h · 🌍</span>
+      </div>
+      <span class="fb-menu">•••</span>
+    </div>
+    <div class="fb-post-content">Check out this interesting article!</div>
+    <div class="fb-link-preview">
+      <div class="fb-context-domain">${escHtml((site || domain).toUpperCase())}</div>
+      <div class="fb-context-title">${escHtml(trunc(title, 60))}</div>
+      <div class="fb-context-desc">${escHtml(trunc(desc, 100))}</div>
+      ${image ? `<div class="fb-context-image"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" /></div>` : '<div class="fb-context-placeholder"></div>'}
+    </div>
+    <div class="fb-post-stats">👍 24 · 💬 8 · 🔗 5</div>
+  </div>`;
+}
+
+function renderTwitterContext(title, desc, image, domain, theme) {
+  const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
+  const isDark = theme === 'dark';
+  return `<div class="context-frame twitter-context ${isDark ? 'twitter-dark' : 'twitter-light'}">
+    <div class="tw-post-header">
+      <div class="tw-avatar"></div>
+      <div class="tw-post-meta">
+        <span class="tw-author-name">Alex Johnson</span>
+        <span class="tw-author-handle">@alexj</span>
+        <span class="tw-post-time">· 2h</span>
+      </div>
+      <span class="tw-verified">✓</span>
+    </div>
+    <div class="tw-post-content">You have to see this! 🔗</div>
+    <div class="tw-link-card">
+      ${image ? `<div class="tw-context-image"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" /></div>` : '<div class="tw-context-placeholder"></div>'}
+      <div class="tw-context-meta">
+        <div class="tw-context-title">${escHtml(trunc(title, 60))}</div>
+        <div class="tw-context-domain">${escHtml(domain)}</div>
+      </div>
+    </div>
+    <div class="tw-post-actions">💬 12 · 🔁 34 · ❤️ 128</div>
+  </div>`;
+}
+
+function renderLinkedInContext(title, desc, image, domain) {
+  const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
+  return `<div class="context-frame linkedin-context">
+    <div class="li-post-header">
+      <div class="li-avatar"></div>
+      <div class="li-post-meta">
+        <span class="li-author-name">Sarah Chen</span>
+        <span class="li-post-headline">Product Manager at Tech Corp</span>
+        <span class="li-post-time">2h · 🌐</span>
+      </div>
+    </div>
+    <div class="li-post-content">Great article on industry trends!</div>
+    <div class="li-link-preview">
+      ${image ? `<div class="li-context-image"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" /></div>` : '<div class="li-context-placeholder"></div>'}
+      <div class="li-context-meta">
+        <div class="li-context-title">${escHtml(trunc(title, 80))}</div>
+        <div class="li-context-domain">${escHtml(domain)}</div>
+      </div>
+    </div>
+    <div class="li-post-stats">👍 45 · 💬 12 · 🔁 8</div>
+  </div>`;
+}
+
+function renderRedditContext(title, desc, image, domain) {
+  const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
+  return `<div class="context-frame reddit-context">
+    <div class="rd-post-header">
+      <div class="rd-upvote">▲</div>
+      <div class="rd-post-main">
+        <span class="rd-subreddit">r/interesting</span>
+        <span class="rd-post-time">Posted by u/reader · 3h ago</span>
+      </div>
+    </div>
+    <div class="rd-post-title">${escHtml(trunc(title, 100))}</div>
+    <div class="rd-link-preview">
+      <div class="rd-context-domain">(self.${escHtml(domain.split('.')[0])})</div>
+      ${image ? `<div class="rd-context-image"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" /></div>` : '<div class="rd-context-placeholder"></div>'}
+      <div class="rd-context-desc">${escHtml(trunc(desc, 150))}</div>
+    </div>
+    <div class="rd-post-actions">💬 23 comments · 🔗 share · save</div>
+  </div>`;
+}
+
+function renderSlackContext(title, desc, image, domain, site, theme) {
+  const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
+  const isDark = theme === 'dark';
+  return `<div class="context-frame slack-context ${isDark ? 'slack-dark' : 'slack-light'}">
+    <div class="slack-sidebar">
+      <div class="slack-workspace">Acme Co</div>
+      <div class="slack-channel"># general</div>
+      <div class="slack-channel"># random</div>
+    </div>
+    <div class="slack-main">
+      <div class="slack-channel-header"># general</div>
+      <div class="slack-messages">
+        <div class="slack-message slack-message-dim">
+          <div class="slack-msg-avatar"></div>
+          <div class="slack-msg-content">
+            <span class="slack-msg-author">Mike</span>
+            <span class="slack-msg-time">10:30 AM</span>
+            <p>Has anyone seen this?</p>
+          </div>
+        </div>
+        <div class="slack-message">
+          <div class="slack-msg-avatar"></div>
+          <div class="slack-msg-content">
+            <span class="slack-msg-author">You</span>
+            <span class="slack-msg-time">10:32 AM</span>
+            <div class="slack-link-preview">
+              <div class="slack-site">${escHtml(site || domain)}</div>
+              <div class="slack-title">${escHtml(trunc(title, 80))}</div>
+              ${desc ? `<div class="slack-desc">${escHtml(trunc(desc, 150))}</div>` : ''}
+              ${image ? `<div class="slack-image"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" /></div>` : '<div class="slack-placeholder"></div>'}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderDiscordContext(title, desc, image, domain, site, theme) {
+  const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
+  const isDark = theme === 'dark';
+  return `<div class="context-frame discord-context ${isDark ? 'discord-dark' : 'discord-light'}">
+    <div class="discord-sidebar">
+      <div class="discord-server">Gaming Hub</div>
+      <div class="discord-channel"># general</div>
+      <div class="discord-channel"># off-topic</div>
+    </div>
+    <div class="discord-main">
+      <div class="discord-channel-header"># general</div>
+      <div class="discord-messages">
+        <div class="discord-message discord-message-dim">
+          <div class="discord-msg-avatar"></div>
+          <div class="discord-msg-content">
+            <span class="discord-msg-author">GameMaster</span>
+            <span class="discord-msg-time">Today at 10:30 AM</span>
+            <p>Check this out everyone!</p>
+          </div>
+        </div>
+        <div class="discord-message">
+          <div class="discord-msg-avatar"></div>
+          <div class="discord-msg-content">
+            <span class="discord-msg-author">You</span>
+            <span class="discord-msg-time">Today at 10:31 AM</span>
+            <div class="discord-link-preview" style="border-left-color:${escHtml(site || '#5865f2')}">
+              ${site ? `<div class="discord-site">${escHtml(site)}</div>` : ''}
+              <div class="discord-title">${escHtml(trunc(title, 256))}</div>
+              ${desc ? `<div class="discord-desc">${escHtml(trunc(desc, 300))}</div>` : ''}
+              ${image ? `<div class="discord-image"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" /></div>` : '<div class="discord-placeholder"></div>'}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderWhatsAppContext(title, desc, image, domain) {
+  const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
+  return `<div class="context-frame whatsapp-context">
+    <div class="wa-chat-header">
+      <span class="wa-back">←</span>
+      <div class="wa-contact">Tech Group</div>
+      <span class="wa-menu">⋮</span>
+    </div>
+    <div class="wa-messages">
+      <div class="wa-message wa-message-incoming">
+        <div class="wa-msg-bubble">
+          <p>Have you seen this link?</p>
+          <span class="wa-msg-time">10:30 AM</span>
+        </div>
+      </div>
+      <div class="wa-message wa-message-outgoing">
+        <div class="wa-msg-bubble wa-msg-with-link">
+          <div class="wa-link-preview">
+            <div class="wa-link-favicon">🌐</div>
+            <div class="wa-link-meta">
+              <div class="wa-domain">${escHtml(domain)}</div>
+              <div class="wa-title">${escHtml(trunc(title, 80))}</div>
+              ${desc ? `<div class="wa-desc">${escHtml(trunc(desc, 120))}</div>` : ''}
+            </div>
+            ${image ? `<img src="${escHtml(image)}" class="wa-link-thumb" alt="" onerror="this.style.display='none'" loading="lazy" />` : '<div class="wa-link-thumb-placeholder"></div>'}
+          </div>
+          <span class="wa-msg-time">10:31 AM ✓✓</span>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderiMessageContext(title, desc, image, domain) {
+  const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
+  return `<div class="context-frame imessage-context">
+    <div class="im-chat-header">
+      <span class="im-back">‹ Groups</span>
+      <span class="im-contact-name">Sarah</span>
+      <span class="im-video">📹</span>
+    </div>
+    <div class="im-messages">
+      <div class="im-message im-message-incoming">
+        <div class="im-bubble">
+          <p>Look at this article!</p>
+          <span class="im-time">10:30 AM</span>
+        </div>
+      </div>
+      <div class="im-message im-message-outgoing">
+        <div class="im-bubble im-bubble-with-link">
+          <div class="im-link-preview">
+            ${image ? `<div class="im-link-image"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" /></div>` : '<div class="im-link-placeholder"></div>'}
+            <div class="im-link-meta">
+              <div class="im-title">${escHtml(trunc(title, 80))}</div>
+              <div class="im-domain">${escHtml(domain)}</div>
+            </div>
+          </div>
+          <span class="im-time">10:31 AM</span>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderTelegramContext(title, desc, image, domain, theme) {
+  const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
+  const isDark = theme === 'dark';
+  return `<div class="context-frame telegram-context ${isDark ? 'telegram-dark' : 'telegram-light'}">
+    <div class="tg-chat-header">
+      <span class="tg-back">←</span>
+      <div class="tg-contact">News Channel</div>
+      <span class="tg-menu">⋮</span>
+    </div>
+    <div class="tg-messages">
+      <div class="tg-message tg-message-incoming">
+        <div class="tg-msg-avatar">N</div>
+        <div class="tg-bubble">
+          <p>Breaking news:</p>
+          <div class="tg-link-preview">
+            ${image ? `<div class="tg-link-image"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" /></div>` : '<div class="tg-link-placeholder"></div>'}
+            <div class="tg-link-meta">
+              <div class="tg-title">${escHtml(trunc(title, 200))}</div>
+              ${desc ? `<div class="tg-desc">${escHtml(trunc(desc, 170))}</div>` : ''}
+              <div class="tg-domain">${escHtml(domain)}</div>
+            </div>
+          </div>
+          <span class="tg-time">10:30</span>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderSignalContext(title, desc, image, domain) {
+  const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
+  return `<div class="context-frame signal-context">
+    <div class="signal-chat-header">
+      <span class="signal-back">←</span>
+      <div class="signal-contact">Family Group</div>
+      <span class="signal-video">📹</span>
+    </div>
+    <div class="signal-messages">
+      <div class="signal-message signal-message-outgoing">
+        <div class="signal-bubble">
+          <div class="signal-link-preview">
+            ${image ? `<img src="${escHtml(image)}" class="signal-link-thumb" alt="" onerror="this.style.display='none'" loading="lazy" />` : '<div class="signal-link-thumb-placeholder"></div>'}
+            <div class="signal-link-meta">
+              <div class="signal-title">${escHtml(trunc(title, 80))}</div>
+              ${desc ? `<div class="signal-desc">${escHtml(trunc(desc, 120))}</div>` : ''}
+              <div class="signal-domain">${escHtml(domain)}</div>
+            </div>
+          </div>
+          <span class="signal-time">10:31 AM ✓✓</span>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderTeamsContext(title, desc, image, domain) {
+  const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
+  return `<div class="context-frame teams-context">
+    <div class="teams-sidebar">
+      <div class="teams-teams">Teams</div>
+      <div class="teams-channel">General Channel</div>
+    </div>
+    <div class="teams-main">
+      <div class="teams-channel-header">General</div>
+      <div class="teams-messages">
+        <div class="teams-message teams-message-dim">
+          <div class="teams-msg-avatar">JD</div>
+          <div class="teams-msg-content">
+            <span class="teams-msg-author">John Doe</span>
+            <span class="teams-msg-time">10:30 AM</span>
+            <p>Sharing this link:</p>
+          </div>
+        </div>
+        <div class="teams-message">
+          <div class="teams-msg-avatar">ME</div>
+          <div class="teams-msg-content">
+            <span class="teams-msg-author">You</span>
+            <span class="teams-msg-time">10:31 AM</span>
+            <div class="teams-link-preview">
+              ${image ? `<div class="teams-link-image"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" /></div>` : '<div class="teams-link-placeholder"></div>'}
+              <div class="teams-link-meta">
+                <div class="teams-title">${escHtml(trunc(title, 80))}</div>
+                ${desc ? `<div class="teams-desc">${escHtml(trunc(desc, 160))}</div>` : ''}
+                <div class="teams-domain">${escHtml(domain)}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderGoogleChatContext(title, desc, image, domain) {
+  const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
+  return `<div class="context-frame gchat-context">
+    <div class="gchat-sidebar">
+      <div class="gchat-room">Project Room</div>
+      <div class="gchat-dm">Direct Messages</div>
+    </div>
+    <div class="gchat-main">
+      <div class="gchat-header">Project Room</div>
+      <div class="gchat-messages">
+        <div class="gchat-message gchat-message-dim">
+          <div class="gchat-msg-avatar">A</div>
+          <div class="gchat-msg-content">
+            <span class="gchat-msg-author">Alice</span>
+            <p>Found this resource</p>
+          </div>
+        </div>
+        <div class="gchat-message">
+          <div class="gchat-msg-avatar">Y</div>
+          <div class="gchat-msg-content">
+            <span class="gchat-msg-author">You</span>
+            <div class="gchat-link-preview">
+              ${image ? `<div class="gchat-link-image"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" /></div>` : '<div class="gchat-link-placeholder"></div>'}
+              <div class="gchat-link-meta">
+                <div class="gchat-title">${escHtml(trunc(title, 80))}</div>
+                ${desc ? `<div class="gchat-desc">${escHtml(trunc(desc, 160))}</div>` : ''}
+                <div class="gchat-domain">${escHtml(domain)}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderMastodonContext(title, desc, image, domain) {
+  const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
+  return `<div class="context-frame mastodon-context">
+    <div class="mdn-post-header">
+      <div class="mdn-avatar"></div>
+      <div class="mdn-post-meta">
+        <span class="mdn-author-name">@developer@mastodon.social</span>
+        <span class="mdn-post-time">2h ago</span>
+      </div>
+    </div>
+    <div class="mdn-post-content">Sharing this interesting post!</div>
+    <div class="mdn-link-preview">
+      ${image ? `<div class="mdn-link-image"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" /></div>` : '<div class="mdn-link-placeholder"></div>'}
+      <div class="mdn-link-meta">
+        <div class="mdn-title">${escHtml(trunc(title, 80))}</div>
+        ${desc ? `<div class="mdn-desc">${escHtml(trunc(desc, 200))}</div>` : ''}
+        <div class="mdn-domain">${escHtml(domain)}</div>
+      </div>
+    </div>
+    <div class="mdn-post-actions">💬 5 · 🔁 12 · ⭐ 34</div>
+  </div>`;
+}
+
+function renderBlueskyContext(title, desc, image, domain) {
+  const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
+  return `<div class="context-frame bluesky-context">
+    <div class="bsky-post-header">
+      <div class="bsky-avatar"></div>
+      <div class="bsky-post-meta">
+        <span class="bsky-author-name">@user.bsky.social</span>
+        <span class="bsky-post-time">· 2h</span>
+      </div>
+    </div>
+    <div class="bsky-post-content">Great read! 📖</div>
+    <div class="bsky-link-preview">
+      ${image ? `<div class="bsky-link-image"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" /></div>` : '<div class="bsky-link-placeholder"></div>'}
+      <div class="bsky-link-meta">
+        <div class="bsky-title">${escHtml(trunc(title, 160))}</div>
+        ${desc ? `<div class="bsky-desc">${escHtml(trunc(desc, 160))}</div>` : ''}
+        <div class="bsky-domain">${escHtml(domain)}</div>
+      </div>
+    </div>
+    <div class="bsky-post-stats">💬 3 · 🔁 8 · ❤️ 24</div>
+  </div>`;
+}
+
+function renderThreadsContext(title, desc, image, domain) {
+  const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
+  return `<div class="context-frame threads-context">
+    <div class="th-post-header">
+      <div class="th-avatar"></div>
+      <div class="th-post-meta">
+        <span class="th-author-name">@creator</span>
+        <span class="th-post-time">2h</span>
+      </div>
+    </div>
+    <div class="th-post-content">Check this out!</div>
+    <div class="th-link-preview">
+      <div class="th-context-domain">${escHtml(domain.toUpperCase())}</div>
+      <div class="th-context-title">${escHtml(trunc(title, 60))}</div>
+      ${desc ? `<div class="th-context-desc">${escHtml(trunc(desc, 100))}</div>` : ''}
+      ${image ? `<div class="th-context-image"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" /></div>` : '<div class="th-context-placeholder"></div>'}
+    </div>
+    <div class="th-post-actions">💬 12 · ❤️ 89 · 🔗 5</div>
+  </div>`;
+}
+
+function renderTumblrContext(title, desc, image, domain) {
+  const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
+  return `<div class="context-frame tumblr-context">
+    <div class="tumblr-post-header">
+      <div class="tumblr-avatar">B</div>
+      <div class="tumblr-post-meta">
+        <span class="tumblr-blog">blog-name</span>
+        <span class="tumblr-time">2 hours ago</span>
+      </div>
+    </div>
+    <div class="tumblr-post-content">Reblogging this!</div>
+    <div class="tumblr-link-preview">
+      <div class="tumblr-card-inner">
+        ${image ? `<div class="tumblr-thumb"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" /></div>` : '<div class="tumblr-thumb-placeholder"></div>'}
+        <div class="tumblr-meta">
+          <div class="tumblr-title">${escHtml(trunc(title, 60))}</div>
+          ${desc ? `<div class="tumblr-desc">${escHtml(trunc(desc, 120))}</div>` : ''}
+          <div class="tumblr-domain">${escHtml(domain)}</div>
+        </div>
+      </div>
+    </div>
+    <div class="tumblr-post-actions">💬 5 · 🔁 23</div>
+  </div>`;
+}
+
+function renderPinterestContext(title, desc, image, domain) {
+  const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
+  return `<div class="context-frame pinterest-context">
+    <div class="pin-grid">
+      <div class="pin-item pin-item-dim"></div>
+      <div class="pin-item pin-item-dim"></div>
+    </div>
+    <div class="pin-overlay">
+      <div class="pin-card">
+        ${image ? `<div class="pin-image"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" /></div>` : '<div class="pin-image-placeholder"></div>'}
+        <div class="pin-meta">
+          <div class="pin-title">${escHtml(trunc(title, 60))}</div>
+          ${desc ? `<div class="pin-desc">${escHtml(trunc(desc, 100))}</div>` : ''}
+          <div class="pin-domain">${escHtml(domain)}</div>
+        </div>
+        <div class="pin-actions">💾 · 🔗</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderNotionContext(title, desc, image, domain) {
+  const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
+  return `<div class="context-frame notion-context">
+    <div class="notion-sidebar">
+      <div class="notion-workspace">Workspace</div>
+      <div class="notion-page">📄 Documentation</div>
+      <div class="notion-page">📋 Tasks</div>
+    </div>
+    <div class="notion-main">
+      <div class="notion-breadcrumbs">Workspace › Documentation</div>
+      <div class="notion-content">
+        <div class="notion-block">Related resources:</div>
+        <div class="notion-embed">
+          ${image ? `<div class="notion-embed-thumb"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" /></div>` : '<div class="notion-embed-thumb-placeholder"></div>'}
+          <div class="notion-embed-meta">
+            <div class="notion-title">${escHtml(trunc(title, 80))}</div>
+            ${desc ? `<div class="notion-desc">${escHtml(trunc(desc, 120))}</div>` : ''}
+            <div class="notion-domain">${escHtml(domain)}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderJiraContext(title, desc, image, domain) {
+  const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
+  return `<div class="context-frame jira-context">
+    <div class="jira-sidebar">
+      <div class="jira-project">PROJ</div>
+      <div class="jira-link">📋 Backlog</div>
+      <div class="jira-link">📊 Active Sprint</div>
+    </div>
+    <div class="jira-main">
+      <div class="jira-issue-header">
+        <span class="jira-issue-key">PROJ-123</span>
+        <span class="jira-issue-type">📋 Task</span>
+      </div>
+      <div class="jira-content">
+        <div class="jira-description">Related link:</div>
+        <div class="jira-link-card">
+          ${image ? `<div class="jira-card-thumb"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" /></div>` : '<div class="jira-card-thumb-placeholder"></div>'}
+          <div class="jira-card-meta">
+            <div class="jira-title">${escHtml(trunc(title, 80))}</div>
+            ${desc ? `<div class="jira-desc">${escHtml(trunc(desc, 120))}</div>` : ''}
+            <div class="jira-domain">${escHtml(domain)}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderGitHubContext(title, desc, image, domain) {
+  const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
+  return `<div class="context-frame github-context">
+    <div class="gh-header">
+      <div class="gh-repo">owner/repository</div>
+      <div class="gh-tabs">Code · Issues · Pull requests</div>
+    </div>
+    <div class="gh-content">
+      <div class="gh-issue">
+        <div class="gh-issue-header">💬 Discussion</div>
+        <div class="gh-issue-body">
+          <div class="gh-comment">Check out this resource:</div>
+          <div class="gh-link-preview">
+            ${image ? `<div class="gh-preview-image"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" /></div>` : '<div class="gh-preview-placeholder"></div>'}
+            <div class="gh-preview-meta">
+              <div class="gh-title">${escHtml(trunc(title, 80))}</div>
+              ${desc ? `<div class="gh-desc">${escHtml(trunc(desc, 160))}</div>` : ''}
+              <div class="gh-domain">${escHtml(domain)}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderTrelloContext(title, desc, image, domain) {
+  const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
+  return `<div class="context-frame trello-context">
+    <div class="trello-board">
+      <div class="trello-list trello-list-dim">
+        <div class="trello-list-header">To Do</div>
+        <div class="trello-card-placeholder"></div>
+      </div>
+      <div class="trello-list trello-list-active">
+        <div class="trello-list-header">In Progress</div>
+        <div class="trello-card">
+          ${image ? `<div class="trello-card-thumb"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" /></div>` : '<div class="trello-card-thumb-placeholder"></div>'}
+          <div class="trello-card-meta">
+            <div class="trello-title">${escHtml(trunc(title, 80))}</div>
+            <div class="trello-domain">${escHtml(domain)}</div>
+          </div>
+        </div>
+        <div class="trello-card-placeholder"></div>
+      </div>
+      <div class="trello-list trello-list-dim">
+        <div class="trello-list-header">Done</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderFigmaContext(title, desc, image, domain) {
+  const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
+  return `<div class="context-frame figma-context">
+    <div class="figma-sidebar">
+      <div class="figma-file">Design File</div>
+      <div class="figma-page">Page 1</div>
+    </div>
+    <div class="figma-main">
+      <div class="figma-canvas">
+        <div class="figma-frame figma-frame-dim"></div>
+        <div class="figma-frame figma-frame-active">
+          <div class="figma-link-card">
+            ${image ? `<div class="figma-card-thumb"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" /></div>` : '<div class="figma-card-thumb-placeholder"></div>'}
+            <div class="figma-card-meta">
+              <div class="figma-title">${escHtml(trunc(title, 80))}</div>
+              ${desc ? `<div class="figma-desc">${escHtml(trunc(desc, 120))}</div>` : ''}
+              <div class="figma-domain">${escHtml(domain)}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderMediumContext(title, desc, image, domain) {
+  const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
+  return `<div class="context-frame medium-context">
+    <div class="medium-sidebar">
+      <div class="medium-home">Home</div>
+      <div class="medium-featured">Featured</div>
+    </div>
+    <div class="medium-main">
+      <div class="medium-feed">
+        <div class="medium-article medium-article-dim">
+          <div class="medium-clap">👏</div>
+          <div class="medium-title-dim">Another Story</div>
+        </div>
+        <div class="medium-article medium-article-featured">
+          <div class="medium-author">By Author</div>
+          <div class="medium-article-title">${escHtml(trunc(title, 80))}</div>
+          ${desc ? `<div class="medium-article-desc">${escHtml(trunc(desc, 160))}</div>` : ''}
+          ${image ? `<div class="medium-article-image"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" /></div>` : '<div class="medium-article-placeholder"></div>'}
+          <div class="medium-article-meta">${escHtml(domain)} · 5 min read</div>
+          <div class="medium-actions">👏 234 · 💬 12</div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderSubstackContext(title, desc, image, domain) {
+  const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
+  return `<div class="context-frame substack-context">
+    <div class="substack-header">
+      <div class="substack-logo">S</div>
+      <div class="substack-publication">The Newsletter</div>
+    </div>
+    <div class="substack-content">
+      <div class="substack-post substack-post-dim">
+        <div class="substack-post-title-dim">Previous Post</div>
+      </div>
+      <div class="substack-post substack-post-featured">
+        <div class="substack-post-meta">March 15 · By Author</div>
+        <div class="substack-post-title">${escHtml(trunc(title, 80))}</div>
+        ${desc ? `<div class="substack-post-desc">${escHtml(trunc(desc, 160))}</div>` : ''}
+        ${image ? `<div class="substack-post-image"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" /></div>` : '<div class="substack-post-placeholder"></div>'}
+        <div class="substack-post-actions">❤️ 456 · 🔁 89</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderEmailContext(title, desc, image, domain, type) {
+  const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
+  const appName = type === 'gmail' ? 'Gmail' : 'Outlook';
+  return `<div class="context-frame email-context email-${type}">
+    <div class="email-sidebar">
+      <div class="email-folder">📥 Inbox</div>
+      <div class="email-folder">📤 Sent</div>
+      <div class="email-folder">📝 Drafts</div>
+    </div>
+    <div class="email-main">
+      <div class="email-header">${appName} - Inbox</div>
+      <div class="email-list">
+        <div class="email-row email-row-dim">
+          <div class="email-sender">Other Sender</div>
+          <div class="email-subject-dim">Another email</div>
+        </div>
+        <div class="email-row email-row-featured">
+          <div class="email-sender">notifications@${escHtml(domain)}</div>
+          <div class="email-subject">${escHtml(trunc(title, 80))}</div>
+          <div class="email-preview">
+            ${image ? `<img src="${escHtml(image)}" class="email-thumb" alt="" onerror="this.style.display='none'" loading="lazy" />` : '<div class="email-thumb-placeholder"></div>'}
+            ${desc ? `<div class="email-desc">${escHtml(trunc(desc, 120))}</div>` : ''}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderFeedlyContext(title, desc, image, domain) {
+  const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
+  return `<div class="context-frame feedly-context">
+    <div class="feedly-sidebar">
+      <div class="feedly-all">All Articles</div>
+      <div class="feedly-source">${escHtml(domain)}</div>
+    </div>
+    <div class="feedly-main">
+      <div class="feedly-articles">
+        <div class="feedly-article feedly-article-dim">
+          <div class="feedly-title-dim">Previous Article</div>
+        </div>
+        <div class="feedly-article feedly-article-featured">
+          <div class="feedly-article-header">
+            ${image ? `<img src="${escHtml(image)}" class="feedly-thumb" alt="" onerror="this.style.display='none'" loading="lazy" />` : '<div class="feedly-thumb-placeholder"></div>'}
+            <div class="feedly-meta">
+              <div class="feedly-title">${escHtml(trunc(title, 80))}</div>
+              ${desc ? `<div class="feedly-desc">${escHtml(trunc(desc, 120))}</div>` : ''}
+              <div class="feedly-source">${escHtml(domain)} · just now</div>
+            </div>
+          </div>
+          <div class="feedly-actions">📖 · 🔖 · 🔗</div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderGenericMessagingContext(title, desc, image, domain, pid) {
+  const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
+  const name = PLATFORM_NAMES[pid] || pid;
+  return `<div class="context-frame generic-messaging-context">
+    <div class="generic-chat-header">
+      <span class="generic-back">←</span>
+      <div class="generic-contact">${escHtml(name)} Chat</div>
+      <span class="generic-menu">⋮</span>
+    </div>
+    <div class="generic-messages">
+      <div class="generic-message generic-message-outgoing">
+        <div class="generic-bubble">
+          <div class="generic-link-preview">
+            ${image ? `<div class="generic-link-image"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" /></div>` : '<div class="generic-link-placeholder"></div>'}
+            <div class="generic-link-meta">
+              <div class="generic-title">${escHtml(trunc(title, 80))}</div>
+              ${desc ? `<div class="generic-desc">${escHtml(trunc(desc, 160))}</div>` : ''}
+              <div class="generic-domain">${escHtml(domain)}</div>
+            </div>
+          </div>
+          <span class="generic-time">10:31 AM</span>
+        </div>
+      </div>
+    </div>
+  </div>`;
 }
 
 // ── Crop Visualizer ──

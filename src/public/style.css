@@ -547,3 +547,663 @@ body.has-results { padding-bottom: 48px; }
   .oggen-label { min-width: auto; margin-bottom: 4px; }
   .oggen-preview-area { padding: 10px; }
 }
+
+/* ── Platform Context Frames ── */
+
+/* Card header controls */
+.card-header-controls { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+.card-context-toggle, .card-theme-toggle {
+  display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 6px;
+  font-size: 11px; color: var(--text3); background: var(--bg3); border: 1px solid var(--border);
+  transition: var(--transition);
+}
+.card-context-toggle:hover, .card-theme-toggle:hover {
+  border-color: var(--accent); color: var(--accent);
+}
+.context-icon, .theme-icon { font-size: 12px; }
+.context-label { font-size: 10px; }
+
+/* Context frame base */
+.context-frame {
+  border-radius: var(--radius); overflow: hidden; background: var(--bg2);
+  border: 1px solid var(--border); font-size: 12px; line-height: 1.4;
+}
+.context-header {
+  padding: 8px 12px; background: var(--bg3); border-bottom: 1px solid var(--border);
+  font-size: 12px; font-weight: 600; color: var(--text2);
+}
+.context-body { padding: 0; }
+
+/* Google Search Context */
+.google-context { background: #fff; }
+.google-search-bar {
+  display: flex; align-items: center; gap: 12px; padding: 16px 20px;
+  background: #fff; border-bottom: 1px solid #dfe1e5;
+}
+.search-icon { font-size: 14px; color: #5f6368; }
+.search-text { color: #999; font-size: 14px; }
+.google-results { padding: 12px 20px 20px; }
+.google-result-item { padding: 12px 0; }
+.google-result-item + .google-result-item { border-top: 1px solid #ebebeb; }
+.google-result-dim { opacity: 0.6; }
+.google-title { color: #1a0dab; font-size: 16px; margin: 4px 0; }
+.google-desc { color: #4d5156; font-size: 13px; margin-top: 4px; }
+.google-domain { color: #006621; font-size: 12px; }
+.google-favicon { width: 16px; height: 16px; background: #eee; border-radius: 2px; display: inline-block; }
+
+/* Facebook Context */
+.facebook-context { background: #f0f2f5; max-width: 500px; }
+.fb-post-header { display: flex; gap: 10px; padding: 12px; background: #fff; }
+.fb-avatar { width: 40px; height: 40px; background: #ddd; border-radius: 50%; flex-shrink: 0; }
+.fb-post-meta { display: flex; flex-direction: column; }
+.fb-author-name { font-weight: 600; color: #050505; font-size: 14px; }
+.fb-post-time { font-size: 12px; color: #65676b; }
+.fb-menu { color: #65676b; margin-left: auto; }
+.fb-post-content { padding: 8px 12px; background: #fff; color: #050505; }
+.fb-link-preview { background: #f0f2f5; border-radius: 8px; overflow: hidden; margin: 8px 12px; }
+.fb-context-domain { padding: 8px 12px; font-size: 11px; color: #65676b; text-transform: uppercase; }
+.fb-context-title { padding: 0 12px 8px; font-size: 14px; font-weight: 600; color: #050505; }
+.fb-context-desc { padding: 0 12px 12px; font-size: 13px; color: #65676b; }
+.fb-context-image img { width: 100%; height: 260px; object-fit: cover; }
+.fb-context-placeholder { width: 100%; height: 200px; background: #e4e6eb; }
+.fb-post-stats { display: flex; gap: 16px; padding: 8px 12px; background: #fff; color: #65676b; font-size: 13px; }
+
+/* Twitter/X Context */
+.twitter-context { max-width: 500px; }
+.twitter-dark { background: #000; }
+.twitter-light { background: #fff; }
+.tw-post-header { display: flex; gap: 10px; padding: 12px; }
+.tw-avatar { width: 40px; height: 40px; background: #333; border-radius: 50%; flex-shrink: 0; }
+.twitter-light .tw-avatar { background: #ddd; }
+.tw-post-meta { display: flex; flex-direction: column; flex: 1; }
+.tw-author-name { font-weight: 700; color: #e7e9ea; font-size: 14px; }
+.twitter-light .tw-author-name { color: #0f1419; }
+.tw-author-handle { color: #71767b; font-size: 13px; }
+.twitter-light .tw-author-handle { color: #536471; }
+.tw-post-time { color: #71767b; font-size: 13px; }
+.twitter-light .tw-post-time { color: #536471; }
+.tw-verified { color: #1d9bf0; font-size: 14px; }
+.tw-post-content { padding: 0 12px 8px; color: #e7e9ea; font-size: 14px; }
+.twitter-light .tw-post-content { color: #0f1419; }
+.tw-link-card { margin: 8px 12px; border-radius: 14px; overflow: hidden; border: 1px solid #2f3336; }
+.twitter-light .tw-link-card { border-color: #cfd9de; background: #f7f9f9; }
+.tw-context-image img { width: 100%; aspect-ratio: 1.91/1; object-fit: cover; }
+.tw-context-placeholder { width: 100%; aspect-ratio: 1.91/1; background: #2f3336; }
+.twitter-light .tw-context-placeholder { background: #eff1f3; }
+.tw-context-meta { padding: 10px 14px; }
+.tw-context-title { font-weight: 700; color: #e7e9ea; font-size: 15px; margin-bottom: 3px; }
+.twitter-light .tw-context-title { color: #0f1419; }
+.tw-context-domain { color: #71767b; font-size: 13px; }
+.twitter-light .tw-context-domain { color: #536471; }
+.tw-post-actions { display: flex; gap: 16px; padding: 8px 12px; color: #71767b; font-size: 13px; }
+.twitter-light .tw-post-actions { color: #536471; }
+
+/* LinkedIn Context */
+.linkedin-context { max-width: 500px; background: #f3f2ef; }
+.li-post-header { display: flex; gap: 10px; padding: 12px; background: #fff; }
+.li-avatar { width: 40px; height: 40px; background: #ddd; border-radius: 50%; flex-shrink: 0; }
+.li-post-meta { display: flex; flex-direction: column; }
+.li-author-name { font-weight: 600; color: #000; font-size: 14px; }
+.li-post-headline { font-size: 12px; color: #666; }
+.li-post-time { font-size: 12px; color: #666; }
+.li-post-content { padding: 8px 12px; background: #fff; color: #000; }
+.li-link-preview { background: #eef3f8; border-radius: 8px; overflow: hidden; margin: 8px 12px; }
+.li-context-image img { width: 100%; aspect-ratio: 1.91/1; object-fit: cover; }
+.li-context-placeholder { width: 100%; aspect-ratio: 1.91/1; background: #e0e7ed; }
+.li-context-meta { padding: 10px 12px; }
+.li-context-title { font-weight: 600; color: #000; font-size: 14px; margin-bottom: 2px; }
+.li-context-domain { font-size: 12px; color: #666; }
+.li-post-stats { display: flex; gap: 16px; padding: 8px 12px; background: #fff; color: #666; font-size: 13px; }
+
+/* Reddit Context */
+.reddit-context { max-width: 500px; background: #fff; }
+.rd-post-header { display: flex; gap: 10px; padding: 12px; }
+.rd-upvote { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: #ff4500; color: #fff; border-radius: 4px; font-size: 16px; flex-shrink: 0; }
+.rd-post-main { flex: 1; }
+.rd-subreddit { font-weight: 600; color: #0079d3; font-size: 13px; }
+.rd-post-time { font-size: 12px; color: #7c7c7c; }
+.rd-post-title { padding: 8px 12px; font-size: 16px; font-weight: 600; color: #222; }
+.rd-link-preview { margin: 0 12px 12px; border: 1px solid #ccc; border-radius: 4px; overflow: hidden; }
+.rd-context-domain { padding: 8px 12px; font-size: 12px; color: #7c7c7c; }
+.rd-context-image img { width: 100%; max-height: 400px; object-fit: cover; }
+.rd-context-placeholder { width: 100%; height: 200px; background: #f6f7f8; }
+.rd-context-desc { padding: 8px 12px; font-size: 13px; color: #1c1c1c; }
+.rd-post-actions { display: flex; gap: 16px; padding: 8px 12px; color: #898989; font-size: 13px; }
+
+/* Slack Context */
+.slack-context { display: flex; min-height: 300px; }
+.slack-dark { background: #1a1d1d; }
+.slack-light { background: #fff; border: 1px solid #ddd; }
+.slack-sidebar { width: 80px; background: #3F0E40; padding: 12px 8px; flex-shrink: 0; }
+.slack-light .slack-sidebar { background: #f8f8f8; border-right: 1px solid #ddd; }
+.slack-workspace { width: 40px; height: 40px; background: #fff; border-radius: 8px; margin: 0 auto 16px; }
+.slack-light .slack-workspace { background: #ddd; }
+.slack-channel { padding: 8px; color: rgba(255,255,255,0.7); font-size: 22px; text-align: center; margin-bottom: 8px; }
+.slack-light .slack-channel { color: #555; }
+.slack-main { flex: 1; display: flex; flex-direction: column; }
+.slack-channel-header { padding: 12px 16px; background: #1a1d1d; border-bottom: 1px solid #333; font-weight: 600; }
+.slack-light .slack-channel-header { background: #fff; border-bottom-color: #ddd; color: #000; }
+.slack-dark .slack-channel-header { color: #fff; }
+.slack-messages { flex: 1; padding: 16px; }
+.slack-dark .slack-messages { background: #1a1d1d; }
+.slack-light .slack-messages { background: #f8f8f8; }
+.slack-message { display: flex; gap: 8px; margin-bottom: 16px; }
+.slack-message-dim { opacity: 0.6; }
+.slack-msg-avatar { width: 32px; height: 32px; background: #555; border-radius: 4px; flex-shrink: 0; }
+.slack-light .slack-msg-avatar { background: #ddd; }
+.slack-msg-content { flex: 1; }
+.slack-msg-author { font-weight: 600; font-size: 13px; }
+.slack-dark .slack-msg-author { color: #fff; }
+.slack-light .slack-msg-author { color: #000; }
+.slack-msg-time { font-size: 11px; margin-left: 8px; }
+.slack-dark .slack-msg-time { color: #999; }
+.slack-light .slack-msg-time { color: #888; }
+.slack-msg-content p { margin: 4px 0; }
+.slack-dark .slack-msg-content { color: #ddd; }
+.slack-light .slack-msg-content { color: #333; }
+.slack-link-preview { border-left: 4px solid var(--accent); padding: 10px; margin-top: 8px; }
+.slack-dark .slack-link-preview { background: #134a45; }
+.slack-light .slack-link-preview { background: #f0f0f0; }
+.slack-site { font-size: 11px; font-weight: 700; margin-bottom: 4px; }
+.slack-dark .slack-site { color: #73cdbe; }
+.slack-light .slack-site { color: #1d1c1d; }
+.slack-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+.slack-dark .slack-title { color: #fff; }
+.slack-light .slack-title { color: #1264a3; }
+.slack-desc { font-size: 13px; margin-bottom: 8px; }
+.slack-dark .slack-desc { color: #bbb; }
+.slack-light .slack-desc { color: #616061; }
+.slack-image { border-radius: 4px; overflow: hidden; }
+.slack-image img { max-width: 100%; max-height: 160px; }
+.slack-placeholder { height: 120px; background: rgba(0,0,0,0.2); border-radius: 4px; }
+.slack-light .slack-placeholder { background: rgba(0,0,0,0.1); }
+
+/* Discord Context */
+.discord-context { display: flex; min-height: 300px; }
+.discord-dark { background: #313338; }
+.discord-light { background: #fff; border: 1px solid #ddd; }
+.discord-sidebar { width: 80px; background: #2b2d31; padding: 12px 8px; flex-shrink: 0; }
+.discord-light .discord-sidebar { background: #f2f3f5; border-right: 1px solid #ddd; }
+.discord-server { width: 48px; height: 48px; background: #5865f2; border-radius: 50%; margin: 0 auto 16px; }
+.discord-light .discord-server { background: #ddd; }
+.discord-channel { width: 100%; aspect-ratio: 1; background: #3f4147; border-radius: 12px; margin-bottom: 8px; }
+.discord-light .discord-channel { background: #e3e5e8; }
+.discord-main { flex: 1; display: flex; flex-direction: column; }
+.discord-channel-header { padding: 12px 16px; background: #313338; border-bottom: 1px solid #1e1f22; font-weight: 600; }
+.discord-light .discord-channel-header { background: #fff; border-bottom-color: #ddd; color: #000; }
+.discord-dark .discord-channel-header { color: #f2f3f5; }
+.discord-messages { flex: 1; padding: 16px; }
+.discord-dark .discord-messages { background: #313338; }
+.discord-light .discord-messages { background: #f8f9f9; }
+.discord-message { display: flex; gap: 12px; margin-bottom: 16px; }
+.discord-message-dim { opacity: 0.6; }
+.discord-msg-avatar { width: 32px; height: 32px; background: #5865f2; border-radius: 50%; flex-shrink: 0; }
+.discord-light .discord-msg-avatar { background: #ddd; }
+.discord-msg-content { flex: 1; }
+.discord-msg-author { font-weight: 600; font-size: 14px; }
+.discord-dark .discord-msg-author { color: #f2f3f5; }
+.discord-light .discord-msg-author { color: #000; }
+.discord-msg-time { font-size: 11px; margin-left: 8px; }
+.discord-dark .discord-msg-time { color: #96989d; }
+.discord-light .discord-msg-time { color: #888; }
+.discord-msg-content p { margin: 4px 0; }
+.discord-dark .discord-msg-content { color: #dbdee1; }
+.discord-light .discord-msg-content { color: #333; }
+.discord-link-preview { padding: 10px; margin-top: 8px; background: #2b2d31; border-radius: 4px; }
+.discord-light .discord-link-preview { background: #f2f3f5; }
+.discord-site { font-size: 11px; font-weight: 600; margin-bottom: 4px; text-transform: uppercase; }
+.discord-dark .discord-site { color: #b5bac1; }
+.discord-light .discord-site { color: #4e5058; }
+.discord-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+.discord-dark .discord-title { color: #00aff4; }
+.discord-light .discord-title { color: #0066cc; }
+.discord-desc { font-size: 13px; margin-bottom: 8px; line-height: 1.4; }
+.discord-dark .discord-desc { color: #dbdee1; }
+.discord-light .discord-desc { color: #4e5058; }
+.discord-image { border-radius: 4px; overflow: hidden; }
+.discord-image img { max-width: 100%; max-height: 180px; }
+.discord-placeholder { height: 140px; background: #1e2028; border-radius: 4px; }
+.discord-light .discord-placeholder { background: #e3e5e8; }
+
+/* WhatsApp Context */
+.whatsapp-context { max-width: 350px; background: #efeae2; }
+.wa-chat-header { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: #075e54; color: #fff; }
+.wa-back { font-size: 18px; }
+.wa-contact { flex: 1; font-weight: 600; }
+.wa-menu { font-size: 18px; }
+.wa-messages { padding: 12px; background: #e5ddd5; min-height: 200px; }
+.wa-message { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+.wa-message-incoming { justify-content: flex-start; }
+.wa-msg-bubble { max-width: 80%; background: #dcf8c6; border-radius: 8px; padding: 8px 12px; }
+.wa-message-incoming .wa-msg-bubble { background: #fff; }
+.wa-msg-with-link { padding: 0; overflow: hidden; }
+.wa-link-preview { display: flex; background: #fff; border-radius: 8px; overflow: hidden; }
+.wa-link-favicon { width: 40px; display: flex; align-items: center; justify-content: center; background: #f0f0f0; flex-shrink: 0; }
+.wa-link-meta { flex: 1; padding: 10px; }
+.wa-domain { font-size: 11px; color: #667781; }
+.wa-title { font-size: 13px; font-weight: 500; color: #111b21; margin: 2px 0; }
+.wa-desc { font-size: 12px; color: #667781; margin-top: 4px; }
+.wa-link-thumb { width: 68px; height: 68px; object-fit: cover; flex-shrink: 0; }
+.wa-link-thumb-placeholder { width: 68px; height: 68px; background: #f0f2f5; flex-shrink: 0; }
+.wa-msg-time { font-size: 10px; color: #667781; display: block; text-align: right; padding: 4px; }
+
+/* iMessage Context */
+.imessage-context { max-width: 320px; background: #e5e1e5; }
+.im-chat-header { display: flex; align-items: center; justify-content: center; gap: 16px; padding: 12px; background: #f9f9f9; border-bottom: 1px solid #c6c6c8; }
+.im-back { color: #007aff; font-size: 16px; }
+.im-contact-name { font-weight: 600; color: #000; }
+.im-video { color: #007aff; }
+.im-messages { padding: 12px; min-height: 200px; }
+.im-message { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+.im-message-incoming { justify-content: flex-start; }
+.im-bubble { max-width: 75%; background: #e5e1e5; border-radius: 18px; padding: 8px 12px; }
+.im-message-outgoing .im-bubble { background: #007aff; color: #fff; }
+.im-bubble-with-link { padding: 0; overflow: hidden; border-radius: 12px; }
+.im-link-preview { background: #fff; border-radius: 12px; overflow: hidden; }
+.im-link-image img { width: 100%; height: 140px; object-fit: cover; }
+.im-link-placeholder { width: 100%; height: 140px; background: #e5e5ea; }
+.im-link-meta { padding: 10px 12px; }
+.im-message-outgoing .im-link-meta { background: #f0f0f0; }
+.im-title { font-size: 13px; font-weight: 600; color: #000; margin-bottom: 2px; }
+.im-domain { font-size: 11px; color: #8e8e93; }
+.im-time { font-size: 10px; display: block; text-align: right; padding: 4px; color: #8e8e93; }
+.im-message-outgoing .im-time { color: rgba(255,255,255,0.8); }
+
+/* Telegram Context */
+.telegram-context { max-width: 350px; }
+.telegram-dark { background: #17212b; }
+.telegram-light { background: #fff; border: 1px solid #ddd; }
+.tg-chat-header { display: flex; align-items: center; gap: 12px; padding: 10px 16px; }
+.telegram-dark .tg-chat-header { background: #17212b; color: #fff; border-bottom: 1px solid #0e1621; }
+.telegram-light .tg-chat-header { background: #fff; color: #000; border-bottom: 1px solid #ddd; }
+.tg-back { font-size: 18px; }
+.tg-contact { flex: 1; font-weight: 600; }
+.tg-menu { font-size: 18px; }
+.tg-messages { padding: 12px; min-height: 200px; }
+.telegram-dark .tg-messages { background: #0e1621; }
+.telegram-light .tg-messages { background: #f5f5f5; }
+.tg-message { display: flex; gap: 8px; margin-bottom: 12px; }
+.tg-msg-avatar { width: 36px; height: 36px; background: #2b5278; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; flex-shrink: 0; }
+.telegram-light .tg-msg-avatar { background: #ddd; }
+.tg-bubble { max-width: 80%; background: #182533; border-radius: 12px; padding: 8px 12px; }
+.telegram-light .tg-bubble { background: #fff; }
+.telegram-dark .tg-bubble { color: #fff; }
+.tg-bubble p { margin: 4px 0; }
+.tg-link-preview { margin-top: 8px; background: #242f3d; border-radius: 8px; overflow: hidden; }
+.telegram-light .tg-link-preview { background: #f0f0f0; }
+.tg-link-image img { width: 100%; max-height: 150px; object-fit: cover; }
+.tg-link-placeholder { width: 100%; height: 120px; background: #1b2736; }
+.telegram-light .tg-link-placeholder { background: #e0e0e0; }
+.tg-link-meta { padding: 10px 12px; }
+.tg-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.telegram-dark .tg-title { color: #fff; }
+.telegram-light .tg-title { color: #000; }
+.tg-desc { font-size: 13px; margin-bottom: 4px; }
+.telegram-dark .tg-desc { color: #aaa; }
+.telegram-light .tg-desc { color: #666; }
+.tg-domain { font-size: 12px; }
+.telegram-dark .tg-domain { color: #61a8de; }
+.telegram-light .tg-domain { color: #007aff; }
+.tg-time { font-size: 10px; display: block; text-align: right; }
+.telegram-dark .tg-time { color: #666; }
+.telegram-light .tg-time { color: #999; }
+
+/* Signal Context */
+.signal-context { max-width: 350px; background: #f6f6f6; }
+.signal-chat-header { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: #fff; border-bottom: 1px solid #ddd; }
+.signal-back { font-size: 18px; color: #007aff; }
+.signal-contact { flex: 1; font-weight: 600; color: #000; }
+.signal-video { color: #007aff; }
+.signal-messages { padding: 12px; min-height: 200px; }
+.signal-message { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+.signal-bubble { max-width: 80%; background: #3a76f0; border-radius: 18px; padding: 8px 12px; color: #fff; }
+.signal-link-preview { display: flex; background: #fff; border-radius: 12px; overflow: hidden; margin-top: 4px; }
+.signal-link-thumb { width: 76px; height: 76px; object-fit: cover; flex-shrink: 0; }
+.signal-link-thumb-placeholder { width: 76px; height: 76px; background: #e0e0e0; flex-shrink: 0; }
+.signal-link-meta { flex: 1; padding: 10px; }
+.signal-title { font-size: 13px; font-weight: 600; color: #000; margin-bottom: 2px; }
+.signal-desc { font-size: 12px; color: #666; margin-top: 4px; }
+.signal-domain { font-size: 11px; color: #3a76f0; }
+.signal-time { font-size: 10px; display: block; text-align: right; padding-top: 4px; }
+
+/* Teams Context */
+.teams-context { display: flex; min-height: 300px; }
+.teams-sidebar { width: 80px; background: #464775; padding: 12px 8px; flex-shrink: 0; }
+.teams-teams { width: 40px; height: 40px; background: #6264a7; border-radius: 8px; margin: 0 auto 16px; }
+.teams-channel { padding: 8px; color: rgba(255,255,255,0.7); text-align: center; font-size: 20px; }
+.teams-main { flex: 1; display: flex; flex-direction: column; }
+.teams-channel-header { padding: 12px 16px; background: #fff; border-bottom: 1px solid #e1dfdd; font-weight: 600; color: #464775; }
+.teams-messages { flex: 1; padding: 16px; background: #f5f5f5; }
+.teams-message { display: flex; gap: 10px; margin-bottom: 16px; }
+.teams-message-dim { opacity: 0.6; }
+.teams-msg-avatar { width: 36px; height: 36px; background: #6264a7; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; flex-shrink: 0; }
+.teams-msg-content { flex: 1; }
+.teams-msg-author { font-weight: 600; font-size: 13px; color: #000; }
+.teams-msg-time { font-size: 11px; color: #666; margin-left: 8px; }
+.teams-msg-content p { margin: 4px 0; color: #333; }
+.teams-link-preview { background: #fff; border-radius: 8px; overflow: hidden; margin-top: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+.teams-link-image img { width: 100%; max-height: 200px; object-fit: cover; }
+.teams-link-placeholder { width: 100%; height: 150px; background: #eff0f0; }
+.teams-link-meta { padding: 10px 12px; }
+.teams-title { font-size: 14px; font-weight: 600; color: #242424; margin-bottom: 4px; }
+.teams-desc { font-size: 13px; color: #616161; margin-bottom: 4px; }
+.teams-domain { font-size: 12px; color: #616161; }
+
+/* Google Chat Context */
+.gchat-context { display: flex; min-height: 300px; }
+.gchat-sidebar { width: 80px; background: #fff; padding: 12px 8px; flex-shrink: 0; border-right: 1px solid #e0e0e0; }
+.gchat-room { width: 100%; aspect-ratio: 1; background: #e8f0fe; border-radius: 12px; margin-bottom: 12px; }
+.gchat-dm { width: 100%; aspect-ratio: 1; background: #f1f3f4; border-radius: 12px; }
+.gchat-main { flex: 1; display: flex; flex-direction: column; }
+.gchat-header { padding: 12px 16px; background: #fff; border-bottom: 1px solid #e0e0e0; font-weight: 600; color: #5f6368; }
+.gchat-messages { flex: 1; padding: 16px; background: #fff; }
+.gchat-message { display: flex; gap: 10px; margin-bottom: 16px; }
+.gchat-message-dim { opacity: 0.6; }
+.gchat-msg-avatar { width: 36px; height: 36px; background: #1a73e8; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; flex-shrink: 0; }
+.gchat-msg-content { flex: 1; }
+.gchat-msg-author { font-weight: 600; font-size: 13px; color: #202124; }
+.gchat-msg-content p { margin: 4px 0; color: #5f6368; }
+.gchat-link-preview { background: #f1f3f4; border-radius: 8px; overflow: hidden; margin-top: 8px; }
+.gchat-link-image img { width: 100%; max-height: 200px; object-fit: cover; }
+.gchat-link-placeholder { width: 100%; height: 150px; background: #e8eaed; }
+.gchat-link-meta { padding: 10px 12px; }
+.gchat-title { font-size: 14px; font-weight: 500; color: #202124; margin-bottom: 4px; }
+.gchat-desc { font-size: 13px; color: #5f6368; margin-bottom: 4px; }
+.gchat-domain { font-size: 12px; color: #5f6368; }
+
+/* Mastodon Context */
+.mastodon-context { max-width: 500px; background: #fff; border: 1px solid #c0c0c0; }
+.mdn-post-header { display: flex; gap: 10px; padding: 12px; }
+.mdn-avatar { width: 40px; height: 40px; background: #ddd; border-radius: 50%; flex-shrink: 0; }
+.mdn-post-meta { display: flex; flex-direction: column; }
+.mdn-author-name { font-weight: 600; color: #000; font-size: 14px; }
+.mdn-post-time { font-size: 12px; color: #666; }
+.mdn-post-content { padding: 0 12px 8px; color: #000; }
+.mdn-link-preview { background: #f5f5f5; border-radius: 8px; overflow: hidden; margin: 8px 12px; }
+.mdn-link-image img { width: 100%; max-height: 300px; object-fit: cover; }
+.mdn-link-placeholder { width: 100%; height: 200px; background: #e0e0e0; }
+.mdn-link-meta { padding: 10px 14px; }
+.mdn-title { font-size: 14px; font-weight: 700; color: #191b22; margin-bottom: 4px; }
+.mdn-desc { font-size: 13px; color: #606984; margin-bottom: 4px; }
+.mdn-domain { font-size: 12px; color: #9baec8; }
+.mdn-post-actions { display: flex; gap: 16px; padding: 8px 12px; color: #666; font-size: 13px; }
+
+/* Bluesky Context */
+.bluesky-context { max-width: 500px; background: #fff; border: 1px solid #d3e2f0; }
+.bsky-post-header { display: flex; gap: 10px; padding: 12px; }
+.bsky-avatar { width: 40px; height: 40px; background: #cce0f5; border-radius: 50%; flex-shrink: 0; }
+.bsky-post-meta { display: flex; flex-direction: column; }
+.bsky-author-name { font-weight: 600; color: #000; font-size: 14px; }
+.bsky-post-time { font-size: 12px; color: #666; }
+.bsky-post-content { padding: 0 12px 8px; color: #000; }
+.bsky-link-preview { background: #f0f6ff; border-radius: 8px; overflow: hidden; margin: 8px 12px; }
+.bsky-link-image img { width: 100%; max-height: 300px; object-fit: cover; }
+.bsky-link-placeholder { width: 100%; height: 200px; background: #ddeeff; }
+.bsky-link-meta { padding: 10px 14px; }
+.bsky-title { font-size: 14px; font-weight: 600; color: #0f1419; margin-bottom: 4px; }
+.bsky-desc { font-size: 13px; color: #536471; margin-bottom: 4px; }
+.bsky-domain { font-size: 12px; color: #536471; }
+.bsky-post-stats { display: flex; gap: 16px; padding: 8px 12px; color: #666; font-size: 13px; }
+
+/* Threads Context */
+.threads-context { max-width: 500px; background: #fff; }
+.th-post-header { display: flex; gap: 10px; padding: 12px; }
+.th-avatar { width: 40px; height: 40px; background: #ddd; border-radius: 50%; flex-shrink: 0; }
+.th-post-meta { display: flex; flex-direction: column; }
+.th-author-name { font-weight: 600; color: #000; font-size: 14px; }
+.th-post-time { font-size: 12px; color: #737373; }
+.th-post-content { padding: 0 12px 8px; color: #000; }
+.th-link-preview { background: #f0f0f0; border-radius: 12px; overflow: hidden; margin: 8px 12px; }
+.th-context-domain { padding: 8px 12px; font-size: 11px; color: #737373; text-transform: uppercase; }
+.th-context-title { padding: 0 12px 4px; font-size: 14px; font-weight: 700; color: #000; }
+.th-context-desc { padding: 0 12px 8px; font-size: 13px; color: #737373; }
+.th-context-image img { width: 100%; max-height: 300px; object-fit: cover; }
+.th-context-placeholder { width: 100%; height: 200px; background: #e8e8e8; }
+.th-post-actions { display: flex; gap: 16px; padding: 8px 12px; color: #737373; font-size: 13px; }
+
+/* Tumblr Context */
+.tumblr-context { max-width: 500px; background: #35465c; }
+.tumblr-post-header { display: flex; gap: 10px; padding: 12px; }
+.tumblr-avatar { width: 40px; height: 40px; background: #2c3e50; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px; flex-shrink: 0; }
+.tumblr-post-meta { display: flex; flex-direction: column; }
+.tumblr-blog { font-weight: 600; color: #fff; font-size: 14px; }
+.tumblr-time { font-size: 12px; color: #9fb4c7; }
+.tumblr-post-content { padding: 0 12px 8px; color: #fff; }
+.tumblr-link-preview { margin: 8px 12px; background: #2c3e50; border-radius: 4px; overflow: hidden; }
+.tumblr-card-inner { display: flex; }
+.tumblr-thumb { width: 100px; flex-shrink: 0; }
+.tumblr-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.tumblr-thumb-placeholder { width: 100px; background: #1a252f; }
+.tumblr-meta { flex: 1; padding: 10px 12px; }
+.tumblr-title { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+.tumblr-desc { font-size: 13px; color: #9fb4c7; margin-bottom: 4px; }
+.tumblr-domain { font-size: 12px; color: #7c8fa1; }
+.tumblr-post-actions { display: flex; gap: 16px; padding: 8px 12px; color: #9fb4c7; font-size: 13px; }
+
+/* Pinterest Context */
+.pinterest-context { max-width: 400px; background: #fff; }
+.pin-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; padding: 16px; }
+.pin-item { aspect-ratio: 0.67; background: #f0f0f0; border-radius: 16px; }
+.pin-item-dim { opacity: 0.5; }
+.pin-overlay { position: relative; }
+.pin-card { background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.15); position: relative; z-index: 1; }
+.pin-image img { width: 100%; aspect-ratio: 0.67; object-fit: cover; }
+.pin-image-placeholder { width: 100%; aspect-ratio: 0.67; background: #f0f0f0; }
+.pin-meta { padding: 10px 12px; }
+.pin-title { font-size: 13px; font-weight: 700; color: #1a1a1a; margin-bottom: 4px; }
+.pin-desc { font-size: 12px; color: #767676; margin-bottom: 4px; }
+.pin-domain { font-size: 11px; color: #767676; }
+.pin-actions { display: flex; justify-content: space-between; padding: 8px 12px; border-top: 1px solid #f0f0f0; font-size: 16px; }
+
+/* Notion Context */
+.notion-context { display: flex; min-height: 300px; background: #fff; }
+.notion-sidebar { width: 100px; background: #f7f7f5; padding: 12px 8px; flex-shrink: 0; border-right: 1px solid #e9e9e7; }
+.notion-workspace { padding: 8px; background: #ebebeb; border-radius: 6px; margin-bottom: 12px; font-size: 11px; text-align: center; font-weight: 600; }
+.notion-page { padding: 8px; color: #555; font-size: 12px; margin-bottom: 4px; border-radius: 4px; }
+.notion-main { flex: 1; display: flex; flex-direction: column; }
+.notion-breadcrumbs { padding: 12px 16px; font-size: 12px; color: #777; border-bottom: 1px solid #e9e9e7; }
+.notion-content { padding: 16px; }
+.notion-block { margin-bottom: 12px; color: #333; }
+.notion-embed { display: flex; background: #f7f7f5; border-radius: 4px; overflow: hidden; border: 1px solid #e9e9e7; margin-top: 8px; }
+.notion-embed-thumb { width: 80px; flex-shrink: 0; }
+.notion-embed-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.notion-embed-thumb-placeholder { width: 80px; background: #e9e9e7; }
+.notion-embed-meta { flex: 1; padding: 10px 12px; }
+.notion-title { font-size: 13px; font-weight: 600; color: #111; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.notion-desc { font-size: 12px; color: #6b7280; margin-bottom: 4px; }
+.notion-domain { font-size: 11px; color: #9ca3af; }
+
+/* Jira Context */
+.jira-context { display: flex; min-height: 300px; background: #f4f5f7; }
+.jira-sidebar { width: 100px; background: #fff; padding: 12px 8px; flex-shrink: 0; border-right: 1px solid #dfe1e6; }
+.jira-project { padding: 8px; background: #deebff; border-radius: 4px; margin-bottom: 12px; font-size: 11px; text-align: center; font-weight: 600; color: #172b4d; }
+.jira-link { padding: 8px; color: #42526e; font-size: 12px; margin-bottom: 4px; }
+.jira-main { flex: 1; display: flex; flex-direction: column; }
+.jira-issue-header { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #fff; border-bottom: 1px solid #dfe1e6; }
+.jira-issue-key { font-weight: 600; color: #172b4d; }
+.jira-issue-type { padding: 4px 8px; background: #dfe1e6; border-radius: 4px; font-size: 12px; }
+.jira-content { padding: 16px; }
+.jira-description { margin-bottom: 12px; color: #172b4d; }
+.jira-link-card { display: flex; background: #fff; border-radius: 4px; overflow: hidden; border: 1px solid #dfe1e6; }
+.jira-card-thumb { width: 80px; flex-shrink: 0; }
+.jira-card-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.jira-card-thumb-placeholder { width: 80px; background: #f4f5f7; }
+.jira-card-meta { flex: 1; padding: 10px 12px; }
+.jira-title { font-size: 13px; font-weight: 600; color: #172b4d; margin-bottom: 4px; }
+.jira-desc { font-size: 12px; color: #5e6c84; margin-bottom: 4px; }
+.jira-domain { font-size: 11px; color: #8993a4; }
+
+/* GitHub Context */
+.github-context { background: #0d1117; }
+.gh-header { padding: 12px 16px; background: #161b22; border-bottom: 1px solid #30363d; }
+.gh-repo { font-weight: 600; color: #c9d1d9; font-size: 14px; margin-bottom: 8px; }
+.gh-tabs { display: flex; gap: 16px; font-size: 13px; color: #8b949e; }
+.gh-content { padding: 16px; }
+.gh-issue { background: #161b22; border: 1px solid #30363d; border-radius: 6px; }
+.gh-issue-header { padding: 10px 12px; border-bottom: 1px solid #30363d; color: #c9d1d9; font-size: 13px; }
+.gh-issue-body { padding: 12px; }
+.gh-comment { margin-bottom: 12px; color: #c9d1d9; }
+.gh-link-preview { background: #0d1117; border: 1px solid #30363d; border-radius: 6px; overflow: hidden; margin-top: 8px; }
+.gh-preview-image img { width: 100%; max-height: 300px; object-fit: cover; }
+.gh-preview-placeholder { width: 100%; height: 200px; background: #161b22; }
+.gh-preview-meta { padding: 10px 12px; }
+.gh-title { font-size: 14px; font-weight: 600; color: #c9d1d9; margin-bottom: 4px; }
+.gh-desc { font-size: 13px; color: #8b949e; margin-bottom: 4px; }
+.gh-domain { font-size: 12px; color: #8b949e; }
+
+/* Trello Context */
+.trello-context { background: #0079bf; min-height: 300px; }
+.trello-board { display: flex; gap: 12px; padding: 16px; overflow-x: auto; }
+.trello-list { width: 200px; background: #ebecf0; border-radius: 8px; flex-shrink: 0; display: flex; flex-direction: column; }
+.trello-list-header { padding: 10px 12px; font-weight: 600; color: #172b4d; font-size: 13px; }
+.trello-list-dim { opacity: 0.6; }
+.trello-card { background: #fff; border-radius: 4px; margin: 0 8px 8px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.15); }
+.trello-card-thumb { width: 100%; height: 120px; }
+.trello-card-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.trello-card-thumb-placeholder { width: 100%; height: 120px; background: #dfe1e6; }
+.trello-card-meta { padding: 8px 10px; }
+.trello-title { font-size: 13px; font-weight: 600; color: #172b4d; margin-bottom: 4px; }
+.trello-domain { font-size: 11px; color: #8993a4; }
+.trello-card-placeholder { height: 60px; background: rgba(0,0,0,0.1); border-radius: 4px; margin: 0 8px 8px; }
+
+/* Figma Context */
+.figma-context { display: flex; min-height: 300px; background: #1e1e1e; }
+.figma-sidebar { width: 100px; background: #2c2c2c; padding: 12px 8px; flex-shrink: 0; }
+.figma-file { padding: 8px; background: #333; border-radius: 4px; margin-bottom: 12px; font-size: 11px; text-align: center; color: #fff; }
+.figma-page { padding: 8px; color: #999; font-size: 12px; }
+.figma-main { flex: 1; display: flex; flex-direction: column; }
+.figma-canvas { flex: 1; padding: 20px; background: #1a1a1a; display: flex; gap: 16px; align-items: center; justify-content: center; }
+.figma-frame { width: 180px; height: 120px; background: #2c2c2c; border: 2px solid #444; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+.figma-frame-dim { opacity: 0.5; }
+.figma-frame-active { border-color: #0d99ff; }
+.figma-link-card { background: #333; border-radius: 8px; overflow: hidden; width: 160px; }
+.figma-card-thumb { width: 100%; height: 80px; }
+.figma-card-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.figma-card-thumb-placeholder { width: 100%; height: 80px; background: #444; }
+.figma-card-meta { padding: 6px 8px; }
+.figma-title { font-size: 11px; font-weight: 600; color: #fff; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.figma-desc { font-size: 10px; color: #999; margin-bottom: 2px; }
+.figma-domain { font-size: 9px; color: #666; }
+
+/* Medium Context */
+.medium-context { display: flex; min-height: 300px; background: #fff; }
+.medium-sidebar { width: 100px; background: #fff; padding: 12px 8px; flex-shrink: 0; border-right: 1px solid #e6e6e6; }
+.medium-home { padding: 8px; background: #f2f2f2; border-radius: 4px; margin-bottom: 12px; font-size: 11px; text-align: center; }
+.medium-featured { padding: 8px; color: #666; font-size: 12px; }
+.medium-main { flex: 1; display: flex; flex-direction: column; }
+.medium-feed { padding: 16px; }
+.medium-article { margin-bottom: 16px; background: #fff; border-radius: 4px; }
+.medium-article-dim { opacity: 0.5; }
+.medium-clap { font-size: 16px; margin-bottom: 4px; }
+.medium-title-dim { font-size: 13px; color: #666; }
+.medium-article-featured { border: 1px solid #e6e6e6; }
+.medium-author { font-size: 12px; color: #6b6b6b; margin-bottom: 8px; }
+.medium-article-title { font-size: 20px; font-weight: 700; color: #1a1a1a; margin-bottom: 8px; }
+.medium-article-desc { font-size: 14px; color: #6b6b6b; margin-bottom: 12px; }
+.medium-article-image img { width: 100%; max-height: 300px; object-fit: cover; }
+.medium-article-placeholder { width: 100%; height: 200px; background: #f5f5f5; }
+.medium-article-meta { font-size: 12px; color: #6b6b6b; margin: 12px 0; }
+.medium-actions { display: flex; gap: 16px; padding: 8px 0; color: #6b6b6b; font-size: 13px; }
+
+/* Substack Context */
+.substack-context { background: #fff; max-width: 500px; }
+.substack-header { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: #fff; border-bottom: 1px solid #e6e6e6; }
+.substack-logo { width: 32px; height: 32px; background: #ff6719; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; }
+.substack-publication { font-weight: 600; color: #1a1a1a; }
+.substack-content { padding: 16px; }
+.substack-post { margin-bottom: 16px; border-radius: 8px; }
+.substack-post-dim { opacity: 0.5; background: #f5f5f5; padding: 12px; border-radius: 8px; }
+.substack-post-title-dim { font-size: 13px; color: #999; }
+.substack-post-featured { border: 1px solid #e6e6e6; overflow: hidden; }
+.substack-post-meta { font-size: 12px; color: #6b6b6b; margin-bottom: 8px; }
+.substack-post-title { font-size: 18px; font-weight: 700; color: #1a1a1a; margin-bottom: 8px; }
+.substack-post-desc { font-size: 14px; color: #6b6b6b; margin-bottom: 12px; }
+.substack-post-image img { width: 100%; max-height: 300px; object-fit: cover; }
+.substack-post-placeholder { width: 100%; height: 200px; background: #f5f5f5; }
+.substack-post-actions { display: flex; gap: 16px; padding: 12px; color: #6b6b6b; font-size: 13px; }
+
+/* Email Context (Gmail/Outlook) */
+.email-context { display: flex; min-height: 300px; }
+.email-sidebar { width: 100px; background: #f6f8f8; padding: 12px 8px; flex-shrink: 0; }
+.email-gmail .email-sidebar { background: #f6f8f8; }
+.email-outlook .email-sidebar { background: #f3f2f1; }
+.email-folder { padding: 10px 8px; margin-bottom: 4px; font-size: 12px; color: #1a1a1a; border-radius: 4px; }
+.email-main { flex: 1; display: flex; flex-direction: column; }
+.email-header { padding: 12px 16px; background: #fff; border-bottom: 1px solid #e0e0e0; font-weight: 600; color: #1a1a1a; }
+.email-list { flex: 1; }
+.email-row { padding: 12px 16px; background: #fff; border-bottom: 1px solid #f0f0f0; }
+.email-row-dim { opacity: 0.6; }
+.email-row-featured { background: #f5f5f5; border-left: 3px solid #1a73e8; }
+.email-sender { font-size: 13px; font-weight: 600; color: #1a1a1a; margin-bottom: 4px; }
+.email-subject { font-size: 14px; color: #1a1a1a; margin-bottom: 4px; }
+.email-subject-dim { color: #666; }
+.email-preview { display: flex; gap: 10px; margin-top: 8px; }
+.email-thumb { width: 60px; height: 60px; border-radius: 4px; object-fit: cover; }
+.email-thumb-placeholder { width: 60px; height: 60px; background: #f0f0f0; border-radius: 4px; }
+.email-desc { flex: 1; font-size: 12px; color: #666; }
+
+/* Feedly Context */
+.feedly-context { display: flex; min-height: 300px; background: #fff; }
+.feedly-sidebar { width: 100px; background: #f8f8f8; padding: 12px 8px; flex-shrink: 0; border-right: 1px solid #e8e8e8; }
+.feedly-all { padding: 8px; background: #2bb24c; color: #fff; border-radius: 4px; margin-bottom: 12px; font-size: 11px; text-align: center; font-weight: 600; }
+.feedly-source { padding: 8px; color: #666; font-size: 11px; margin-bottom: 4px; text-align: center; }
+.feedly-main { flex: 1; display: flex; flex-direction: column; }
+.feedly-articles { padding: 16px; }
+.feedly-article { margin-bottom: 16px; background: #fff; border-radius: 8px; }
+.feedly-article-dim { opacity: 0.5; }
+.feedly-title-dim { font-size: 13px; color: #999; }
+.feedly-article-featured { border: 1px solid #e8e8e8; border-radius: 8px; overflow: hidden; }
+.feedly-article-header { display: flex; }
+.feedly-thumb { width: 90px; height: 70px; flex-shrink: 0; }
+.feedly-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.feedly-thumb-placeholder { width: 90px; height: 70px; background: #f8f8f8; }
+.feedly-meta { flex: 1; padding: 10px 12px; }
+.feedly-title { font-size: 14px; font-weight: 600; color: #2a2a2a; margin-bottom: 4px; }
+.feedly-desc { font-size: 12px; color: #6e6e6e; margin-bottom: 4px; }
+.feedly-source { font-size: 12px; color: #999; }
+.feedly-actions { display: flex; gap: 16px; padding: 8px 12px; color: #999; font-size: 13px; }
+
+/* Generic Messaging Context */
+.generic-messaging-context { max-width: 350px; background: #f5f5f5; }
+.generic-chat-header { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: #fff; border-bottom: 1px solid #ddd; }
+.generic-back { font-size: 18px; }
+.generic-contact { flex: 1; font-weight: 600; color: #000; }
+.generic-menu { font-size: 18px; }
+.generic-messages { padding: 12px; min-height: 200px; }
+.generic-message { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+.generic-bubble { max-width: 80%; background: #007aff; border-radius: 18px; padding: 8px 12px; color: #fff; }
+.generic-link-preview { background: #fff; border-radius: 12px; overflow: hidden; }
+.generic-link-image img { width: 100%; max-height: 150px; object-fit: cover; }
+.generic-link-placeholder { width: 100%; height: 120px; background: #e0e0e0; }
+.generic-link-meta { padding: 10px 12px; }
+.generic-title { font-size: 13px; font-weight: 600; color: #000; margin-bottom: 4px; }
+.generic-desc { font-size: 12px; color: #666; margin-bottom: 4px; }
+.generic-domain { font-size: 11px; color: #007aff; }
+.generic-time { font-size: 10px; display: block; text-align: right; padding-top: 4px; }
+
+/* Responsive adjustments for context frames */
+@media (max-width: 640px) {
+  .slack-context, .discord-context, .teams-context, .gchat-context,
+  .notion-context, .jira-context, .trello-context, .figma-context,
+  .medium-context, .email-context, .feedly-context {
+    flex-direction: column;
+  }
+  .slack-sidebar, .discord-sidebar, .teams-sidebar, .gchat-sidebar,
+  .notion-sidebar, .jira-sidebar, .trello-list, .figma-sidebar,
+  .medium-sidebar, .email-sidebar, .feedly-sidebar {
+    width: 100%;
+    flex-direction: row;
+    display: flex;
+    gap: 8px;
+    padding: 8px;
+    overflow-x: auto;
+  }
+  .trello-board { flex-wrap: wrap; }
+  .slack-channel, .discord-channel, .teams-channel, .notion-page,
+  .jira-link, .figma-page, .medium-featured, .email-folder, .feedly-source {
+    flex-shrink: 0;
+  }
+  .trello-list { width: 160px; }
+  .figma-canvas { flex-wrap: wrap; }
+  .figma-frame { min-width: 120px; }
+}

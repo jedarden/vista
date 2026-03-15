@@ -27,6 +27,7 @@
         <button class="nav-btn active" id="navInspect">Inspect</button>
         <button class="nav-btn" id="navPaste">Paste HTML</button>
         <button class="nav-btn" id="navCompare">Compare</button>
+        <button class="nav-btn" id="navSitemap">Sitemap</button>
       </nav>
     </div>
   </header>
@@ -140,6 +141,37 @@
             <button class="toggle-link" id="switchToInspectFromCompare">&#8592; Back to Inspect mode</button>
           </div>
         </div>
+
+        <!-- Sitemap Mode -->
+        <div class="input-block hidden" id="sitemapMode">
+          <div class="sitemap-tagline">
+            <h1>Crawl your entire sitemap<br/>and generate a report card</h1>
+            <p>Enter a sitemap URL to analyze platform coverage across all pages.</p>
+          </div>
+          <form class="sitemap-form" id="sitemapForm">
+            <div class="input-row">
+              <span class="input-icon">&#128196;</span>
+              <input
+                type="url"
+                id="sitemapInput"
+                placeholder="https://example.com/sitemap.xml"
+                autocomplete="off"
+                spellcheck="false"
+              />
+              <button type="submit" class="inspect-btn" id="sitemapBtn">
+                Crawl Sitemap &#9654;
+              </button>
+            </div>
+          </form>
+          <div class="sitemap-mode-toggle">
+            <button class="toggle-link" id="switchToInspectFromSitemap">&#8592; Back to Inspect mode</button>
+          </div>
+          <div class="example-chips">
+            <span class="chips-label">Try:</span>
+            <button class="chip" data-sitemap="https://github.com/sitemap.xml">github.com/sitemap.xml</button>
+            <button class="chip" data-sitemap="https://stripe.com/sitemap.xml">stripe.com/sitemap.xml</button>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -179,6 +211,7 @@
           <button class="tab-btn" data-tab="fixes">Auto-Fix</button>
           <button class="tab-btn" data-tab="oggen">OG Generator</button>
           <button class="tab-btn hidden" id="tabCompareBtn" data-tab="compare">Compare</button>
+          <button class="tab-btn hidden" id="tabSitemapBtn" data-tab="sitemap">Sitemap Report</button>
         </div>
       </div>
 
@@ -392,6 +425,51 @@
               <h3 class="compare-heading">Platform-by-Platform Comparison</h3>
               <div class="platform-comparison-grid" id="platformComparisonGrid">
               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sitemap tab -->
+        <div class="tab-pane hidden" id="tabSitemap">
+          <div class="sitemap-container" id="sitemapContainer">
+            <!-- Sitemap summary -->
+            <div class="sitemap-summary">
+              <div class="sitemap-summary-stats" id="sitemapSummaryStats"></div>
+              <div class="sitemap-summary-actions">
+                <button class="action-btn primary" id="exportSitemapCsv">&#128190; Export CSV</button>
+                <button class="action-btn" id="exportSitemapJson">&#128190; Export JSON</button>
+              </div>
+            </div>
+
+            <!-- Heatmap table -->
+            <div class="heatmap-table-wrapper" id="heatmapTableWrapper">
+              <div class="heatmap-table-header">
+                <h3>Platform Coverage Heatmap</h3>
+                <div class="heatmap-controls">
+                  <select id="heatmapSort" class="heatmap-select">
+                    <option value="score-asc">Score: Worst to Best</option>
+                    <option value="score-desc">Score: Best to Worst</option>
+                    <option value="url-asc">URL: A to Z</option>
+                    <option value="url-desc">URL: Z to A</option>
+                  </select>
+                </div>
+              </div>
+              <div class="heatmap-table-scroll">
+                <table class="heatmap-table" id="heatmapTable">
+                  <thead>
+                    <tr id="heatmapTableHead"></tr>
+                  </thead>
+                  <tbody id="heatmapTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Sitemap progress -->
+            <div class="sitemap-progress hidden" id="sitemapProgress">
+              <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+              </div>
+              <div class="progress-text" id="progressText">Initializing...</div>
             </div>
           </div>
         </div>

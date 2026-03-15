@@ -75,6 +75,27 @@ const oggenDownloadBtn = $('#oggenDownloadBtn');
 const oggenUseInEditorBtn = $('#oggenUseInEditorBtn');
 const oggenResetBtn = $('#oggenResetBtn');
 
+// Sitemap DOM refs
+const navSitemap = $('#navSitemap');
+const sitemapMode = $('#sitemapMode');
+const sitemapForm = $('#sitemapForm');
+const sitemapInput = $('#sitemapInput');
+const sitemapBtn = $('#sitemapBtn');
+const tabSitemapBtn = $('#tabSitemapBtn');
+const sitemapSummaryStats = $('#sitemapSummaryStats');
+const heatmapTableHead = $('#heatmapTableHead');
+const heatmapTableBody = $('#heatmapTableBody');
+const heatmapSort = $('#heatmapSort');
+const exportSitemapCsv = $('#exportSitemapCsv');
+const exportSitemapJson = $('#exportSitemapJson');
+const sitemapProgress = $('#sitemapProgress');
+const progressFill = $('#progressFill');
+const progressText = $('#progressText');
+
+// Sitemap state
+let sitemapData = null;
+let sitemapResults = [];
+
 // ── Event listeners ──
 urlForm.addEventListener('submit', (e) => { e.preventDefault(); inspectUrl(urlInput.value.trim()); });
 pasteForm.addEventListener('submit', (e) => { e.preventDefault(); inspectHtml(htmlInput.value.trim(), baseUrlInput.value.trim()); });
@@ -110,6 +131,23 @@ oggenDownloadBtn?.addEventListener('click', downloadOggenImage);
 oggenResetBtn?.addEventListener('click', resetOggen);
 oggenUseInEditorBtn?.addEventListener('click', useOggenInEditor);
 
+// Sitemap event listeners
+navSitemap?.addEventListener('click', () => switchMode('sitemap'));
+$('#switchToInspectFromSitemap')?.addEventListener('click', () => switchMode('url'));
+sitemapForm?.addEventListener('submit', (e) => { e.preventDefault(); handleSitemapSubmit(); });
+heatmapSort?.addEventListener('change', handleHeatmapSort);
+exportSitemapCsv?.addEventListener('click', exportSitemapDataAsCsv);
+exportSitemapJson?.addEventListener('click', exportSitemapDataAsJson);
+
+// Sitemap example chips
+document.querySelectorAll('.chip[data-sitemap]').forEach(chip => {
+  chip.addEventListener('click', () => {
+    sitemapInput.value = chip.dataset.sitemap;
+    switchMode('sitemap');
+    handleSitemapSubmit();
+  });
+});
+
 // Tab switching
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => switchTab(btn.dataset.tab));
@@ -143,25 +181,42 @@ function switchMode(mode) {
     urlMode.classList.remove('hidden');
     pasteMode.classList.add('hidden');
     compareMode.classList.add('hidden');
+    if (sitemapMode) sitemapMode.classList.add('hidden');
     navInspect.classList.add('active');
     navPaste.classList.remove('active');
     navCompare?.classList.remove('active');
+    navSitemap?.classList.remove('active');
     tabCompareBtn?.classList.add('hidden');
+    tabSitemapBtn?.classList.add('hidden');
   } else if (mode === 'paste') {
     urlMode.classList.add('hidden');
     pasteMode.classList.remove('hidden');
     compareMode.classList.add('hidden');
+    if (sitemapMode) sitemapMode.classList.add('hidden');
     navPaste.classList.add('active');
     navInspect.classList.remove('active');
     navCompare?.classList.remove('active');
+    navSitemap?.classList.remove('active');
     tabCompareBtn?.classList.add('hidden');
+    tabSitemapBtn?.classList.add('hidden');
   } else if (mode === 'compare') {
     urlMode.classList.add('hidden');
     pasteMode.classList.add('hidden');
     compareMode.classList.remove('hidden');
+    if (sitemapMode) sitemapMode.classList.add('hidden');
     navCompare?.classList.add('active');
     navInspect.classList.remove('active');
     navPaste.classList.remove('active');
+    navSitemap?.classList.remove('active');
+  } else if (mode === 'sitemap') {
+    urlMode.classList.add('hidden');
+    pasteMode.classList.add('hidden');
+    compareMode.classList.add('hidden');
+    if (sitemapMode) sitemapMode.classList.remove('hidden');
+    navSitemap?.classList.add('active');
+    navInspect?.classList.remove('active');
+    navPaste?.classList.remove('active');
+    navCompare?.classList.remove('active');
   }
 }
 
@@ -2917,4 +2972,282 @@ function getMetaValue(meta, key) {
   }
 
   return current;
+}
+
+// ── Sitemap Mode Functions ──
+
+async function handleSitemapSubmit() {
+  const sitemapUrl = sitemapInput?.value?.trim();
+  if (!sitemapUrl) {
+    showToast('Please enter a sitemap URL', 2000);
+    return;
+  }
+
+  // Normalize URL
+  const normalizedUrl = sitemapUrl.startsWith('http://') || sitemapUrl.startsWith('https://')
+    ? sitemapUrl
+    : 'https://' + sitemapUrl;
+
+  // Show progress
+  if (sitemapProgress) sitemapProgress.classList.remove('hidden');
+  if (progressText) progressText.textContent = 'Fetching sitemap...';
+  if (progressFill) progressFill.style.width = '10%';
+
+  try {
+    const resp = await fetch(`/api/sitemap?url=${encodeURIComponent(normalizedUrl)}`);
+    const data = await resp.json();
+
+    if (!resp.ok) throw new Error(data.error || 'Sitemap fetch failed');
+
+    // Store results
+    sitemapData = data;
+    sitemapResults = data.results || [];
+
+    // Update progress
+    if (progressText) progressText.textContent = `Analyzed ${sitemapResults.length} pages`;
+    if (progressFill) progressFill.style.width = '100%';
+
+    // Hide progress after delay
+    setTimeout(() => {
+      if (sitemapProgress) sitemapProgress.classList.add('hidden');
+    }, 1500);
+
+    // Render sitemap results
+    renderSitemapResults(data);
+
+    // Update hero
+    hero.classList.add('compact');
+    document.body.classList.add('has-results');
+    if (resultsSection) resultsSection.classList.remove('hidden');
+
+    // Show sitemap tab
+    if (tabSitemapBtn) tabSitemapBtn.classList.remove('hidden');
+    switchTab('sitemap');
+
+    // Scroll to results
+    if (resultsSection) resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  } catch (err) {
+    if (sitemapProgress) sitemapProgress.classList.add('hidden');
+    showToast('Error: ' + err.message, 3000);
+  }
+}
+
+function renderSitemapResults(data) {
+  // Render summary stats
+  if (sitemapSummaryStats) {
+    const { totalFound, crawled, errors, hasMore } = data;
+    sitemapSummaryStats.innerHTML = `
+      <div class="sitemap-stat">
+        <span class="stat-label">Total URLs:</span>
+        <span class="stat-value">${totalFound}</span>
+      </div>
+      <div class="sitemap-stat">
+        <span class="stat-label">Crawled:</span>
+        <span class="stat-value">${crawled}</span>
+      </div>
+      <div class="sitemap-stat">
+        <span class="stat-label">Errors:</span>
+        <span class="stat-value ${errors > 0 ? 'stat-error' : ''}">${errors}</span>
+      </div>
+      ${hasMore ? '<div class="sitemap-stat"><span class="stat-note">Limited to 100 URLs</span></div>' : ''}
+    `;
+  }
+
+  // Render heatmap table
+  renderHeatmapTable(sitemapResults);
+}
+
+function renderHeatmapTable(results) {
+  if (!heatmapTableHead || !heatmapTableBody) return;
+
+  // Clear existing content
+  heatmapTableHead.innerHTML = '';
+  heatmapTableBody.innerHTML = '';
+
+  if (results.length === 0) {
+    heatmapTableBody.innerHTML = '<tr><td colspan="32" style="text-align:center;padding:20px;">No results found</td></tr>';
+    return;
+  }
+
+  // Build header row
+  const headerRow = document.createElement('tr');
+
+  // Page/URL column header
+  const pageHeader = document.createElement('th');
+  pageHeader.className = 'heatmap-th sticky-header';
+  pageHeader.textContent = 'Page';
+  headerRow.appendChild(pageHeader);
+
+  // Overall score column header
+  const scoreHeader = document.createElement('th');
+  scoreHeader.className = 'heatmap-th sticky-header';
+  scoreHeader.textContent = 'Score';
+  headerRow.appendChild(scoreHeader);
+
+  // Platform column headers
+  const platformOrder = ['google', 'facebook', 'twitter', 'linkedin', 'slack', 'discord', 'whatsapp', 'imessage', 'telegram'];
+  platformOrder.forEach(pid => {
+    const th = document.createElement('th');
+    th.className = 'heatmap-th platform-header';
+    th.innerHTML = `<span class="platform-icon">${PLATFORM_ICONS[pid] || '🌐'}</span>`;
+    th.title = PLATFORM_NAMES[pid] || pid;
+    headerRow.appendChild(th);
+  });
+
+  heatmapTableHead.appendChild(headerRow);
+
+  // Build data rows
+  results.forEach(result => {
+    if (result.error) return; // Skip errored results
+
+    const row = document.createElement('tr');
+    row.className = 'heatmap-tr';
+    row.dataset.url = result.url;
+
+    // Page URL cell
+    const pageCell = document.createElement('td');
+    pageCell.className = 'heatmap-td url-cell';
+    const displayUrl = result.url.replace(/^https?:\/\//, '').replace(/\/$/, '');
+    pageCell.innerHTML = `<a href="${escHtml(result.url)}" target="_blank" rel="noopener" title="${escHtml(result.url)}">${escHtml(displayUrl)}</a>`;
+    row.appendChild(pageCell);
+
+    // Overall score cell
+    const scoreCell = document.createElement('td');
+    scoreCell.className = 'heatmap-td score-cell';
+    scoreCell.innerHTML = `
+      <span class="heatmap-grade ${gradeClass(result.overallGrade)}">${result.overallGrade}</span>
+      <span class="heatmap-score">${result.overallScore}</span>
+    `;
+    row.appendChild(scoreCell);
+
+    // Platform cells
+    platformOrder.forEach(pid => {
+      const cell = document.createElement('td');
+      cell.className = 'heatmap-td platform-cell';
+
+      const score = result.scores[pid];
+      if (score) {
+        const { grade, score: points } = score;
+        cell.className += ` ${gradeClass(grade)}`;
+        cell.innerHTML = `<span class="platform-grade">${grade}</span>`;
+        cell.title = `${PLATFORM_NAMES[pid] || pid}: ${grade} (${points})`;
+      } else {
+        cell.className += ' no-data';
+        cell.innerHTML = '<span class="platform-grade">-</span>';
+      }
+
+      row.appendChild(cell);
+    });
+
+    heatmapTableBody.appendChild(row);
+  });
+}
+
+function handleHeatmapSort() {
+  if (!heatmapSort || !sitemapResults.length) return;
+
+  const sortBy = heatmapSort.value;
+  let sorted = [...sitemapResults];
+
+  switch (sortBy) {
+    case 'score-asc':
+      sorted.sort((a, b) => (a.overallScore || 0) - (b.overallScore || 0));
+      break;
+    case 'score-desc':
+      sorted.sort((a, b) => (b.overallScore || 0) - (a.overallScore || 0));
+      break;
+    case 'url-asc':
+      sorted.sort((a, b) => a.url.localeCompare(b.url));
+      break;
+    case 'url-desc':
+      sorted.sort((a, b) => b.url.localeCompare(a.url));
+      break;
+  }
+
+  renderHeatmapTable(sorted);
+}
+
+function exportSitemapDataAsCsv() {
+  if (!sitemapResults.length) {
+    showToast('No data to export', 2000);
+    return;
+  }
+
+  const headers = ['URL', 'Final URL', 'Status Code', 'Title', 'Description', 'Image', 'Overall Grade', 'Overall Score'];
+  const platformOrder = ['google', 'facebook', 'twitter', 'linkedin', 'slack', 'discord', 'whatsapp', 'imessage', 'telegram'];
+  platformOrder.forEach(pid => {
+    headers.push(`${PLATFORM_NAMES[pid] || pid} Grade`);
+    headers.push(`${PLATFORM_NAMES[pid] || pid} Score`);
+  });
+
+  const rows = sitemapResults.map(result => {
+    if (result.error) {
+      return [result.url, '', '', '', '', '', 'Error', result.error];
+    }
+
+    const row = [
+      result.url,
+      result.finalUrl || result.url,
+      result.statusCode || '',
+      escapeCsv(result.title),
+      escapeCsv(result.description),
+      result.image,
+      result.overallGrade,
+      result.overallScore,
+    ];
+
+    platformOrder.forEach(pid => {
+      const score = result.scores[pid];
+      if (score) {
+        row.push(score.grade);
+        row.push(score.score);
+      } else {
+        row.push('');
+        row.push('');
+      }
+    });
+
+    return row;
+  });
+
+  const csv = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+
+  downloadFile(csv, 'sitemap-report.csv', 'text/csv');
+  showToast('CSV exported', 2000);
+}
+
+function exportSitemapDataAsJson() {
+  if (!sitemapResults.length) {
+    showToast('No data to export', 2000);
+    return;
+  }
+
+  const json = JSON.stringify({
+    sitemapUrl: sitemapData?.sitemapUrl,
+    totalFound: sitemapData?.totalFound,
+    crawled: sitemapData?.crawled,
+    timestamp: new Date().toISOString(),
+    results: sitemapResults,
+  }, null, 2);
+
+  downloadFile(json, 'sitemap-report.json', 'application/json');
+  showToast('JSON exported', 2000);
+}
+
+function escapeCsv(str) {
+  if (!str) return '';
+  return String(str).replace(/"/g, '""');
+}
+
+function downloadFile(content, filename, mimeType) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }

@@ -5,6 +5,7 @@ const path = require('path');
 const { fetchUrl, parseMetaTags, probeImage } = require('./fetcher');
 const { detectMistakes } = require('./diagnostics');
 const { scoreAll, PLATFORMS } = require('./scorer');
+const cheerio = require('cheerio');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -97,6 +98,163 @@ app.get('/api/platforms', (req, res) => {
 });
 
 /**
+ * GET /api/sitemap?url=https://...sitemap.xml
+ * Parse sitemap and return all URLs with coverage scores
+ */
+app.get('/api/sitemap', async (req, res) => {
+  const sitemapUrl = req.query.url;
+  if (!sitemapUrl) {
+    return res.status(400).json({ error: 'Missing ?url= parameter' });
+  }
+
+  // Validate URL
+  try {
+    const parsed = new URL(sitemapUrl);
+    if (!['http:', 'https:'].includes(parsed.protocol)) {
+      return res.status(400).json({ error: 'Only http and https URLs are supported' });
+    }
+  } catch (_) {
+    return res.status(400).json({ error: 'Invalid URL' });
+  }
+
+  try {
+    // Fetch sitemap
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 30000);
+
+    let response;
+    try {
+      const fetch = require('node-fetch');
+      response = await fetch(sitemapUrl, {
+        method: 'GET',
+        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; VISTA/1.0; +https://github.com/vista-tool)', Accept: 'application/xml,text/xml,*/*' },
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timer);
+    }
+
+    if (!response.ok) {
+      return res.status(502).json({ error: `Failed to fetch sitemap: ${response.status} ${response.statusText}` });
+    }
+
+    const xml = await response.text();
+
+    // Parse sitemap
+    const urls = await parseSitemap(xml, sitemapUrl);
+
+    // If this returned sitemap index URLs (nested sitemaps), fetch them recursively
+    let allUrls = urls;
+    if (urls.length > 0 && urls[0].includes('sitemap')) {
+      // Check if these are sitemap URLs (vs page URLs)
+      const isSitemapIndex = urls.some(u => u.includes('sitemap'));
+      if (isSitemapIndex) {
+        // Fetch all nested sitemaps
+        allUrls = [];
+        for (const nestedSitemapUrl of urls.slice(0, 10)) { // Limit to 10 nested sitemaps
+          try {
+            const nestedResp = await fetch(nestedSitemapUrl, {
+              method: 'GET',
+              headers: { 'User-Agent': 'Mozilla/5.0 (compatible; VISTA/1.0; +https://github.com/vista-tool)', Accept: 'application/xml,text/xml,*/*' },
+              signal: controller.signal,
+            });
+            if (nestedResp.ok) {
+              const nestedXml = await nestedResp.text();
+              const nestedUrls = await parseSitemap(nestedXml, nestedSitemapUrl);
+              allUrls.push(...nestedUrls);
+            }
+          } catch (e) {
+            console.error('Failed to fetch nested sitemap:', nestedSitemapUrl, e.message);
+          }
+        }
+      }
+    }
+
+    if (allUrls.length === 0) {
+      return res.status(400).json({ error: 'No URLs found in sitemap' });
+    }
+
+    // Limit to first 100 URLs to prevent overwhelming the server
+    const limitedUrls = allUrls.slice(0, 100);
+
+    // Crawl each URL with concurrency limit
+    const concurrency = 5;
+    const results = [];
+    const errors = [];
+
+    for (let i = 0; i < limitedUrls.length; i += concurrency) {
+      const batch = limitedUrls.slice(i, i + concurrency);
+      const batchResults = await Promise.allSettled(
+        batch.map(async (url) => {
+          try {
+            const { html, redirectChain, finalUrl, responseHeaders, statusCode } =
+              await fetchUrl(url);
+
+            const meta = parseMetaTags(html, finalUrl);
+
+            // Probe image dimensions
+            let imageProbe = null;
+            const imageUrl = meta.og.image || meta.twitter.image;
+            if (imageUrl) {
+              try {
+                imageProbe = await probeImage(imageUrl);
+              } catch (_) {
+                // non-fatal
+              }
+            }
+
+            // Scoring
+            const scoring = scoreAll(meta, imageProbe);
+
+            return {
+              url,
+              finalUrl,
+              statusCode,
+              title: meta.title || meta.og.title || '',
+              description: meta.description || meta.og.description || '',
+              image: meta.og.image || meta.twitter.image || '',
+              scores: scoring.scores,
+              overallGrade: scoring.overall.grade,
+              overallScore: scoring.overall.score,
+              platformCount: Object.keys(scoring.scores).length,
+            };
+          } catch (err) {
+            return {
+              url,
+              error: err.message,
+            };
+          }
+        })
+      );
+
+      for (const result of batchResults) {
+        if (result.status === 'fulfilled') {
+          if (result.value.error) {
+            errors.push(result.value);
+          } else {
+            results.push(result.value);
+          }
+        } else {
+          errors.push({ error: result.reason.message });
+        }
+      }
+    }
+
+    res.json({
+      sitemapUrl,
+      totalFound: allUrls.length,
+      crawled: results.length,
+      errors: errors.length,
+      results,
+      hasMore: allUrls.length > 100,
+    });
+  } catch (err) {
+    console.error('Sitemap error:', err.message);
+    res.status(502).json({ error: `Failed to process sitemap: ${err.message}` });
+  }
+});
+
+/**
  * Health check
  */
 app.get('/api/health', (req, res) => {
@@ -163,6 +321,27 @@ function buildAutoFixes(meta, diagnostics, scoring) {
   }
 
   return fixes;
+}
+
+/**
+ * Parse sitemap XML and extract all URLs.
+ * Supports sitemap index (nested sitemaps).
+ */
+async function parseSitemap(xml, baseUrl) {
+  const $ = cheerio.load(xml, { xmlMode: true });
+  const urls = [];
+
+  // Check if this is a sitemap index
+  const sitemapIndex = $('sitemapindex');
+  if (sitemapIndex.length > 0) {
+    // This is a sitemap index - get all sitemap URLs
+    const locs = $('sitemap > loc').map((_, el) => $(el).text()).get();
+    return locs;
+  }
+
+  // Regular sitemap - extract all URLs
+  const locs = $('url > loc').map((_, el) => $(el).text()).get();
+  return locs;
 }
 
 app.listen(PORT, () => {

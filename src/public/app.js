@@ -377,6 +377,13 @@ function handleResult(data) {
   resultsSection.classList.remove('hidden');
   switchTab('previews');
 
+  // Update sr-only h1 for results page state (WCAG 1.3.1 / axe page-has-heading-one)
+  const resultsHeading = document.getElementById('resultsPageHeading');
+  if (resultsHeading) {
+    const domain = (data.finalUrl || data.url || '').replace(/^https?:\/\//, '').split('/')[0];
+    resultsHeading.textContent = `VISTA Results: ${domain}`;
+  }
+
   // Announce results to screen readers (WCAG 4.1.3)
   const announcer = document.getElementById('resultsAnnouncer');
   if (announcer && data.scoring) {

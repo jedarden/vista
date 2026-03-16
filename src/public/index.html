@@ -17,6 +17,13 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 </head>
 <body>
+  <!-- Skip navigation (WCAG 2.4.1) -->
+  <a href="#mainContent" class="skip-link">Skip to main content</a>
+
+  <!-- Screen reader live regions (WCAG 4.1.3) -->
+  <div id="resultsAnnouncer" aria-live="polite" aria-atomic="true" class="sr-only"></div>
+  <div id="errorAnnouncer" aria-live="assertive" aria-atomic="true" class="sr-only"></div>
+
   <!-- Header -->
   <header class="site-header">
     <div class="header-inner">
@@ -30,15 +37,15 @@
         <button class="nav-btn" id="navCompare">Compare</button>
         <button class="nav-btn" id="navSitemap">Sitemap</button>
       </nav>
-      <button class="theme-toggle" id="globalThemeToggle" title="Toggle dark/light mode">
-        <span class="theme-icon-light">☀️</span>
-        <span class="theme-icon-dark">🌙</span>
+      <button class="theme-toggle" id="globalThemeToggle" aria-label="Switch to light mode" title="Toggle dark/light mode">
+        <span class="theme-icon-light" aria-hidden="true">☀️</span>
+        <span class="theme-icon-dark" aria-hidden="true">🌙</span>
       </button>
     </div>
   </header>
 
   <!-- Main -->
-  <main>
+  <main id="mainContent">
     <!-- Hero / Input -->
     <section class="hero" id="hero">
       <div class="hero-inner">
@@ -52,12 +59,14 @@
           <form class="input-form" id="urlForm">
             <div class="input-row">
               <span class="input-icon">&#128279;</span>
+              <label class="sr-only" for="urlInput">URL to inspect</label>
               <input
                 type="url"
                 id="urlInput"
                 placeholder="https://example.com/page"
                 autocomplete="off"
                 spellcheck="false"
+                aria-label="URL to inspect"
               />
               <button type="submit" class="inspect-btn" id="inspectBtn">
                 Inspect &#9654;
@@ -79,14 +88,17 @@
         <!-- HTML Paste Mode -->
         <div class="input-block hidden" id="pasteMode">
           <form class="paste-form" id="pasteForm">
+            <label class="sr-only" for="htmlInput">HTML to analyze</label>
             <textarea
               id="htmlInput"
               placeholder="Paste your HTML here..."
               rows="8"
               spellcheck="false"
+              aria-label="HTML to analyze"
             ></textarea>
             <div class="paste-meta">
-              <input type="url" id="baseUrlInput" placeholder="Base URL (optional, for resolving relative URLs)" />
+              <label class="sr-only" for="baseUrlInput">Base URL for resolving relative URLs (optional)</label>
+              <input type="url" id="baseUrlInput" placeholder="Base URL (optional, for resolving relative URLs)" aria-label="Base URL for resolving relative URLs (optional)" />
             </div>
             <div class="paste-actions">
               <button type="submit" class="inspect-btn">Analyze HTML &#9654;</button>
@@ -150,18 +162,20 @@
         <!-- Sitemap Mode -->
         <div class="input-block hidden" id="sitemapMode">
           <div class="sitemap-tagline">
-            <h1>Crawl your entire sitemap<br/>and generate a report card</h1>
+            <h2>Crawl your entire sitemap<br/>and generate a report card</h2>
             <p>Enter a sitemap URL to analyze platform coverage across all pages.</p>
           </div>
           <form class="sitemap-form" id="sitemapForm">
             <div class="input-row">
               <span class="input-icon">&#128196;</span>
+              <label class="sr-only" for="sitemapInput">Sitemap XML URL</label>
               <input
                 type="url"
                 id="sitemapInput"
                 placeholder="https://example.com/sitemap.xml"
                 autocomplete="off"
                 spellcheck="false"
+                aria-label="Sitemap XML URL"
               />
               <button type="submit" class="inspect-btn" id="sitemapBtn">
                 Crawl Sitemap &#9654;
@@ -202,27 +216,27 @@
 
       <!-- Tabs -->
       <div class="tabs-bar">
-        <div class="tabs-inner">
-          <button class="tab-btn active" data-tab="previews">Previews</button>
-          <button class="tab-btn" data-tab="cropper">
+        <div class="tabs-inner" role="tablist" aria-label="Inspection results">
+          <button class="tab-btn active" role="tab" id="tabnav-previews" data-tab="previews" aria-selected="true" aria-controls="tabPreviews">Previews</button>
+          <button class="tab-btn" role="tab" id="tabnav-cropper" data-tab="cropper" aria-selected="false" aria-controls="tabCropper" tabindex="-1">
             Crop Visualizer
-            <span class="tab-badge" id="cropperBadge"></span>
+            <span class="tab-badge" id="cropperBadge" aria-live="polite"></span>
           </button>
-          <button class="tab-btn" data-tab="diagnostics">
+          <button class="tab-btn" role="tab" id="tabnav-diagnostics" data-tab="diagnostics" aria-selected="false" aria-controls="tabDiagnostics" tabindex="-1">
             Diagnostics
-            <span class="tab-badge" id="diagBadge"></span>
+            <span class="tab-badge" id="diagBadge" aria-live="polite"></span>
           </button>
-          <button class="tab-btn" data-tab="rawtags">Raw Tags</button>
-          <button class="tab-btn" data-tab="redirects">Redirects &amp; Headers</button>
-          <button class="tab-btn" data-tab="fixes">Auto-Fix</button>
-          <button class="tab-btn" data-tab="editor">Editor</button>
-          <button class="tab-btn" data-tab="codesnippet">Code Snippet</button>
-          <button class="tab-btn" data-tab="templates">Templates</button>
-          <button class="tab-btn" data-tab="cachehub">Cache Hub</button>
-          <button class="tab-btn" data-tab="customization">Customize</button>
-          <button class="tab-btn" data-tab="oggen">OG Generator</button>
-          <button class="tab-btn hidden" id="tabCompareBtn" data-tab="compare">Compare</button>
-          <button class="tab-btn hidden" id="tabSitemapBtn" data-tab="sitemap">Sitemap Report</button>
+          <button class="tab-btn" role="tab" id="tabnav-rawtags" data-tab="rawtags" aria-selected="false" aria-controls="tabRawtags" tabindex="-1">Raw Tags</button>
+          <button class="tab-btn" role="tab" id="tabnav-redirects" data-tab="redirects" aria-selected="false" aria-controls="tabRedirects" tabindex="-1">Redirects &amp; Headers</button>
+          <button class="tab-btn" role="tab" id="tabnav-fixes" data-tab="fixes" aria-selected="false" aria-controls="tabFixes" tabindex="-1">Auto-Fix</button>
+          <button class="tab-btn" role="tab" id="tabnav-editor" data-tab="editor" aria-selected="false" aria-controls="tabEditor" tabindex="-1">Editor</button>
+          <button class="tab-btn" role="tab" id="tabnav-codesnippet" data-tab="codesnippet" aria-selected="false" aria-controls="tabCodesnippet" tabindex="-1">Code Snippet</button>
+          <button class="tab-btn" role="tab" id="tabnav-templates" data-tab="templates" aria-selected="false" aria-controls="tabTemplates" tabindex="-1">Templates</button>
+          <button class="tab-btn" role="tab" id="tabnav-cachehub" data-tab="cachehub" aria-selected="false" aria-controls="tabCachehub" tabindex="-1">Cache Hub</button>
+          <button class="tab-btn" role="tab" id="tabnav-customization" data-tab="customization" aria-selected="false" aria-controls="tabCustomization" tabindex="-1">Customize</button>
+          <button class="tab-btn" role="tab" id="tabnav-oggen" data-tab="oggen" aria-selected="false" aria-controls="tabOggen" tabindex="-1">OG Generator</button>
+          <button class="tab-btn hidden" role="tab" id="tabCompareBtn" data-tab="compare" aria-selected="false" aria-controls="tabCompare" tabindex="-1">Compare</button>
+          <button class="tab-btn hidden" role="tab" id="tabSitemapBtn" data-tab="sitemap" aria-selected="false" aria-controls="tabSitemap" tabindex="-1">Sitemap Report</button>
         </div>
       </div>
 
@@ -230,12 +244,12 @@
       <div class="tab-content">
 
         <!-- Previews tab -->
-        <div class="tab-pane" id="tabPreviews">
+        <div class="tab-pane" role="tabpanel" id="tabPreviews" aria-labelledby="tabnav-previews">
           <div class="preview-grid" id="previewGrid"></div>
         </div>
 
         <!-- Crop Visualizer tab -->
-        <div class="tab-pane hidden" id="tabCropper">
+        <div class="tab-pane hidden" role="tabpanel" id="tabCropper" aria-labelledby="tabnav-cropper">
           <div class="cropper-container" id="cropperContainer">
             <div class="cropper-main">
               <div class="cropper-viewport" id="cropperViewport">
@@ -261,27 +275,27 @@
         </div>
 
         <!-- Diagnostics tab -->
-        <div class="tab-pane hidden" id="tabDiagnostics">
+        <div class="tab-pane hidden" role="tabpanel" id="tabDiagnostics" aria-labelledby="tabnav-diagnostics">
           <div class="diag-panel" id="diagPanel"></div>
         </div>
 
         <!-- Raw Tags tab -->
-        <div class="tab-pane hidden" id="tabRawtags">
+        <div class="tab-pane hidden" role="tabpanel" id="tabRawtags" aria-labelledby="tabnav-rawtags">
           <div class="raw-tags-panel" id="rawTagsPanel"></div>
         </div>
 
         <!-- Redirects tab -->
-        <div class="tab-pane hidden" id="tabRedirects">
+        <div class="tab-pane hidden" role="tabpanel" id="tabRedirects" aria-labelledby="tabnav-redirects">
           <div class="redirect-panel" id="redirectPanel"></div>
         </div>
 
         <!-- Auto-Fix tab -->
-        <div class="tab-pane hidden" id="tabFixes">
+        <div class="tab-pane hidden" role="tabpanel" id="tabFixes" aria-labelledby="tabnav-fixes">
           <div class="fixes-panel" id="fixesPanel"></div>
         </div>
 
         <!-- OG Generator tab -->
-        <div class="tab-pane hidden" id="tabOggen">
+        <div class="tab-pane hidden" role="tabpanel" id="tabOggen" aria-labelledby="tabnav-oggen">
           <div class="oggen-container" id="oggenContainer">
             <div class="oggen-main">
               <div class="oggen-preview-panel">
@@ -393,7 +407,7 @@
         </div>
 
         <!-- Compare tab -->
-        <div class="tab-pane hidden" id="tabCompare">
+        <div class="tab-pane hidden" role="tabpanel" id="tabCompare" aria-labelledby="tabCompareBtn">
           <div class="compare-container" id="compareContainer">
             <!-- Score comparison summary -->
             <div class="compare-summary">
@@ -441,7 +455,7 @@
         </div>
 
         <!-- Sitemap tab -->
-        <div class="tab-pane hidden" id="tabSitemap">
+        <div class="tab-pane hidden" role="tabpanel" id="tabSitemap" aria-labelledby="tabSitemapBtn">
           <div class="sitemap-container" id="sitemapContainer">
             <!-- Sitemap summary -->
             <div class="sitemap-summary">
@@ -486,7 +500,7 @@
         </div>
 
         <!-- Editor tab -->
-        <div class="tab-pane hidden" id="tabEditor">
+        <div class="tab-pane hidden" role="tabpanel" id="tabEditor" aria-labelledby="tabnav-editor">
           <div class="editor-container" id="editorContainer">
             <div class="editor-header">
               <h3>Meta Tag Editor</h3>
@@ -584,7 +598,7 @@
         </div>
 
         <!-- Code Snippet tab -->
-        <div class="tab-pane hidden" id="tabCodesnippet">
+        <div class="tab-pane hidden" role="tabpanel" id="tabCodesnippet" aria-labelledby="tabnav-codesnippet">
           <div class="codesnippet-container" id="codesnippetContainer">
             <div class="codesnippet-header">
               <h3>Code Snippet Generator</h3>
@@ -607,7 +621,7 @@
         </div>
 
         <!-- Templates tab -->
-        <div class="tab-pane hidden" id="tabTemplates">
+        <div class="tab-pane hidden" role="tabpanel" id="tabTemplates" aria-labelledby="tabnav-templates">
           <div class="templates-container" id="templatesContainer">
             <div class="templates-header">
               <h3>Template Library</h3>
@@ -620,7 +634,7 @@
         </div>
 
         <!-- Cache Hub tab -->
-        <div class="tab-pane hidden" id="tabCachehub">
+        <div class="tab-pane hidden" role="tabpanel" id="tabCachehub" aria-labelledby="tabnav-cachehub">
           <div class="cachehub-container" id="cachehubContainer">
             <div class="cachehub-header">
               <h3>Cache Invalidation Hub</h3>
@@ -668,7 +682,7 @@
         </div>
 
         <!-- Customization tab -->
-        <div class="tab-pane hidden" id="tabCustomization">
+        <div class="tab-pane hidden" role="tabpanel" id="tabCustomization" aria-labelledby="tabnav-customization">
           <div class="customization-container" id="customizationContainer">
             <div class="customization-header">
               <h3>Platform Customization</h3>
@@ -709,33 +723,33 @@
   </main>
 
   <!-- Recent inspections -->
-  <div class="recent-bar" id="recentBar"></div>
+  <nav class="recent-bar" id="recentBar" aria-label="Recently inspected URLs"></nav>
 
   <!-- Loading overlay -->
-  <div class="loading-overlay hidden" id="loadingOverlay">
-    <div class="loading-spinner"></div>
+  <div class="loading-overlay hidden" id="loadingOverlay" role="status" aria-live="polite" aria-label="Loading">
+    <div class="loading-spinner" aria-hidden="true"></div>
     <p class="loading-text">Fetching and analyzing<span class="loading-dots">...</span></p>
   </div>
 
   <!-- Toast notification -->
-  <div class="toast hidden" id="toast"></div>
+  <div class="toast hidden" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
-  <!-- Confetti canvas -->
-  <canvas id="confetti-canvas" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;"></canvas>
+  <!-- Confetti canvas (decorative) -->
+  <canvas id="confetti-canvas" role="presentation" aria-hidden="true" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;"></canvas>
 
   <!-- Badge modal -->
-  <div class="modal-overlay hidden" id="badgeModal">
+  <div class="modal-overlay hidden" id="badgeModal" role="dialog" aria-modal="true" aria-labelledby="badgeModalTitle">
     <div class="modal">
       <div class="modal-header">
-        <h3>Platform Score Badge</h3>
-        <button class="modal-close" id="badgeModalClose">&times;</button>
+        <h3 id="badgeModalTitle">Platform Score Badge</h3>
+        <button class="modal-close" id="badgeModalClose" aria-label="Close badge modal">&times;</button>
       </div>
       <div class="modal-body">
         <div class="badge-preview" id="badgePreview">
           <!-- Badge SVG will be inserted here -->
         </div>
         <div class="badge-style-selector">
-          <label>Badge Style:</label>
+          <label for="badgeStyleSelect">Badge Style:</label>
           <select id="badgeStyleSelect" class="badge-style-select">
             <option value="flat">Flat</option>
             <option value="flat-square">Flat Square</option>
@@ -744,13 +758,13 @@
           </select>
         </div>
         <div class="badge-embed-section">
-          <label>Embed Code:</label>
-          <textarea id="badgeEmbedCode" class="badge-embed-code" readonly></textarea>
+          <label for="badgeEmbedCode">Embed Code:</label>
+          <textarea id="badgeEmbedCode" class="badge-embed-code" readonly aria-label="Badge embed code (read-only)"></textarea>
           <button class="action-btn primary" id="badgeCopyBtn">&#128203; Copy to Clipboard</button>
         </div>
         <div class="badge-url-section">
-          <label>Direct URL:</label>
-          <input type="text" id="badgeDirectUrl" class="badge-direct-url" readonly />
+          <label for="badgeDirectUrl">Direct URL:</label>
+          <input type="text" id="badgeDirectUrl" class="badge-direct-url" readonly aria-label="Badge direct URL (read-only)" />
           <button class="action-btn" id="badgeUrlCopyBtn">&#128203; Copy URL</button>
         </div>
       </div>

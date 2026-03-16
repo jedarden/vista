@@ -30,11 +30,12 @@ function applyTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
   localStorage.setItem('vista-theme', theme);
 
-  // Update theme toggle icon
+  // Update theme toggle icon and accessible label
   const themeToggle = document.getElementById('globalThemeToggle');
   if (themeToggle) {
     themeToggle.querySelector('.theme-icon-light').style.display = theme === 'dark' ? 'inline' : 'none';
     themeToggle.querySelector('.theme-icon-dark').style.display = theme === 'light' ? 'inline' : 'none';
+    themeToggle.setAttribute('aria-label', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
   }
 }
 
@@ -216,6 +217,28 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => switchTab(btn.dataset.tab));
 });
 
+// Tab keyboard navigation (ARIA tablist pattern — arrow keys move focus)
+document.querySelectorAll('.tabs-inner[role="tablist"]').forEach(tablist => {
+  tablist.addEventListener('keydown', (e) => {
+    const tabs = [...tablist.querySelectorAll('[role="tab"]:not(.hidden)')];
+    const idx = tabs.indexOf(document.activeElement);
+    if (idx === -1) return;
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      tabs[(idx + 1) % tabs.length].focus();
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      tabs[(idx - 1 + tabs.length) % tabs.length].focus();
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      tabs[0].focus();
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      tabs[tabs.length - 1].focus();
+    }
+  });
+});
+
 // Example chips
 document.querySelectorAll('.chip').forEach(chip => {
   chip.addEventListener('click', () => {
@@ -303,6 +326,8 @@ async function inspectUrl(url) {
   } catch (err) {
     hideLoading();
     showToast('Error: ' + err.message, 3000);
+    const errAnnouncer = document.getElementById('errorAnnouncer');
+    if (errAnnouncer) errAnnouncer.textContent = 'Error: ' + err.message;
   }
 }
 
@@ -351,6 +376,14 @@ function handleResult(data) {
   // Show results
   resultsSection.classList.remove('hidden');
   switchTab('previews');
+
+  // Announce results to screen readers (WCAG 4.1.3)
+  const announcer = document.getElementById('resultsAnnouncer');
+  if (announcer && data.scoring) {
+    const { grade, score } = data.scoring.overall;
+    const { passing, warning, failing } = data.scoring.summary;
+    announcer.textContent = `Inspection complete. Overall grade: ${grade} (${score}/100). ${passing} passing, ${warning} warnings, ${failing} failing.`;
+  }
 
   // Scroll to results
   resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -3042,7 +3075,11 @@ function renderFixes(fixes) {
 // ── Tab switching ──
 function switchTab(tabId) {
   document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.tab === tabId);
+    const isActive = btn.dataset.tab === tabId;
+    btn.classList.toggle('active', isActive);
+    // ARIA tab pattern: aria-selected + roving tabindex
+    btn.setAttribute('aria-selected', String(isActive));
+    btn.tabIndex = isActive ? 0 : -1;
   });
   document.querySelectorAll('.tab-pane').forEach(pane => {
     const id = pane.id.replace('tab', '').toLowerCase();
@@ -3094,18 +3131,47 @@ function shareResults() {
 }
 
 // ── Badge Modal ──
+let _badgeModalLastFocus = null;
+
+function _badgeModalFocusTrap(e) {
+  if (e.key === 'Escape') {
+    closeBadgeModal();
+    return;
+  }
+  if (e.key !== 'Tab') return;
+  const focusable = [...badgeModal.querySelectorAll(
+    'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  )];
+  if (!focusable.length) return;
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  if (e.shiftKey) {
+    if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+  } else {
+    if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+}
+
 function openBadgeModal() {
   if (!currentData) return;
 
-  const score = currentData.scoring.overall.score;
-  const platforms = Object.keys(currentData.scoring.scores).length;
-
   updateBadgePreview();
+  _badgeModalLastFocus = document.activeElement;
   badgeModal.classList.remove('hidden');
+  // Focus the first focusable element in the modal
+  const firstFocusable = badgeModal.querySelector(
+    'button:not([disabled]), input:not([disabled]), select:not([disabled])'
+  );
+  firstFocusable?.focus();
+  document.addEventListener('keydown', _badgeModalFocusTrap);
 }
 
 function closeBadgeModal() {
   badgeModal.classList.add('hidden');
+  document.removeEventListener('keydown', _badgeModalFocusTrap);
+  // Restore focus to the element that opened the modal
+  _badgeModalLastFocus?.focus();
+  _badgeModalLastFocus = null;
 }
 
 function updateBadgePreview() {

@@ -259,6 +259,9 @@ window.addEventListener('DOMContentLoaded', () => {
     urlInput.value = urlParam;
     inspectUrl(urlParam);
   }
+  if (params.has('feedback')) {
+    initFeedbackWidget();
+  }
 });
 
 // Global theme toggle listener
@@ -5580,4 +5583,92 @@ function executeCommand(id) {
 
   closeCommandPalette();
   cmd.action();
+}
+
+// ── Feedback widget ──
+function initFeedbackWidget() {
+  const widget = document.getElementById('feedbackWidget');
+  if (!widget) return;
+  widget.classList.remove('hidden');
+
+  const fab = document.getElementById('feedbackFab');
+  const panel = document.getElementById('feedbackPanel');
+  const closeBtn = document.getElementById('feedbackPanelClose');
+  const cancelBtn = document.getElementById('feedbackCancelBtn');
+  const submitBtn = document.getElementById('feedbackSubmitBtn');
+  const ratingGroup = document.getElementById('feedbackRating');
+  const contextEl = document.getElementById('feedbackContext');
+
+  let selectedRating = 0;
+
+  function openPanel() {
+    panel.classList.remove('hidden');
+    fab.setAttribute('aria-expanded', 'true');
+    // Populate context with currently inspected URL if available
+    const inspectedUrl = currentData?.url || currentData?.inspectedUrl || null;
+    if (inspectedUrl) {
+      contextEl.textContent = 'Context: ' + inspectedUrl;
+      contextEl.classList.add('has-context');
+    } else {
+      contextEl.textContent = '';
+      contextEl.classList.remove('has-context');
+    }
+    closeBtn.focus();
+  }
+
+  function closePanel() {
+    panel.classList.add('hidden');
+    fab.setAttribute('aria-expanded', 'false');
+    fab.focus();
+  }
+
+  fab.addEventListener('click', () => {
+    if (panel.classList.contains('hidden')) {
+      openPanel();
+    } else {
+      closePanel();
+    }
+  });
+
+  closeBtn.addEventListener('click', closePanel);
+  cancelBtn.addEventListener('click', closePanel);
+
+  // Star rating interaction
+  ratingGroup.addEventListener('click', (e) => {
+    const btn = e.target.closest('.rating-btn');
+    if (!btn) return;
+    selectedRating = parseInt(btn.dataset.rating, 10);
+    Array.from(ratingGroup.querySelectorAll('.rating-btn')).forEach((b, i) => {
+      const active = i < selectedRating;
+      b.classList.toggle('active', active);
+      b.setAttribute('aria-pressed', String(active));
+    });
+  });
+
+  // Keyboard: close panel on Escape
+  panel.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closePanel();
+  });
+
+  submitBtn.addEventListener('click', () => {
+    const category = document.getElementById('feedbackCategory').value;
+    const comment = document.getElementById('feedbackComment').value.trim();
+
+    const payload = {
+      rating: selectedRating || null,
+      category: category || null,
+      comment: comment || null,
+      context: contextEl.textContent || null,
+      timestamp: new Date().toISOString(),
+      userAgent: navigator.userAgent,
+    };
+
+    // Log structured feedback to console for agent pickup
+    console.log('[vista:feedback]', JSON.stringify(payload));
+
+    // Show success message
+    const body = panel.querySelector('.feedback-panel-body');
+    body.innerHTML = '<div class="feedback-success">&#10003; Thank you for your feedback!</div>';
+    setTimeout(closePanel, 1800);
+  });
 }

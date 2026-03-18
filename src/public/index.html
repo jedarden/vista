@@ -777,6 +777,54 @@
     <span>VISTA &mdash; Visual Inspector of Social Tags &amp; Attributes</span>
   </footer>
 
+  <!-- Feedback widget (visible only with ?feedback query param) -->
+  <div class="feedback-widget hidden" id="feedbackWidget">
+    <button class="feedback-fab" id="feedbackFab" aria-label="Open feedback panel" title="Give feedback">
+      <span aria-hidden="true">&#128172;</span>
+      <span class="feedback-fab-label">Feedback</span>
+    </button>
+    <div class="feedback-panel hidden" id="feedbackPanel" role="dialog" aria-modal="true" aria-labelledby="feedbackPanelTitle">
+      <div class="feedback-panel-header">
+        <h3 id="feedbackPanelTitle">Share Feedback</h3>
+        <button class="modal-close" id="feedbackPanelClose" aria-label="Close feedback panel">&times;</button>
+      </div>
+      <div class="feedback-panel-body">
+        <div class="feedback-field">
+          <label class="feedback-label">How would you rate your experience?</label>
+          <div class="feedback-rating" id="feedbackRating" role="group" aria-label="Rating">
+            <button class="rating-btn" data-rating="1" aria-label="1 star" aria-pressed="false">&#9733;</button>
+            <button class="rating-btn" data-rating="2" aria-label="2 stars" aria-pressed="false">&#9733;</button>
+            <button class="rating-btn" data-rating="3" aria-label="3 stars" aria-pressed="false">&#9733;</button>
+            <button class="rating-btn" data-rating="4" aria-label="4 stars" aria-pressed="false">&#9733;</button>
+            <button class="rating-btn" data-rating="5" aria-label="5 stars" aria-pressed="false">&#9733;</button>
+          </div>
+        </div>
+        <div class="feedback-field">
+          <label class="feedback-label" for="feedbackCategory">Category</label>
+          <select class="feedback-select" id="feedbackCategory">
+            <option value="">Select a category&hellip;</option>
+            <option value="bug">Bug report</option>
+            <option value="feature">Feature request</option>
+            <option value="improvement">Improvement suggestion</option>
+            <option value="platform">Platform accuracy</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="feedback-field">
+          <label class="feedback-label" for="feedbackComment">Comment</label>
+          <textarea class="feedback-textarea" id="feedbackComment" placeholder="Describe your feedback&hellip;" rows="4" aria-label="Feedback comment"></textarea>
+        </div>
+        <div class="feedback-context" id="feedbackContext">
+          <!-- auto-filled with inspected URL if available -->
+        </div>
+        <div class="feedback-actions">
+          <button class="inspect-btn" id="feedbackSubmitBtn">Submit Feedback</button>
+          <button class="toggle-link" id="feedbackCancelBtn">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="app.js"></script>
 </body>
 </html>

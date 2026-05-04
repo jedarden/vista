@@ -927,97 +927,25 @@ function extractDominantColor(imageUrl) {
 
 /**
  * Initialize loading placeholders for all card images
- * Adds loading class, extracts dominant color for background, and crossfades when loaded
+ * Extracts dominant color and applies it as background while images load
+ * Note: Crossfade is handled via inline onload handlers in the HTML
  */
 async function initImagePlaceholders(meta) {
   const ogImage = meta?.og?.image || meta?.twitter?.image;
   if (!ogImage) return;
 
-  // All the image container classes used across platform cards
-  const imageContainerSelectors = [
-    '.fb-context-image', '.tw-context-image', '.li-context-image', '.rd-context-image',
-    '.th-context-image', '.slack-image', '.discord-image', '.im-link-image', '.tg-link-image',
-    '.teams-link-image', '.gchat-link-image', '.mdn-link-image', '.bsky-link-image',
-    '.tumblr-thumb', '.pin-image', '.notion-embed-thumb', '.jira-card-thumb',
-    '.gh-preview-image', '.trello-card-thumb', '.figma-card-thumb',
-    '.medium-article-image', '.substack-post-image'
-  ];
-
   // Get dominant color for the OG image
   const dominantColor = await extractDominantColor(ogImage);
 
-  // Process all container-based images
-  for (const selector of imageContainerSelectors) {
-    document.querySelectorAll(`#previewGrid ${selector}`).forEach(container => {
-      const img = container.querySelector('img');
-      if (!img || img.dataset.placeholderProcessed) return;
+  // Apply dominant color to all loading containers
+  document.querySelectorAll('#previewGrid .img-loading-container').forEach(container => {
+    container.style.background = dominantColor;
+  });
 
-      img.dataset.placeholderProcessed = 'true';
-
-      // Add loading class to container and set background
-      container.classList.add('img-loading-container');
-      container.style.background = dominantColor;
-
-      // Start with image hidden
-      img.style.opacity = '0';
-
-      // Handle image load - crossfade in
-      const onLoad = () => {
-        img.style.opacity = '1';
-        container.classList.remove('img-loading-container');
-        container.style.background = '';
-      };
-
-      // Handle image error - keep hidden
-      const onError = () => {
-        img.style.display = 'none';
-        container.classList.remove('img-loading-container');
-        container.style.background = '';
-      };
-
-      if (img.complete) {
-        if (img.naturalWidth > 0) onLoad();
-        else onError();
-      } else {
-        img.addEventListener('load', onLoad, { once: true });
-        img.addEventListener('error', onError, { once: true });
-      }
-    });
-  }
-
-  // Handle direct <img> elements (WhatsApp, Signal, Email, Feedly thumbs)
-  const directImgSelectors = [
-    '.wa-link-thumb', '.signal-link-thumb', '.email-thumb', '.feedly-thumb'
-  ];
-
-  for (const selector of directImgSelectors) {
-    document.querySelectorAll(`#previewGrid ${selector}`).forEach(img => {
-      if (!img.src || img.dataset.placeholderProcessed) return;
-
-      img.dataset.placeholderProcessed = 'true';
-
-      // Set background color on the img element itself
-      img.style.backgroundColor = dominantColor;
-      img.style.opacity = '0';
-
-      const onLoad = () => {
-        img.style.opacity = '1';
-        img.style.backgroundColor = '';
-      };
-
-      const onError = () => {
-        img.style.display = 'none';
-      };
-
-      if (img.complete) {
-        if (img.naturalWidth > 0) onLoad();
-        else onError();
-      } else {
-        img.addEventListener('load', onLoad, { once: true });
-        img.addEventListener('error', onError, { once: true });
-      }
-    });
-  }
+  // Apply dominant color to direct img elements with loading class
+  document.querySelectorAll('#previewGrid img.img-loading').forEach(img => {
+    img.style.backgroundColor = dominantColor;
+  });
 }
 
 // =============================================================================

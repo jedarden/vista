@@ -157,6 +157,34 @@ let sitemapResults = [];
 urlForm.addEventListener('submit', (e) => { e.preventDefault(); inspectUrl(urlInput.value.trim()); });
 pasteForm.addEventListener('submit', (e) => { e.preventDefault(); inspectHtml(htmlInput.value.trim(), baseUrlInput.value.trim()); });
 
+// Paste detection on URL input
+urlInput.addEventListener('paste', async (e) => {
+  const paste = (e.clipboardData || window.clipboardData).getData('text');
+  if (!paste) return;
+
+  // Detect content type and handle accordingly
+  await handlePasteDetection(paste);
+});
+
+// Suggestion chip actions and dismissal
+document.addEventListener('click', (e) => {
+  if (e.target.classList.contains('suggestion-action')) {
+    const action = e.target.dataset.action;
+    if (action === 'switch-sitemap') {
+      clearSuggestionChips();
+      switchMode('sitemap');
+    }
+    if (action === 'switch-compare') {
+      clearSuggestionChips();
+      switchMode('compare');
+    }
+  }
+  if (e.target.classList.contains('suggestion-dismiss')) {
+    const chip = e.target.closest('.suggestion-chips');
+    if (chip) chip.remove();
+  }
+});
+
 $('#switchToPaste').addEventListener('click', () => switchMode('paste'));
 $('#switchToUrl').addEventListener('click', () => switchMode('url'));
 navInspect.addEventListener('click', () => switchMode('url'));
@@ -316,6 +344,71 @@ function switchMode(mode) {
     navPaste?.classList.remove('active');
     navCompare?.classList.remove('active');
   }
+}
+
+// ── Paste detection ──
+async function handlePasteDetection(pastedText) {
+  const trimmed = pastedText.trim();
+
+  // HTML detection: starts with '<', '<!DOCTYPE', or contains '<html'
+  if (trimmed.startsWith('<') || trimmed.toLowerCase().startsWith('<!doctype') || trimmed.toLowerCase().includes('<html')) {
+    // Clear existing suggestion chips
+    clearSuggestionChips();
+
+    // Wait for paste to complete, then switch modes
+    setTimeout(() => {
+      switchMode('paste');
+      htmlInput.value = trimmed;
+      showToast('Detected HTML — switched to Paste mode', 2500);
+    }, 10);
+    return;
+  }
+
+  // Multiple URLs detection (2+ URLs separated by newlines)
+  const urls = trimmed.split(/[\r\n]+/).map(u => u.trim()).filter(u => u);
+  if (urls.length >= 2) {
+    showSuggestionChip('Multiple URLs detected', 'Switch to Compare mode?', 'switch-compare');
+    return;
+  }
+
+  // Sitemap detection
+  if (trimmed.toLowerCase().includes('sitemap')) {
+    showSuggestionChip('This looks like a sitemap', 'Switch to Sitemap mode?', 'switch-sitemap');
+    return;
+  }
+
+  // Shortened URL detection (common URL shorteners)
+  const shorteners = ['bit.ly', 't.co', 'goo.gl', 'tinyurl.com', 'ow.ly', 'is.gd', 'buff.ly', 'short.link'];
+  const isShortened = shorteners.some(domain => trimmed.toLowerCase().includes(domain));
+  if (isShortened) {
+    setTimeout(() => {
+      showToast('Shortened URL — VISTA will follow redirects', 3000);
+    }, 100);
+  }
+}
+
+function showSuggestionChip(title, message, action) {
+  // Clear existing chips first
+  clearSuggestionChips();
+
+  const chip = document.createElement('div');
+  chip.className = 'suggestion-chips';
+  chip.innerHTML = `
+    <span class="suggestion-icon">&#9432;</span>
+    <span class="suggestion-text"><strong>${title}</strong> — ${message}</span>
+    <button class="suggestion-action" data-action="${action}">Switch</button>
+    <button class="suggestion-dismiss" aria-label="Dismiss">&times;</button>
+  `;
+
+  // Insert after the URL input form
+  const insertAfter = document.querySelector('#urlMode .input-mode-toggle');
+  if (insertAfter && insertAfter.parentNode) {
+    insertAfter.parentNode.insertBefore(chip, insertAfter.nextSibling);
+  }
+}
+
+function clearSuggestionChips() {
+  document.querySelectorAll('.suggestion-chips').forEach(el => el.remove());
 }
 
 // ── Inspect ──

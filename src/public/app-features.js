@@ -1133,72 +1133,6 @@ function hookRenderPreviews() {
 }
 
 // =============================================================================
-// 11. Mobile Swipe Gestures
-// =============================================================================
-
-/**
- * Initialize mobile swipe gestures for cards
- */
-function initMobileSwipeGestures() {
-  let touchStartX = 0;
-  let touchStartY = 0;
-  let currentCardIndex = -1;
-  const cards = [];
-
-  // Collect all cards
-  const updateCardsList = () => {
-    cards.length = 0;
-    document.querySelectorAll('.platform-card').forEach(card => {
-      cards.push(card);
-    });
-  };
-
-  const previewGrid = getPreviewGrid();
-  if (!previewGrid) return;
-
-  previewGrid.addEventListener('touchstart', (e) => {
-    const card = e.target.closest('.platform-card');
-    if (!card) return;
-
-    updateCardsList();
-    currentCardIndex = cards.indexOf(card);
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
-  }, { passive: true });
-
-  previewGrid.addEventListener('touchend', (e) => {
-    if (currentCardIndex === -1) return;
-
-    const touchEndX = e.changedTouches[0].clientX;
-    const touchEndY = e.changedTouches[0].clientY;
-
-    const deltaX = touchEndX - touchStartX;
-    const deltaY = touchEndY - touchStartY;
-
-    // Detect horizontal swipe
-    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
-      if (deltaX > 0 && currentCardIndex > 0) {
-        // Swipe right - previous card
-        cards[currentCardIndex - 1].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      } else if (deltaX < 0 && currentCardIndex < cards.length - 1) {
-        // Swipe left - next card
-        cards[currentCardIndex + 1].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }
-    }
-
-    // Detect vertical swipe down to collapse expanded card
-    if (deltaY > 100 && Math.abs(deltaX) < 50) {
-      const card = cards[currentCardIndex];
-      if (card && card.classList.contains('expanded')) {
-        card.classList.remove('expanded');
-      }
-    }
-
-    currentCardIndex = -1;
-  }, { passive: true });
-}
-
-// =============================================================================
 // Initialization
 // =============================================================================
 
@@ -1218,7 +1152,6 @@ function initPhase4Features() {
     initPasteAutoDetection();
     initCardContextMenu();
     initCardDragReorder();
-    initMobileSwipeGestures();
 
     // Hook into renderPreviews for editor preview sync
     hookRenderPreviews();

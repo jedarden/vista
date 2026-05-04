@@ -779,6 +779,7 @@ function renderPreviews(data) {
     const groupEl = document.createElement('div');
     groupEl.className = 'platform-group' + (group.collapsed ? ' collapsed' : '');
     groupEl.id = 'group-' + group.id;
+    groupEl.dataset.groupId = group.id;
 
     // Count scores for group
     const groupScores = group.platforms.map(pid => data.scoring.scores[pid]).filter(Boolean);
@@ -800,25 +801,41 @@ function renderPreviews(data) {
 
     const row = document.createElement('div');
     row.className = 'cards-row';
+    row.dataset.groupId = group.id;
 
-    group.platforms.forEach((pid, i) => {
+    // Use custom order if available, otherwise use default group order
+    let platforms = group.platforms;
+    if (platformPrefs.cardOrder[group.id]) {
+      // Filter to only include platforms that still exist in the group
+      const customOrder = platformPrefs.cardOrder[group.id].filter(pid => group.platforms.includes(pid));
+      // Add any new platforms that aren't in the custom order yet
+      const newPlatforms = group.platforms.filter(pid => !customOrder.includes(pid));
+      platforms = [...customOrder, ...newPlatforms];
+    }
+
+    platforms.forEach((pid, i) => {
       const scoreData = data.scoring.scores[pid];
       if (!scoreData) return;
-      const card = buildCard(pid, scoreData, data, i * 60); // staggered delay
+      const card = buildCard(pid, scoreData, data, i * 60, group.id); // staggered delay
       row.appendChild(card);
     });
 
     groupEl.appendChild(row);
     previewGrid.appendChild(groupEl);
   });
+
+  // Initialize drag and drop for cards
+  initCardDragAndDrop();
 }
 
-function buildCard(pid, scoreData, data, animDelay) {
+function buildCard(pid, scoreData, data, animDelay, groupId) {
   const card = document.createElement('div');
   card.className = `platform-card ${gradeClass(scoreData.grade)}`;
   card.style.animationDelay = animDelay + 'ms';
   card.dataset.pid = pid;
+  card.dataset.groupId = groupId;
   card.tabIndex = -1; // Make focusable but not tab-focused by default
+  card.draggable = true; // Enable drag and drop
 
   // Initialize context state for this card
   if (!cardContextState[pid]) {
@@ -888,6 +905,9 @@ function buildCard(pid, scoreData, data, animDelay) {
   if (themeToggle) {
     themeToggle.addEventListener('click', () => toggleCardTheme(pid, data));
   }
+
+  // Context menu listener
+  card.addEventListener('contextmenu', (e) => showCardContextMenu(e, pid, groupId, data));
 
   return card;
 }
@@ -3484,6 +3504,8 @@ function copyText(text) {
   }
 }
 window.copyText = copyText;
+window.downloadScreenshot = downloadScreenshot;
+window.renderPreviewsInternal = renderPreviews;
 
 function fallbackCopy(text) {
   const ta = document.createElement('textarea');
@@ -4403,7 +4425,8 @@ let platformPrefs = {
   favorites: new Set(),
   hidden: new Set(),
   columnCount: 3,
-  smartOrdering: true
+  smartOrdering: true,
+  cardOrder: {} // Map of groupId -> array of platform IDs in custom order
 };
 
 // Command palette state
@@ -5245,6 +5268,7 @@ function loadPlatformPrefs() {
       platformPrefs.hidden = new Set(parsed.hidden || []);
       platformPrefs.columnCount = parsed.columnCount || 3;
       platformPrefs.smartOrdering = parsed.smartOrdering !== false;
+      platformPrefs.cardOrder = parsed.cardOrder || {};
     } catch (e) {
       console.warn('Failed to load platform preferences', e);
     }
@@ -5260,7 +5284,8 @@ function savePlatformPrefs() {
     favorites: Array.from(platformPrefs.favorites),
     hidden: Array.from(platformPrefs.hidden),
     columnCount: platformPrefs.columnCount,
-    smartOrdering: platformPrefs.smartOrdering
+    smartOrdering: platformPrefs.smartOrdering,
+    cardOrder: platformPrefs.cardOrder
   };
   localStorage.setItem('vista-platform-prefs', JSON.stringify(prefs));
 }
@@ -6284,3 +6309,298 @@ function initFeedbackWidget() {
     setTimeout(closePanel, 1800);
   });
 }
+
+// ── Card Drag and Drop ──
+let draggedCard = null;
+let draggedFromGroup = null;
+
+function initCardDragAndDrop() {
+  const cards = document.querySelectorAll('.platform-card');
+  cards.forEach(card => {
+    card.addEventListener('dragstart', handleDragStart);
+    card.addEventListener('dragend', handleDragEnd);
+    card.addEventListener('dragover', handleDragOver);
+    card.addEventListener('drop', handleDrop);
+    card.addEventListener('dragenter', handleDragEnter);
+    card.addEventListener('dragleave', handleDragLeave);
+  });
+}
+
+function handleDragStart(e) {
+  draggedCard = this;
+  draggedFromGroup = this.dataset.groupId;
+  this.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/html', this.outerHTML);
+}
+
+function handleDragEnd(e) {
+  this.classList.remove('dragging');
+  document.querySelectorAll('.platform-card').forEach(card => {
+    card.classList.remove('drag-over');
+  });
+}
+
+function handleDragOver(e) {
+  if (e.preventDefault) {
+    e.preventDefault();
+  }
+  e.dataTransfer.dropEffect = 'move';
+  return false;
+}
+
+function handleDragEnter(e) {
+  if (this !== draggedCard) {
+    this.classList.add('drag-over');
+  }
+}
+
+function handleDragLeave(e) {
+  this.classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+  if (e.stopPropagation) {
+    e.stopPropagation();
+  }
+
+  if (draggedCard !== this) {
+    const toGroup = this.dataset.groupId;
+    const fromGroup = draggedFromGroup;
+
+    // Get all cards in both groups
+    const fromRow = document.querySelector(`.cards-row[data-group-id="${fromGroup}"]`);
+    const toRow = document.querySelector(`.cards-row[data-group-id="${toGroup}"]`);
+
+    if (!fromRow || !toRow) return false;
+
+    const fromCards = Array.from(fromRow.querySelectorAll('.platform-card'));
+    const toCards = Array.from(toRow.querySelectorAll('.platform-card'));
+
+    // Build new order arrays
+    const fromOrder = fromCards.map(c => c.dataset.pid);
+    const toOrder = toCards.map(c => c.dataset.pid);
+
+    // Remove dragged card from source order
+    const draggedPid = draggedCard.dataset.pid;
+    const newFromOrder = fromOrder.filter(pid => pid !== draggedPid);
+
+    // Find insertion point in target
+    const targetPid = this.dataset.pid;
+    const targetIndex = toOrder.indexOf(targetPid);
+    const newToOrder = [...toOrder];
+    newToOrder.splice(targetIndex, 0, draggedPid);
+
+    // Update platformPrefs
+    if (fromGroup === toGroup) {
+      // Same group - just reorder
+      platformPrefs.cardOrder[fromGroup] = newToOrder;
+    } else {
+      // Different groups - move between groups
+      platformPrefs.cardOrder[fromGroup] = newFromOrder;
+      platformPrefs.cardOrder[toGroup] = newToOrder;
+    }
+
+    savePlatformPrefs();
+
+    // Re-render to show new order
+    renderPreviews(currentData);
+  }
+
+  return false;
+}
+
+// ── Card Context Menu ──
+let contextMenu = null;
+let contextMenuTargetPid = null;
+let contextMenuTargetGroupId = null;
+
+function initContextMenu() {
+  // Create context menu element if it doesn't exist
+  if (!contextMenu) {
+    contextMenu = document.createElement('div');
+    contextMenu.id = 'cardContextMenu';
+    contextMenu.className = 'card-context-menu hidden';
+    contextMenu.innerHTML = `
+      <div class="context-menu-item" data-action="copy-screenshot">
+        <span class="context-menu-icon">&#128190;</span>
+        <span>Copy screenshot</span>
+      </div>
+      <div class="context-menu-item" data-action="open-editor">
+        <span class="context-menu-icon">&#9998;</span>
+        <span>Open in editor</span>
+      </div>
+      <div class="context-menu-item" data-action="view-raw">
+        <span class="context-menu-icon">&#128196;</span>
+        <span>View raw tags</span>
+      </div>
+      <div class="context-menu-divider"></div>
+      <div class="context-menu-item" data-action="toggle-hidden">
+        <span class="context-menu-icon">&#128065;</span>
+        <span>Hide this platform</span>
+      </div>
+      <div class="context-menu-item" data-action="toggle-favorite">
+        <span class="context-menu-icon">&#11088;</span>
+        <span>Star / unstar</span>
+      </div>
+    `;
+    document.body.appendChild(contextMenu);
+
+    // Add click handlers to menu items
+    contextMenu.querySelectorAll('.context-menu-item').forEach(item => {
+      item.addEventListener('click', handleContextMenuAction);
+    });
+  }
+
+  // Close menu on click elsewhere
+  document.addEventListener('click', (e) => {
+    if (contextMenu && !contextMenu.contains(e.target)) {
+      closeContextMenu();
+    }
+  });
+
+  // Close menu on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeContextMenu();
+    }
+  });
+}
+
+function showCardContextMenu(e, pid, groupId, data) {
+  e.preventDefault();
+
+  // Initialize context menu if needed
+  if (!contextMenu) {
+    initContextMenu();
+  }
+
+  contextMenuTargetPid = pid;
+  contextMenuTargetGroupId = groupId;
+
+  // Update "Hide this platform" text based on current state
+  const hideItem = contextMenu.querySelector('[data-action="toggle-hidden"] span:last-child');
+  const favItem = contextMenu.querySelector('[data-action="toggle-favorite"] span:last-child');
+
+  if (platformPrefs.hidden.has(pid)) {
+    hideItem.textContent = 'Show this platform';
+  } else {
+    hideItem.textContent = 'Hide this platform';
+  }
+
+  if (platformPrefs.favorites.has(pid)) {
+    favItem.textContent = 'Unstar';
+  } else {
+    favItem.textContent = 'Star';
+  }
+
+  // Position menu
+  const x = e.clientX;
+  const y = e.clientY;
+
+  // Ensure menu doesn't go off screen
+  const menuWidth = 200;
+  const menuHeight = 180;
+  const maxX = window.innerWidth - menuWidth - 10;
+  const maxY = window.innerHeight - menuHeight - 10;
+
+  contextMenu.style.left = Math.min(x, maxX) + 'px';
+  contextMenu.style.top = Math.min(y, maxY) + 'px';
+  contextMenu.classList.remove('hidden');
+}
+
+function closeContextMenu() {
+  if (contextMenu) {
+    contextMenu.classList.add('hidden');
+  }
+  contextMenuTargetPid = null;
+  contextMenuTargetGroupId = null;
+}
+
+function handleContextMenuAction(e) {
+  const action = this.dataset.action;
+  const pid = contextMenuTargetPid;
+
+  if (!pid) return;
+
+  switch (action) {
+    case 'copy-screenshot':
+      downloadScreenshot(pid, currentData);
+      break;
+    case 'open-editor':
+      // Switch to editor tab and focus this platform's fields
+      const editorTab = document.getElementById('tabnav-editor');
+      if (editorTab && !editorTab.classList.contains('hidden')) {
+        editorTab.click();
+        // Focus the first relevant field
+        const firstField = document.querySelector('#editOgTitle, #editTitle');
+        if (firstField) firstField.focus();
+      }
+      break;
+    case 'view-raw':
+      // Switch to raw tags tab
+      const rawTab = document.querySelector('.tab-btn[data-tab="rawtags"]');
+      if (rawTab) rawTab.click();
+      break;
+    case 'toggle-hidden':
+      toggleHidden(pid);
+      break;
+    case 'toggle-favorite':
+      toggleFavorite(pid);
+      break;
+  }
+
+  closeContextMenu();
+}
+
+// ── Mobile Long-Press Support ──
+let longPressTimer = null;
+let longPressCard = null;
+let longPressData = null;
+
+function initMobileLongPress() {
+  // Use event delegation to handle long-press on dynamically added cards
+  previewGrid.addEventListener('touchstart', handleTouchStart, { passive: true });
+  previewGrid.addEventListener('touchend', handleTouchEnd);
+  previewGrid.addEventListener('touchmove', handleTouchMove);
+}
+
+function handleTouchStart(e) {
+  const card = e.target.closest('.platform-card');
+  if (!card) return;
+
+  longPressCard = card;
+  longPressTimer = setTimeout(() => {
+    if (longPressCard) {
+      const pid = longPressCard.dataset.pid;
+      const groupId = longPressCard.dataset.groupId;
+      // Vibrate if supported
+      if (navigator.vibrate) {
+        navigator.vibrate(50);
+      }
+      showCardContextMenu(e, pid, groupId, currentData);
+      longPressCard = null;
+      longPressTimer = null;
+    }
+  }, 500); // 500ms long-press
+}
+
+function handleTouchEnd(e) {
+  if (longPressTimer) {
+    clearTimeout(longPressTimer);
+    longPressTimer = null;
+  }
+  longPressCard = null;
+}
+
+function handleTouchMove(e) {
+  // Cancel long-press if user moves their finger
+  if (longPressTimer) {
+    clearTimeout(longPressTimer);
+    longPressTimer = null;
+  }
+  longPressCard = null;
+}
+
+// Initialize mobile long-press support
+initMobileLongPress();

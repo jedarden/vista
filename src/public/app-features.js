@@ -4,9 +4,90 @@
 // VISTA Phase 4 Polish & Missing Features Implementation
 // =============================================================================
 
+// ── Helper to get DOM elements (avoid scope issues) ──
+function getPreviewGrid() {
+  return document.getElementById('previewGrid');
+}
+
+function getUrlInput() {
+  return document.getElementById('urlInput');
+}
+
+function getHtmlInput() {
+  return document.getElementById('htmlInput');
+}
+
+function getSitemapInput() {
+  return document.getElementById('sitemapInput');
+}
+
+function getCompareUrl1() {
+  return document.getElementById('compareUrl1');
+}
+
+function getCompareUrl2() {
+  return document.getElementById('compareUrl2');
+}
+
 // ── Helper to access main app state ──
 function getPlatformPrefs() {
   return window.platformPrefs || { favorites: new Set(), hidden: new Set(), columnCount: 3 };
+}
+
+function getCurrentData() {
+  return window.currentData || null;
+}
+
+function getCurrentMode() {
+  return window.currentMode || 'url';
+}
+
+// ── Helper to access main app functions (fallback implementations) ──
+function switchTab(tabName) {
+  const tabBtn = document.querySelector(`.tab-btn[data-tab="${tabName}"]`);
+  if (tabBtn && typeof tabBtn.click === 'function') {
+    tabBtn.click();
+  }
+}
+
+function switchMode(mode) {
+  const modeMap = {
+    'url': 'switchToUrl',
+    'paste': 'switchToPaste',
+    'compare': 'switchToCompare',
+    'sitemap': 'switchToSitemap'
+  };
+  const btnId = modeMap[mode];
+  if (btnId) {
+    const btn = document.getElementById(btnId);
+    if (btn) btn.click();
+  }
+}
+
+function showToast(message, duration = 3000) {
+  const toast = document.getElementById('toast');
+  if (toast) {
+    toast.textContent = message;
+    toast.classList.remove('hidden');
+    setTimeout(() => toast.classList.add('hidden'), duration);
+  }
+}
+
+function shareResults() {
+  const shareBtn = document.getElementById('shareBtn');
+  if (shareBtn) shareBtn.click();
+}
+
+function undoEditorChange() {
+  // Fallback - editor undo functionality
+  console.log('Undo editor change');
+}
+
+function renderPreviews(data) {
+  // Trigger re-render by dispatching custom event or using window function
+  if (window.renderPreviewsInternal) {
+    window.renderPreviewsInternal(data);
+  }
 }
 
 function getGradeForScore(score) {
@@ -45,17 +126,23 @@ function initGlobalKeyboardShortcuts() {
     // / : Focus URL input (only when not typing)
     if (e.key === '/' && !isTyping) {
       e.preventDefault();
-      if (currentMode === 'url') {
+      const currentMode = getCurrentMode();
+      const urlInput = getUrlInput();
+      if (currentMode === 'url' && urlInput) {
         urlInput.focus();
         urlInput.select();
       } else {
         switchMode('url');
-        setTimeout(() => urlInput.focus(), 100);
+        setTimeout(() => {
+          const input = getUrlInput();
+          if (input) input.focus();
+        }, 100);
       }
       return;
     }
 
     // 1-4 : Switch tabs
+    const currentData = getCurrentData();
     if (e.key === '1' && !isTyping) {
       e.preventDefault();
       if (currentData) switchTab('previews');
@@ -118,7 +205,7 @@ function initGlobalKeyboardShortcuts() {
       const editorTab = document.getElementById('tabEditor');
       if (editorTab && !editorTab.classList.contains('hidden')) {
         // Check if there's editor state to undo
-        if (editorState && editorState.history && editorState.history.length > 0) {
+        if (window.editorState && window.editorState.history && window.editorState.history.length > 0) {
           e.preventDefault();
           undoEditorChange();
         }
@@ -137,6 +224,9 @@ function initGlobalKeyboardShortcuts() {
  * Detects clipboard content and auto-switches mode
  */
 function initPasteAutoDetection() {
+  const urlInput = getUrlInput();
+  if (!urlInput) return;
+
   urlInput.addEventListener('paste', (e) => {
     // Get pasted content
     const pasteData = (e.clipboardData || window.clipboardData).getData('text');
@@ -148,7 +238,8 @@ function initPasteAutoDetection() {
     // HTML detection
     if (trimmed.startsWith('<') || trimmed.startsWith('<!DOCTYPE') || trimmed.includes('<html')) {
       e.preventDefault();
-      htmlInput.value = trimmed;
+      const htmlInput = getHtmlInput();
+      if (htmlInput) htmlInput.value = trimmed;
       switchMode('paste');
       showToast('Detected HTML — switched to paste mode', 2000);
       return;
@@ -157,7 +248,8 @@ function initPasteAutoDetection() {
     // Sitemap detection
     if (trimmed.includes('sitemap.xml')) {
       e.preventDefault();
-      sitemapInput.value = trimmed;
+      const sitemapInput = getSitemapInput();
+      if (sitemapInput) sitemapInput.value = trimmed;
       switchMode('sitemap');
       showToast('Detected sitemap URL — switched to sitemap mode', 2000);
       return;
@@ -169,8 +261,10 @@ function initPasteAutoDetection() {
     );
     if (urls.length >= 2) {
       e.preventDefault();
-      compareUrl1.value = urls[0];
-      compareUrl2.value = urls[1];
+      const compareUrl1 = getCompareUrl1();
+      const compareUrl2 = getCompareUrl2();
+      if (compareUrl1) compareUrl1.value = urls[0];
+      if (compareUrl2) compareUrl2.value = urls[1];
       switchMode('compare');
       showToast(`Detected ${urls.length} URLs — switched to compare mode`, 2000);
       return;
@@ -228,6 +322,9 @@ function initCardContextMenu() {
   document.body.appendChild(menu);
 
   // Add context menu listeners to preview grid
+  const previewGrid = getPreviewGrid();
+  if (!previewGrid) return;
+
   previewGrid.addEventListener('contextmenu', (e) => {
     const card = e.target.closest('.platform-card');
     if (!card) return;
@@ -243,8 +340,9 @@ function initCardContextMenu() {
     menu.classList.remove('hidden');
 
     // Update favorite label based on state
+    const prefs = getPlatformPrefs();
     const favoriteItem = menu.querySelector('[data-action="favorite"]');
-    if (platformPrefs.favorites.has(contextMenuTarget)) {
+    if (prefs.favorites.has(contextMenuTarget)) {
       favoriteItem.querySelector('.context-menu-label').textContent = 'Remove from Favorites';
       favoriteItem.querySelector('.context-menu-icon').textContent = '&#9733;';
       favoriteItem.classList.add('favorited');
@@ -280,10 +378,11 @@ function initCardContextMenu() {
  * Handle context menu action
  */
 function handleContextMenuAction(action, pid) {
+  const currentData = getCurrentData();
   switch (action) {
     case 'screenshot':
-      if (typeof downloadScreenshot === 'function') {
-        downloadScreenshot(pid, currentData);
+      if (typeof window.downloadScreenshot === 'function') {
+        window.downloadScreenshot(pid, currentData);
       } else {
         console.log('Screenshot for platform:', pid);
       }
@@ -335,8 +434,9 @@ function hidePlatform(pid) {
   }
   savePlatformPrefs();
   // Re-render to apply changes
-  if (currentData && typeof renderPreviews === 'function') {
-    renderPreviews(currentData);
+  const currentData = getCurrentData();
+  if (currentData && typeof window.renderPreviewsInternal === 'function') {
+    window.renderPreviewsInternal(currentData);
   }
 }
 
@@ -672,7 +772,7 @@ function initCardDragReorder() {
   let draggedCard = null;
   let draggedGroupId = null;
 
-  const previewGrid = document.getElementById('previewGrid');
+  const previewGrid = getPreviewGrid();
   if (!previewGrid) return;
 
   previewGrid.addEventListener('dragstart', (e) => {
@@ -953,6 +1053,9 @@ function initMobileSwipeGestures() {
     });
   };
 
+  const previewGrid = getPreviewGrid();
+  if (!previewGrid) return;
+
   previewGrid.addEventListener('touchstart', (e) => {
     const card = e.target.closest('.platform-card');
     if (!card) return;
@@ -1040,6 +1143,11 @@ function initPhase4Features() {
         }
         loadCardOrder();
       };
+    }
+
+    // Expose renderPreviewsInternal for app-features.js use
+    if (typeof window.renderPreviews === 'function') {
+      window.renderPreviewsInternal = window.renderPreviews;
     }
 
     // Initialize character gauges when editor tab is opened

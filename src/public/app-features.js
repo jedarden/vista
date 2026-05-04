@@ -953,83 +953,182 @@ async function initImagePlaceholders(meta) {
 // =============================================================================
 
 /**
+ * Clone preview grid content into editor preview pane
+ */
+function syncEditorPreview() {
+  const mainPreviewGrid = document.getElementById('previewGrid');
+  const editorPreviewContent = document.getElementById('editorPreviewContent');
+  if (!mainPreviewGrid || !editorPreviewContent) return;
+
+  // Clone the preview grid content
+  editorPreviewContent.innerHTML = mainPreviewGrid.innerHTML;
+
+  // Remove the notice if it exists in the preview
+  const notice = editorPreviewContent.querySelector('.editor-preview-notice');
+  if (notice) notice.remove();
+
+  // Add a header to show this is the live preview
+  if (!editorPreviewContent.querySelector('.editor-preview-header')) {
+    const header = document.createElement('div');
+    header.className = 'editor-preview-header';
+    header.innerHTML = '<h4>Live Preview</h4>';
+    editorPreviewContent.insertBefore(header, editorPreviewContent.firstChild);
+  }
+}
+
+/**
  * Initialize resizable split-pane editor
  */
 function initResizableEditor() {
   const editorContainer = document.getElementById('editorContainer');
   if (!editorContainer) return;
 
+  // Check if already initialized
+  if (editorContainer.querySelector('.editor-split-wrapper')) return;
+
+  // Get the editor header and notice
+  const editorHeader = editorContainer.querySelector('.editor-header');
+  const editorNotice = editorContainer.querySelector('.editor-preview-notice');
+
   // Create resizable structure
   const wrapper = document.createElement('div');
   wrapper.className = 'editor-split-wrapper';
   wrapper.innerHTML = `
     <div class="editor-pane" id="editorPane">
-      <div class="editor-pane-content"></div>
+      <div class="editor-pane-content" id="editorPaneContent"></div>
     </div>
-    <div class="editor-resizer" id="editorResizer">
-      <div class="resizer-handle"></div>
+    <div class="split-divider" id="splitDivider">
+      <div class="divider-handle"></div>
     </div>
     <div class="preview-pane" id="previewPane">
       <div class="preview-pane-content" id="editorPreviewContent"></div>
     </div>
   `;
 
-  // Move existing editor content
-  const editorBody = editorContainer.querySelector('.editor-body');
-  if (editorBody) {
-    wrapper.querySelector('.editor-pane-content').appendChild(editorBody);
+  // Insert the wrapper after the header, before the notice
+  if (editorHeader) {
+    editorContainer.insertBefore(wrapper, editorHeader.nextSibling);
+  } else {
+    editorContainer.insertBefore(wrapper, editorContainer.firstChild);
   }
 
-  editorContainer.innerHTML = '';
-  editorContainer.appendChild(wrapper);
+  // Move existing editor content to the left pane
+  const editorBody = editorContainer.querySelector('.editor-body');
+  if (editorBody) {
+    document.getElementById('editorPaneContent').appendChild(editorBody);
+  }
 
-  // Initialize resizer
-  const resizer = document.getElementById('editorResizer');
+  // Remove or hide the old notice since we now have live preview
+  if (editorNotice) {
+    editorNotice.remove();
+  }
+
+  // Initialize resizer with both mouse and touch support
+  const divider = document.getElementById('splitDivider');
   const editorPane = document.getElementById('editorPane');
   const previewPane = document.getElementById('previewPane');
+  const editorPreviewContent = document.getElementById('editorPreviewContent');
 
   let isResizing = false;
   let startX = 0;
-  let startWidth = 0;
+  let startPercent = 40;
 
-  resizer.addEventListener('mousedown', (e) => {
+  // Get saved split ratio or use default
+  const savedSplit = localStorage.getItem('vista-editor-split-ratio');
+  if (savedSplit) {
+    startPercent = parseFloat(savedSplit);
+  }
+
+  // Set initial widths using percentage
+  editorPane.style.width = startPercent + '%';
+  previewPane.style.width = (100 - startPercent) + '%';
+
+  // Initial sync of preview content
+  syncEditorPreview();
+
+  // Mouse events
+  divider.addEventListener('mousedown', startResize);
+
+  // Touch events for tablet/mobile support
+  divider.addEventListener('touchstart', (e) => {
+    startResize(e.touches[0]);
+  });
+
+  function startResize(e) {
     isResizing = true;
     startX = e.clientX;
-    startWidth = editorPane.offsetWidth;
+    startPercent = (editorPane.offsetWidth / wrapper.offsetWidth) * 100;
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
-  });
 
-  document.addEventListener('mousemove', (e) => {
+    // Prevent text selection during drag
+    if (e.preventDefault) e.preventDefault();
+  }
+
+  // Mouse move
+  document.addEventListener('mousemove', handleResize);
+
+  // Touch move
+  document.addEventListener('touchmove', (e) => {
+    if (!isResizing) return;
+    const touch = e.touches[0];
+    handleResize(touch);
+  }, { passive: false });
+
+  function handleResize(e) {
     if (!isResizing) return;
 
+    const wrapperWidth = wrapper.offsetWidth;
     const deltaX = e.clientX - startX;
-    const newWidth = Math.max(250, Math.min(window.innerWidth - 400, startWidth + deltaX));
+    const deltaPercent = (deltaX / wrapperWidth) * 100;
+    let newPercent = startPercent + deltaPercent;
 
-    editorPane.style.width = newWidth + 'px';
-    previewPane.style.width = `calc(100% - ${newWidth}px - 8px)`;
-  });
+    // Enforce min/max widths (200px min for editor, 300px min for preview)
+    const minEditorPercent = (200 / wrapperWidth) * 100;
+    const maxEditorPercent = 100 - ((300 / wrapperWidth) * 100);
 
-  document.addEventListener('mouseup', () => {
+    newPercent = Math.max(minEditorPercent, Math.min(maxEditorPercent, newPercent));
+
+    editorPane.style.width = newPercent + '%';
+    previewPane.style.width = (100 - newPercent) + '%';
+
+    // Save split ratio to localStorage
+    localStorage.setItem('vista-editor-split-ratio', newPercent.toString());
+  }
+
+  // Mouse up
+  document.addEventListener('mouseup', endResize);
+
+  // Touch end
+  document.addEventListener('touchend', endResize);
+
+  function endResize() {
     if (isResizing) {
       isResizing = false;
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
-
-      // Save split position to localStorage
-      const splitPos = editorPane.offsetWidth;
-      localStorage.setItem('vista-editor-split', splitPos.toString());
     }
-  });
+  }
 
-  // Restore saved split position
-  const savedSplit = localStorage.getItem('vista-editor-split');
-  if (savedSplit) {
-    const splitWidth = parseInt(savedSplit, 10);
-    if (splitWidth > 250 && splitWidth < window.innerWidth - 400) {
-      editorPane.style.width = splitWidth + 'px';
-      previewPane.style.width = `calc(100% - ${splitWidth}px - 8px)`;
-    }
+  // Expose sync function globally for app.js to call
+  window.syncEditorPreview = syncEditorPreview;
+}
+
+/**
+ * Hook into renderPreviews to sync editor preview
+ */
+function hookRenderPreviews() {
+  if (typeof window.renderPreviews === 'function' && !window.renderPreviewsHooked) {
+    const originalRenderPreviews = window.renderPreviews;
+    window.renderPreviews = function(data) {
+      originalRenderPreviews.call(window, data);
+      // Sync to editor preview if editor tab is active
+      const editorTab = document.getElementById('tabEditor');
+      if (editorTab && !editorTab.classList.contains('hidden')) {
+        syncEditorPreview();
+      }
+    };
+    window.renderPreviewsHooked = true;
   }
 }
 
@@ -1121,6 +1220,9 @@ function initPhase4Features() {
     initCardDragReorder();
     initMobileSwipeGestures();
 
+    // Hook into renderPreviews for editor preview sync
+    hookRenderPreviews();
+
     // Add QR code button to share actions
     const shareBtn = document.getElementById('shareBtn');
     if (shareBtn && !document.getElementById('qrCodeBtn')) {
@@ -1151,11 +1253,15 @@ function initPhase4Features() {
       window.renderPreviewsInternal = window.renderPreviews;
     }
 
-    // Initialize character gauges when editor tab is opened
+    // Initialize character gauges and resizable editor when editor tab is opened
     const editorTabBtn = document.getElementById('tabnav-editor');
     if (editorTabBtn) {
       editorTabBtn.addEventListener('click', () => {
-        setTimeout(initCharacterGauges, 100);
+        setTimeout(() => {
+          initCharacterGauges();
+          initResizableEditor();
+          syncEditorPreview();
+        }, 100);
       });
     }
   }, 500);

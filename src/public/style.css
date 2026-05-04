@@ -2209,6 +2209,51 @@ body.has-results { padding-bottom: 48px; }
   overflow: auto;
 }
 
+/* ── Split Divider for Editor ── */
+.split-divider {
+  width: 8px;
+  background: var(--border);
+  cursor: col-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background var(--transition);
+  position: relative;
+  z-index: 10;
+}
+.split-divider:hover,
+.split-divider:active {
+  background: var(--accent);
+}
+.divider-handle {
+  width: 3px;
+  height: 40px;
+  background: var(--text3);
+  border-radius: 2px;
+  opacity: 0.6;
+  transition: opacity var(--transition);
+}
+.split-divider:hover .divider-handle {
+  opacity: 1;
+}
+.editor-preview-header {
+  padding: 12px 16px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+.editor-preview-header h4 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 /* ── Phase 4: QR Code Modal ── */
 .qr-modal-body {
   display: flex;

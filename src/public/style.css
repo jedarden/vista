@@ -2186,13 +2186,20 @@ body.has-results { padding-bottom: 48px; }
   gap: 20px;
   padding: 24px;
 }
-#qrImage {
-  max-width: 200px;
-  height: auto;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+#qrCodeContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   padding: 10px;
   background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+#qrCodeContainer canvas,
+#qrCodeContainer img {
+  display: block;
+  max-width: 200px;
+  height: auto;
 }
 .qr-url {
   font-size: 12px;

@@ -473,21 +473,19 @@ const PLATFORM_NAMES = window.PLATFORM_NAMES || {
 // =============================================================================
 
 /**
- * Generate QR code for shareable link
+ * Generate QR code for shareable link using client-side library
  */
 function generateQRCode(url) {
-  // Use a simple QR code API or implement basic QR generation
-  const qrSize = 200;
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${qrSize}x${qrSize}&data=${encodeURIComponent(url)}`;
-  return qrUrl;
+  // qrcode.js will generate the QR code on a canvas element
+  // This function now just returns the URL for display purposes
+  return url;
 }
 
 /**
- * Show QR code modal
+ * Show QR code modal with client-side generated QR code
  */
 function showQRCodeModal() {
   const shareUrl = window.location.href;
-  const qrUrl = generateQRCode(shareUrl);
 
   // Create modal if it doesn't exist
   let modal = document.getElementById('qrModal');
@@ -502,7 +500,7 @@ function showQRCodeModal() {
           <button class="modal-close" id="qrModalClose">&times;</button>
         </div>
         <div class="modal-body qr-modal-body">
-          <img id="qrImage" src="" alt="QR Code" />
+          <div id="qrCodeContainer"></div>
           <p class="qr-url">${shareUrl}</p>
           <div class="qr-actions">
             <button class="action-btn primary" id="qrDownloadBtn">&#128190; Download QR Code</button>
@@ -525,38 +523,56 @@ function showQRCodeModal() {
     });
   }
 
-  // Update QR code image
-  document.getElementById('qrImage').src = qrUrl;
+  // Clear any existing QR code and generate new one
+  const qrContainer = document.getElementById('qrCodeContainer');
+  qrContainer.innerHTML = '';
+
+  // Generate QR code using qrcode.js
+  new QRCode(qrContainer, {
+    text: shareUrl,
+    width: 200,
+    height: 200,
+    colorDark: '#000000',
+    colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.H
+  });
+
+  // Update URL display
   document.querySelector('.qr-url').textContent = shareUrl;
 
   modal.classList.remove('hidden');
 }
 
 /**
- * Download QR code image
+ * Download QR code image from canvas
  */
-async function downloadQRCode() {
-  const qrImage = document.getElementById('qrImage');
-  if (!qrImage) return;
+function downloadQRCode() {
+  const qrContainer = document.getElementById('qrCodeContainer');
+  if (!qrContainer) return;
 
-  try {
-    const response = await fetch(qrImage.src);
-    const blob = await response.blob();
-    const url = URL.createObjectURL(blob);
+  // Find the canvas or img element created by qrcode.js
+  const canvas = qrContainer.querySelector('canvas');
+  const img = qrContainer.querySelector('img');
 
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'vista-qr-code.png';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-
-    showToast('QR Code downloaded!', 2000);
-  } catch (err) {
-    console.error('QR code download error:', err);
-    showToast('Error downloading QR code', 2000);
+  let dataUrl;
+  if (canvas) {
+    dataUrl = canvas.toDataURL('image/png');
+  } else if (img) {
+    dataUrl = img.src;
+  } else {
+    showToast('Error: QR code not found', 2000);
+    return;
   }
+
+  // Create download link
+  const a = document.createElement('a');
+  a.href = dataUrl;
+  a.download = 'vista-qr-code.png';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+
+  showToast('QR Code downloaded!', 2000);
 }
 
 // =============================================================================

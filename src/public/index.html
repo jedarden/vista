@@ -516,13 +516,13 @@
               <div class="editor-section">
                 <h4 class="editor-section-title">Basic Meta Tags</h4>
                 <div class="editor-field">
-                  <label class="editor-label">Title</label>
+                  <label class="editor-label">Title <span class="field-impact-label" id="editTitleImpact"></span></label>
                   <input type="text" id="editTitle" class="editor-input" data-tag="title" maxlength="200" />
                   <span class="editor-char-count"><span id="editTitleCount">0</span>/200</span>
                   <div id="editTitleGauges" class="char-gauges-container"></div>
                 </div>
                 <div class="editor-field">
-                  <label class="editor-label">Description</label>
+                  <label class="editor-label">Description <span class="field-impact-label" id="editDescriptionImpact"></span></label>
                   <textarea id="editDescription" class="editor-textarea" data-tag="description" rows="3" maxlength="300"></textarea>
                   <span class="editor-char-count"><span id="editDescriptionCount">0</span>/300</span>
                   <div id="editDescriptionGauges" class="char-gauges-container"></div>
@@ -532,19 +532,19 @@
               <div class="editor-section">
                 <h4 class="editor-section-title">Open Graph Tags</h4>
                 <div class="editor-field">
-                  <label class="editor-label">og:title</label>
+                  <label class="editor-label">og:title <span class="field-impact-label" id="editOgTitleImpact"></span></label>
                   <input type="text" id="editOgTitle" class="editor-input" data-tag="og.title" maxlength="200" />
                   <span class="editor-char-count"><span id="editOgTitleCount">0</span>/200</span>
                   <div id="editOgTitleGauges" class="char-gauges-container"></div>
                 </div>
                 <div class="editor-field">
-                  <label class="editor-label">og:description</label>
+                  <label class="editor-label">og:description <span class="field-impact-label" id="editOgDescriptionImpact"></span></label>
                   <textarea id="editOgDescription" class="editor-textarea" data-tag="og.description" rows="3" maxlength="300"></textarea>
                   <span class="editor-char-count"><span id="editOgDescriptionCount">0</span>/300</span>
                   <div id="editOgDescriptionGauges" class="char-gauges-container"></div>
                 </div>
                 <div class="editor-field">
-                  <label class="editor-label">og:image</label>
+                  <label class="editor-label">og:image <span class="field-impact-label" id="editOgImageImpact"></span></label>
                   <input type="url" id="editOgImage" class="editor-input" data-tag="og.image" placeholder="https://example.com/image.jpg" />
                 </div>
                 <div class="editor-field">
@@ -571,7 +571,7 @@
               <div class="editor-section">
                 <h4 class="editor-section-title">Twitter Card Tags</h4>
                 <div class="editor-field">
-                  <label class="editor-label">twitter:card</label>
+                  <label class="editor-label">twitter:card <span class="field-impact-label" id="editTwitterCardImpact"></span></label>
                   <select id="editTwitterCard" class="editor-select" data-tag="twitter.card">
                     <option value="">(none)</option>
                     <option value="summary">summary</option>
@@ -829,6 +829,7 @@
     </div>
   </div>
 
+  <script src="scoring-simulator.js"></script>
   <script src="app.js"></script>
   <script src="app-features.js"></script>
 </body>

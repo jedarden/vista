@@ -3215,13 +3215,76 @@ function renderFixes(fixes) {
     return;
   }
 
-  let html = `<p class="fixes-intro">Found ${fixes.length} suggested fix${fixes.length !== 1 ? 'es' : ''} to improve your social card performance.</p>
-    <div class="fixes-panel">`;
+  // Calculate impact for each fix and sort by impact
+  const fixesWithImpact = fixes.map(fix => {
+    const impact = simulateFix(
+      fix.code,
+      currentData?.meta || {},
+      currentData?.imageProbe || null,
+      currentData?.scoring || { scores: {}, overall: { grade: 'F', score: 0 } }
+    );
+    const impactLevel = getImpactLevel(impact.platformsImproved.length);
+    return { ...fix, impact, impactLevel };
+  }).sort((a, b) => b.impact.platformsImproved.length - a.impact.platformsImproved.length);
 
-  fixes.forEach(fix => {
+  // Calculate total impact for "Fix all" button
+  const totalImpact = simulateAllFixes(
+    fixes,
+    currentData?.meta || {},
+    currentData?.imageProbe || null,
+    currentData?.scoring || { scores: {}, overall: { grade: 'F', score: 0 } }
+  );
+
+  let html = `<p class="fixes-intro">Found ${fixes.length} suggested fix${fixes.length !== 1 ? 'es' : ''} to improve your social card performance.</p>`;
+
+  // Add "Fix all" preview button if there are multiple fixes
+  if (fixes.length > 1) {
+    const totalImproved = totalImpact.platformsImproved.length;
+    const fromGrade = totalImpact.fromOverallGrade;
+    const toGrade = totalImpact.toOverallGrade;
+    html += `<div class="fix-all-preview">
+      <span class="fix-all-preview-text">Apply all ${fixes.length} fixes &rarr; <strong>${fromGrade} to ${toGrade}</strong> overall (${totalImproved} platforms improved)</span>
+    </div>`;
+  }
+
+  html += '<div class="fixes-panel">';
+
+  fixesWithImpact.forEach(fix => {
     if (!fix.tag) return;
+
+    const improved = fix.impact.platformsImproved;
+    const impactLevel = fix.impactLevel;
+
+    // Build impact label
+    let impactLabel = '';
+    let impactClass = '';
+    if (improved.length > 0) {
+      const gradeChanges = {};
+      improved.forEach(p => {
+        const key = `${p.from}→${p.to}`;
+        if (!gradeChanges[key]) gradeChanges[key] = [];
+        gradeChanges[key].push(p.name);
+      });
+
+      const changeParts = [];
+      for (const [change, platforms] of Object.entries(gradeChanges)) {
+        if (platforms.length <= 3) {
+          changeParts.push(`${change} on ${platforms.join(', ')}`);
+        } else {
+          changeParts.push(`${change} on ${platforms.length} platforms`);
+        }
+      }
+
+      impactLabel = changeParts.join(', ');
+      impactClass = impactLevel === 'high' ? 'impact-high' : impactLevel === 'medium' ? 'impact-medium' : 'impact-low';
+    } else {
+      impactLabel = 'No score change expected';
+      impactClass = 'impact-low';
+    }
+
     html += `<div class="fix-item">
       <div class="fix-msg">${escHtml(fix.message)}</div>
+      ${improved.length > 0 ? `<div class="fix-impact ${impactClass}">&#8594; ${escHtml(impactLabel)}</div>` : ''}
       <div class="fix-code-wrap">
         <span class="fix-code">${escHtml(fix.tag)}</span>
         <button class="fix-copy-btn" onclick="copyText(${JSON.stringify(fix.tag)})">Copy</button>
@@ -4373,6 +4436,45 @@ function initEditor(data) {
   // Populate form fields
   populateEditorForm();
   updateEditorCharCounts();
+  updateEditorFieldImpactLabels(data);
+}
+
+/**
+ * Update editor field impact labels to show how many platforms each field affects
+ */
+function updateEditorFieldImpactLabels(data) {
+  // Map each field to the platforms that use it
+  const fieldPlatformMap = {
+    'editTitleImpact': ['google', 'mastodon', 'bluesky', 'medium', 'substack', 'tumblr', 'pinterest', 'notion', 'jira', 'github', 'trello', 'figma', 'imessage', 'telegram', 'googlechat', 'zoom', 'line', 'kakaotalk'],
+    'editDescriptionImpact': ['google', 'mastodon', 'bluesky', 'medium', 'substack', 'slack', 'teams', 'telegram'],
+    'editOgTitleImpact': ['facebook', 'threads', 'twitter', 'linkedin', 'reddit', 'mastodon', 'bluesky', 'medium', 'substack', 'tumblr', 'pinterest', 'slack', 'discord', 'whatsapp', 'signal', 'teams', 'googlechat', 'zoom', 'line', 'kakaotalk', 'notion', 'jira', 'github', 'trello', 'figma', 'outlook', 'gmail', 'feedly'],
+    'editOgDescriptionImpact': ['facebook', 'threads', 'linkedin', 'reddit', 'mastodon', 'bluesky', 'medium', 'substack', 'slack', 'teams', 'telegram'],
+    'editOgImageImpact': ['facebook', 'threads', 'twitter', 'linkedin', 'reddit', 'mastodon', 'bluesky', 'medium', 'substack', 'tumblr', 'pinterest', 'slack', 'discord', 'whatsapp', 'imessage', 'telegram', 'signal', 'teams', 'googlechat', 'zoom', 'line', 'kakaotalk', 'notion', 'jira', 'github', 'trello', 'figma', 'outlook', 'gmail', 'feedly'],
+    'editTwitterCardImpact': ['twitter'],
+  };
+
+  for (const [labelId, platformIds] of Object.entries(fieldPlatformMap)) {
+    const labelEl = document.getElementById(labelId);
+    if (labelEl) {
+      // Count how many of these platforms would improve if the field was properly filled
+      const currentScoring = data.scoring || { scores: {} };
+      let affectedCount = 0;
+
+      // Check each platform to see if it would benefit from this field
+      for (const pid of platformIds) {
+        const platformScore = currentScoring.scores[pid];
+        if (platformScore && platformScore.score < 100) {
+          affectedCount++;
+        }
+      }
+
+      if (affectedCount > 0) {
+        labelEl.textContent = `(${affectedCount} platforms)`;
+      } else {
+        labelEl.textContent = '';
+      }
+    }
+  }
 }
 
 function populateEditorForm() {

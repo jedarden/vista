@@ -8,6 +8,11 @@ let cardContextState = {}; // Track context mode per platform: { pid: { context:
 let compareData = { before: null, after: null, swapped: false }; // Comparison state
 let hasCelebratedPerfectScore = false; // Track one-time celebration per session
 
+// ── Keyboard Navigation State ──
+let focusedCardIndex = -1; // Index of currently focused card in preview grid
+let focusedCardPids = []; // Array of platform IDs in current grid
+let editorUndoStack = []; // Undo stack for editor changes
+
 // ── Theme State ──
 let globalTheme = 'dark'; // 'dark' | 'light'
 
@@ -667,6 +672,7 @@ function buildCard(pid, scoreData, data, animDelay) {
   card.className = `platform-card ${gradeClass(scoreData.grade)}`;
   card.style.animationDelay = animDelay + 'ms';
   card.dataset.pid = pid;
+  card.tabIndex = -1; // Make focusable but not tab-focused by default
 
   // Initialize context state for this card
   if (!cardContextState[pid]) {
@@ -4387,6 +4393,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize command palette
   initCommandPalette();
 
+  // Initialize global keyboard shortcuts
+  initGlobalKeyboardShortcuts();
+
   // Initialize cache hub links
   initCacheHub();
 });
@@ -5583,6 +5592,201 @@ function executeCommand(id) {
 
   closeCommandPalette();
   cmd.action();
+}
+
+// ── Global Keyboard Shortcuts ──
+function initGlobalKeyboardShortcuts() {
+  // Helper: check if we should ignore shortcuts (when typing in input/textarea)
+  function shouldIgnoreShortcut(e) {
+    const tag = e.target.tagName.toLowerCase();
+    const isInput = tag === 'input' || tag === 'textarea' || tag === 'select';
+    const isContentEditable = e.target.isContentEditable;
+    return isInput || isContentEditable;
+  }
+
+  // Helper: get all focusable cards in current grid
+  function getFocusableCards() {
+    return Array.from(document.querySelectorAll('.platform-card'));
+  }
+
+  // Helper: focus a specific card by index
+  function focusCard(index) {
+    const cards = getFocusableCards();
+    if (cards.length === 0) return;
+
+    // Update focused card index
+    focusedCardIndex = index;
+    focusedCardPids = cards.map(c => c.dataset.pid);
+
+    // Clamp index
+    if (focusedCardIndex < 0) focusedCardIndex = cards.length - 1;
+    if (focusedCardIndex >= cards.length) focusedCardIndex = 0;
+
+    const card = cards[focusedCardIndex];
+    card.setAttribute('tabindex', '0');
+    card.focus();
+
+    // Update visual focus state
+    cards.forEach((c, i) => {
+      c.classList.toggle('focused', i === focusedCardIndex);
+    });
+  }
+
+  // Helper: unfocus all cards
+  function unfocusAllCards() {
+    const cards = getFocusableCards();
+    cards.forEach(c => {
+      c.setAttribute('tabindex', '-1');
+      c.classList.remove('focused');
+    });
+    focusedCardIndex = -1;
+    focusedCardPids = [];
+  }
+
+  // Helper: save editor state to undo stack
+  function saveEditorUndoState() {
+    if (!editorState.dirty) return;
+    editorUndoStack.push({ ...editorState.edited });
+    // Limit stack size
+    if (editorUndoStack.length > 50) editorUndoStack.shift();
+  }
+
+  // Global keydown handler
+  document.addEventListener('keydown', (e) => {
+    // Don't trigger if typing in input/textarea (unless it's a specific shortcut)
+    if (shouldIgnoreShortcut(e)) {
+      // Cmd+Z and Cmd+Shift+[CS] should work even in inputs
+      if (!((e.metaKey || e.ctrlKey) && (e.key === 'z' || (e.shiftKey && (e.key === 'C' || e.key === 'S'))))) {
+        return;
+      }
+    }
+
+    const cmdOrCtrl = e.metaKey || e.ctrlKey;
+
+    // '/' → focus URL input
+    if (e.key === '/' && !cmdOrCtrl && !e.shiftKey && !e.altKey) {
+      e.preventDefault();
+      unfocusAllCards();
+      switchMode('url');
+      urlInput.focus();
+      urlInput.select();
+      return;
+    }
+
+    // '1' '2' '3' '4' → switch tabs
+    if (!cmdOrCtrl && !e.shiftKey && !e.altKey && '1234'.includes(e.key)) {
+      const tabMap = { '1': 'previews', '2': 'diagnostics', '3': 'rawtags', '4': 'cachehub' };
+      const tabId = tabMap[e.key];
+      if (tabId) {
+        e.preventDefault();
+        unfocusAllCards();
+        switchTab(tabId);
+      }
+      return;
+    }
+
+    // 'E' → toggle Editor mode (switch to Editor tab)
+    if (e.key === 'e' && !cmdOrCtrl && !e.shiftKey && !e.altKey) {
+      e.preventDefault();
+      unfocusAllCards();
+      switchTab('editor');
+      return;
+    }
+
+    // 'C' → toggle Compare mode (switch to compare mode)
+    if (e.key === 'c' && !cmdOrCtrl && !e.shiftKey && !e.altKey) {
+      e.preventDefault();
+      unfocusAllCards();
+      switchMode('compare');
+      return;
+    }
+
+    // Arrow keys ← → → navigate between cards when grid is focused
+    if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && !cmdOrCtrl && !e.shiftKey && !e.altKey) {
+      const cards = getFocusableCards();
+      if (cards.length > 0 && document.activeElement.classList.contains('platform-card')) {
+        e.preventDefault();
+        const direction = e.key === 'ArrowRight' ? 1 : -1;
+        focusCard(focusedCardIndex + direction);
+      }
+      return;
+    }
+
+    // Enter → expand focused card (toggle context view)
+    if (e.key === 'Enter' && !cmdOrCtrl && !e.shiftKey && !e.altKey) {
+      if (focusedCardIndex >= 0) {
+        const card = getFocusableCards()[focusedCardIndex];
+        if (card) {
+          const pid = card.dataset.pid;
+          if (pid) {
+            e.preventDefault();
+            toggleCardContext(pid);
+          }
+        }
+      }
+      return;
+    }
+
+    // Cmd+Shift+C → copy code snippet
+    if (cmdOrCtrl && e.shiftKey && e.key === 'C') {
+      e.preventDefault();
+      copyCodeSnippet();
+      return;
+    }
+
+    // Cmd+Shift+S → copy share link
+    if (cmdOrCtrl && e.shiftKey && e.key === 'S') {
+      e.preventDefault();
+      shareResults();
+      return;
+    }
+
+    // Cmd+Z → undo last edit (in editor)
+    if (cmdOrCtrl && !e.shiftKey && e.key === 'z') {
+      e.preventDefault();
+      if (editorUndoStack.length > 0) {
+        const previousState = editorUndoStack.pop();
+        editorState.edited = previousState;
+        editorState.dirty = true;
+        populateEditorForm();
+        updateEditorCharCounts();
+        updatePreviewsWithEdits();
+        showToast('Undo successful');
+      }
+      return;
+    }
+  });
+
+  // Save state before editor changes for undo
+  const editorInputs = document.querySelectorAll('.editor-input, .editor-textarea, .editor-select');
+  editorInputs.forEach(el => {
+    el.addEventListener('focus', () => {
+      if (editorState.dirty) {
+        saveEditorUndoState();
+      }
+    });
+  });
+
+  // Make cards focusable with mouse click
+  document.addEventListener('click', (e) => {
+    const card = e.target.closest('.platform-card');
+    if (card) {
+      const cards = getFocusableCards();
+      const index = cards.indexOf(card);
+      if (index >= 0) {
+        focusCard(index);
+      }
+    } else {
+      unfocusAllCards();
+    }
+  });
+
+  // Unfocus cards when switching tabs
+  const originalSwitchTab = switchTab;
+  switchTab = function(tabId) {
+    originalSwitchTab(tabId);
+    unfocusAllCards();
+  };
 }
 
 // ── Feedback widget ──

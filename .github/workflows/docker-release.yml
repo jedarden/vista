@@ -1,4 +1,7 @@
-name: Build and Release Docker Image
+# DISABLED: This workflow is superseded by Argo Workflows (vista-build WorkflowTemplate).
+# CI/CD runs on iad-ci cluster via argo-workflows. See declarative-config/k8s/iad-ci/argo-workflows/vista-workflowtemplate.yml
+#
+# name: Build and Release Docker Image
 
 on:
   push:

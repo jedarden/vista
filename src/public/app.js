@@ -6589,21 +6589,35 @@ function handleContextMenuAction(e) {
   closeContextMenu();
 }
 
-// ── Mobile Long-Press Support ──
+// ── Mobile Swipe & Long-Press Support ──
 let longPressTimer = null;
 let longPressCard = null;
 let longPressData = null;
+let touchStartX = 0;
+let touchStartY = 0;
+let touchStartTime = 0;
+const SWIPE_THRESHOLD = 50; // Minimum distance for swipe
+const SWIPE_ANGLE_LIMIT = 30; // Maximum angle from horizontal/vertical
+const LONG_PRESS_DURATION = 500; // ms
+
+// Check if user prefers reduced motion
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 function initMobileLongPress() {
-  // Use event delegation to handle long-press on dynamically added cards
+  // Use event delegation to handle touch gestures on dynamically added cards
   previewGrid.addEventListener('touchstart', handleTouchStart, { passive: true });
   previewGrid.addEventListener('touchend', handleTouchEnd);
-  previewGrid.addEventListener('touchmove', handleTouchMove);
+  previewGrid.addEventListener('touchmove', handleTouchMove, { passive: true });
 }
 
 function handleTouchStart(e) {
   const card = e.target.closest('.platform-card');
   if (!card) return;
+
+  const touch = e.touches[0];
+  touchStartX = touch.clientX;
+  touchStartY = touch.clientY;
+  touchStartTime = Date.now();
 
   longPressCard = card;
   longPressTimer = setTimeout(() => {
@@ -6618,7 +6632,7 @@ function handleTouchStart(e) {
       longPressCard = null;
       longPressTimer = null;
     }
-  }, 500); // 500ms long-press
+  }, LONG_PRESS_DURATION);
 }
 
 function handleTouchEnd(e) {
@@ -6626,17 +6640,144 @@ function handleTouchEnd(e) {
     clearTimeout(longPressTimer);
     longPressTimer = null;
   }
+
+  if (longPressCard) {
+    const touch = e.changedTouches[0];
+    const touchEndX = touch.clientX;
+    const touchEndY = touch.clientY;
+    const deltaX = touchEndX - touchStartX;
+    const deltaY = touchEndY - touchStartY;
+    const deltaTime = Date.now() - touchStartTime;
+    const absDeltaX = Math.abs(deltaX);
+    const absDeltaY = Math.abs(deltaY);
+
+    // Only process as swipe if movement is significant and quick enough
+    if ((absDeltaX > SWIPE_THRESHOLD || absDeltaY > SWIPE_THRESHOLD) && deltaTime < 500) {
+      // Calculate angle to determine swipe direction
+      const angle = Math.atan2(absDeltaY, absDeltaX) * (180 / Math.PI);
+
+      // Horizontal swipe (angle < 30 degrees from horizontal)
+      if (absDeltaX > absDeltaY && angle < SWIPE_ANGLE_LIMIT) {
+        handleHorizontalSwipe(deltaX, longPressCard);
+      }
+      // Vertical swipe down (angle > 60 degrees from horizontal, i.e., closer to vertical)
+      else if (absDeltaY > absDeltaX && angle > (90 - SWIPE_ANGLE_LIMIT)) {
+        handleVerticalSwipe(deltaY, longPressCard);
+      }
+    }
+  }
+
   longPressCard = null;
 }
 
 function handleTouchMove(e) {
-  // Cancel long-press if user moves their finger
+  // Cancel long-press if user moves their finger significantly
   if (longPressTimer) {
-    clearTimeout(longPressTimer);
-    longPressTimer = null;
+    const touch = e.touches[0];
+    const deltaX = Math.abs(touch.clientX - touchStartX);
+    const deltaY = Math.abs(touch.clientY - touchStartY);
+
+    // Allow small movements for touch accuracy, but cancel on larger movements
+    if (deltaX > 10 || deltaY > 10) {
+      clearTimeout(longPressTimer);
+      longPressTimer = null;
+    }
   }
-  longPressCard = null;
 }
 
-// Initialize mobile long-press support
+/**
+ * Handle horizontal swipe for platform navigation
+ * @param {number} deltaX - Horizontal distance (positive = right, negative = left)
+ * @param {HTMLElement} card - The card that was swiped
+ */
+function handleHorizontalSwipe(deltaX, card) {
+  const pid = card.dataset.pid;
+  const groupId = card.dataset.groupId;
+
+  // Find all cards in the same group
+  const group = document.querySelector(`.platform-group[data-group-id="${groupId}"]`);
+  if (!group) return;
+
+  const cards = Array.from(group.querySelectorAll('.platform-card'));
+  const currentIndex = cards.indexOf(card);
+  if (currentIndex === -1) return;
+
+  let targetIndex;
+
+  // Swipe left (negative deltaX) -> next card
+  // Swipe right (positive deltaX) -> previous card
+  if (deltaX < 0) {
+    // Swipe left: go to next card
+    targetIndex = currentIndex + 1;
+    if (targetIndex >= cards.length) {
+      targetIndex = 0; // Wrap to beginning
+    }
+  } else {
+    // Swipe right: go to previous card
+    targetIndex = currentIndex - 1;
+    if (targetIndex < 0) {
+      targetIndex = cards.length - 1; // Wrap to end
+    }
+  }
+
+  const targetCard = cards[targetIndex];
+  if (!targetCard) return;
+
+  // Focus the target card with animation (respect prefers-reduced-motion)
+  if (!prefersReducedMotion) {
+    // Add visual feedback for the swipe
+    card.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
+    card.style.transform = deltaX < 0 ? 'translateX(-20px)' : 'translateX(20px)';
+    card.style.opacity = '0.5';
+
+    setTimeout(() => {
+      card.style.transform = '';
+      card.style.opacity = '';
+    }, 200);
+  }
+
+  // Focus the target card
+  targetCard.focus();
+  targetCard.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', block: 'nearest' });
+
+  // Optional: Vibrate for feedback
+  if (navigator.vibrate) {
+    navigator.vibrate(10);
+  }
+}
+
+/**
+ * Handle vertical swipe down to collapse expanded card
+ * @param {number} deltaY - Vertical distance (positive = down)
+ * @param {HTMLElement} card - The card that was swiped
+ */
+function handleVerticalSwipe(deltaY, card) {
+  // Only respond to swipe down (positive deltaY)
+  if (deltaY < 0) return;
+
+  const pid = card.dataset.pid;
+
+  // Check if this card is in expanded context mode
+  if (cardContextState[pid] && cardContextState[pid].context) {
+    // Collapse the card
+    toggleCardContext(pid, currentData);
+
+    // Visual feedback for the collapse action
+    if (!prefersReducedMotion) {
+      card.style.transition = 'transform 0.2s ease';
+      card.style.transform = 'translateY(10px)';
+
+      setTimeout(() => {
+        card.style.transform = '';
+      }, 200);
+    }
+
+    // Vibrate for feedback
+    if (navigator.vibrate) {
+      navigator.vibrate(15);
+    }
+  }
+}
+
+// Initialize mobile touch support
 initMobileLongPress();

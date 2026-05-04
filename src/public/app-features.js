@@ -894,73 +894,130 @@ function loadCardOrder() {
 }
 
 // =============================================================================
-// 9. Blurhash Placeholder for OG Images
+// 9. Image Loading Placeholder with Dominant Color Extraction
 // =============================================================================
 
 /**
- * Simple blurhash-like placeholder generator
- * Generates a tiny data URI image with dominant color
+ * Extract dominant color from an image using canvas
+ * Returns a CSS color string (rgb(r, g, b)) or neutral gray on error
  */
-function generateBlurhashPlaceholder(imageUrl) {
+function extractDominantColor(imageUrl) {
   return new Promise((resolve) => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
 
     img.onload = () => {
-      // Create canvas to extract dominant color
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      canvas.width = 1;
-      canvas.height = 1;
-
-      ctx.drawImage(img, 0, 0, 1, 1);
-      const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
-
-      // Create a tiny blurred placeholder
-      const placeholderCanvas = document.createElement('canvas');
-      const pctx = placeholderCanvas.getContext('2d');
-      placeholderCanvas.width = 32;
-      placeholderCanvas.height = 32;
-
-      // Fill with dominant color
-      pctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
-      pctx.fillRect(0, 0, 32, 32);
-
-      // Add some blur effect
-      pctx.filter = 'blur(4px)';
-      pctx.drawImage(img, 0, 0, 32, 32);
-
-      resolve(placeholderCanvas.toDataURL('image/jpeg', 0.5));
+      try {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 1;
+        canvas.height = 1;
+        ctx.drawImage(img, 0, 0, 1, 1);
+        const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+        resolve(`rgb(${r}, ${g}, ${b})`);
+      } catch (e) {
+        resolve('#e0e0e0');
+      }
     };
 
-    img.onerror = () => {
-      // Return neutral gray placeholder on error
-      resolve('data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><rect width="32" height="32" fill="#e0e0e0"/></svg>'));
-    };
-
+    img.onerror = () => resolve('#e0e0e0');
     img.src = imageUrl;
   });
 }
 
 /**
- * Initialize blurhash placeholders for card images
+ * Initialize loading placeholders for all card images
+ * Adds loading class, extracts dominant color for background, and crossfades when loaded
  */
-async function initBlurhashPlaceholders(meta) {
-  const ogImage = meta.og?.image || meta.twitter?.image;
+async function initImagePlaceholders(meta) {
+  const ogImage = meta?.og?.image || meta?.twitter?.image;
   if (!ogImage) return;
 
-  const placeholder = await generateBlurhashPlaceholder(ogImage);
+  // All the image container classes used across platform cards
+  const imageContainerSelectors = [
+    '.fb-context-image', '.tw-context-image', '.li-context-image', '.rd-context-image',
+    '.th-context-image', '.slack-image', '.discord-image', '.im-link-image', '.tg-link-image',
+    '.teams-link-image', '.gchat-link-image', '.mdn-link-image', '.bsky-link-image',
+    '.tumblr-thumb', '.pin-image', '.notion-embed-thumb', '.jira-card-thumb',
+    '.gh-preview-image', '.trello-card-thumb', '.figma-card-thumb',
+    '.medium-article-image', '.substack-post-image'
+  ];
 
-  // Apply placeholder to all card images
-  document.querySelectorAll('.platform-card .mock-image img').forEach(img => {
-    if (!img.complete) {
-      img.style.backgroundImage = `url(${placeholder})`;
-      img.style.backgroundSize = 'cover';
-      img.addEventListener('load', () => {
-        img.style.backgroundImage = '';
-      }, { once: true });
-    }
-  });
+  // Get dominant color for the OG image
+  const dominantColor = await extractDominantColor(ogImage);
+
+  // Process all container-based images
+  for (const selector of imageContainerSelectors) {
+    document.querySelectorAll(`#previewGrid ${selector}`).forEach(container => {
+      const img = container.querySelector('img');
+      if (!img || img.dataset.placeholderProcessed) return;
+
+      img.dataset.placeholderProcessed = 'true';
+
+      // Add loading class to container and set background
+      container.classList.add('img-loading-container');
+      container.style.background = dominantColor;
+
+      // Start with image hidden
+      img.style.opacity = '0';
+
+      // Handle image load - crossfade in
+      const onLoad = () => {
+        img.style.opacity = '1';
+        container.classList.remove('img-loading-container');
+        container.style.background = '';
+      };
+
+      // Handle image error - keep hidden
+      const onError = () => {
+        img.style.display = 'none';
+        container.classList.remove('img-loading-container');
+        container.style.background = '';
+      };
+
+      if (img.complete) {
+        if (img.naturalWidth > 0) onLoad();
+        else onError();
+      } else {
+        img.addEventListener('load', onLoad, { once: true });
+        img.addEventListener('error', onError, { once: true });
+      }
+    });
+  }
+
+  // Handle direct <img> elements (WhatsApp, Signal, Email, Feedly thumbs)
+  const directImgSelectors = [
+    '.wa-link-thumb', '.signal-link-thumb', '.email-thumb', '.feedly-thumb'
+  ];
+
+  for (const selector of directImgSelectors) {
+    document.querySelectorAll(`#previewGrid ${selector}`).forEach(img => {
+      if (!img.src || img.dataset.placeholderProcessed) return;
+
+      img.dataset.placeholderProcessed = 'true';
+
+      // Set background color on the img element itself
+      img.style.backgroundColor = dominantColor;
+      img.style.opacity = '0';
+
+      const onLoad = () => {
+        img.style.opacity = '1';
+        img.style.backgroundColor = '';
+      };
+
+      const onError = () => {
+        img.style.display = 'none';
+      };
+
+      if (img.complete) {
+        if (img.naturalWidth > 0) onLoad();
+        else onError();
+      } else {
+        img.addEventListener('load', onLoad, { once: true });
+        img.addEventListener('error', onError, { once: true });
+      }
+    });
+  }
 }
 
 // =============================================================================
@@ -1153,7 +1210,7 @@ function initPhase4Features() {
       window.handleResult = function(data) {
         originalHandleResult.call(window, data);
         // Initialize Phase 4 features after results are loaded
-        initBlurhashPlaceholders(data.meta);
+        initImagePlaceholders(data.meta);
         if (data.diagnostics) {
           renderScorePredictions(data.diagnostics, data.scoring?.overall);
         }

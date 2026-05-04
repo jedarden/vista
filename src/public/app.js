@@ -450,11 +450,17 @@ async function inspectHtml(html, base) {
   }
 }
 
-function handleResult(data) {
+async function handleResult(data) {
   hideLoading();
   currentData = data;
   window.currentRedirectChain = data.redirectChain || null;
   saveToRecents(data);
+
+  // Extract dominant color for OG image placeholder BEFORE rendering
+  const ogImageUrl = data.meta.og.image || data.meta.twitter.image;
+  if (ogImageUrl) {
+    data.dominantColor = await extractDominantColor(ogImageUrl);
+  }
 
   // Compact hero
   hero.classList.add('compact');
@@ -874,9 +880,9 @@ function buildCard(pid, scoreData, data, animDelay, groupId) {
   body.id = `card-body-${pid}`;
 
   if (cardContextState[pid].context) {
-    body.innerHTML = renderPlatformWithContext(pid, data.meta, data.imageProbe, data.finalUrl, cardContextState[pid].theme);
+    body.innerHTML = renderPlatformWithContext(pid, data.meta, data.imageProbe, data.finalUrl, cardContextState[pid].theme, data.dominantColor);
   } else {
-    body.innerHTML = renderPlatformCard(pid, data.meta, data.imageProbe, data.finalUrl);
+    body.innerHTML = renderPlatformCard(pid, data.meta, data.imageProbe, data.finalUrl, data.dominantColor);
   }
   card.appendChild(body);
 
@@ -972,9 +978,9 @@ function toggleCardContext(pid, data) {
   const body = document.getElementById(`card-body-${pid}`);
   if (body) {
     if (cardContextState[pid].context) {
-      body.innerHTML = renderPlatformWithContext(pid, data.meta, data.imageProbe, data.finalUrl, cardContextState[pid].theme);
+      body.innerHTML = renderPlatformWithContext(pid, data.meta, data.imageProbe, data.finalUrl, cardContextState[pid].theme, data.dominantColor);
     } else {
-      body.innerHTML = renderPlatformCard(pid, data.meta, data.imageProbe, data.finalUrl);
+      body.innerHTML = renderPlatformCard(pid, data.meta, data.imageProbe, data.finalUrl, data.dominantColor);
     }
   }
   updateCardHeader(pid);
@@ -1009,7 +1015,7 @@ function updateCardHeader(pid) {
 }
 
 // ── Platform card renderers ──
-function renderPlatformCard(pid, meta, imageProbe, baseUrl) {
+function renderPlatformCard(pid, meta, imageProbe, baseUrl, dominantColor) {
   const ogTitle = meta.og.title || meta.title || '';
   const ogDesc = meta.og.description || meta.description || '';
   const ogImage = meta.og.image || meta.twitter.image || '';
@@ -1023,7 +1029,7 @@ function renderPlatformCard(pid, meta, imageProbe, baseUrl) {
   const faviconUrl = meta.favicon || '';
 
   const imgHtml = (url, cls) => url
-    ? `<div class="img-loading-container"><img src="${escHtml(url)}" alt="" onerror="this.parentElement.style.display='none';this.nextElementSibling?.style.display='flex'" loading="lazy" onload="this.style.opacity='1';setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /><span class="img-placeholder" style="display:none">No image</span></div>`
+    ? `<div class="img-loading-container" style="background:${dominantColor || '#e0e0e0'}"><img src="${escHtml(url)}" alt="" onerror="this.parentElement.style.display='none';this.nextElementSibling?.style.display='flex'" loading="lazy" onload="this.classList.add('loaded')" /><span class="img-placeholder" style="display:none">No image</span></div>`
     : `<span class="img-placeholder">No image</span>`;
 
   const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
@@ -1140,7 +1146,7 @@ function renderPlatformCard(pid, meta, imageProbe, baseUrl) {
     case 'whatsapp':
       return `<div class="wa-card">
         <div class="wa-card-inner">
-          <div class="wa-img-cell">${ogImage ? `<img src="${escHtml(ogImage)}" alt="" onerror="this.style.display='none'" loading="lazy" style="width:68px;height:68px;object-fit:cover" />` : ''}</div>
+          <div class="wa-img-cell">${ogImage ? `<img src="${escHtml(ogImage)}" alt="" onerror="this.style.display='none'" loading="lazy" class="img-loading" style="width:68px;height:68px;object-fit:cover" onload="this.classList.add('loaded');this.classList.remove('img-loading')" />` : ''}</div>
           <div class="wa-meta">
             <div class="wa-domain">${escHtml(domain)}</div>
             <div class="wa-title">${escHtml(trunc(ogTitle, 80))}</div>
@@ -1170,7 +1176,7 @@ function renderPlatformCard(pid, meta, imageProbe, baseUrl) {
 
     case 'signal':
       return `<div class="signal-card">
-        <div class="signal-img-cell">${ogImage ? `<img src="${escHtml(ogImage)}" alt="" onerror="this.style.display='none'" loading="lazy" style="width:76px;height:76px;object-fit:cover" />` : ''}</div>
+        <div class="signal-img-cell">${ogImage ? `<img src="${escHtml(ogImage)}" alt="" onerror="this.style.display='none'" loading="lazy" class="img-loading" style="width:76px;height:76px;object-fit:cover" onload="this.classList.add('loaded');this.classList.remove('img-loading')" />` : ''}</div>
         <div class="signal-meta">
           <div class="signal-title">${escHtml(trunc(ogTitle, 80))}</div>
           ${ogDesc ? `<div class="signal-desc">${escHtml(trunc(ogDesc, 120))}</div>` : ''}
@@ -1212,7 +1218,7 @@ function renderPlatformCard(pid, meta, imageProbe, baseUrl) {
 
     case 'notion':
       return `<div class="notion-card">
-        <div class="notion-img-cell">${ogImage ? `<img src="${escHtml(ogImage)}" alt="" onerror="this.style.display='none'" loading="lazy" />` : ''}</div>
+        <div class="notion-img-cell">${ogImage ? `<img src="${escHtml(ogImage)}" alt="" onerror="this.style.display='none'" loading="lazy" class="img-loading" onload="this.classList.add('loaded');this.classList.remove('img-loading')" />` : ''}</div>
         <div class="notion-meta">
           <div class="notion-title">${escHtml(trunc(ogTitle, 80))}</div>
           ${ogDesc ? `<div class="notion-desc">${escHtml(trunc(ogDesc, 120))}</div>` : ''}
@@ -1306,7 +1312,7 @@ function renderPlatformCard(pid, meta, imageProbe, baseUrl) {
 }
 
 // ── Platform Context Frame Renderers ──
-function renderPlatformWithContext(pid, meta, imageProbe, baseUrl, theme = 'dark') {
+function renderPlatformWithContext(pid, meta, imageProbe, baseUrl, theme = 'dark', dominantColor) {
   const ogTitle = meta.og.title || meta.title || '';
   const ogDesc = meta.og.description || meta.description || '';
   const ogImage = meta.og.image || meta.twitter.image || '';
@@ -1319,16 +1325,16 @@ function renderPlatformWithContext(pid, meta, imageProbe, baseUrl, theme = 'dark
       return renderGoogleContext(ogTitle, ogDesc, domain);
 
     case 'facebook':
-      return renderFacebookContext(ogTitle, ogDesc, ogImage, domain, ogSite);
+      return renderFacebookContext(ogTitle, ogDesc, ogImage, domain, ogSite, dominantColor);
 
     case 'twitter':
-      return renderTwitterContext(ogTitle, ogDesc, ogImage, domain, theme);
+      return renderTwitterContext(ogTitle, ogDesc, ogImage, domain, theme, dominantColor);
 
     case 'linkedin':
-      return renderLinkedInContext(ogTitle, ogDesc, ogImage, domain);
+      return renderLinkedInContext(ogTitle, ogDesc, ogImage, domain, dominantColor);
 
     case 'reddit':
-      return renderRedditContext(ogTitle, ogDesc, ogImage, domain);
+      return renderRedditContext(ogTitle, ogDesc, ogImage, domain, dominantColor);
 
     case 'slack':
       return renderSlackContext(ogTitle, ogDesc, ogImage, domain, ogSite, theme);
@@ -1405,7 +1411,7 @@ function renderPlatformWithContext(pid, meta, imageProbe, baseUrl, theme = 'dark
     default:
       return `<div class="context-frame generic-context">
         <div class="context-header"><span class="context-title">${escHtml(PLATFORM_NAMES[pid] || pid)}</span></div>
-        <div class="context-body">${renderPlatformCard(pid, meta, imageProbe, baseUrl)}</div>
+        <div class="context-body">${renderPlatformCard(pid, meta, imageProbe, baseUrl, dominantColor)}</div>
       </div>`;
   }
 }
@@ -1439,7 +1445,7 @@ function renderGoogleContext(title, desc, domain) {
   </div>`;
 }
 
-function renderFacebookContext(title, desc, image, domain, site) {
+function renderFacebookContext(title, desc, image, domain, site, dominantColor) {
   const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
   return `<div class="context-frame facebook-context">
     <div class="fb-post-header">
@@ -1455,13 +1461,13 @@ function renderFacebookContext(title, desc, image, domain, site) {
       <div class="fb-context-domain">${escHtml((site || domain).toUpperCase())}</div>
       <div class="fb-context-title">${escHtml(trunc(title, 60))}</div>
       <div class="fb-context-desc">${escHtml(trunc(desc, 100))}</div>
-      ${image ? `<div class="fb-context-image img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.style.opacity='1';setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="fb-context-placeholder"></div>'}
+      ${image ? `<div class="fb-context-image img-loading-container" style="background:${dominantColor || '#e0e0e0'}"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.classList.add('loaded');setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="fb-context-placeholder"></div>'}
     </div>
     <div class="fb-post-stats">👍 24 · 💬 8 · 🔗 5</div>
   </div>`;
 }
 
-function renderTwitterContext(title, desc, image, domain, theme) {
+function renderTwitterContext(title, desc, image, domain, theme, dominantColor) {
   const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
   const isDark = theme === 'dark';
   return `<div class="context-frame twitter-context ${isDark ? 'twitter-dark' : 'twitter-light'}">
@@ -1476,7 +1482,7 @@ function renderTwitterContext(title, desc, image, domain, theme) {
     </div>
     <div class="tw-post-content">You have to see this! 🔗</div>
     <div class="tw-link-card">
-      ${image ? `<div class="tw-context-image img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.style.opacity='1';setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="tw-context-placeholder"></div>'}
+      ${image ? `<div class="tw-context-image img-loading-container" style="background:${dominantColor || '#e0e0e0'}"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.classList.add('loaded');setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="tw-context-placeholder"></div>'}
       <div class="tw-context-meta">
         <div class="tw-context-title">${escHtml(trunc(title, 60))}</div>
         <div class="tw-context-domain">${escHtml(domain)}</div>
@@ -1499,7 +1505,7 @@ function renderLinkedInContext(title, desc, image, domain) {
     </div>
     <div class="li-post-content">Great article on industry trends!</div>
     <div class="li-link-preview">
-      ${image ? `<div class="li-context-image img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.style.opacity='1';setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="li-context-placeholder"></div>'}
+      ${image ? `<div class="li-context-image img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.classList.add('loaded');setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="li-context-placeholder"></div>'}
       <div class="li-context-meta">
         <div class="li-context-title">${escHtml(trunc(title, 80))}</div>
         <div class="li-context-domain">${escHtml(domain)}</div>
@@ -1522,7 +1528,7 @@ function renderRedditContext(title, desc, image, domain) {
     <div class="rd-post-title">${escHtml(trunc(title, 100))}</div>
     <div class="rd-link-preview">
       <div class="rd-context-domain">(self.${escHtml(domain.split('.')[0])})</div>
-      ${image ? `<div class="rd-context-image img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.style.opacity='1';setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="rd-context-placeholder"></div>'}
+      ${image ? `<div class="rd-context-image img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.classList.add('loaded');setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="rd-context-placeholder"></div>'}
       <div class="rd-context-desc">${escHtml(trunc(desc, 150))}</div>
     </div>
     <div class="rd-post-actions">💬 23 comments · 🔗 share · save</div>
@@ -1558,7 +1564,7 @@ function renderSlackContext(title, desc, image, domain, site, theme) {
               <div class="slack-site">${escHtml(site || domain)}</div>
               <div class="slack-title">${escHtml(trunc(title, 80))}</div>
               ${desc ? `<div class="slack-desc">${escHtml(trunc(desc, 150))}</div>` : ''}
-              ${image ? `<div class="slack-image img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.style.opacity='1';setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="slack-placeholder"></div>'}
+              ${image ? `<div class="slack-image img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.classList.add('loaded');setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="slack-placeholder"></div>'}
             </div>
           </div>
         </div>
@@ -1596,7 +1602,7 @@ function renderDiscordContext(title, desc, image, domain, site, theme) {
               ${site ? `<div class="discord-site">${escHtml(site)}</div>` : ''}
               <div class="discord-title">${escHtml(trunc(title, 256))}</div>
               ${desc ? `<div class="discord-desc">${escHtml(trunc(desc, 300))}</div>` : ''}
-              ${image ? `<div class="discord-image img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.style.opacity='1';setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="discord-placeholder"></div>'}
+              ${image ? `<div class="discord-image img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.classList.add('loaded');setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="discord-placeholder"></div>'}
             </div>
           </div>
         </div>
@@ -1629,7 +1635,7 @@ function renderWhatsAppContext(title, desc, image, domain) {
               <div class="wa-title">${escHtml(trunc(title, 80))}</div>
               ${desc ? `<div class="wa-desc">${escHtml(trunc(desc, 120))}</div>` : ''}
             </div>
-            ${image ? `<img src="${escHtml(image)}" class="wa-link-thumb img-loading" alt="" onerror="this.style.display='none'" loading="lazy" onload="this.style.opacity='1';this.classList.remove('img-loading')" />` : '<div class="wa-link-thumb-placeholder"></div>'}
+            ${image ? `<img src="${escHtml(image)}" class="wa-link-thumb img-loading" alt="" onerror="this.style.display='none'" loading="lazy" onload="this.classList.add('loaded');this.classList.remove('img-loading')" />` : '<div class="wa-link-thumb-placeholder"></div>'}
           </div>
           <span class="wa-msg-time">10:31 AM ✓✓</span>
         </div>
@@ -1656,7 +1662,7 @@ function renderiMessageContext(title, desc, image, domain) {
       <div class="im-message im-message-outgoing">
         <div class="im-bubble im-bubble-with-link">
           <div class="im-link-preview">
-            ${image ? `<div class="im-link-image img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.style.opacity='1';setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="im-link-placeholder"></div>'}
+            ${image ? `<div class="im-link-image img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.classList.add('loaded');setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="im-link-placeholder"></div>'}
             <div class="im-link-meta">
               <div class="im-title">${escHtml(trunc(title, 80))}</div>
               <div class="im-domain">${escHtml(domain)}</div>
@@ -1684,7 +1690,7 @@ function renderTelegramContext(title, desc, image, domain, theme) {
         <div class="tg-bubble">
           <p>Breaking news:</p>
           <div class="tg-link-preview">
-            ${image ? `<div class="tg-link-image img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.style.opacity='1';setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="tg-link-placeholder"></div>'}
+            ${image ? `<div class="tg-link-image img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.classList.add('loaded');setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="tg-link-placeholder"></div>'}
             <div class="tg-link-meta">
               <div class="tg-title">${escHtml(trunc(title, 200))}</div>
               ${desc ? `<div class="tg-desc">${escHtml(trunc(desc, 170))}</div>` : ''}
@@ -1710,7 +1716,7 @@ function renderSignalContext(title, desc, image, domain) {
       <div class="signal-message signal-message-outgoing">
         <div class="signal-bubble">
           <div class="signal-link-preview">
-            ${image ? `<img src="${escHtml(image)}" class="signal-link-thumb img-loading" alt="" onerror="this.style.display='none'" loading="lazy" onload="this.style.opacity='1';this.classList.remove('img-loading')" />` : '<div class="signal-link-thumb-placeholder"></div>'}
+            ${image ? `<img src="${escHtml(image)}" class="signal-link-thumb img-loading" alt="" onerror="this.style.display='none'" loading="lazy" onload="this.classList.add('loaded');this.classList.remove('img-loading')" />` : '<div class="signal-link-thumb-placeholder"></div>'}
             <div class="signal-link-meta">
               <div class="signal-title">${escHtml(trunc(title, 80))}</div>
               ${desc ? `<div class="signal-desc">${escHtml(trunc(desc, 120))}</div>` : ''}
@@ -1748,7 +1754,7 @@ function renderTeamsContext(title, desc, image, domain) {
             <span class="teams-msg-author">You</span>
             <span class="teams-msg-time">10:31 AM</span>
             <div class="teams-link-preview">
-              ${image ? `<div class="teams-link-image img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.style.opacity='1';setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="teams-link-placeholder"></div>'}
+              ${image ? `<div class="teams-link-image img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.classList.add('loaded');setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="teams-link-placeholder"></div>'}
               <div class="teams-link-meta">
                 <div class="teams-title">${escHtml(trunc(title, 80))}</div>
                 ${desc ? `<div class="teams-desc">${escHtml(trunc(desc, 160))}</div>` : ''}
@@ -1784,7 +1790,7 @@ function renderGoogleChatContext(title, desc, image, domain) {
           <div class="gchat-msg-content">
             <span class="gchat-msg-author">You</span>
             <div class="gchat-link-preview">
-              ${image ? `<div class="gchat-link-image img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.style.opacity='1';setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="gchat-link-placeholder"></div>'}
+              ${image ? `<div class="gchat-link-image img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.classList.add('loaded');setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="gchat-link-placeholder"></div>'}
               <div class="gchat-link-meta">
                 <div class="gchat-title">${escHtml(trunc(title, 80))}</div>
                 ${desc ? `<div class="gchat-desc">${escHtml(trunc(desc, 160))}</div>` : ''}
@@ -1810,7 +1816,7 @@ function renderMastodonContext(title, desc, image, domain) {
     </div>
     <div class="mdn-post-content">Sharing this interesting post!</div>
     <div class="mdn-link-preview">
-      ${image ? `<div class="mdn-link-image img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.style.opacity='1';setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="mdn-link-placeholder"></div>'}
+      ${image ? `<div class="mdn-link-image img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.classList.add('loaded');setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="mdn-link-placeholder"></div>'}
       <div class="mdn-link-meta">
         <div class="mdn-title">${escHtml(trunc(title, 80))}</div>
         ${desc ? `<div class="mdn-desc">${escHtml(trunc(desc, 200))}</div>` : ''}
@@ -1833,7 +1839,7 @@ function renderBlueskyContext(title, desc, image, domain) {
     </div>
     <div class="bsky-post-content">Great read! 📖</div>
     <div class="bsky-link-preview">
-      ${image ? `<div class="bsky-link-image img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.style.opacity='1';setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="bsky-link-placeholder"></div>'}
+      ${image ? `<div class="bsky-link-image img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.classList.add('loaded');setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="bsky-link-placeholder"></div>'}
       <div class="bsky-link-meta">
         <div class="bsky-title">${escHtml(trunc(title, 160))}</div>
         ${desc ? `<div class="bsky-desc">${escHtml(trunc(desc, 160))}</div>` : ''}
@@ -1859,7 +1865,7 @@ function renderThreadsContext(title, desc, image, domain) {
       <div class="th-context-domain">${escHtml(domain.toUpperCase())}</div>
       <div class="th-context-title">${escHtml(trunc(title, 60))}</div>
       ${desc ? `<div class="th-context-desc">${escHtml(trunc(desc, 100))}</div>` : ''}
-      ${image ? `<div class="th-context-image img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.style.opacity='1';setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="th-context-placeholder"></div>'}
+      ${image ? `<div class="th-context-image img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.classList.add('loaded');setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="th-context-placeholder"></div>'}
     </div>
     <div class="th-post-actions">💬 12 · ❤️ 89 · 🔗 5</div>
   </div>`;
@@ -1878,7 +1884,7 @@ function renderTumblrContext(title, desc, image, domain) {
     <div class="tumblr-post-content">Reblogging this!</div>
     <div class="tumblr-link-preview">
       <div class="tumblr-card-inner">
-        ${image ? `<div class="tumblr-thumb img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.style.opacity='1';setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="tumblr-thumb-placeholder"></div>'}
+        ${image ? `<div class="tumblr-thumb img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.classList.add('loaded');setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="tumblr-thumb-placeholder"></div>'}
         <div class="tumblr-meta">
           <div class="tumblr-title">${escHtml(trunc(title, 60))}</div>
           ${desc ? `<div class="tumblr-desc">${escHtml(trunc(desc, 120))}</div>` : ''}
@@ -1899,7 +1905,7 @@ function renderPinterestContext(title, desc, image, domain) {
     </div>
     <div class="pin-overlay">
       <div class="pin-card">
-        ${image ? `<div class="pin-image img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.style.opacity='1';setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="pin-image-placeholder"></div>'}
+        ${image ? `<div class="pin-image img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.classList.add('loaded');setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="pin-image-placeholder"></div>'}
         <div class="pin-meta">
           <div class="pin-title">${escHtml(trunc(title, 60))}</div>
           ${desc ? `<div class="pin-desc">${escHtml(trunc(desc, 100))}</div>` : ''}
@@ -1924,7 +1930,7 @@ function renderNotionContext(title, desc, image, domain) {
       <div class="notion-content">
         <div class="notion-block">Related resources:</div>
         <div class="notion-embed">
-          ${image ? `<div class="notion-embed-thumb img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.style.opacity='1';setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="notion-embed-thumb-placeholder"></div>'}
+          ${image ? `<div class="notion-embed-thumb img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.classList.add('loaded');setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="notion-embed-thumb-placeholder"></div>'}
           <div class="notion-embed-meta">
             <div class="notion-title">${escHtml(trunc(title, 80))}</div>
             ${desc ? `<div class="notion-desc">${escHtml(trunc(desc, 120))}</div>` : ''}
@@ -1952,7 +1958,7 @@ function renderJiraContext(title, desc, image, domain) {
       <div class="jira-content">
         <div class="jira-description">Related link:</div>
         <div class="jira-link-card">
-          ${image ? `<div class="jira-card-thumb img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.style.opacity='1';setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="jira-card-thumb-placeholder"></div>'}
+          ${image ? `<div class="jira-card-thumb img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.classList.add('loaded');setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="jira-card-thumb-placeholder"></div>'}
           <div class="jira-card-meta">
             <div class="jira-title">${escHtml(trunc(title, 80))}</div>
             ${desc ? `<div class="jira-desc">${escHtml(trunc(desc, 120))}</div>` : ''}
@@ -1978,7 +1984,7 @@ function renderGitHubContext(title, desc, image, domain, theme = 'dark') {
         <div class="gh-issue-body">
           <div class="gh-comment">Check out this resource:</div>
           <div class="gh-link-preview">
-            ${image ? `<div class="gh-preview-image img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.style.opacity='1';setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="gh-preview-placeholder"></div>'}
+            ${image ? `<div class="gh-preview-image img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.classList.add('loaded');setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="gh-preview-placeholder"></div>'}
             <div class="gh-preview-meta">
               <div class="gh-title">${escHtml(trunc(title, 80))}</div>
               ${desc ? `<div class="gh-desc">${escHtml(trunc(desc, 160))}</div>` : ''}
@@ -2002,7 +2008,7 @@ function renderTrelloContext(title, desc, image, domain) {
       <div class="trello-list trello-list-active">
         <div class="trello-list-header">In Progress</div>
         <div class="trello-card">
-          ${image ? `<div class="trello-card-thumb img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.style.opacity='1';setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="trello-card-thumb-placeholder"></div>'}
+          ${image ? `<div class="trello-card-thumb img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.classList.add('loaded');setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="trello-card-thumb-placeholder"></div>'}
           <div class="trello-card-meta">
             <div class="trello-title">${escHtml(trunc(title, 80))}</div>
             <div class="trello-domain">${escHtml(domain)}</div>
@@ -2029,7 +2035,7 @@ function renderFigmaContext(title, desc, image, domain) {
         <div class="figma-frame figma-frame-dim"></div>
         <div class="figma-frame figma-frame-active">
           <div class="figma-link-card">
-            ${image ? `<div class="figma-card-thumb img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.style.opacity='1';setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="figma-card-thumb-placeholder"></div>'}
+            ${image ? `<div class="figma-card-thumb img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.classList.add('loaded');setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="figma-card-thumb-placeholder"></div>'}
             <div class="figma-card-meta">
               <div class="figma-title">${escHtml(trunc(title, 80))}</div>
               ${desc ? `<div class="figma-desc">${escHtml(trunc(desc, 120))}</div>` : ''}
@@ -2059,7 +2065,7 @@ function renderMediumContext(title, desc, image, domain) {
           <div class="medium-author">By Author</div>
           <div class="medium-article-title">${escHtml(trunc(title, 80))}</div>
           ${desc ? `<div class="medium-article-desc">${escHtml(trunc(desc, 160))}</div>` : ''}
-          ${image ? `<div class="medium-article-image img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.style.opacity='1';setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="medium-article-placeholder"></div>'}
+          ${image ? `<div class="medium-article-image img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.classList.add('loaded');setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="medium-article-placeholder"></div>'}
           <div class="medium-article-meta">${escHtml(domain)} · 5 min read</div>
           <div class="medium-actions">👏 234 · 💬 12</div>
         </div>
@@ -2083,7 +2089,7 @@ function renderSubstackContext(title, desc, image, domain) {
         <div class="substack-post-meta">March 15 · By Author</div>
         <div class="substack-post-title">${escHtml(trunc(title, 80))}</div>
         ${desc ? `<div class="substack-post-desc">${escHtml(trunc(desc, 160))}</div>` : ''}
-        ${image ? `<div class="substack-post-image img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.style.opacity='1';setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="substack-post-placeholder"></div>'}
+        ${image ? `<div class="substack-post-image img-loading-container"><img src="${escHtml(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" onload="this.classList.add('loaded');setTimeout(()=>this.parentElement.classList.remove('img-loading-container'),300)" /></div>` : '<div class="substack-post-placeholder"></div>'}
         <div class="substack-post-actions">❤️ 456 · 🔁 89</div>
       </div>
     </div>
@@ -2110,7 +2116,7 @@ function renderEmailContext(title, desc, image, domain, type) {
           <div class="email-sender">notifications@${escHtml(domain)}</div>
           <div class="email-subject">${escHtml(trunc(title, 80))}</div>
           <div class="email-preview">
-            ${image ? `<img src="${escHtml(image)}" class="email-thumb img-loading" alt="" onerror="this.style.display='none'" loading="lazy" onload="this.style.opacity='1';this.classList.remove('img-loading')" />` : '<div class="email-thumb-placeholder"></div>'}
+            ${image ? `<img src="${escHtml(image)}" class="email-thumb img-loading" alt="" onerror="this.style.display='none'" loading="lazy" onload="this.classList.add('loaded');this.classList.remove('img-loading')" />` : '<div class="email-thumb-placeholder"></div>'}
             ${desc ? `<div class="email-desc">${escHtml(trunc(desc, 120))}</div>` : ''}
           </div>
         </div>
@@ -2133,7 +2139,7 @@ function renderFeedlyContext(title, desc, image, domain) {
         </div>
         <div class="feedly-article feedly-article-featured">
           <div class="feedly-article-header">
-            ${image ? `<img src="${escHtml(image)}" class="feedly-thumb img-loading" alt="" onerror="this.style.display='none'" loading="lazy" onload="this.style.opacity='1';this.classList.remove('img-loading')" />` : '<div class="feedly-thumb-placeholder"></div>'}
+            ${image ? `<img src="${escHtml(image)}" class="feedly-thumb img-loading" alt="" onerror="this.style.display='none'" loading="lazy" onload="this.classList.add('loaded');this.classList.remove('img-loading')" />` : '<div class="feedly-thumb-placeholder"></div>'}
             <div class="feedly-meta">
               <div class="feedly-title">${escHtml(trunc(title, 80))}</div>
               ${desc ? `<div class="feedly-desc">${escHtml(trunc(desc, 120))}</div>` : ''}
@@ -3494,6 +3500,36 @@ function escHtml(str) {
 
 function getDomain(url) {
   try { return new URL(url).hostname.replace(/^www\./, ''); } catch (_) { return url || ''; }
+}
+
+/**
+ * Extract dominant color from an image URL using canvas
+ * Returns a Promise that resolves to a CSS color string (rgb(r, g, b))
+ * Falls back to neutral gray (#e0e0e0) on error
+ */
+function extractDominantColor(imageUrl) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        // Sample center pixel for dominant color
+        canvas.width = 1;
+        canvas.height = 1;
+        ctx.drawImage(img, Math.floor(img.width / 2), Math.floor(img.height / 2), 1, 1, 0, 0, 1, 1);
+        const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+        resolve(`rgb(${r}, ${g}, ${b})`);
+      } catch (e) {
+        resolve('#e0e0e0');
+      }
+    };
+
+    img.onerror = () => resolve('#e0e0e0');
+    img.src = imageUrl;
+  });
 }
 
 function copyText(text) {

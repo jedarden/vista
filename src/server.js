@@ -12,6 +12,10 @@ const cheerio = require('cheerio');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// In-memory cache for badge URL results (1 hour TTL)
+const badgeCache = new Map();
+const BADGE_CACHE_TTL = 60 * 60 * 1000; // 1 hour in milliseconds
+
 app.use(express.json({ limit: '5mb' }));
 app.use(express.text({ type: 'text/html', limit: '5mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -347,17 +351,81 @@ app.post('/api/screenshot', async (req, res) => {
 
 /**
  * GET /api/badge?score=25&platforms=31&style=flat
+ * GET /api/badge?url=https://example.com&style=flat
  * Generate SVG badge showing platform score
+ * If ?url= is provided, fetch and score the URL (with 1-hour cache)
  */
-app.get('/api/badge', (req, res) => {
-  const score = parseInt(req.query.score || '0', 10);
-  const platforms = parseInt(req.query.platforms || '0', 10);
+app.get('/api/badge', async (req, res) => {
+  const url = req.query.url;
   const style = req.query.style || 'flat';
 
   // Validate style
   const validStyles = ['flat', 'flat-square', 'plastic', 'for-the-badge'];
   if (!validStyles.includes(style)) {
     return res.status(400).json({ error: `Invalid style. Must be one of: ${validStyles.join(', ')}` });
+  }
+
+  let score, platforms;
+
+  if (url) {
+    // Validate URL
+    try {
+      const parsedUrl = new URL(url);
+      if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+        return res.status(400).json({ error: 'Only http and https URLs are supported' });
+      }
+    } catch (_) {
+      return res.status(400).json({ error: 'Invalid URL' });
+    }
+
+    // Check cache
+    const cached = badgeCache.get(url);
+    const now = Date.now();
+
+    if (cached && (now - cached.timestamp < BADGE_CACHE_TTL)) {
+      score = cached.score;
+      platforms = cached.platforms;
+    } else {
+      // Fetch and score the URL
+      try {
+        const { html, finalUrl } = await fetchUrl(url);
+        const meta = parseMetaTags(html, finalUrl);
+
+        // Probe image dimensions
+        let imageProbe = null;
+        const imageUrl = meta.og.image || meta.twitter.image;
+        if (imageUrl) {
+          try {
+            imageProbe = await probeImage(imageUrl);
+          } catch (_) {
+            // non-fatal
+          }
+        }
+
+        const scoring = scoreAll(meta, imageProbe);
+        score = scoring.overall.score;
+        platforms = Object.keys(scoring.scores).length;
+
+        // Cache the result
+        badgeCache.set(url, { score, platforms, timestamp: now });
+
+        // Clean up old cache entries periodically (simple LRU cleanup)
+        if (badgeCache.size > 1000) {
+          for (const [key, value] of badgeCache.entries()) {
+            if (now - value.timestamp >= BADGE_CACHE_TTL) {
+              badgeCache.delete(key);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Badge fetch error:', err.message);
+        return res.status(502).json({ error: `Failed to fetch URL: ${err.message}` });
+      }
+    }
+  } else {
+    // Legacy mode: use score and platforms from query params
+    score = parseInt(req.query.score || '0', 10);
+    platforms = parseInt(req.query.platforms || '0', 10);
   }
 
   // Validate score range
@@ -431,7 +499,7 @@ app.get('/api/badge/preview', async (req, res) => {
       score,
       platforms: platformCount,
       grade: scoring.overall.grade,
-      embedCode: generateEmbedCode(score, platformCount, baseUrl),
+      embedCode: generateEmbedCode(url, score, platformCount, baseUrl),
     });
   } catch (err) {
     console.error('Badge preview error:', err.message);
@@ -584,8 +652,14 @@ function generateForTheBadge(label, message, color) {
 </svg>`;
 }
 
-function generateEmbedCode(score, platforms, baseUrl) {
-  // Note: baseUrl should be provided from the client side
+function generateEmbedCode(url, score, platforms, baseUrl) {
+  // Prefer ?url= parameter for dynamic badges
+  if (url) {
+    return `<a href="${baseUrl}/?url=${encodeURIComponent(url)}">
+  <img src="${baseUrl}/api/badge?url=${encodeURIComponent(url)}" alt="VISTA Platform Score" />
+</a>`;
+  }
+  // Fallback to legacy ?score=&platforms= parameters
   return `<a href="${baseUrl}/api/badge?score=${score}&platforms=${platforms}">
   <img src="${baseUrl}/api/badge?score=${score}&platforms=${platforms}" alt="Platform Score Badge" />
 </a>`;

@@ -709,6 +709,59 @@ const CATEGORY_LABELS = {
   rss: 'RSS / Readers',
 };
 
+// Platform character limits (title and description truncation points)
+const PLATFORM_CHAR_LIMITS = {
+  // Social & Microblogging
+  google: { title: 60, desc: 160, pixelBased: true }, // Pixel-based: ~500-550px width
+  facebook: { title: 60, desc: 120 }, // OG title: 60-80 chars shown, desc: ~120
+  twitter: { title: 70, desc: 280 }, // X: 280 char total budget, title takes priority
+  linkedin: { title: 60, desc: 150 }, // LinkedIn: 60-70 title, 150-200 desc
+  reddit: { title: 80, desc: 200 }, // Reddit: generous limits
+  mastodon: { title: 70, desc: 250 }, // Mastodon: 500 char total, title + desc
+  bluesky: { title: 70, desc: 250 }, // Bluesky: 300 char post limit
+  threads: { title: 70, desc: 250 }, // Threads: 500 char limit
+  tumblr: { title: 60, desc: 120 }, // Tumblr: similar to FB
+  pinterest: { title: 60, desc: 150 }, // Pinterest: 60 title, 150 desc
+
+  // Messaging
+  slack: { title: 70, desc: 200 }, // Slack: unfurls show ~70 title, 200 desc
+  discord: { title: 80, desc: 200 }, // Discord: generous limits
+  whatsapp: { title: 60, desc: 150 }, // WhatsApp: similar to FB
+  imessage: { title: 60, desc: 150 }, // iMessage: similar to WhatsApp
+  telegram: { title: 70, desc: 200 }, // Telegram: generous limits
+  signal: { title: 60, desc: 150 }, // Signal: similar to WhatsApp
+  teams: { title: 70, desc: 200 }, // Teams: similar to Slack
+  googlechat: { title: 70, desc: 200 }, // Google Chat: similar to Slack
+  zoom: { title: 70, desc: 200 }, // Zoom Chat: similar to Slack
+  line: { title: 60, desc: 150 }, // LINE: similar to WhatsApp
+  kakaotalk: { title: 60, desc: 150 }, // KakaoTalk: similar to WhatsApp
+
+  // Collaboration & Productivity
+  notion: { title: 60, desc: 120 }, // Notion: compact preview
+  jira: { title: 60, desc: 120 }, // Jira: compact preview
+  github: { title: 60, desc: 120 }, // GitHub: compact preview
+  trello: { title: 60, desc: 120 }, // Trello: compact preview
+  figma: { title: 60, desc: 120 }, // Figma: compact preview
+
+  // Content, Email & RSS
+  medium: { title: 70, desc: 160 }, // Medium: generous
+  substack: { title: 70, desc: 160 }, // Substack: generous
+  outlook: { title: 60, desc: 150 }, // Outlook: compact
+  gmail: { title: 60, desc: 150 }, // Gmail: compact
+  feedly: { title: 70, desc: 180 }, // Feedly: generous
+};
+
+// Average character width in pixels (for monospace approximation)
+const AVG_CHAR_WIDTH = 8.5; // Approximate width of a character in typical preview font
+
+// Calculate character limit for pixel-based platforms (Google)
+function getPixelBasedLimit(text, maxWidth) {
+  if (!text) return 0;
+  // Simple approximation: count characters and estimate width
+  // For better accuracy, we could use canvas text measurement
+  return Math.floor(maxWidth / AVG_CHAR_WIDTH);
+}
+
 // Cropper state
 let cropperState = {
   enabledPlatforms: new Set(Object.keys(PLATFORM_CROPS)),
@@ -4372,7 +4425,167 @@ function updateEditorCharCounts() {
       }
     }
   });
+
+  // Update character gauges for title and description fields
+  const titleText = document.getElementById('editTitle')?.value || '';
+  const descText = document.getElementById('editDescription')?.value || '';
+  const ogTitleText = document.getElementById('editOgTitle')?.value || '';
+  const ogDescText = document.getElementById('editOgDescription')?.value || '';
+
+  renderCharGauges('editTitle', titleText, 'title');
+  renderCharGauges('editDescription', descText, 'description');
+  renderCharGauges('editOgTitle', ogTitleText, 'title');
+  renderCharGauges('editOgDescription', ogDescText, 'description');
 }
+
+/**
+ * Render per-platform character budget gauges
+ * @param {string} fieldId - The ID of the editor field
+ * @param {string} text - The text content to analyze
+ * @param {string} fieldType - 'title' or 'description'
+ */
+function renderCharGauges(fieldId, text, fieldType) {
+  const container = document.getElementById(`${fieldId}Gauges`);
+  if (!container) return;
+
+  const textLen = text.length;
+  const fieldKey = fieldType === 'title' ? 'title' : 'desc';
+
+  // Count platforms by status
+  let okCount = 0;
+  let warnCount = 0;
+  let overCount = 0;
+  let totalCount = 0;
+
+  PLATFORM_GROUPS.forEach(group => {
+    group.platforms.forEach(pid => {
+      const limits = PLATFORM_CHAR_LIMITS[pid];
+      if (!limits) return;
+      totalCount++;
+      const limit = limits[fieldKey];
+      if (textLen <= limit * 0.8) okCount++;
+      else if (textLen <= limit) warnCount++;
+      else overCount++;
+    });
+  });
+
+  // Build gauges HTML
+  let html = `<div class="char-gauges">`;
+
+  // Summary line (always visible, clickable to expand/collapse all)
+  html += `<div class="char-gauge-summary" onclick="toggleAllCharGauges('${fieldId}')" data-field="${fieldId}">`;
+  const statusEmoji = overCount > 0 ? '🔴' : warnCount > 0 ? '🟡' : '🟢';
+  html += `<span class="summary-status">${statusEmoji}</span>`;
+  html += `<span class="summary-text">${fieldType === 'title' ? 'Title' : 'Description'}: OK on ${okCount}/${totalCount} platforms</span>`;
+  if (warnCount > 0) html += `<span class="summary-warn"> · ${warnCount} near limit</span>`;
+  if (overCount > 0) html += `<span class="summary-over"> · ${overCount} truncated</span>`;
+  html += `</div>`;
+
+  // Gauge groups (collapsible)
+  html += `<div class="char-gauge-groups" data-field="${fieldId}">`;
+
+  PLATFORM_GROUPS.forEach(group => {
+    html += `<div class="char-gauge-group ${group.collapsed ? 'collapsed' : ''}" data-group="${group.id}">`;
+    html += `<div class="char-gauge-group-header" onclick="toggleCharGaugeGroup('${group.id}')">`;
+    html += `<span class="group-chevron">${group.collapsed ? '&#9654;' : '&#9660;'}</span>`;
+    html += `<span class="group-title">${group.title}</span>`;
+
+    // Count status for this group
+    let gOk = 0, gWarn = 0, gOver = 0, gTotal = 0;
+    group.platforms.forEach(pid => {
+      const limits = PLATFORM_CHAR_LIMITS[pid];
+      if (!limits) return;
+      gTotal++;
+      const limit = limits[fieldKey];
+      if (textLen <= limit * 0.8) gOk++;
+      else if (textLen <= limit) gWarn++;
+      else gOver++;
+    });
+    html += `<span class="group-summary">${gOk}/${gTotal} OK</span>`;
+    html += `</div>`;
+
+    html += `<div class="char-gauge-group-content">`;
+    html += `<div class="char-gauge-grid">`;
+
+    group.platforms.forEach(pid => {
+      const limits = PLATFORM_CHAR_LIMITS[pid];
+      if (!limits) return;
+      const limit = limits[fieldKey];
+      const icon = PLATFORM_ICONS[pid] || '🌐';
+      const name = PLATFORM_NAMES[pid] || pid;
+
+      // Calculate fill percentage and color
+      const fillPct = Math.min(100, (textLen / limit) * 100);
+      let barColor = 'var(--green)';
+      if (textLen > limit) barColor = 'var(--red)';
+      else if (textLen > limit * 0.8) barColor = 'var(--yellow)';
+
+      // Find truncation point (word boundary)
+      let truncateWord = '';
+      if (textLen > limit) {
+        const truncated = text.substring(0, limit);
+        const lastSpace = truncated.lastIndexOf(' ');
+        truncateWord = lastSpace > 0 ? text.substring(lastSpace + 1, lastSpace + 20) + '...' : '...';
+      }
+
+      html += `<div class="char-gauge-item" title="${name}: ${textLen}/${limit} chars used${textLen > limit ? ' — truncates after "' + truncateWord + '"' : ''}">`;
+      html += `<span class="gauge-icon">${icon}</span>`;
+      html += `<div class="gauge-bar-container">`;
+      html += `<div class="gauge-bar-fill" style="width: ${fillPct}%; background: ${barColor};"></div>`;
+      html += `<div class="gauge-bar-cutline"></div>`;
+      html += `</div>`;
+      html += `</div>`;
+    });
+
+    html += `</div></div></div>`;
+  });
+
+  html += `</div></div>`;
+  container.innerHTML = html;
+}
+
+/**
+ * Toggle collapse state of a character gauge group
+ */
+function toggleCharGaugeGroup(groupId) {
+  const groupEl = document.querySelector(`.char-gauge-group[data-group="${groupId}"]`);
+  if (groupEl) {
+    groupEl.classList.toggle('collapsed');
+    const chevron = groupEl.querySelector('.group-chevron');
+    if (chevron) {
+      chevron.innerHTML = groupEl.classList.contains('collapsed') ? '&#9654;' : '&#9660;';
+    }
+  }
+}
+
+// Make toggleCharGaugeGroup globally accessible for onclick handlers
+window.toggleCharGaugeGroup = toggleCharGaugeGroup;
+
+/**
+ * Toggle all character gauge groups (expand/collapse all)
+ */
+function toggleAllCharGauges(fieldId) {
+  const container = document.getElementById(`${fieldId}Gauges`);
+  if (!container) return;
+
+  const groups = container.querySelectorAll('.char-gauge-group');
+  const allCollapsed = Array.from(groups).every(g => g.classList.contains('collapsed'));
+
+  groups.forEach(group => {
+    if (allCollapsed) {
+      group.classList.remove('collapsed');
+      const chevron = group.querySelector('.group-chevron');
+      if (chevron) chevron.innerHTML = '&#9660;';
+    } else {
+      group.classList.add('collapsed');
+      const chevron = group.querySelector('.group-chevron');
+      if (chevron) chevron.innerHTML = '&#9654;';
+    }
+  });
+}
+
+// Make toggleAllCharGauges globally accessible
+window.toggleAllCharGauges = toggleAllCharGauges;
 
 function handleEditorInput(e) {
   const el = e.target;

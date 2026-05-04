@@ -1670,6 +1670,92 @@ body.has-results { padding-bottom: 48px; }
 .notice-icon { font-size: 16px; flex-shrink: 0; }
 .editor-preview-notice span:not(.notice-icon) { font-size: 13px; color: var(--text2); }
 
+/* Character Budget Gauges */
+.char-gauges-container { margin-top: 8px; }
+.char-gauges { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.char-gauge-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  user-select: none;
+  transition: background var(--transition);
+}
+.char-gauge-summary:hover { background: var(--bg3); }
+.summary-status { font-size: 14px; }
+.summary-text { font-size: 12px; font-weight: 500; color: var(--text); }
+.summary-warn { font-size: 11px; color: var(--yellow); }
+.summary-over { font-size: 11px; color: var(--red); }
+.char-gauge-groups { padding: 8px; }
+.char-gauge-group { margin-bottom: 8px; }
+.char-gauge-group:last-child { margin-bottom: 0; }
+.char-gauge-group-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  cursor: pointer;
+  user-select: none;
+  border-radius: 4px;
+  transition: background var(--transition);
+}
+.char-gauge-group-header:hover { background: var(--bg2); }
+.group-chevron { font-size: 10px; color: var(--text3); transition: transform 0.2s; }
+.char-gauge-group.collapsed .group-chevron { transform: rotate(-90deg); }
+.group-title { font-size: 11px; font-weight: 600; color: var(--text2); flex: 1; }
+.group-summary { font-size: 10px; color: var(--text3); }
+.char-gauge-group-content {
+  padding-left: 20px;
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+.char-gauge-group.collapsed .char-gauge-group-content {
+  max-height: 0;
+  padding: 0;
+}
+.char-gauge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 6px;
+  padding: 8px 0;
+}
+.char-gauge-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 4px;
+  cursor: help;
+  transition: background var(--transition);
+}
+.char-gauge-item:hover { background: var(--bg2); }
+.gauge-icon { font-size: 12px; flex-shrink: 0; }
+.gauge-bar-container {
+  flex: 1;
+  position: relative;
+  height: 6px;
+  background: var(--bg3);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.gauge-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease, background 0.3s ease;
+}
+.gauge-bar-cutline {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 1;
+}
+
 /* Modified indicator for edited values */
 .editor-input.modified, .editor-textarea.modified { border-color: var(--green); background: rgba(34, 197, 94, 0.05); }
 
@@ -1996,67 +2082,6 @@ body.has-results { padding-bottom: 48px; }
   height: 1px;
   background: var(--border);
   margin: 4px 0;
-}
-
-/* ── Phase 4: Per-Platform Character Budget Gauges ── */
-.char-gauges-container {
-  margin-top: 8px;
-  padding: 10px;
-  background: var(--bg2);
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-}
-.char-gauges-title {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text2);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 8px;
-}
-.char-gauges {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.char-gauge {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 11px;
-}
-.char-gauge-platform {
-  width: 18px;
-  text-align: center;
-  flex-shrink: 0;
-}
-.char-gauge-bar {
-  flex: 1;
-  height: 6px;
-  background: var(--bg3);
-  border-radius: 3px;
-  overflow: hidden;
-  position: relative;
-}
-.char-gauge-fill {
-  height: 100%;
-  background: var(--green);
-  transition: width 0.2s ease, background 0.2s ease;
-  border-radius: 3px;
-}
-.char-gauge-warning .char-gauge-fill {
-  background: var(--yellow);
-}
-.char-gauge-over .char-gauge-fill {
-  background: var(--red);
-}
-.char-gauge-count {
-  font-size: 10px;
-  color: var(--text3);
-  font-family: var(--font-mono);
-  width: 50px;
-  text-align: right;
-  flex-shrink: 0;
 }
 
 /* ── Phase 4: Score Improvement Predictions ── */

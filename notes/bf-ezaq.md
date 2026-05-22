@@ -1,6 +1,6 @@
 # Bead bf-ezaq: GET /api/screenshots Bulk Endpoint
 
-## Status: Already Implemented
+## Status: Verified and Functional
 
 The GET /api/screenshots bulk endpoint was already implemented in prior commits:
 - `db9d686` - Initial implementation
@@ -31,6 +31,29 @@ The GET /api/screenshots bulk endpoint was already implemented in prior commits:
 - Content-Disposition: attachment; filename="screenshots-{timestamp}.zip"
 - X-RateLimit-Remaining header
 
-## Verification
+## Verification (2026-05-22)
 
-Server module loads without errors. The endpoint is functional in src/server.js lines 373-570.
+### Module Loading
+- Server module loads without errors
+- Archiver ZipArchive is correctly imported and available
+- 31 platforms are available for screenshot generation
+
+### Endpoint Response Headers
+Tested with `curl -I "http://localhost:3000/api/screenshots?url=https://example.com&platforms=twitter"`:
+```
+HTTP/1.1 200 OK
+Content-Type: application/zip
+Content-Disposition: attachment; filename="screenshots-1779479011896.zip"
+X-RateLimit-Remaining: 29
+```
+
+### Bulk Functionality Test
+Tested with 3 platforms (twitter, facebook, linkedin):
+- Request: `GET /api/screenshots?url=https://example.com&platforms=twitter,facebook,linkedin`
+- Result: ZIP file (47,018 bytes) containing:
+  - twitter-card.png (20,801 bytes)
+  - facebook-card.png (20,591 bytes)
+  - linkedin-card.png (20,386 bytes)
+
+### Platform IDs Available
+google, facebook, twitter, linkedin, reddit, mastodon, bluesky, threads, tumblr, pinterest, slack, discord, whatsapp, imessage, telegram, signal, teams, googlechat, zoom, line, kakaotalk, notion, jira, github, trello, figma, medium, substack, outlook, gmail, feedly

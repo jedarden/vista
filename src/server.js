@@ -556,7 +556,11 @@ app.get('/api/screenshots', async (req, res) => {
     }
 
     // Finalize the ZIP
-    await zip.finalize();
+    await new Promise((resolve, reject) => {
+      zip.on('close', resolve);
+      zip.on('error', reject);
+      zip.finalize();
+    });
   } catch (err) {
     console.error('Bulk screenshot generation error:', err.message);
     if (!res.headersSent) {

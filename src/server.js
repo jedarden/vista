@@ -371,9 +371,10 @@ app.get('/api/screenshot', async (req, res) => {
 
 /**
  * POST /api/screenshot — Generate PNG screenshot of a platform card
+ * Body params: platform, url, meta, imageProbe, withFrame, format, theme, scale
  */
 app.post('/api/screenshot', async (req, res) => {
-  const { platform, url, meta, imageProbe, withFrame = false, format = 'svg' } = req.body;
+  const { platform, url, meta, imageProbe, withFrame = false, format = 'svg', theme = 'dark', scale = '1x' } = req.body;
 
   // Rate limiting
   const clientIp = req.ip || req.connection.remoteAddress || 'unknown';
@@ -391,6 +392,22 @@ app.post('/api/screenshot', async (req, res) => {
     return res.status(400).json({
       error: 'Invalid platform',
       message: `Platform must be one of: ${PLATFORMS.map(p => p.id).join(', ')}`
+    });
+  }
+
+  // Validate theme
+  if (theme && !['light', 'dark'].includes(theme)) {
+    return res.status(400).json({
+      error: 'Invalid theme',
+      message: 'Theme must be either "light" or "dark"'
+    });
+  }
+
+  // Validate scale
+  if (scale && !['1x', '2x'].includes(scale)) {
+    return res.status(400).json({
+      error: 'Invalid scale',
+      message: 'Scale must be either "1x" or "2x"'
     });
   }
 
@@ -437,7 +454,7 @@ app.post('/api/screenshot', async (req, res) => {
       finalMeta,
       finalImageProbe,
       finalUrl || url,
-      { withFrame, format }
+      { withFrame, format, theme, scale }
     );
 
     // Set response headers

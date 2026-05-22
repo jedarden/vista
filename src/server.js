@@ -337,12 +337,12 @@ app.post('/api/screenshot', async (req, res) => {
     if (format === 'png') {
       res.setHeader('Content-Type', 'image/png');
       res.setHeader('Content-Disposition', `attachment; filename="${platform}-card.png"`);
+      res.send(screenshot.buffer);
     } else {
       res.setHeader('Content-Type', 'image/svg+xml');
       res.setHeader('Content-Disposition', `attachment; filename="${platform}-card.svg"`);
+      res.send(screenshot.svg);
     }
-
-    res.send(screenshot.buffer);
   } catch (err) {
     console.error('Screenshot generation error:', err.message);
     res.status(500).json({ error: `Failed to generate screenshot: ${err.message}` });

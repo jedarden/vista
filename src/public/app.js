@@ -4053,23 +4053,23 @@ async function handleCompareSubmit() {
   showLoading();
 
   try {
-    // Fetch both URLs in parallel
-    const [resp1, resp2] = await Promise.all([
-      fetch(`/api/preview?url=${encodeURIComponent(normalizedUrl1)}`),
-      fetch(`/api/preview?url=${encodeURIComponent(normalizedUrl2)}`)
-    ]);
+    // Use the dedicated /api/compare endpoint (single request for both URLs)
+    const resp = await fetch(`/api/compare?a=${encodeURIComponent(normalizedUrl1)}&b=${encodeURIComponent(normalizedUrl2)}`);
+    const data = await resp.json();
 
-    const [data1, data2] = await Promise.all([
-      resp1.json(),
-      resp2.json()
-    ]);
+    if (!resp.ok) {
+      // Check if the error is in the response body
+      if (data.error) throw new Error(data.error);
+      throw new Error('Comparison failed');
+    }
 
-    if (!resp1.ok) throw new Error(`URL 1: ${data1.error || 'Fetch failed'}`);
-    if (!resp2.ok) throw new Error(`URL 2: ${data2.error || 'Fetch failed'}`);
+    // Check for individual URL errors
+    if (data.a.error) throw new Error(`URL A: ${data.a.error}`);
+    if (data.b.error) throw new Error(`URL B: ${data.b.error}`);
 
     // Store comparison data
-    compareData.before = data1;
-    compareData.after = data2;
+    compareData.before = data.a;
+    compareData.after = data.b;
     compareData.swapped = false;
 
     // Show results

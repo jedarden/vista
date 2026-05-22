@@ -571,6 +571,91 @@ app.get('/api/badge', async (req, res) => {
 });
 
 /**
+ * GET /api/compare?a=...&b=...
+ * Compare two URLs by fetching both previews in parallel
+ */
+app.get('/api/compare', async (req, res) => {
+  const urlA = req.query.a;
+  const urlB = req.query.b;
+
+  if (!urlA || !urlB) {
+    return res.status(400).json({ error: 'Missing ?a= or ?b= parameter (both URLs are required)' });
+  }
+
+  // Validate both URLs
+  for (const [name, url] of [['a', urlA], ['b', urlB]]) {
+    try {
+      const parsedUrl = new URL(url);
+      if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+        return res.status(400).json({ error: `Only http and https URLs are supported (invalid URL in ?${name}=)` });
+      }
+    } catch (_) {
+      return res.status(400).json({ error: `Invalid URL in ?${name}=` });
+    }
+  }
+
+  try {
+    // Fetch both URLs in parallel
+    const [resultA, resultB] = await Promise.all([
+      (async () => {
+        try {
+          const { html, redirectChain, finalUrl, responseHeaders, statusCode } = await fetchUrl(urlA);
+          return {
+            success: true,
+            data: await buildPreviewResult({
+              html,
+              baseUrl: finalUrl,
+              redirectChain,
+              responseHeaders,
+              statusCode,
+              sourceUrl: urlA,
+            }),
+          };
+        } catch (err) {
+          return { success: false, error: err.message, url: urlA };
+        }
+      })(),
+      (async () => {
+        try {
+          const { html, redirectChain, finalUrl, responseHeaders, statusCode } = await fetchUrl(urlB);
+          return {
+            success: true,
+            data: await buildPreviewResult({
+              html,
+              baseUrl: finalUrl,
+              redirectChain,
+              responseHeaders,
+              statusCode,
+              sourceUrl: urlB,
+            }),
+          };
+        } catch (err) {
+          return { success: false, error: err.message, url: urlB };
+        }
+      })(),
+    ]);
+
+    // If both failed, return error
+    if (!resultA.success && !resultB.success) {
+      return res.status(502).json({
+        error: 'Failed to fetch both URLs',
+        urlA: { error: resultA.error },
+        urlB: { error: resultB.error },
+      });
+    }
+
+    // Return results (even if one failed)
+    res.json({
+      a: resultA.success ? resultA.data : { error: resultA.error, url: resultA.url },
+      b: resultB.success ? resultB.data : { error: resultB.error, url: resultB.url },
+    });
+  } catch (err) {
+    console.error('Compare error:', err.message);
+    res.status(500).json({ error: `Comparison failed: ${err.message}` });
+  }
+});
+
+/**
  * GET /api/health
  */
 app.get('/api/health', (req, res) => {

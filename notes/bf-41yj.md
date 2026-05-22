@@ -7,8 +7,12 @@ This bead requested implementation of `GET /api/compare?a=...&b=...` endpoint.
 ## What Was Found
 
 The endpoint was already implemented in commit `e8f5a73`:
-- **Server**: `src/server.js` lines 770-852 (current)
+- **Server**: `src/server.js` lines 777-856 (current)
 - **Client**: `src/public/app.js` line 4057 (already using the endpoint)
+
+### Previous Bead Activity
+- `8031853` - docs(bf-41yj): note that /api/compare endpoint was already implemented
+- `f150727` - docs(bf-41yj): update line numbers for /api/compare endpoint
 
 ## Implementation Details
 

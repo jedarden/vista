@@ -256,6 +256,56 @@ function detectMistakes(html, meta, imageProbe, responseHeaders, redirectChain) 
     }
   }
 
+  // ── Client-side-only meta tags (meta tags in <body>) ──
+  // This is a heuristic: meta tags in <body> are almost certainly injected by JavaScript
+  // and won't be seen by crawlers that don't execute JS
+  const bodyMetaRegex = /<body[^>]*>[\s\S]*?<meta\s+(?:property|name)=["'](?:og:|twitter:)[^"']*["']/gi;
+  const bodyMatch = bodyMetaRegex.exec(html);
+  if (bodyMatch) {
+    // Extract which meta tags are in the body
+    const bodyMetas = [];
+    const metaInBodyRegex = /<meta\s+(property|name)=["'](og:[^"']*|twitter:[^"']*)["'][^>]*>/gi;
+    let match;
+    const afterBody = html.slice(html.indexOf('<body'));
+    while ((match = metaInBodyRegex.exec(afterBody)) !== null) {
+      bodyMetas.push(match[2]);
+    }
+
+    findings.push({
+      severity: 'error',
+      code: 'client-side-only-tags',
+      message: `Meta tags found in <body> (${bodyMetas.slice(0, 3).join(', ')}${bodyMetas.length > 3 ? '...' : ''}) — these are likely injected by JavaScript and won't be seen by most social crawlers`,
+      fix: 'Move all critical meta tags (og:*, twitter:*) to the <head> section of your HTML, or use Server-Side Rendering (SSR) to ensure they\'re present in the initial HTML',
+      platforms: 'Most social crawlers (Facebook, LinkedIn, Twitter, etc.)',
+    });
+  }
+
+  // ── Suspicious meta tag placement after large script blocks ──
+  // Another heuristic: if meta tags appear after large script content, they might be JS-injected
+  const headClosePos = html.indexOf('</head>');
+  if (headClosePos !== -1) {
+    const beforeHeadClose = html.slice(0, headClosePos);
+    const scriptMatches = beforeHeadClose.match(/<script[^>]*>/gi);
+    if (scriptMatches && scriptMatches.length > 0) {
+      // Check if any og: or twitter: meta tags appear after script tags
+      const firstScriptPos = beforeHeadClose.indexOf('<script');
+      if (firstScriptPos !== -1 && firstScriptPos < headClosePos) {
+        const afterFirstScript = beforeHeadClose.slice(firstScriptPos);
+        const metaAfterScriptRegex = /<meta\s+(property|name)=["'](og:[^"']*|twitter:[^"']*)["']/gi;
+        const metasAfterScript = afterFirstScript.match(metaAfterScriptRegex);
+        if (metasAfterScript && metasAfterScript.length > 0) {
+          findings.push({
+            severity: 'warning',
+            code: 'tags-after-script-block',
+            message: `Meta tags appear after <script> blocks — some crawlers may stop parsing before reaching them if scripts take too long to load`,
+            fix: 'Move critical meta tags to the very top of <head>, before any <script> tags',
+            platforms: 'Crawlers with aggressive timeout limits',
+          });
+        }
+      }
+    }
+  }
+
   // ── Redirect chain warnings ──
   if (redirectChain && redirectChain.length > 1) {
     const finalHop = redirectChain[redirectChain.length - 1];

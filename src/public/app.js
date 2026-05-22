@@ -450,6 +450,116 @@ async function inspectHtml(html, base) {
   }
 }
 
+/**
+ * Client-side DOM verification for meta tags.
+ * Parses HTML in a real DOM (executes JavaScript) and compares with server-parsed tags.
+ * Returns array of diagnostic findings for client-side-only tags.
+ */
+async function verifyClientSideTags(html, serverMeta) {
+  const findings = [];
+
+  // Create a hidden iframe to render the HTML
+  const iframe = document.createElement('iframe');
+  iframe.style.display = 'none';
+  iframe.style.position = 'absolute';
+  iframe.style.width = '1px';
+  iframe.style.height = '1px';
+  document.body.appendChild(iframe);
+
+  try {
+    // Write the HTML to the iframe (this executes any JavaScript)
+    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+    iframeDoc.open();
+    iframeDoc.write(html);
+    iframeDoc.close();
+
+    // Wait a bit for JavaScript to execute (max 2 seconds)
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Extract meta tags from the rendered DOM
+    const clientMetas = new Map();
+    const metaTags = iframeDoc.querySelectorAll('meta[property], meta[name]');
+
+    metaTags.forEach(tag => {
+      const property = tag.getAttribute('property');
+      const name = tag.getAttribute('name');
+      const content = tag.getAttribute('content');
+      const key = property || name;
+
+      if (key && content) {
+        const lowerKey = key.toLowerCase();
+        // Focus on og:* and twitter:* tags
+        if (lowerKey.startsWith('og:') || lowerKey.startsWith('twitter:')) {
+          clientMetas.set(lowerKey, content);
+        }
+      }
+    });
+
+    // Build set of server-side meta tags (from raw HTML, no JS execution)
+    const serverMetas = new Map();
+    if (serverMeta.rawTags) {
+      serverMeta.rawTags.forEach(tag => {
+        const key = tag.property || tag.name;
+        if (key && tag.content) {
+          const lowerKey = key.toLowerCase();
+          if (lowerKey.startsWith('og:') || lowerKey.startsWith('twitter:')) {
+            serverMetas.set(lowerKey, tag.content);
+          }
+        }
+      });
+    }
+
+    // Find tags that only exist client-side (injected by JS)
+    const clientOnlyTags = [];
+    for (const [key, value] of clientMetas) {
+      if (!serverMetas.has(key)) {
+        clientOnlyTags.push({ key, value });
+      }
+    }
+
+    // Find tags with different values between server and client
+    const differingTags = [];
+    for (const [key, clientValue] of clientMetas) {
+      const serverValue = serverMetas.get(key);
+      if (serverValue && serverValue !== clientValue) {
+        differingTags.push({ key, serverValue, clientValue });
+      }
+    }
+
+    // Create diagnostic findings
+    if (clientOnlyTags.length > 0) {
+      const tagList = clientOnlyTags.slice(0, 5).map(t => t.key).join(', ');
+      const more = clientOnlyTags.length > 5 ? ` (+${clientOnlyTags.length - 5} more)` : '';
+      findings.push({
+        severity: 'error',
+        code: 'js-injected-tags',
+        message: `Meta tags only appear after JavaScript executes: ${tagList}${more} — social crawlers that don't execute JS will not see these tags`,
+        fix: 'Move critical meta tags to static HTML in <head>, or use Server-Side Rendering (SSR) to ensure tags exist in the initial HTML response',
+        platforms: 'Facebook, LinkedIn, Twitter, WhatsApp, and most other crawlers',
+      });
+    }
+
+    if (differingTags.length > 0) {
+      const tagList = differingTags.slice(0, 3).map(t => t.key).join(', ');
+      findings.push({
+        severity: 'warning',
+        code: 'js-modified-tags',
+        message: `Meta tags have different values after JavaScript execution: ${tagList} — crawlers may see different values than browsers`,
+        fix: 'Ensure meta tags have correct values in the initial HTML, or use SSR to render the correct values server-side',
+        platforms: 'Multiple platforms (crawler-dependent)',
+      });
+    }
+  } catch (e) {
+    // Silently fail — client-side verification is best-effort
+    console.warn('Client-side tag verification failed:', e);
+  } finally {
+    // Clean up iframe
+    document.body.removeChild(iframe);
+  }
+
+  return findings;
+}
+
 async function handleResult(data) {
   hideLoading();
   currentData = data;
@@ -465,6 +575,20 @@ async function handleResult(data) {
   // Compact hero
   hero.classList.add('compact');
   document.body.classList.add('has-results');
+
+  // Client-side DOM verification for JS-injected tags
+  if (data.html && data.meta) {
+    try {
+      const clientFindings = await verifyClientSideTags(data.html, data.meta);
+      if (clientFindings.length > 0) {
+        // Merge client-side findings with server diagnostics
+        data.diagnostics = [...(data.diagnostics || []), ...clientFindings];
+      }
+    } catch (e) {
+      // Silently fail — client-side verification is best-effort
+      console.warn('Client-side tag verification failed:', e);
+    }
+  }
 
   // Render all panels
   renderSummaryBar(data);

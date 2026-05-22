@@ -703,6 +703,8 @@ async function buildPreviewResult({ html, baseUrl, redirectChain, responseHeader
     redirectChain,
     responseHeaders,
     headerAnalysis,
+    // Include raw HTML for client-side verification (max 500KB to avoid overloading)
+    html: html.slice(0, 500 * 1024),
   };
 }
 

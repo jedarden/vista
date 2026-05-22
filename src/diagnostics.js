@@ -211,11 +211,11 @@ function detectMistakes(html, meta, imageProbe, responseHeaders, redirectChain) 
 
   // ── Empty meta tags ──
   // Check for empty content in critical tags (og:, twitter:, and others)
-  // Handles both property= and name=, and both attribute orders
+  // Handles both property= and name=, both attribute orders, and no space between attributes
   const emptyTagPatterns = [
-    /<meta\s+property=["']((?:og:|twitter:|fb:)[^"']+)["'][^>]*\scontent=["']["']/gi,
-    /<meta\s+name=["']((?:og:|twitter:|fb:)[^"']+)["'][^>]*\scontent=["']["']/gi,
-    /<meta\s+content=["']["'][^>]*\s+(?:property|name)=["']((?:og:|twitter:|fb:)[^"']+)["']/gi,
+    /<meta\s+property=["']((?:og:|twitter:|fb:)[^"']+)["'][^>]*content=["']["']/gi,
+    /<meta\s+name=["']((?:og:|twitter:|fb:)[^"']+)["'][^>]*content=["']["']/gi,
+    /<meta\s+content=["']["'][^>]*(?:property|name)=["']((?:og:|twitter:|fb:)[^"']+)["']/gi,
   ];
   const seenEmptyTags = new Set();
   for (const pattern of emptyTagPatterns) {

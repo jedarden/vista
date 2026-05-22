@@ -323,7 +323,7 @@ app.post('/api/screenshot', async (req, res) => {
 
   try {
     // Generate screenshot
-    const screenshot = generateScreenshot(
+    const screenshot = await generateScreenshot(
       platform,
       finalMeta,
       finalImageProbe,

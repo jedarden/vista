@@ -269,24 +269,22 @@ function generatePlatformCardContent(platformId, title, desc, image, domain, sit
 }
 
 /**
- * Convert SVG to PNG using canvas
- * For a pure Node.js solution, we'll return the SVG directly
- * The frontend can convert to PNG if needed
+ * Convert SVG to PNG using sharp
  */
-function svgToPng(svgString) {
-  // For now, return the SVG as-is
-  // In a production environment, you'd use sharp or similar to convert
-  return Buffer.from(svgString);
+async function svgToPng(svgString) {
+  const sharp = require('sharp');
+  const svgBuffer = Buffer.from(svgString);
+  return await sharp(svgBuffer).png().toBuffer();
 }
 
 /**
  * Generate screenshot data
  */
-function generateScreenshot(platformId, meta, imageProbe, baseUrl, options = {}) {
+async function generateScreenshot(platformId, meta, imageProbe, baseUrl, options = {}) {
   const svgString = generateCardSVG(platformId, meta, imageProbe, baseUrl, options);
   return {
     svg: svgString,
-    buffer: svgToPng(svgString),
+    buffer: await svgToPng(svgString),
     mimeType: options.format === 'png' ? 'image/png' : 'image/svg+xml',
   };
 }

@@ -209,17 +209,28 @@ function detectMistakes(html, meta, imageProbe, responseHeaders, redirectChain) 
     });
   }
 
-  // ── Empty og tags ──
-  const emptyTagRegex = /<meta\s+property=["'](og:[^"']+)["']\s+content=["']["']/gi;
-  let e;
-  while ((e = emptyTagRegex.exec(html)) !== null) {
-    findings.push({
-      severity: 'warning',
-      code: 'empty-og-tag',
-      message: `\`${e[1]}\` has an empty content attribute — worse than missing; some platforms treat it as "no value" instead of falling back`,
-      fix: `Either remove the tag or set a meaningful value`,
-      platforms: 'All platforms',
-    });
+  // ── Empty meta tags ──
+  // Check for empty content in critical tags (og:, twitter:, and others)
+  // Handles both property= and name=, and both attribute orders
+  const emptyTagPatterns = [
+    /<meta\s+property=["']((?:og:|twitter:|fb:)[^"']+)["'][^>]*\scontent=["']["']/gi,
+    /<meta\s+name=["']((?:og:|twitter:|fb:)[^"']+)["'][^>]*\scontent=["']["']/gi,
+    /<meta\s+content=["']["'][^>]*\s+(?:property|name)=["']((?:og:|twitter:|fb:)[^"']+)["']/gi,
+  ];
+  const seenEmptyTags = new Set();
+  for (const pattern of emptyTagPatterns) {
+    let e;
+    while ((e = pattern.exec(html)) !== null) {
+      if (seenEmptyTags.has(e[1])) continue;
+      seenEmptyTags.add(e[1]);
+      findings.push({
+        severity: 'warning',
+        code: 'empty-meta-tag',
+        message: `\`${e[1]}\` has an empty content attribute — worse than missing; some platforms treat it as "no value" instead of falling back`,
+        fix: `Either remove the tag or set a meaningful value`,
+        platforms: 'All platforms',
+      });
+    }
   }
 
   // ── Missing twitter:card ──

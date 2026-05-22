@@ -8,6 +8,7 @@ const { scoreAll, PLATFORMS } = require('./scorer');
 const { generateScreenshot, checkRateLimit, isValidPlatform } = require('./screenshot');
 const { analyzeResponseHeaders } = require('./header-analyzer');
 const cheerio = require('cheerio');
+const { ZipArchive } = require('archiver');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -366,6 +367,201 @@ app.get('/api/screenshot', async (req, res) => {
   } catch (err) {
     console.error('Screenshot generation error:', err.message);
     res.status(502).json({ error: `Failed to generate screenshot: ${err.message}` });
+  }
+});
+
+/**
+ * GET /api/screenshots — Generate ZIP of PNG screenshots for multiple platforms
+ * Query params: url, platforms (comma-separated), theme (light|dark), scale (1x|2x), format (svg|png)
+ */
+app.get('/api/screenshots', async (req, res) => {
+  const { url, platforms, theme = 'dark', scale = '1x', format = 'png' } = req.query;
+
+  // Validate platforms first (before rate limit check)
+  if (!platforms) {
+    return res.status(400).json({
+      error: 'Missing platforms parameter',
+      message: 'Provide ?platforms=twitter,facebook,linkedin (comma-separated)'
+    });
+  }
+
+  const requestedPlatforms = platforms.split(',').map(p => p.trim()).filter(p => p);
+  const invalidPlatforms = requestedPlatforms.filter(p => !isValidPlatform(p));
+
+  if (invalidPlatforms.length > 0) {
+    return res.status(400).json({
+      error: 'Invalid platforms',
+      message: `Invalid platform(s): ${invalidPlatforms.join(', ')}. Valid platforms: ${PLATFORMS.map(p => p.id).join(', ')}`
+    });
+  }
+
+  if (requestedPlatforms.length === 0) {
+    return res.status(400).json({
+      error: 'No platforms specified',
+      message: 'Provide at least one platform'
+    });
+  }
+
+  // Limit bulk requests to 20 platforms max
+  if (requestedPlatforms.length > 20) {
+    return res.status(400).json({
+      error: 'Too many platforms',
+      message: 'Maximum 20 platforms per bulk request'
+    });
+  }
+
+  // Rate limiting for bulk requests - consume one token per platform
+  const clientIp = req.ip || req.connection.remoteAddress || 'unknown';
+  const rateLimit = checkRateLimit(clientIp, 30);
+
+  // For bulk requests, we need to check if we have enough capacity
+  // We'll check multiple times and consume tokens for each platform
+  if (!rateLimit.allowed) {
+    return res.status(429).json({
+      error: 'Rate limit exceeded',
+      message: 'Too many screenshot requests. Please try again later.',
+      retryAfter: 3600
+    });
+  }
+
+  // Consume additional tokens for remaining platforms (1st was consumed above)
+  let finalRateLimit = rateLimit;
+  for (let i = 1; i < requestedPlatforms.length; i++) {
+    const additionalCheck = checkRateLimit(clientIp, 30);
+    if (!additionalCheck.allowed) {
+      return res.status(429).json({
+        error: 'Rate limit exceeded',
+        message: `Too many screenshot requests. You can generate ${i} screenshots in this batch.`,
+        retryAfter: 3600
+      });
+    }
+    finalRateLimit = additionalCheck;
+  }
+
+  // Validate theme
+  if (!['light', 'dark'].includes(theme)) {
+    return res.status(400).json({
+      error: 'Invalid theme',
+      message: 'Theme must be either "light" or "dark"'
+    });
+  }
+
+  // Validate scale
+  if (!['1x', '2x'].includes(scale)) {
+    return res.status(400).json({
+      error: 'Invalid scale',
+      message: 'Scale must be either "1x" or "2x"'
+    });
+  }
+
+  // Validate format
+  if (!['svg', 'png'].includes(format)) {
+    return res.status(400).json({
+      error: 'Invalid format',
+      message: 'Format must be either "svg" or "png"'
+    });
+  }
+
+  // URL is required
+  if (!url) {
+    return res.status(400).json({ error: 'Missing ?url= parameter' });
+  }
+
+  // Validate URL
+  try {
+    const parsedUrl = new URL(url);
+    if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+      return res.status(400).json({ error: 'Only http and https URLs are supported' });
+    }
+  } catch (_) {
+    return res.status(400).json({ error: 'Invalid URL' });
+  }
+
+  try {
+    const { html, finalUrl, redirectChain, responseHeaders, statusCode } =
+      await fetchUrl(url);
+
+    const meta = parseMetaTags(html, finalUrl);
+
+    // Probe image dimensions
+    let imageProbe = null;
+    const imageUrl = meta.og.image || meta.twitter.image;
+    if (imageUrl) {
+      try {
+        imageProbe = await probeImage(imageUrl);
+      } catch (_) {
+        // non-fatal
+      }
+    }
+
+    // Set response headers for ZIP download
+    res.setHeader('X-RateLimit-Remaining', finalRateLimit.remaining.toString());
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename="screenshots-${Date.now()}.zip"`);
+
+    // Create ZIP stream
+    const zip = new ZipArchive({
+      zlib: { level: 9 } // Maximum compression
+    });
+
+    // Handle errors
+    zip.on('error', (err) => {
+      console.error('ZIP error:', err);
+      if (!res.headersSent) {
+        res.status(500).json({ error: 'Failed to create ZIP file' });
+      }
+    });
+
+    // Pipe ZIP to response
+    zip.pipe(res);
+
+    // Generate screenshots for each platform
+    const fileExtension = format === 'png' ? 'png' : 'svg';
+    const errors = [];
+
+    for (const platformId of requestedPlatforms) {
+      try {
+        const screenshot = await generateScreenshot(
+          platformId,
+          meta,
+          imageProbe,
+          finalUrl,
+          { withFrame: false, format, theme, scale }
+        );
+
+        const fileData = format === 'png' ? screenshot.buffer : screenshot.svg;
+        const fileName = `${platformId}-card.${fileExtension}`;
+
+        zip.append(fileData, { name: fileName });
+      } catch (err) {
+        console.error(`Failed to generate screenshot for ${platformId}:`, err.message);
+        errors.push({ platform: platformId, error: err.message });
+      }
+    }
+
+    // Add a manifest file if there were any errors
+    if (errors.length > 0) {
+      const manifest = JSON.stringify({
+        url,
+        finalUrl,
+        theme,
+        scale,
+        format,
+        requestedPlatforms,
+        successful: requestedPlatforms.length - errors.length,
+        failed: errors.length,
+        errors,
+      }, null, 2);
+      zip.append(manifest, { name: 'manifest.json' });
+    }
+
+    // Finalize the ZIP
+    await zip.finalize();
+  } catch (err) {
+    console.error('Bulk screenshot generation error:', err.message);
+    if (!res.headersSent) {
+      res.status(502).json({ error: `Failed to generate screenshots: ${err.message}` });
+    }
   }
 });
 

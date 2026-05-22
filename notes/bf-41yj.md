@@ -7,7 +7,7 @@ This bead requested implementation of `GET /api/compare?a=...&b=...` endpoint.
 ## What Was Found
 
 The endpoint was already implemented in commit `e8f5a73`:
-- **Server**: `src/server.js` lines 573-656
+- **Server**: `src/server.js` lines 770-852 (current)
 - **Client**: `src/public/app.js` line 4057 (already using the endpoint)
 
 ## Implementation Details

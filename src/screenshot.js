@@ -68,7 +68,12 @@ function getDomain(url) {
  * Generate SVG for a platform card
  */
 function generateCardSVG(platformId, meta, imageProbe, baseUrl, options = {}) {
-  const { withFrame = false, width = 800, height = 450 } = options;
+  const { withFrame = false, width = 800, height = 450, theme = 'dark', scale = '1x' } = options;
+
+  // Apply scale multiplier for retina
+  const scaleMultiplier = scale === '2x' ? 2 : 1;
+  const scaledWidth = width * scaleMultiplier;
+  const scaledHeight = height * scaleMultiplier;
 
   const ogTitle = meta.og.title || meta.title || '';
   const ogDesc = meta.og.description || meta.description || '';
@@ -77,11 +82,11 @@ function generateCardSVG(platformId, meta, imageProbe, baseUrl, options = {}) {
   const domain = getDomain(baseUrl);
   const themeColor = meta.themeColor || '#5865f2';
 
-  // Base SVG header
-  const svgHeader = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">`;
+  // Base SVG header with viewBox for scaling
+  const svgHeader = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${scaledWidth}" height="${scaledHeight}">`;
 
-  // Background gradient for all cards
-  const background = `
+  // Background gradient based on theme
+  const background = theme === 'dark' ? `
     <defs>
       <linearGradient id="bg-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
         <stop offset="0%" style="stop-color:#1a1a2e"/>
@@ -92,23 +97,41 @@ function generateCardSVG(platformId, meta, imageProbe, baseUrl, options = {}) {
       </clipPath>
     </defs>
     <rect width="${width}" height="${height}" fill="url(#bg-gradient)" rx="12"/>
+  ` : `
+    <defs>
+      <linearGradient id="bg-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#ffffff"/>
+        <stop offset="100%" style="stop-color:#f8f9fa"/>
+      </linearGradient>
+      <clipPath id="card-clip">
+        <rect width="${width}" height="${height}" rx="12"/>
+      </clipPath>
+    </defs>
+    <rect width="${width}" height="${height}" fill="url(#bg-gradient)" rx="12" stroke="#e0e0e0" stroke-width="1"/>
   `;
 
   // Platform-specific card content
-  const cardContent = generatePlatformCardContent(platformId, ogTitle, ogDesc, ogImage, domain, ogSite, themeColor, width, height);
+  const cardContent = generatePlatformCardContent(platformId, ogTitle, ogDesc, ogImage, domain, ogSite, themeColor, width, height, theme);
 
-  // Platform badge
+  // Platform badge (theme-aware)
   const platformName = PLATFORMS.find(p => p.id === platformId)?.name || platformId;
-  const badge = `
+  const badge = theme === 'dark' ? `
     <g transform="translate(20, 20)">
       <rect width="120" height="28" rx="6" fill="rgba(255,255,255,0.15)"/>
       <text x="60" y="19" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="600" fill="white" text-anchor="middle">${escHtml(platformName)}</text>
     </g>
+  ` : `
+    <g transform="translate(20, 20)">
+      <rect width="120" height="28" rx="6" fill="rgba(0,0,0,0.08)"/>
+      <text x="60" y="19" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="600" fill="#333" text-anchor="middle">${escHtml(platformName)}</text>
+    </g>
   `;
 
-  // VISTA watermark
-  const watermark = `
+  // VISTA watermark (theme-aware)
+  const watermark = theme === 'dark' ? `
     <text x="${width - 60}" y="${height - 15}" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="rgba(255,255,255,0.3)" text-anchor="middle">VISTA</text>
+  ` : `
+    <text x="${width - 60}" y="${height - 15}" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="rgba(0,0,0,0.3)" text-anchor="middle">VISTA</text>
   `;
 
   return `${svgHeader}${background}${badge}${cardContent}${watermark}</svg>`;
@@ -117,20 +140,27 @@ function generateCardSVG(platformId, meta, imageProbe, baseUrl, options = {}) {
 /**
  * Generate platform-specific card content SVG
  */
-function generatePlatformCardContent(platformId, title, desc, image, domain, site, themeColor, width, height) {
+function generatePlatformCardContent(platformId, title, desc, image, domain, site, themeColor, width, height, theme = 'dark') {
   const imgWidth = width - 40;
   const imgHeight = Math.min(height * 0.5, imgWidth * 0.5625);
   const hasImage = !!image;
 
+  // Theme-aware colors
+  const textColor = theme === 'dark' ? 'white' : '#222';
+  const subtextColor = theme === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)';
+  const domainColor = theme === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)';
+  const placeholderColor = theme === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)';
+  const imageBgColor = theme === 'dark' ? '#2a2a4a' : '#e0e0e0';
+
   const imageSection = hasImage ? `
     <g transform="translate(20, 60)">
-      <rect width="${imgWidth}" height="${imgHeight}" rx="8" fill="#2a2a4a"/>
+      <rect width="${imgWidth}" height="${imgHeight}" rx="8" fill="${imageBgColor}"/>
       <image href="${escHtml(image)}" width="${imgWidth}" height="${imgHeight}" preserveAspectRatio="xMidYMid slice" clip-path="inset(0px round 8px)"/>
     </g>
   ` : `
     <g transform="translate(20, 60)">
-      <rect width="${imgWidth}" height="${imgHeight}" rx="8" fill="#2a2a4a"/>
-      <text x="${imgWidth / 2}" y="${imgHeight / 2}" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="rgba(255,255,255,0.3)" text-anchor="middle">No image</text>
+      <rect width="${imgWidth}" height="${imgHeight}" rx="8" fill="${imageBgColor}"/>
+      <text x="${imgWidth / 2}" y="${imgHeight / 2}" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="${placeholderColor}" text-anchor="middle">No image</text>
     </g>
   `;
 
@@ -138,56 +168,62 @@ function generatePlatformCardContent(platformId, title, desc, image, domain, sit
   const textWidth = width - 40;
 
   const titleSection = title ? `
-    <text x="20" y="${textY}" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="700" fill="white" width="${textWidth}">
+    <text x="20" y="${textY}" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="700" fill="${textColor}" width="${textWidth}">
       ${escHtml(trunc(title, 60))}
     </text>
   ` : '';
 
   const descY = textY + (title ? 28 : 0);
   const descSection = desc ? `
-    <text x="20" y="${descY}" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="rgba(255,255,255,0.7)" width="${textWidth}">
+    <text x="20" y="${descY}" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="${subtextColor}" width="${textWidth}">
       ${escHtml(trunc(desc, 120))}
     </text>
   ` : '';
 
   const domainY = descY + (desc ? 24 : 0);
   const domainSection = domain ? `
-    <text x="20" y="${domainY}" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="rgba(255,255,255,0.4)">
+    <text x="20" y="${domainY}" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="${domainColor}">
       ${escHtml(domain)}
     </text>
   ` : '';
 
-  // Platform-specific variations
+  // Platform-specific variations (theme-aware)
   switch (platformId) {
     case 'google':
+      const googleTitleColor = theme === 'dark' ? '#8ab4f8' : '#1a73e8';
+      const googleDescColor = theme === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)';
+      const googleDomainColor = theme === 'dark' ? 'rgba(255,255,255,0.6)' : '#5f6368';
       return `
         <g transform="translate(20, 70)">
           <circle cx="12" cy="12" r="12" fill="#4285f4"/>
           <text x="12" y="17" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="white" text-anchor="middle">G</text>
         </g>
-        <text x="50" y="82" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="rgba(255,255,255,0.6)">${escHtml(domain)}</text>
-        <text x="20" y="115" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="600" fill="#8ab4f8">${escHtml(trunc(title || metaTitle, 60))}</text>
-        ${desc ? `<text x="20" y="145" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="rgba(255,255,255,0.7)" width="${width - 40}">${escHtml(trunc(desc, 150))}</text>` : ''}
+        <text x="50" y="82" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="${googleDomainColor}">${escHtml(domain)}</text>
+        <text x="20" y="115" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="600" fill="${googleTitleColor}">${escHtml(trunc(title || metaTitle, 60))}</text>
+        ${desc ? `<text x="20" y="145" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="${googleDescColor}" width="${width - 40}">${escHtml(trunc(desc, 150))}</text>` : ''}
       `;
 
     case 'facebook':
     case 'threads':
+      const fbDomainColor = theme === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)';
+      const fbDescColor = theme === 'dark' ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)';
       return `
         ${imageSection}
         <g transform="translate(20, ${textY})">
-          <text font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="rgba(255,255,255,0.5)" font-weight="600">${escHtml(domain.toUpperCase())}</text>
-          <text y="24" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="700" fill="white" width="${textWidth}">${escHtml(trunc(title, 60))}</text>
-          ${desc ? `<text y="50" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="rgba(255,255,255,0.8)" width="${textWidth}">${escHtml(trunc(desc, 160))}</text>` : ''}
+          <text font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="${fbDomainColor}" font-weight="600">${escHtml(domain.toUpperCase())}</text>
+          <text y="24" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="700" fill="${textColor}" width="${textWidth}">${escHtml(trunc(title, 60))}</text>
+          ${desc ? `<text y="50" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="${fbDescColor}" width="${textWidth}">${escHtml(trunc(desc, 160))}</text>` : ''}
         </g>
       `;
 
     case 'twitter':
+      const twDescColor = theme === 'dark' ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)';
       return `
         ${imageSection}
         <g transform="translate(20, ${textY})">
-          <text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="700" fill="white" width="${textWidth}">${escHtml(trunc(title, 70))}</text>
-          ${desc ? `<text y="26" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="rgba(255,255,255,0.8)" width="${textWidth}">${escHtml(trunc(desc, 200))}</text>` : ''}
-          <text y="${desc ? 54 : 28}" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="rgba(255,255,255,0.5)">${escHtml(domain)}</text>
+          <text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="700" fill="${textColor}" width="${textWidth}">${escHtml(trunc(title, 70))}</text>
+          ${desc ? `<text y="26" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="${twDescColor}" width="${textWidth}">${escHtml(trunc(desc, 200))}</text>` : ''}
+          <text y="${desc ? 54 : 28}" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="${domainColor}">${escHtml(domain)}</text>
         </g>
       `;
 
@@ -195,27 +231,29 @@ function generatePlatformCardContent(platformId, title, desc, image, domain, sit
       return `
         ${imageSection}
         <g transform="translate(20, ${textY})">
-          <text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="700" fill="white" width="${textWidth}">${escHtml(trunc(title, 60))}</text>
-          <text y="26" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="rgba(255,255,255,0.5)">${escHtml(domain)}</text>
+          <text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="700" fill="${textColor}" width="${textWidth}">${escHtml(trunc(title, 60))}</text>
+          <text y="26" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="${domainColor}">${escHtml(domain)}</text>
         </g>
       `;
 
     case 'whatsapp':
+      const waDescColor = theme === 'dark' ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)';
       return `
         ${imageSection}
         <g transform="translate(20, ${textY})">
-          <text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="700" fill="white" width="${textWidth}">${escHtml(trunc(title, 60))}</text>
-          ${desc ? `<text y="26" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="rgba(255,255,255,0.8)" width="${textWidth}">${escHtml(trunc(desc, 160))}</text>` : ''}
+          <text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="700" fill="${textColor}" width="${textWidth}">${escHtml(trunc(title, 60))}</text>
+          ${desc ? `<text y="26" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="${waDescColor}" width="${textWidth}">${escHtml(trunc(desc, 160))}</text>` : ''}
         </g>
       `;
 
     case 'slack':
+      const slackDescColor = theme === 'dark' ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)';
       return `
         <rect x="20" y="60" width="${width - 40}" height="4" fill="${themeColor}"/>
         ${imageSection}
         <g transform="translate(20, ${textY})">
-          <text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="700" fill="white" width="${textWidth}">${escHtml(trunc(title, 70))}</text>
-          ${desc ? `<text y="26" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="rgba(255,255,255,0.8)" width="${textWidth}">${escHtml(trunc(desc, 200))}</text>` : ''}
+          <text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="700" fill="${textColor}" width="${textWidth}">${escHtml(trunc(title, 70))}</text>
+          ${desc ? `<text y="26" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="${slackDescColor}" width="${textWidth}">${escHtml(trunc(desc, 200))}</text>` : ''}
         </g>
       `;
 
@@ -224,7 +262,7 @@ function generatePlatformCardContent(platformId, title, desc, image, domain, sit
         <rect x="20" y="60" width="${width - 40}" height="4" fill="${themeColor}"/>
         ${imageSection}
         <g transform="translate(20, ${textY})">
-          <text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="700" fill="white" width="${textWidth}">${escHtml(trunc(title, 70))}</text>
+          <text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="700" fill="${textColor}" width="${textWidth}">${escHtml(trunc(title, 70))}</text>
         </g>
       `;
 
@@ -232,37 +270,39 @@ function generatePlatformCardContent(platformId, title, desc, image, domain, sit
       return `
         ${imageSection}
         <g transform="translate(20, ${textY})">
-          <text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="600" fill="white" width="${textWidth}">${escHtml(trunc(title, 60))}</text>
+          <text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="600" fill="${textColor}" width="${textWidth}">${escHtml(trunc(title, 60))}</text>
         </g>
       `;
 
     case 'telegram':
+      const tgDescColor = theme === 'dark' ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)';
       return `
         ${imageSection}
         <g transform="translate(20, ${textY})">
-          <text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="700" fill="white" width="${textWidth}">${escHtml(trunc(title, 70))}</text>
-          ${desc ? `<text y="26" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="rgba(255,255,255,0.8)" width="${textWidth}">${escHtml(trunc(desc, 200))}</text>` : ''}
+          <text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="700" fill="${textColor}" width="${textWidth}">${escHtml(trunc(title, 70))}</text>
+          ${desc ? `<text y="26" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="${tgDescColor}" width="${textWidth}">${escHtml(trunc(desc, 200))}</text>` : ''}
         </g>
       `;
 
     case 'reddit':
+      const redditDescColor = theme === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)';
       return `
         ${imageSection}
         <g transform="translate(20, ${textY})">
-          <text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="600" fill="white" width="${textWidth}">${escHtml(trunc(title, 90))}</text>
-          ${desc ? `<text y="26" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="rgba(255,255,255,0.7)" width="${textWidth}">${escHtml(trunc(desc, 200))}</text>` : ''}
-          <text y="${desc ? 54 : 28}" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="rgba(255,255,255,0.5)">${escHtml(domain)}</text>
+          <text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="600" fill="${textColor}" width="${textWidth}">${escHtml(trunc(title, 90))}</text>
+          ${desc ? `<text y="26" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="${redditDescColor}" width="${textWidth}">${escHtml(trunc(desc, 200))}</text>` : ''}
+          <text y="${desc ? 54 : 28}" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="${domainColor}">${escHtml(domain)}</text>
         </g>
       `;
 
     default:
-      // Default card layout for all other platforms
+      // Default card layout for all other platforms (theme-aware)
       return `
         ${imageSection}
         <g transform="translate(20, ${textY})">
-          ${title ? `<text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="700" fill="white" width="${textWidth}">${escHtml(trunc(title, 70))}</text>` : ''}
-          ${desc ? `<text y="${title ? 26 : 0}" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="rgba(255,255,255,0.8)" width="${textWidth}">${escHtml(trunc(desc, 160))}</text>` : ''}
-          ${domain ? `<text y="${title || desc ? 52 : 0}" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="rgba(255,255,255,0.5)">${escHtml(domain)}</text>` : ''}
+          ${title ? `<text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="700" fill="${textColor}" width="${textWidth}">${escHtml(trunc(title, 70))}</text>` : ''}
+          ${desc ? `<text y="${title ? 26 : 0}" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="${subtextColor}" width="${textWidth}">${escHtml(trunc(desc, 160))}</text>` : ''}
+          ${domain ? `<text y="${title || desc ? 52 : 0}" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="${domainColor}">${escHtml(domain)}</text>` : ''}
         </g>
       `;
   }
@@ -271,9 +311,18 @@ function generatePlatformCardContent(platformId, title, desc, image, domain, sit
 /**
  * Convert SVG to PNG using sharp
  */
-async function svgToPng(svgString) {
+async function svgToPng(svgString, scale = '1x') {
   const sharp = require('sharp');
   const svgBuffer = Buffer.from(svgString);
+
+  // For 2x scale, resize the PNG output
+  if (scale === '2x') {
+    return await sharp(svgBuffer)
+      .resize({ width: 1600, height: 900, fit: 'fill' })
+      .png()
+      .toBuffer();
+  }
+
   return await sharp(svgBuffer).png().toBuffer();
 }
 
@@ -282,10 +331,11 @@ async function svgToPng(svgString) {
  */
 async function generateScreenshot(platformId, meta, imageProbe, baseUrl, options = {}) {
   const svgString = generateCardSVG(platformId, meta, imageProbe, baseUrl, options);
+  const { scale = '1x', format = 'svg' } = options;
   return {
     svg: svgString,
-    buffer: await svgToPng(svgString),
-    mimeType: options.format === 'png' ? 'image/png' : 'image/svg+xml',
+    buffer: await svgToPng(svgString, scale),
+    mimeType: format === 'png' ? 'image/png' : 'image/svg+xml',
   };
 }
 

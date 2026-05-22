@@ -261,6 +261,115 @@ app.get('/api/sitemap', async (req, res) => {
 });
 
 /**
+ * GET /api/screenshot — Generate PNG screenshot of a platform card
+ * Query params: url, platform, theme (light|dark), scale (1x|2x), format (svg|png)
+ */
+app.get('/api/screenshot', async (req, res) => {
+  const { url, platform, theme = 'dark', scale = '1x', format = 'svg' } = req.query;
+
+  // Rate limiting
+  const clientIp = req.ip || req.connection.remoteAddress || 'unknown';
+  const rateLimit = checkRateLimit(clientIp, 30);
+  if (!rateLimit.allowed) {
+    return res.status(429).json({
+      error: 'Rate limit exceeded',
+      message: 'Too many screenshot requests. Please try again later.',
+      retryAfter: 3600
+    });
+  }
+
+  // Validate platform
+  if (!platform || !isValidPlatform(platform)) {
+    return res.status(400).json({
+      error: 'Invalid platform',
+      message: `Platform must be one of: ${PLATFORMS.map(p => p.id).join(', ')}`
+    });
+  }
+
+  // Validate theme
+  if (!['light', 'dark'].includes(theme)) {
+    return res.status(400).json({
+      error: 'Invalid theme',
+      message: 'Theme must be either "light" or "dark"'
+    });
+  }
+
+  // Validate scale
+  if (!['1x', '2x'].includes(scale)) {
+    return res.status(400).json({
+      error: 'Invalid scale',
+      message: 'Scale must be either "1x" or "2x"'
+    });
+  }
+
+  // Validate format
+  if (!['svg', 'png'].includes(format)) {
+    return res.status(400).json({
+      error: 'Invalid format',
+      message: 'Format must be either "svg" or "png"'
+    });
+  }
+
+  // URL is required for GET endpoint
+  if (!url) {
+    return res.status(400).json({ error: 'Missing ?url= parameter' });
+  }
+
+  // Validate URL
+  try {
+    const parsedUrl = new URL(url);
+    if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+      return res.status(400).json({ error: 'Only http and https URLs are supported' });
+    }
+  } catch (_) {
+    return res.status(400).json({ error: 'Invalid URL' });
+  }
+
+  try {
+    const { html, finalUrl, redirectChain, responseHeaders, statusCode } =
+      await fetchUrl(url);
+
+    const meta = parseMetaTags(html, finalUrl);
+
+    // Probe image dimensions
+    let imageProbe = null;
+    const imageUrl = meta.og.image || meta.twitter.image;
+    if (imageUrl) {
+      try {
+        imageProbe = await probeImage(imageUrl);
+      } catch (_) {
+        // non-fatal
+      }
+    }
+
+    // Generate screenshot
+    const screenshot = await generateScreenshot(
+      platform,
+      meta,
+      imageProbe,
+      finalUrl,
+      { withFrame: false, format, theme, scale }
+    );
+
+    // Set response headers
+    res.setHeader('X-RateLimit-Remaining', rateLimit.remaining.toString());
+
+    if (format === 'png') {
+      res.setHeader('Content-Type', 'image/png');
+      res.setHeader('Content-Disposition', `attachment; filename="${platform}-card.png"`);
+      res.send(screenshot.buffer);
+    } else {
+      res.setHeader('Content-Type', 'image/svg+xml');
+      res.setHeader('Content-Disposition', `attachment; filename="${platform}-card.svg"`);
+      res.send(screenshot.svg);
+    }
+  } catch (err) {
+    console.error('Screenshot generation error:', err.message);
+    res.status(502).json({ error: `Failed to generate screenshot: ${err.message}` });
+  }
+});
+
+/**
  * POST /api/screenshot — Generate PNG screenshot of a platform card
  */
 app.post('/api/screenshot', async (req, res) => {

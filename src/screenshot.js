@@ -295,6 +295,213 @@ function generatePlatformCardContent(platformId, title, desc, image, domain, sit
         </g>
       `;
 
+    case 'mastodon':
+      const mastoDescColor = theme === 'dark' ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.75)';
+      return `
+        ${imageSection}
+        <g transform="translate(20, ${textY})">
+          <text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="600" fill="${textColor}" width="${textWidth}">${escHtml(trunc(title, 70))}</text>
+          ${desc ? `<text y="26" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="${mastoDescColor}" width="${textWidth}">${escHtml(trunc(desc, 200))}</text>` : ''}
+        </g>
+      `;
+
+    case 'bluesky':
+      const bskyDescColor = theme === 'dark' ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.75)';
+      return `
+        ${imageSection}
+        <g transform="translate(20, ${textY})">
+          <text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="600" fill="${textColor}" width="${textWidth}">${escHtml(trunc(title, 70))}</text>
+          ${desc ? `<text y="26" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="${bskyDescColor}" width="${textWidth}">${escHtml(trunc(desc, 200))}</text>` : ''}
+          <text y="${desc ? 54 : 28}" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="${domainColor}">${escHtml(domain)}</text>
+        </g>
+      `;
+
+    case 'tumblr':
+      const tumblrDescColor = theme === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)';
+      return `
+        ${imageSection}
+        <g transform="translate(20, ${textY})">
+          <text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="600" fill="${textColor}" width="${textWidth}">${escHtml(trunc(title, 70))}</text>
+          ${desc ? `<text y="26" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="${tumblrDescColor}" width="${textWidth}">${escHtml(trunc(desc, 180))}</text>` : ''}
+        </g>
+      `;
+
+    case 'pinterest':
+      const pinDescColor = theme === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)';
+      return `
+        ${imageSection}
+        <g transform="translate(20, ${textY})">
+          <text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="600" fill="${textColor}" width="${textWidth}">${escHtml(trunc(title, 70))}</text>
+          ${desc ? `<text y="26" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="${pinDescColor}" width="${textWidth}">${escHtml(trunc(desc, 180))}</text>` : ''}
+          <text y="${desc ? 54 : 28}" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="${domainColor}">${escHtml(domain)}</text>
+        </g>
+      `;
+
+    case 'signal':
+      const signalDescColor = theme === 'dark' ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)';
+      return `
+        ${imageSection}
+        <g transform="translate(20, ${textY})">
+          <text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="600" fill="${textColor}" width="${textWidth}">${escHtml(trunc(title, 60))}</text>
+          ${desc ? `<text y="26" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="${signalDescColor}" width="${textWidth}">${escHtml(trunc(desc, 160))}</text>` : ''}
+        </g>
+      `;
+
+    case 'teams':
+      const teamsDescColor = theme === 'dark' ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)';
+      return `
+        <rect x="20" y="60" width="${width - 40}" height="4" fill="${themeColor}"/>
+        ${imageSection}
+        <g transform="translate(20, ${textY})">
+          <text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="600" fill="${textColor}" width="${textWidth}">${escHtml(trunc(title, 70))}</text>
+          ${desc ? `<text y="26" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="${teamsDescColor}" width="${textWidth}">${escHtml(trunc(desc, 200))}</text>` : ''}
+        </g>
+      `;
+
+    case 'googlechat':
+      const gcDescColor = theme === 'dark' ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)';
+      return `
+        ${imageSection}
+        <g transform="translate(20, ${textY})">
+          <text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="600" fill="${textColor}" width="${textWidth}">${escHtml(trunc(title, 70))}</text>
+          ${desc ? `<text y="26" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="${gcDescColor}" width="${textWidth}">${escHtml(trunc(desc, 200))}</text>` : ''}
+        </g>
+      `;
+
+    case 'zoom':
+      const zoomDescColor = theme === 'dark' ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)';
+      return `
+        ${imageSection}
+        <g transform="translate(20, ${textY})">
+          <text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="600" fill="${textColor}" width="${textWidth}">${escHtml(trunc(title, 70))}</text>
+          ${desc ? `<text y="26" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="${zoomDescColor}" width="${textWidth}">${escHtml(trunc(desc, 200))}</text>` : ''}
+        </g>
+      `;
+
+    case 'line':
+      const lineDescColor = theme === 'dark' ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)';
+      return `
+        ${imageSection}
+        <g transform="translate(20, ${textY})">
+          <text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="600" fill="${textColor}" width="${textWidth}">${escHtml(trunc(title, 60))}</text>
+          ${desc ? `<text y="26" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="${lineDescColor}" width="${textWidth}">${escHtml(trunc(desc, 160))}</text>` : ''}
+        </g>
+      `;
+
+    case 'kakaotalk':
+      const kakaoDescColor = theme === 'dark' ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)';
+      return `
+        ${imageSection}
+        <g transform="translate(20, ${textY})">
+          <text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="600" fill="${textColor}" width="${textWidth}">${escHtml(trunc(title, 60))}</text>
+          ${desc ? `<text y="26" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="${kakaoDescColor}" width="${textWidth}">${escHtml(trunc(desc, 160))}</text>` : ''}
+        </g>
+      `;
+
+    case 'notion':
+      const notionDescColor = theme === 'dark' ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.75)';
+      return `
+        ${imageSection}
+        <g transform="translate(20, ${textY})">
+          <text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="600" fill="${textColor}" width="${textWidth}">${escHtml(trunc(title, 70))}</text>
+          ${desc ? `<text y="26" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="${notionDescColor}" width="${textWidth}">${escHtml(trunc(desc, 180))}</text>` : ''}
+          <text y="${desc ? 54 : 28}" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="${domainColor}">${escHtml(domain)}</text>
+        </g>
+      `;
+
+    case 'jira':
+      const jiraDescColor = theme === 'dark' ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.75)';
+      return `
+        ${imageSection}
+        <g transform="translate(20, ${textY})">
+          <text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="600" fill="${textColor}" width="${textWidth}">${escHtml(trunc(title, 70))}</text>
+          ${desc ? `<text y="26" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="${jiraDescColor}" width="${textWidth}">${escHtml(trunc(desc, 180))}</text>` : ''}
+        </g>
+      `;
+
+    case 'github':
+      return `
+        ${imageSection}
+        <g transform="translate(20, ${textY})">
+          <text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="600" fill="${textColor}" width="${textWidth}">${escHtml(trunc(title, 70))}</text>
+          ${desc ? `<text y="26" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="${subtextColor}" width="${textWidth}">${escHtml(trunc(desc, 180))}</text>` : ''}
+          <text y="${desc ? 54 : 28}" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="${domainColor}">${escHtml(domain)}</text>
+        </g>
+      `;
+
+    case 'trello':
+      const trelloDescColor = theme === 'dark' ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.75)';
+      return `
+        ${imageSection}
+        <g transform="translate(20, ${textY})">
+          <text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="600" fill="${textColor}" width="${textWidth}">${escHtml(trunc(title, 70))}</text>
+          ${desc ? `<text y="26" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="${trelloDescColor}" width="${textWidth}">${escHtml(trunc(desc, 180))}</text>` : ''}
+        </g>
+      `;
+
+    case 'figma':
+      const figmaDescColor = theme === 'dark' ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.75)';
+      return `
+        ${imageSection}
+        <g transform="translate(20, ${textY})">
+          <text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="600" fill="${textColor}" width="${textWidth}">${escHtml(trunc(title, 70))}</text>
+          ${desc ? `<text y="26" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="${figmaDescColor}" width="${textWidth}">${escHtml(trunc(desc, 180))}</text>` : ''}
+        </g>
+      `;
+
+    case 'medium':
+      const mediumDescColor = theme === 'dark' ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.75)';
+      return `
+        ${imageSection}
+        <g transform="translate(20, ${textY})">
+          <text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="600" fill="${textColor}" width="${textWidth}">${escHtml(trunc(title, 80))}</text>
+          ${desc ? `<text y="26" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="${mediumDescColor}" width="${textWidth}">${escHtml(trunc(desc, 200))}</text>` : ''}
+          <text y="${desc ? 54 : 28}" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="${domainColor}">${escHtml(domain)}</text>
+        </g>
+      `;
+
+    case 'substack':
+      const substackDescColor = theme === 'dark' ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.75)';
+      return `
+        ${imageSection}
+        <g transform="translate(20, ${textY})">
+          <text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="600" fill="${textColor}" width="${textWidth}">${escHtml(trunc(title, 80))}</text>
+          ${desc ? `<text y="26" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="${substackDescColor}" width="${textWidth}">${escHtml(trunc(desc, 200))}</text>` : ''}
+        </g>
+      `;
+
+    case 'outlook':
+      const outlookDescColor = theme === 'dark' ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)';
+      return `
+        ${imageSection}
+        <g transform="translate(20, ${textY})">
+          <text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="600" fill="${textColor}" width="${textWidth}">${escHtml(trunc(title, 70))}</text>
+          ${desc ? `<text y="26" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="${outlookDescColor}" width="${textWidth}">${escHtml(trunc(desc, 180))}</text>` : ''}
+          <text y="${desc ? 54 : 28}" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="${domainColor}">${escHtml(domain)}</text>
+        </g>
+      `;
+
+    case 'gmail':
+      const gmailDescColor = theme === 'dark' ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)';
+      return `
+        ${imageSection}
+        <g transform="translate(20, ${textY})">
+          <text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="600" fill="${textColor}" width="${textWidth}">${escHtml(trunc(title, 70))}</text>
+          ${desc ? `<text y="26" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="${gmailDescColor}" width="${textWidth}">${escHtml(trunc(desc, 180))}</text>` : ''}
+          <text y="${desc ? 54 : 28}" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="${domainColor}">${escHtml(domain)}</text>
+        </g>
+      `;
+
+    case 'feedly':
+      const feedlyDescColor = theme === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)';
+      return `
+        ${imageSection}
+        <g transform="translate(20, ${textY})">
+          <text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="600" fill="${textColor}" width="${textWidth}">${escHtml(trunc(title, 70))}</text>
+          ${desc ? `<text y="26" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="${feedlyDescColor}" width="${textWidth}">${escHtml(trunc(desc, 180))}</text>` : ''}
+        </g>
+      `;
+
     default:
       // Default card layout for all other platforms (theme-aware)
       return `

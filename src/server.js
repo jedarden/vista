@@ -852,6 +852,77 @@ app.get('/api/compare', async (req, res) => {
 });
 
 /**
+ * POST /api/purge
+ * Server-side cache invalidation for a URL
+ * Body: { url: string, platforms?: string[] }
+ * Clears server-side in-memory cache and optionally purges external platform caches
+ */
+app.post('/api/purge', async (req, res) => {
+  const { url, platforms } = req.body;
+
+  if (!url) {
+    return res.status(400).json({ error: 'Missing url in request body' });
+  }
+
+  // Validate URL
+  try {
+    const parsedUrl = new URL(url);
+    if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+      return res.status(400).json({ error: 'Only http and https URLs are supported' });
+    }
+  } catch (_) {
+    return res.status(400).json({ error: 'Invalid URL' });
+  }
+
+  const results = {
+    url,
+    purged: [],
+    failed: [],
+    skipped: [],
+  };
+
+  // Clear server-side in-memory badge cache
+  const hadCachedBadge = badgeCache.delete(url);
+  if (hadCachedBadge) {
+    results.purged.push('server-badge-cache');
+  } else {
+    results.skipped.push('server-badge-cache');
+  }
+
+  // Platform-specific cache purging
+  const platformsToPurge = platforms || ['facebook'];
+  const serverFbToken = process.env.FACEBOOK_APP_TOKEN;
+
+  for (const platform of platformsToPurge) {
+    try {
+      if (platform === 'facebook') {
+        if (serverFbToken) {
+          // Server-side Facebook cache purge
+          const fbUrl = `https://graph.facebook.com/v18.0/?id=${encodeURIComponent(url)}&scrape=true&access_token=${encodeURIComponent(serverFbToken)}`;
+          const response = await fetch(fbUrl, { method: 'POST' });
+          const data = await response.json();
+
+          if (data.error) {
+            results.failed.push({ platform, error: data.error.message });
+          } else {
+            results.purged.push('facebook-cache');
+          }
+        } else {
+          // No server token configured - skip but inform
+          results.skipped.push('facebook-cache (no server token configured)');
+        }
+      } else {
+        results.skipped.push(`${platform}-cache (not supported server-side yet)`);
+      }
+    } catch (err) {
+      results.failed.push({ platform, error: err.message });
+    }
+  }
+
+  res.json(results);
+});
+
+/**
  * GET /api/health
  */
 app.get('/api/health', (req, res) => {

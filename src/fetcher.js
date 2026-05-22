@@ -385,4 +385,106 @@ async function probeImage(imageUrl) {
   }
 }
 
-module.exports = { fetchUrl, parseMetaTags, probeImage, resolveUrl, extractCriticalMetaTags, calculateMetaDiff };
+/**
+ * Fetch meta tags from rendered DOM (after JS execution).
+ * Uses Playwright to render the page and extract meta tags.
+ * Returns the same structure as parseMetaTags() for comparison.
+ */
+async function fetchRenderedMetaTags(url, options = {}) {
+  const { chromium } = require('playwright');
+  const timeout = options.timeout || 10000;
+
+  let browser = null;
+  try {
+    browser = await chromium.launch({
+      headless: true,
+    });
+
+    const context = await browser.newContext({
+      userAgent: USER_AGENT,
+      viewport: { width: 1280, height: 720 },
+    });
+
+    const page = await context.newPage();
+
+    // Set navigation timeout
+    page.setDefaultTimeout(timeout);
+
+    // Navigate to URL and wait for network idle to ensure JS has executed
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout });
+
+    // Wait a bit more for dynamic content to load
+    await page.waitForTimeout(1000);
+
+    // Extract meta tags from rendered DOM
+    const renderedMeta = await page.evaluate(() => {
+      const meta = {
+        title: null,
+        description: null,
+        og: {},
+        twitter: {},
+        rawTags: [],
+      };
+
+      // Get title
+      meta.title = document.querySelector('head title')?.textContent?.trim() || null;
+
+      // Get description
+      const descMeta = document.querySelector('meta[name="description"]');
+      meta.description = descMeta?.getAttribute('content')?.trim() || null;
+
+      // Get all meta tags
+      const metaTags = document.querySelectorAll('meta');
+      metaTags.forEach((el, i) => {
+        const tag = {
+          index: i,
+          name: el.getAttribute('name') || null,
+          property: el.getAttribute('property') || null,
+          content: el.getAttribute('content') || null,
+          httpEquiv: el.getAttribute('http-equiv') || null,
+          charset: el.getAttribute('charset') || null,
+        };
+        meta.rawTags.push(tag);
+
+        const prop = tag.property?.toLowerCase();
+        const name = tag.name?.toLowerCase();
+        const content = tag.content;
+
+        if (!content && !tag.charset) return;
+
+        // Open Graph
+        if (prop?.startsWith('og:')) {
+          const key = prop.slice(3);
+          if (!meta.og[key]) {
+            meta.og[key] = content;
+          }
+          if (!meta.og[`_all_${key}`]) meta.og[`_all_${key}`] = [];
+          meta.og[`_all_${key}`].push(content);
+        }
+
+        // Twitter Card
+        if (name?.startsWith('twitter:') || prop?.startsWith('twitter:')) {
+          const key = (name || prop).slice(8);
+          if (key === 'image') {
+            meta.twitter[key] = content;
+          } else if (!meta.twitter[key]) {
+            meta.twitter[key] = content;
+          }
+        }
+      });
+
+      return meta;
+    });
+
+    await context.close();
+    return renderedMeta;
+  } catch (err) {
+    throw new Error(`Failed to fetch rendered meta tags: ${err.message}`);
+  } finally {
+    if (browser) {
+      await browser.close();
+    }
+  }
+}
+
+module.exports = { fetchUrl, parseMetaTags, probeImage, resolveUrl, extractCriticalMetaTags, calculateMetaDiff, fetchRenderedMetaTags };

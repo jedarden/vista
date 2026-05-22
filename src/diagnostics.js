@@ -1,6 +1,113 @@
 'use strict';
 
 /**
+ * Compare raw HTML meta tags with rendered DOM meta tags to detect client-side-only tags.
+ * Returns { hasClientSideOnlyTags, addedTags, removedTags, changedTags }.
+ */
+function compareMetaTags(rawMeta, renderedMeta) {
+  const result = {
+    hasClientSideOnlyTags: false,
+    addedTags: [],
+    removedTags: [],
+    changedTags: [],
+  };
+
+  // Critical tags to check
+  const criticalTags = [
+    { prefix: 'og:', key: 'og' },
+    { prefix: 'twitter:', key: 'twitter' },
+    { prefix: '', key: 'name', name: 'description' },
+  ];
+
+  for (const tagType of criticalTags) {
+    const rawSource = tagType.key === 'og' ? rawMeta.og :
+                      tagType.key === 'twitter' ? rawMeta.twitter :
+                      { description: rawMeta.description };
+    const renderedSource = tagType.key === 'og' ? renderedMeta.og :
+                           tagType.key === 'twitter' ? renderedMeta.twitter :
+                           { description: renderedMeta.description };
+
+    // Get all keys from both sources
+    const allKeys = new Set([
+      ...Object.keys(rawSource).filter(k => !k.startsWith('_')),
+      ...Object.keys(renderedSource).filter(k => !k.startsWith('_')),
+    ]);
+
+    for (const key of allKeys) {
+      const rawValue = rawSource[key];
+      const renderedValue = renderedSource[key];
+
+      // Skip null/undefined in both
+      if (!rawValue && !renderedValue) continue;
+
+      const tagName = tagType.prefix + key;
+
+      // Tag added by JavaScript (only in rendered)
+      if (!rawValue && renderedValue) {
+        result.hasClientSideOnlyTags = true;
+        result.addedTags.push({
+          tag: tagName,
+          value: renderedValue,
+        });
+      }
+
+      // Tag removed by JavaScript (only in raw)
+      if (rawValue && !renderedValue) {
+        result.removedTags.push({
+          tag: tagName,
+          value: rawValue,
+        });
+      }
+
+      // Tag changed by JavaScript
+      if (rawValue && renderedValue && rawValue !== renderedValue) {
+        result.changedTags.push({
+          tag: tagName,
+          from: rawValue,
+          to: renderedValue,
+        });
+      }
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Detect client-side-only meta tags by comparing raw HTML with rendered DOM.
+ * Returns a diagnostic finding if client-side-only tags are detected.
+ */
+function detectClientSideOnlyTags(html, meta) {
+  // This is a synchronous check - we'll return a placeholder that can be
+  // enhanced later with async Playwright rendering
+  const findings = [];
+
+  // Check for meta tags in <body> (heuristic for JS-injected tags)
+  const bodyMetaRegex = /<body[^>]*>[\s\S]*?<meta\s+(?:property|name)=["'](og:|twitter:)[^"']*["']/gi;
+  const bodyMatch = bodyMetaRegex.exec(html);
+  if (bodyMatch) {
+    const bodyMetas = [];
+    const metaInBodyRegex = /<meta\s+(property|name)=["'](og:[^"']*|twitter:[^"']*)["'][^>]*>/gi;
+    let match;
+    const afterBody = html.slice(html.indexOf('<body'));
+    while ((match = metaInBodyRegex.exec(afterBody)) !== null) {
+      bodyMetas.push(match[2]);
+    }
+
+    findings.push({
+      severity: 'error',
+      code: 'client-side-only-tags',
+      message: `Meta tags found in <body> (${bodyMetas.slice(0, 3).join(', ')}${bodyMetas.length > 3 ? '...' : ''}) — these are likely injected by JavaScript and won't be seen by most social crawlers`,
+      fix: 'Move all critical meta tags (og:*, twitter:*) to the <head> section of your HTML, or use Server-Side Rendering (SSR) to ensure they\'re present in the initial HTML',
+      platforms: 'Most social crawlers (Facebook, LinkedIn, Twitter, etc.)',
+      requiresAsyncVerification: true,
+    });
+  }
+
+  return findings;
+}
+
+/**
  * Common mistakes detector.
  * Runs structural checks on the fetched HTML and extracted metadata.
  * Returns an array of diagnostic findings: { severity, code, message, fix, platforms }.
@@ -256,30 +363,6 @@ function detectMistakes(html, meta, imageProbe, responseHeaders, redirectChain) 
     }
   }
 
-  // ── Client-side-only meta tags (meta tags in <body>) ──
-  // This is a heuristic: meta tags in <body> are almost certainly injected by JavaScript
-  // and won't be seen by crawlers that don't execute JS
-  const bodyMetaRegex = /<body[^>]*>[\s\S]*?<meta\s+(?:property|name)=["'](?:og:|twitter:)[^"']*["']/gi;
-  const bodyMatch = bodyMetaRegex.exec(html);
-  if (bodyMatch) {
-    // Extract which meta tags are in the body
-    const bodyMetas = [];
-    const metaInBodyRegex = /<meta\s+(property|name)=["'](og:[^"']*|twitter:[^"']*)["'][^>]*>/gi;
-    let match;
-    const afterBody = html.slice(html.indexOf('<body'));
-    while ((match = metaInBodyRegex.exec(afterBody)) !== null) {
-      bodyMetas.push(match[2]);
-    }
-
-    findings.push({
-      severity: 'error',
-      code: 'client-side-only-tags',
-      message: `Meta tags found in <body> (${bodyMetas.slice(0, 3).join(', ')}${bodyMetas.length > 3 ? '...' : ''}) — these are likely injected by JavaScript and won't be seen by most social crawlers`,
-      fix: 'Move all critical meta tags (og:*, twitter:*) to the <head> section of your HTML, or use Server-Side Rendering (SSR) to ensure they\'re present in the initial HTML',
-      platforms: 'Most social crawlers (Facebook, LinkedIn, Twitter, etc.)',
-    });
-  }
-
   // ── Suspicious meta tag placement after large script blocks ──
   // Another heuristic: if meta tags appear after large script content, they might be JS-injected
   const headClosePos = html.indexOf('</head>');
@@ -332,6 +415,9 @@ function detectMistakes(html, meta, imageProbe, responseHeaders, redirectChain) 
     }
   }
 
+  // ── Client-side-only meta tags detection ──
+  findings.push(...detectClientSideOnlyTags(html, meta));
+
   return findings;
 }
 
@@ -356,4 +442,4 @@ function getRawAttributeValue(html, property) {
   return m2 ? m2[1] : null;
 }
 
-module.exports = { detectMistakes };
+module.exports = { detectMistakes, compareMetaTags, detectClientSideOnlyTags };

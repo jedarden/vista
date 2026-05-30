@@ -2371,3 +2371,161 @@ body.has-results { padding-bottom: 48px; }
 .context-menu-item.favorited .context-menu-icon {
   color: var(--yellow);
 }
+
+/* ============================================================================
+   Platform Context Frame Theme Variables
+   CSS custom properties for dark/light theme support
+   Generated from platform-frames.js module
+   ============================================================================ */
+
+/* Twitter/X Theme Variables */
+.twitter-context.dark-theme {
+  --frame-bg: #000000;
+  --frame-surface: #16181c;
+  --frame-border: #2f3336;
+  --frame-text-primary: #e7e9ea;
+  --frame-text-secondary: #71767b;
+  --frame-text-muted: #71767b;
+  --frame-accent: #1d9bf0;
+  --frame-accent-bg: #1d9bf0;
+  --frame-link-color: #1d9bf0;
+  --frame-divider: #2f3336;
+  --frame-input-bg: #202327;
+  --frame-overlay: rgba(91, 112, 131, 0.4);
+}
+.twitter-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #f7f9f9;
+  --frame-border: #eff3f4;
+  --frame-text-primary: #0f1419;
+  --frame-text-secondary: #536471;
+  --frame-text-muted: #536471;
+  --frame-accent: #1d9bf0;
+  --frame-accent-bg: #e8f5fe;
+  --frame-link-color: #1d9bf0;
+  --frame-divider: #eff3f4;
+  --frame-input-bg: #eff3f4;
+  --frame-overlay: rgba(0, 0, 0, 0.08);
+}
+
+/* Slack Theme Variables */
+.slack-context.dark-theme {
+  --frame-bg: #1a1d23;
+  --frame-surface: #23262c;
+  --frame-border: #3a3d44;
+  --frame-text-primary: #e0e0e0;
+  --frame-text-secondary: #b0b0b0;
+  --frame-text-muted: #6a6a6a;
+  --frame-accent: #2ac7de;
+  --frame-accent-bg: #2ac7de;
+  --frame-link-color: #2ac7de;
+  --frame-divider: #3a3d44;
+  --frame-input-bg: #23262c;
+  --frame-overlay: rgba(0, 0, 0, 0.5);
+}
+.slack-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #f8f8f8;
+  --frame-border: #e0e0e0;
+  --frame-text-primary: #1a1a1a;
+  --frame-text-secondary: #616061;
+  --frame-text-muted: #9a9a9a;
+  --frame-accent: #2ac7de;
+  --frame-accent-bg: #e0f7fa;
+  --frame-link-color: #2ac7de;
+  --frame-divider: #e0e0e0;
+  --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* Discord Theme Variables */
+.discord-context.dark-theme {
+  --frame-bg: #313338;
+  --frame-surface: #2b2d31;
+  --frame-border: #3f4147;
+  --frame-text-primary: #dbdee1;
+  --frame-text-secondary: #949ba4;
+  --frame-text-muted: #4e5058;
+  --frame-accent: #5865f2;
+  --frame-accent-bg: #5865f2;
+  --frame-link-color: #00a8fc;
+  --frame-divider: #3f4147;
+  --frame-input-bg: #383a40;
+  --frame-overlay: rgba(0, 0, 0, 0.6);
+}
+.discord-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #f2f3f5;
+  --frame-border: #e3e5e8;
+  --frame-text-primary: #060607;
+  --frame-text-secondary: #4e5058;
+  --frame-text-muted: #949ba4;
+  --frame-accent: #5865f2;
+  --frame-accent-bg: #e8f0ff;
+  --frame-link-color: #00a8fc;
+  --frame-divider: #e3e5e8;
+  --frame-input-bg: #f8f9fa;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* Facebook Theme Variables (no theme toggle, defaults to light) */
+.facebook-context {
+  --frame-bg: #ffffff;
+  --frame-surface: #f0f2f5;
+  --frame-border: #ced0d4;
+  --frame-text-primary: #050505;
+  --frame-text-secondary: #65676b;
+  --frame-text-muted: #b0b3b8;
+  --frame-accent: #1877f2;
+  --frame-accent-bg: #e7f3ff;
+  --frame-link-color: #1877f2;
+  --frame-divider: #ced0d4;
+  --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* Google Theme Variables (no theme toggle, defaults to light) */
+.google-context {
+  --frame-bg: #ffffff;
+  --frame-surface: #f1f3f4;
+  --frame-border: #dadce0;
+  --frame-text-primary: #202124;
+  --frame-text-secondary: #5f6368;
+  --frame-text-muted: #9aa0a6;
+  --frame-accent: #1a73e8;
+  --frame-accent-bg: #e8f0fe;
+  --frame-link-color: #1a73e8;
+  --frame-divider: #dadce0;
+  --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* Generic Platform Theme Variables (fallback) */
+.generic-context {
+  --frame-bg: #1a1a2e;
+  --frame-surface: #16213e;
+  --frame-border: #3a3a5c;
+  --frame-text-primary: #e0e0e0;
+  --frame-text-secondary: #b0b0b0;
+  --frame-text-muted: #6a6a6a;
+  --frame-accent: #4a9eff;
+  --frame-accent-bg: #4a9eff;
+  --frame-link-color: #4a9eff;
+  --frame-divider: #3a3a5c;
+  --frame-input-bg: #23263a;
+  --frame-overlay: rgba(0, 0, 0, 0.5);
+}
+.generic-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #f8f9fa;
+  --frame-border: #e0e0e0;
+  --frame-text-primary: #1a1a1a;
+  --frame-text-secondary: #666666;
+  --frame-text-muted: #999999;
+  --frame-accent: #0066cc;
+  --frame-accent-bg: #e6f2ff;
+  --frame-link-color: #0066cc;
+  --frame-divider: #e0e0e0;
+  --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}

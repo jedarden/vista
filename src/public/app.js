@@ -1094,8 +1094,10 @@ async function downloadScreenshot(pid, data) {
   }
 }
 
-// Platforms that support dark/light mode
-const PLATFORMS_WITH_THEME = ['discord', 'slack', 'twitter', 'telegram', 'github'];
+// Platforms that support dark/light mode (from platform-frames module)
+const PLATFORMS_WITH_THEME = typeof getPlatformsWithThemeSupport === 'function'
+  ? getPlatformsWithThemeSupport()
+  : ['discord', 'slack', 'twitter', 'telegram', 'github']; // fallback if module not loaded
 
 function toggleCardContext(pid, data) {
   cardContextState[pid].context = !cardContextState[pid].context;
@@ -1436,12 +1438,47 @@ function renderPlatformCard(pid, meta, imageProbe, baseUrl, dominantColor) {
 }
 
 // ── Platform Context Frame Renderers ──
+// Uses platform-frames module for structured context frame generation
 function renderPlatformWithContext(pid, meta, imageProbe, baseUrl, theme = 'dark', dominantColor) {
   const ogTitle = meta.og.title || meta.title || '';
   const ogDesc = meta.og.description || meta.description || '';
   const ogImage = meta.og.image || meta.twitter.image || '';
   const ogSite = meta.og.site_name || '';
   const domain = getDomain(baseUrl);
+  const themeColor = meta.themeColor || '#5865f2';
+
+  // Prepare content data for the platform frame
+  const contentData = {
+    title: ogTitle,
+    description: ogDesc,
+    image: ogImage,
+    domain: domain,
+    site: ogSite,
+    dominantColor: dominantColor,
+    themeColor: themeColor,
+  };
+
+  // Use new platform-frames module for platforms with structured frames
+  if (typeof buildContextFrame === 'function') {
+    switch (pid) {
+      case 'twitter':
+      case 'slack':
+      case 'discord':
+        // Proof of concept: use new structured frame generation
+        return buildContextFrame(pid, contentData, theme);
+
+      // Other platforms still use legacy renderers (to be migrated)
+      default:
+        return renderPlatformWithContextLegacy(pid, ogTitle, ogDesc, ogImage, domain, ogSite, theme, dominantColor, meta, imageProbe, baseUrl);
+    }
+  } else {
+    // Fallback if platform-frames module not loaded
+    return renderPlatformWithContextLegacy(pid, ogTitle, ogDesc, ogImage, domain, ogSite, theme, dominantColor, meta, imageProbe, baseUrl);
+  }
+}
+
+// Legacy context frame renderer (for platforms not yet migrated)
+function renderPlatformWithContextLegacy(pid, ogTitle, ogDesc, ogImage, domain, ogSite, theme, dominantColor, meta, imageProbe, baseUrl) {
   const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
 
   switch (pid) {

@@ -6940,7 +6940,7 @@ const SWIPE_ANGLE_LIMIT = 30; // Maximum angle from horizontal/vertical
 const LONG_PRESS_DURATION = 500; // ms
 
 // Check if user prefers reduced motion
-const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const prefersReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 function initMobileLongPress() {
   // Use event delegation to handle touch gestures on dynamically added cards

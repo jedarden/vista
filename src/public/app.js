@@ -418,15 +418,15 @@ async function inspectUrl(url) {
     url = 'https://' + url;
     urlInput.value = url;
   }
-  renderSkeletons(); // Show skeletons immediately at 0ms
-  showLoading();
+  renderSkeletons(); // Show skeletons immediately at 0ms - skeleton cards serve as loading indicator
   try {
     const resp = await fetch(`/api/preview?url=${encodeURIComponent(url)}`);
     const data = await resp.json();
     if (!resp.ok) throw new Error(data.error || 'Fetch failed');
     handleResult(data);
   } catch (err) {
-    hideLoading();
+    // Clear skeletons and show error
+    previewGrid.innerHTML = '';
     showToast('Error: ' + err.message, 3000);
     const errAnnouncer = document.getElementById('errorAnnouncer');
     if (errAnnouncer) errAnnouncer.textContent = 'Error: ' + err.message;
@@ -435,8 +435,7 @@ async function inspectUrl(url) {
 
 async function inspectHtml(html, base) {
   if (!html) { showToast('Please paste some HTML first.', 2000); return; }
-  renderSkeletons(); // Show skeletons immediately at 0ms
-  showLoading();
+  renderSkeletons(); // Show skeletons immediately at 0ms - skeleton cards serve as loading indicator
   try {
     const resp = await fetch(`/api/preview${base ? '?base=' + encodeURIComponent(base) : ''}`, {
       method: 'POST',
@@ -447,7 +446,8 @@ async function inspectHtml(html, base) {
     if (!resp.ok) throw new Error(data.error || 'Parse failed');
     handleResult(data);
   } catch (err) {
-    hideLoading();
+    // Clear skeletons and show error
+    previewGrid.innerHTML = '';
     showToast('Error: ' + err.message, 3000);
   }
 }
@@ -603,10 +603,7 @@ async function handleResult(data) {
     await new Promise(resolve => setTimeout(resolve, 150));
   }
 
-  // Hide loading overlay after skeleton fade-out starts
-  hideLoading();
-
-  // Render all panels with fade-in
+  // Render all panels with fade-in (skeleton cards already served as loading indicator)
   renderSummaryBar(data);
   renderPreviews(data);
   initCropper(data);

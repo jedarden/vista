@@ -418,6 +418,7 @@ async function inspectUrl(url) {
     url = 'https://' + url;
     urlInput.value = url;
   }
+  renderSkeletons(); // Show skeletons immediately at 0ms
   showLoading();
   try {
     const resp = await fetch(`/api/preview?url=${encodeURIComponent(url)}`);
@@ -434,6 +435,7 @@ async function inspectUrl(url) {
 
 async function inspectHtml(html, base) {
   if (!html) { showToast('Please paste some HTML first.', 2000); return; }
+  renderSkeletons(); // Show skeletons immediately at 0ms
   showLoading();
   try {
     const resp = await fetch(`/api/preview${base ? '?base=' + encodeURIComponent(base) : ''}`, {
@@ -561,7 +563,6 @@ async function verifyClientSideTags(html, serverMeta) {
 }
 
 async function handleResult(data) {
-  hideLoading();
   currentData = data;
   window.currentRedirectChain = data.redirectChain || null;
   saveToRecents(data);
@@ -590,7 +591,22 @@ async function handleResult(data) {
     }
   }
 
-  // Render all panels
+  // Crossfade from skeleton to content
+  const skeletonCards = document.querySelectorAll('.platform-skeleton-card');
+  if (skeletonCards.length > 0 && !prefersReducedMotion()) {
+    // Fade out skeletons
+    skeletonCards.forEach(card => {
+      card.classList.add('skeleton-fade-out');
+    });
+
+    // Wait for fade-out to complete, then render content
+    await new Promise(resolve => setTimeout(resolve, 150));
+  }
+
+  // Hide loading overlay after skeleton fade-out starts
+  hideLoading();
+
+  // Render all panels with fade-in
   renderSummaryBar(data);
   renderPreviews(data);
   initCropper(data);
@@ -773,6 +789,49 @@ const PLATFORM_NAMES = {
   medium: 'Medium', substack: 'Substack', outlook: 'Outlook', gmail: 'Gmail', feedly: 'Feedly / RSS',
 };
 
+// ── Platform Skeleton Types ──
+// Defines which skeleton layout each platform uses during loading state
+// 'tall': Image on top (Facebook, Twitter, LinkedIn, Reddit, etc.)
+// 'short': Thumbnail on left (WhatsApp, Slack, Notion, etc.)
+// 'text-only': No image region (Google search results)
+const PLATFORM_SKELETON_TYPES = {
+  // Social & Microblogging
+  google: 'text-only',
+  facebook: 'tall',
+  twitter: 'tall',
+  linkedin: 'tall',
+  reddit: 'tall',
+  mastodon: 'tall',
+  bluesky: 'tall',
+  threads: 'tall',
+  tumblr: 'tall',
+  pinterest: 'tall',
+  // Messaging
+  slack: 'short',
+  discord: 'tall',
+  whatsapp: 'short',
+  imessage: 'short',
+  telegram: 'tall',
+  signal: 'short',
+  teams: 'tall',
+  googlechat: 'tall',
+  zoom: 'tall',
+  line: 'tall',
+  kakaotalk: 'tall',
+  // Collaboration & Productivity
+  notion: 'short',
+  jira: 'short',
+  github: 'tall',
+  trello: 'short',
+  figma: 'short',
+  // Content, Email & RSS
+  medium: 'tall',
+  substack: 'tall',
+  outlook: 'short',
+  gmail: 'short',
+  feedly: 'short',
+};
+
 // ── Platform Crop Specifications ──
 // Each platform has: aspect ratio (min/max), crop mode (center/cover/contain), display size
 const PLATFORM_CROPS = {
@@ -902,6 +961,125 @@ let cropperState = {
 
 // Toggle all platforms on by default
 Object.keys(PLATFORM_CROPS).forEach(pid => cropperState.enabledPlatforms.add(pid));
+
+// ── Skeleton Rendering ──
+
+// Get skeleton HTML for a platform based on its skeleton type
+function getSkeletonHtml(pid) {
+  const skeletonType = PLATFORM_SKELETON_TYPES[pid] || 'tall';
+  const icon = PLATFORM_ICONS[pid] || '🌐';
+  const name = PLATFORM_NAMES[pid] || pid;
+
+  let bodyHtml = '';
+  if (skeletonType === 'tall') {
+    bodyHtml = `
+      <div class="skeleton-body-tall">
+        <div class="skeleton-tall-img"></div>
+        <div class="skeleton-tall-meta">
+          <div class="skeleton-tall-domain"></div>
+          <div class="skeleton-tall-title"></div>
+          <div class="skeleton-tall-desc"></div>
+          <div class="skeleton-tall-desc-short"></div>
+        </div>
+      </div>
+    `;
+  } else if (skeletonType === 'short') {
+    bodyHtml = `
+      <div class="skeleton-body-short">
+        <div class="skeleton-short-thumb"></div>
+        <div class="skeleton-short-meta">
+          <div class="skeleton-short-domain"></div>
+          <div class="skeleton-short-title"></div>
+          <div class="skeleton-short-desc"></div>
+        </div>
+      </div>
+    `;
+  } else if (skeletonType === 'text-only') {
+    bodyHtml = `
+      <div class="skeleton-body-text">
+        <div class="skeleton-text-breadcrumb">
+          <div class="skeleton-text-favicon"></div>
+          <div class="skeleton-text-domain"></div>
+        </div>
+        <div class="skeleton-text-title"></div>
+        <div class="skeleton-text-desc"></div>
+        <div class="skeleton-text-desc-short"></div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="skeleton-header">
+      <div class="skeleton-icon"></div>
+      <div class="skeleton-title"></div>
+      <div class="skeleton-badge"></div>
+    </div>
+    ${bodyHtml}
+    <div class="skeleton-footer">
+      <div class="skeleton-issue"></div>
+      <div class="skeleton-issue"></div>
+      <div class="skeleton-issue"></div>
+    </div>
+  `;
+}
+
+// Render skeleton cards for all platforms
+function renderSkeletons() {
+  previewGrid.innerHTML = '';
+  let globalIndex = 0;
+
+  PLATFORM_GROUPS.forEach((group) => {
+    const groupEl = document.createElement('div');
+    groupEl.className = 'platform-group' + (group.collapsed ? ' collapsed' : '');
+    groupEl.id = 'group-' + group.id;
+    groupEl.dataset.groupId = group.id;
+
+    const header = document.createElement('div');
+    header.className = 'platform-group-header';
+    header.innerHTML = `
+      <span class="group-chevron">&#9660;</span>
+      <span class="group-title">${escHtml(group.title)}</span>
+      <span class="group-subtitle">Loading...</span>
+    `;
+    header.addEventListener('click', () => {
+      groupEl.classList.toggle('collapsed');
+    });
+    groupEl.appendChild(header);
+
+    const row = document.createElement('div');
+    row.className = 'cards-row skeleton-row';
+    row.dataset.groupId = group.id;
+
+    // Use custom order if available, otherwise use default group order
+    let platforms = group.platforms;
+    if (platformPrefs.cardOrder[group.id]) {
+      const customOrder = platformPrefs.cardOrder[group.id].filter(pid => group.platforms.includes(pid));
+      const newPlatforms = group.platforms.filter(pid => !customOrder.includes(pid));
+      platforms = [...customOrder, ...newPlatforms];
+    }
+
+    platforms.forEach((pid, i) => {
+      const card = document.createElement('div');
+      card.className = `platform-skeleton-card`;
+      card.dataset.pid = pid;
+      card.dataset.groupId = group.id;
+
+      // Stagger animation: 50ms delay per card (unless reduced motion preferred)
+      if (!prefersReducedMotion()) {
+        card.style.animationDelay = (globalIndex * 50) + 'ms';
+      } else {
+        card.style.animationDelay = '0ms';
+      }
+
+      card.innerHTML = getSkeletonHtml(pid);
+      row.appendChild(card);
+      globalIndex++;
+    });
+
+    groupEl.appendChild(row);
+    previewGrid.appendChild(groupEl);
+  });
+}
 
 function renderPreviews(data) {
   previewGrid.innerHTML = '';

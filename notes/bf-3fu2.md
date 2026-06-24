@@ -203,3 +203,78 @@ if (platformPrefs.cardOrder[group.id]) {
 - The 200ms delay in the hook allows the UI to stabilize before reordering
 - Custom card orders (`platformPrefs.cardOrder`) are stored but not currently applied by smart ordering
 - The function is idempotent - calling it multiple times with the same data yields consistent results
+
+## Additional Analysis Notes
+
+### State Accumulation Behavior
+
+**Important:** The in-place sorting of `PLATFORM_GROUPS` creates persistent global state that accumulates across inspections:
+
+1. **First inspection (article):** Social group sorted to show twitter → facebook → linkedin...
+2. **Second inspection (product):** Social group re-sorted to show pinterest → facebook → instagram...
+3. **Third inspection (video):** Social group re-sorted again to show twitter → facebook → youtube...
+
+The sorting compounds - each call re-sorts whatever the current order is. The last-inspected page type's order wins and persists until:
+- Page is reloaded (reinitializes from source)
+- Another inspection occurs with different page type
+- User manually reorders cards (which creates `platformPrefs.cardOrder` entries)
+
+### No Reset Mechanism
+
+There is no function to reset `PLATFORM_GROUPS` to its original order. To reset:
+- Reload the page (which re-executes the source and reinitializes `PLATFORM_GROUPS`)
+- Or manually drag cards back to desired order (creates custom order entries)
+
+### PLATFORM_GROUPS Full Structure
+
+**Location:** Lines 1013-1038
+
+```javascript
+const PLATFORM_GROUPS = [
+  {
+    id: 'social',
+    title: 'Social & Microblogging',
+    collapsed: false,
+    platforms: ['google','facebook','twitter','linkedin','reddit','mastodon','bluesky','threads','tumblr','pinterest'],
+  },
+  {
+    id: 'messaging',
+    title: 'Messaging',
+    collapsed: true,
+    platforms: ['slack','discord','whatsapp','imessage','telegram','signal','teams','googlechat','zoom','line','kakaotalk'],
+  },
+  {
+    id: 'collab',
+    title: 'Collaboration & Productivity',
+    collapsed: true,
+    platforms: ['notion','jira','github','trello','figma'],
+  },
+  {
+    id: 'content',
+    title: 'Content, Email & RSS',
+    collapsed: true,
+    platforms: ['medium','substack','outlook','gmail','feedly'],
+  }
+];
+```
+
+Only platforms in the priority lists get actively reordered. Others remain in their relative positions at the end of each group.
+
+### Testing Verification
+
+To manually verify smart ordering works:
+1. Open browser DevTools and inspect a known article URL
+2. Watch for toast notification showing "Page type detected: article"
+3. Check that Social & Microblogging group shows: twitter → facebook → linkedin → reddit...
+4. Inspect a product page (e.g., e-commerce site)
+5. Verify Social group now shows: pinterest → facebook → instagram → twitter...
+
+## Summary
+
+`applySmartOrdering` is a well-integrated feature that:
+- Automatically adapts platform display order based on content type
+- Uses a clean detection hierarchy (og:type → schema.org → URL patterns)
+- Mutates global state in-place for simplicity
+- Re-renders declaratively rather than manipulating DOM directly
+- Respects user customizations when present
+- Provides clear user feedback via toast notifications

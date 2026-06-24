@@ -197,12 +197,72 @@ export interface AutoFix {
 }
 
 /**
+ * Raw parsed meta tag from HTML
+ */
+export interface RawMetaTag {
+  index: number;
+  name: string | null;
+  property: string | null;
+  content: string | null;
+  httpEquiv: string | null;
+  charset: string | null;
+  rawHtml: string;
+}
+
+/**
+ * Critical meta tags extracted for redirect hop diff analysis
+ */
+export interface HopMetaTags {
+  title: string | null;
+  description: string | null;
+  ogTitle: string | null;
+  ogDescription: string | null;
+  ogImage: string | null;
+  ogType: string | null;
+  ogUrl: string | null;
+  twitterCard: string | null;
+  twitterTitle: string | null;
+  twitterDescription: string | null;
+  twitterImage: string | null;
+  canonical: string | null;
+}
+
+/**
+ * Meta tag diff between consecutive hops
+ */
+export interface MetaDiff {
+  changed: Array<{ field: string; from: string | null; to: string | null }>;
+  added: Array<{ field: string; value: string | null }>;
+  removed: Array<{ field: string; value: string | null }>;
+  hasImageChange?: boolean;
+}
+
+/**
  * Redirect hop in a chain
  */
 export interface RedirectHop {
-  from: string;
-  to: string;
+  /** The current URL for this hop */
+  url: string;
+  /** HTTP status code */
   statusCode: number;
+  /** Response headers */
+  headers: Record<string, string>;
+  /** For redirect hops, the next URL in the chain */
+  redirectsTo?: string;
+  /** Warning about redirect behavior */
+  warning?: string;
+  /** Whether this is the final hop */
+  isFinal?: boolean;
+  /** HTML response content (may be null or empty string for header-only redirects) */
+  html?: string | null;
+  /** All meta tags parsed from HTML at this hop */
+  metaTags: RawMetaTag[];
+  /** Critical meta tags (only for 200 HTML responses) */
+  meta?: HopMetaTags;
+  /** Diff from previous hop's meta tags */
+  metaDiff?: MetaDiff;
+  /** Error message if meta parsing failed */
+  metaError?: string;
 }
 
 /**

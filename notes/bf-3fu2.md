@@ -139,6 +139,28 @@ This approach ensures:
 - Clean separation of concerns (ordering logic vs. rendering)
 - Idempotent behavior (can be called multiple times safely)
 
+### Interaction with Custom Drag-and-Drop Ordering
+
+There's an important interaction between smart ordering and manual card reordering:
+
+**In `renderPreviews()` (lines 1383-1390):**
+```javascript
+let platforms = group.platforms;
+if (platformPrefs.cardOrder[group.id]) {
+  const customOrder = platformPrefs.cardOrder[group.id].filter(pid => group.platforms.includes(pid));
+  const newPlatforms = group.platforms.filter(pid => !customOrder.includes(pid));
+  platforms = [...customOrder, ...newPlatforms];
+}
+```
+
+**Conflict behavior:**
+- Smart ordering modifies `group.platforms` arrays in `PLATFORM_GROUPS`
+- But `renderPreviews()` checks `platformPrefs.cardOrder[group.id]` **first**
+- If a custom order exists for the group, it uses that instead of the smart-ordered array
+- Only platforms not in the custom order (newly added platforms) fall back to the `group.platforms` order
+
+**Result:** Manual drag-and-drop reordering **takes precedence** over smart ordering for groups that have been customized.
+
 ## Helper Functions
 
 ### detectPageType(meta)

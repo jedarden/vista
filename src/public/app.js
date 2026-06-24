@@ -6738,13 +6738,37 @@ function getPlatformOrderForPageType(pageType) {
 }
 
 function applySmartOrdering() {
-  if (!currentData || !platformPrefs.smartOrdering) return;
+  console.log('[applySmartOrdering] Function called');
+
+  // Early exit conditions
+  if (!currentData) {
+    console.log('[applySmartOrdering] Early exit: no currentData available');
+    return;
+  }
+  if (!platformPrefs.smartOrdering) {
+    console.log('[applySmartOrdering] Early exit: smart ordering disabled in preferences');
+    return;
+  }
+
+  // Log input parameters
+  console.log('[applySmartOrdering] Input parameters:', {
+    hasCurrentData: !!currentData,
+    hasMeta: !!currentData?.meta,
+    smartOrderingEnabled: platformPrefs.smartOrdering,
+    ogType: currentData?.meta?.og?.type,
+    canonical: currentData?.meta?.canonical
+  });
 
   const pageType = detectPageType(currentData.meta);
+  console.log(`[applySmartOrdering] Page type detected: "${pageType}"`);
+
   const preferredOrder = getPlatformOrderForPageType(pageType);
+  console.log(`[applySmartOrdering] Preferred platform order for "${pageType}":`, preferredOrder);
 
   // Update platform groups to show relevance
-  PLATFORM_GROUPS.forEach(group => {
+  console.log('[applySmartOrdering] Reordering platform groups...');
+  PLATFORM_GROUPS.forEach((group, groupIndex) => {
+    const originalOrder = [...group.platforms];
     group.platforms.sort((a, b) => {
       const aIndex = preferredOrder.indexOf(a);
       const bIndex = preferredOrder.indexOf(b);
@@ -6753,12 +6777,24 @@ function applySmartOrdering() {
       if (bIndex === -1) return -1;
       return aIndex - bIndex;
     });
+
+    if (JSON.stringify(originalOrder) !== JSON.stringify(group.platforms)) {
+      console.log(`[applySmartOrdering] Group ${groupIndex} "${group.name}" reordered:`, {
+        from: originalOrder,
+        to: group.platforms
+      });
+    } else {
+      console.log(`[applySmartOrdering] Group ${groupIndex} "${group.name}": no change needed`);
+    }
   });
 
   // Re-render previews
+  console.log('[applySmartOrdering] Re-rendering previews with new platform order...');
   renderPreviews(currentData);
+  console.log('[applySmartOrdering] Preview re-render complete');
 
   showToast(`Page type detected: ${pageType}. Platforms reordered.`, 2000);
+  console.log('[applySmartOrdering] Function complete ✅');
 }
 
 // ── Initialize inline editing on DOM ready ──

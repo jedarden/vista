@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Scoring Simulator Test</title>
+</head>
+<body>
+  <h1>Scoring Simulator Integration Test</h1>
+  <div id="results"></div>
+
+  <script src="scoring-simulator.js"></script>
+  <script>
+    const results = document.getElementById('results');
+    const tests = [];
+
+    // Test 1: Check if functions are available globally
+    tests.push({
+      name: 'scoreAll function available',
+      pass: typeof scoreAll === 'function'
+    });
+
+    tests.push({
+      name: 'simulateFix function available',
+      pass: typeof simulateFix === 'function'
+    });
+
+    tests.push({
+      name: 'simulateAllFixes function available',
+      pass: typeof simulateAllFixes === 'function'
+    });
+
+    tests.push({
+      name: 'PLATFORMS constant available',
+      pass: typeof PLATFORMS !== 'undefined' && Array.isArray(PLATFORMS)
+    });
+
+    // Test 2: Call scoreAll with sample data
+    const sampleMeta = {
+      title: 'Test Page',
+      description: 'Test description',
+      og: { title: 'Test OG Title' }
+    };
+
+    try {
+      const scoringResult = scoreAll(sampleMeta, null);
+      tests.push({
+        name: 'scoreAll executes successfully',
+        pass: scoringResult && typeof scoringResult.overall === 'object'
+      });
+      tests.push({
+        name: 'scoreAll returns overall score',
+        pass: typeof scoringResult.overall.score === 'number'
+      });
+      tests.push({
+        name: 'scoreAll returns overall grade',
+        pass: typeof scoringResult.overall.grade === 'string'
+      });
+    } catch (e) {
+      tests.push({
+        name: 'scoreAll executes successfully',
+        pass: false,
+        error: e.message
+      });
+    }
+
+    // Test 3: Call simulateFix
+    try {
+      const currentScoring = scoreAll(sampleMeta, null);
+      const impact = simulateFix('missing-twitter-card', sampleMeta, null, currentScoring);
+      tests.push({
+        name: 'simulateFix executes successfully',
+        pass: impact && typeof impact.platformsImproved === 'object'
+      });
+    } catch (e) {
+      tests.push({
+        name: 'simulateFix executes successfully',
+        pass: false,
+        error: e.message
+      });
+    }
+
+    // Test 4: Call simulateAllFixes
+    try {
+      const fixes = [{ code: 'missing-twitter-card' }];
+      const currentScoring = scoreAll(sampleMeta, null);
+      const totalImpact = simulateAllFixes(fixes, sampleMeta, null, currentScoring);
+      tests.push({
+        name: 'simulateAllFixes executes successfully',
+        pass: totalImpact && typeof totalImpact.overallDelta === 'number'
+      });
+    } catch (e) {
+      tests.push({
+        name: 'simulateAllFixes executes successfully',
+        pass: false,
+        error: e.message
+      });
+    }
+
+    // Display results
+    let html = '<h2>Test Results</h2><ul>';
+    let passCount = 0;
+
+    tests.forEach(test => {
+      const status = test.pass ? '✅ PASS' : '❌ FAIL';
+      if (test.pass) passCount++;
+      html += `<li>${status}: ${test.name}`;
+      if (test.error) {
+        html += ` <small>(${test.error})</small>`;
+      }
+      html += '</li>';
+    });
+
+    html += '</ul>';
+    html += `<p><strong>${passCount}/${tests.length} tests passed</strong></p>`;
+
+    if (passCount === tests.length) {
+      html += '<p style="color: green; font-weight: bold;">All scoring functions are callable from the browser! ✅</p>';
+    } else {
+      html += '<p style="color: red; font-weight: bold;">Some tests failed - check the errors above.</p>';
+    }
+
+    results.innerHTML = html;
+  </script>
+</body>
+</html>

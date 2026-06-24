@@ -16,6 +16,25 @@ let editorUndoStack = []; // Undo stack for editor changes
 // ── Theme State ──
 let globalTheme = 'dark'; // 'dark' | 'light'
 
+// ── Accessibility: Screen Reader Announcements ──
+/**
+ * Announce a message to screen readers via aria-live regions
+ * @param {string} message - The message to announce
+ * @param {string} priority - 'polite' (default) or 'assertive'
+ */
+function announce(message, priority = 'polite') {
+  const announcerId = priority === 'assertive' ? 'errorAnnouncer' : 'resultsAnnouncer';
+  const announcer = document.getElementById(announcerId);
+  if (announcer) {
+    // Clear first to ensure repeated messages are read
+    announcer.textContent = '';
+    // Use setTimeout to allow screen readers to register the change
+    setTimeout(() => {
+      announcer.textContent = message;
+    }, 50);
+  }
+}
+
 // Initialize theme from localStorage or system preference
 function initTheme() {
   const savedTheme = localStorage.getItem('vista-theme');
@@ -428,8 +447,7 @@ async function inspectUrl(url) {
     // Clear skeletons and show error
     previewGrid.innerHTML = '';
     showToast('Error: ' + err.message, 3000);
-    const errAnnouncer = document.getElementById('errorAnnouncer');
-    if (errAnnouncer) errAnnouncer.textContent = 'Error: ' + err.message;
+    announce('Error: ' + err.message, 'assertive');
   }
 }
 
@@ -629,11 +647,10 @@ async function handleResult(data) {
   }
 
   // Announce results to screen readers (WCAG 4.1.3)
-  const announcer = document.getElementById('resultsAnnouncer');
-  if (announcer && data.scoring) {
+  if (data.scoring) {
     const { grade, score } = data.scoring.overall;
     const { passing, warning, failing } = data.scoring.summary;
-    announcer.textContent = `Inspection complete. Overall grade: ${grade} (${score}/100). ${passing} passing, ${warning} warnings, ${failing} failing.`;
+    announce(`Inspection complete. Overall grade: ${grade} (${score}/100). ${passing} passing, ${warning} warnings, ${failing} failing.`);
   }
 
   // Scroll to results
@@ -2850,6 +2867,7 @@ async function exportCropperOverlay() {
 function renderDiagnostics(diags) {
   if (!diags || diags.length === 0) {
     diagPanel.innerHTML = '<div class="diag-empty">&#10003; No issues detected. All checks passed.</div>';
+    announce('No diagnostic issues found. All checks passed.');
     return;
   }
 
@@ -2869,6 +2887,18 @@ function renderDiagnostics(diags) {
       </div>
     </div>`;
   }).join('');
+
+  // Announce diagnostic findings to screen readers
+  const errorCount = sorted.filter(d => d.severity === 'error').length;
+  const warningCount = sorted.filter(d => d.severity === 'warning').length;
+  const infoCount = sorted.filter(d => d.severity === 'info').length;
+
+  let message = 'Diagnostic findings: ';
+  if (errorCount > 0) message += `${errorCount} error${errorCount > 1 ? 's' : ''}. `;
+  if (warningCount > 0) message += `${warningCount} warning${warningCount > 1 ? 's' : ''}. `;
+  if (infoCount > 0) message += `${infoCount} info${infoCount > 1 ? 's' : ''}. `;
+
+  announce(message.trim());
 }
 
 // ── Raw Tags (Metadata Viewer) ──
@@ -3809,6 +3839,7 @@ function resetToHero() {
 // ── Utilities ──
 function showLoading() {
   loadingOverlay.classList.remove('hidden');
+  announce('Loading. Fetching and analyzing data.');
 }
 function hideLoading() {
   loadingOverlay.classList.add('hidden');
@@ -4297,6 +4328,15 @@ async function handleCompareSubmit() {
     tabCompareBtn?.classList.remove('hidden');
     switchTab('compare');
 
+    // Announce comparison results to screen readers
+    const gradeBefore = data.a.scoring?.overall?.grade || '?';
+    const gradeAfter = data.b.scoring?.overall?.grade || '?';
+    const scoreBefore = data.a.scoring?.overall?.score || 0;
+    const scoreAfter = data.b.scoring?.overall?.score || 0;
+    const change = scoreAfter - scoreBefore;
+    const changeText = change > 0 ? `+${change}` : change.toString();
+    announce(`Comparison complete. Before: ${gradeBefore} (${scoreBefore}/100). After: ${gradeAfter} (${scoreAfter}/100). Change: ${changeText}.`);
+
     // Scroll to results
     resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
@@ -4339,6 +4379,8 @@ function renderComparisonResults() {
 function renderScoreComparison(data1, data2) {
   const grade1 = data1.scoring.overall.grade;
   const grade2 = data2.scoring.overall.grade;
+  const score1 = data1.scoring.overall.score;
+  const score2 = data2.scoring.overall.score;
 
   const grade1El = document.getElementById('scoreGrade1');
   const grade2El = document.getElementById('scoreGrade2');
@@ -4362,6 +4404,16 @@ function renderScoreComparison(data1, data2) {
   if (url2El) {
     url2El.textContent = data2.finalUrl || data2.url;
   }
+
+  // Announce score comparison to screen readers
+  const scoreDelta = score2 - score1;
+  let message = `Comparison complete. Before score: ${grade1} (${score1}/100). After score: ${grade2} (${score2}/100).`;
+  if (scoreDelta !== 0) {
+    message += ` Score change: ${scoreDelta > 0 ? '+' : ''}${scoreDelta} points.`;
+  } else {
+    message += ' No score change.';
+  }
+  announce(message);
 }
 
 function renderMetaTagDiff(meta1, meta2) {
@@ -4554,6 +4606,10 @@ async function handleSitemapSubmit() {
     // Show sitemap tab
     if (tabSitemapBtn) tabSitemapBtn.classList.remove('hidden');
     switchTab('sitemap');
+
+    // Announce sitemap results to screen readers
+    const { totalFound, crawled, errors } = data;
+    announce(`Sitemap analysis complete. Found ${totalFound} URLs, crawled ${crawled} pages, ${errors} errors.`);
 
     // Scroll to results
     if (resultsSection) resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -5111,6 +5167,10 @@ function handleEditorInput(e) {
 function updatePreviewsWithEdits() {
   if (!currentData) return;
 
+  // Store original grade for comparison
+  const originalGrade = currentData.scoring?.overall?.grade;
+  const originalScore = currentData.scoring?.overall?.score;
+
   // Create modified meta object
   const modifiedMeta = { ...currentData.meta };
 
@@ -5131,6 +5191,18 @@ function updatePreviewsWithEdits() {
   // Re-render previews with modified data
   const modifiedData = { ...currentData, meta: modifiedMeta };
   renderPreviews(modifiedData);
+
+  // Recalculate and announce score changes
+  if (typeof scoreAll === 'function') {
+    const newScoring = scoreAll(modifiedMeta, currentData.imageProbe);
+    const newGrade = newScoring.overall?.grade;
+    const newScore = newScoring.overall?.score;
+
+    // Announce if grade changed
+    if (originalGrade && newGrade && originalGrade !== newGrade) {
+      announce(`Score updated from ${originalGrade} (${originalScore}/100) to ${newGrade} (${newScore}/100).`);
+    }
+  }
 }
 
 function resetEditor() {
@@ -5143,6 +5215,11 @@ function resetEditor() {
   if (currentData) {
     renderPreviews(currentData);
   }
+
+  // Announce reset
+  const grade = currentData.scoring?.overall?.grade;
+  const score = currentData.scoring?.overall?.score;
+  announce(`Editor reset to original values. Overall grade: ${grade} (${score}/100).`);
 
   showToast('Editor reset to original values', 2000);
 }
@@ -5921,6 +5998,10 @@ function applyWhatIfChanges() {
   // Re-render with modified data
   const modifiedData = { ...currentData, meta: modifiedMeta };
   renderPreviews(modifiedData);
+
+  // Announce score change for screen readers
+  const tagCount = disabledTags.size;
+  announce(`What If mode applied. ${tagCount} tag${tagCount > 1 ? 's' : ''} disabled. Preview cards updated to show fallback behavior.`);
 
   // Show warnings for missing tags
   showMissingTagWarnings(modifiedMeta);

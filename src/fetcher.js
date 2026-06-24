@@ -14,7 +14,36 @@ const MAX_BODY_BYTES = 1024 * 1024; // 1 MB read limit for HTML
  * Fetch a URL following redirects manually so we can record each hop.
  * Returns { html, redirectChain, finalUrl, responseHeaders, statusCode }.
  *
- * Redirect chain now includes per-hop metadata for meta tag diff analysis.
+ * ## Redirect Chain Structure
+ * Each hop captures:
+ * - url: The current URL
+ * - statusCode: HTTP status code
+ * - headers: Response headers as an object
+ * - redirectsTo: For redirect hops (301/302/etc), the next URL
+ * - warning: Warnings about redirect behavior (HTTP→HTTPS, 302 caching, etc)
+ * - isFinal: Boolean flag for the final hop
+ * - html: HTML response content (for all HTML responses, including 3xx redirects)
+ * - meta: Critical meta tags (title, og:*, twitter:*, canonical) for 200 HTML responses
+ * - metaDiff: Diff from previous hop's meta (changed/added/removed fields)
+ * - metaError: Error message if meta parsing failed
+ *
+ * ## Redirect Resolver
+ * The main while loop (hops < MAX_REDIRECTS) handles each redirect hop:
+ * 1. Fetch with redirect:'manual' to intercept each hop
+ * 2. Build hop object with url, statusCode, headers
+ * 3. Parse meta tags for HTML responses (see HTML CAPTURE HOOK below)
+ * 4. Check if redirect (301/302/etc) and either continue or finalize
+ *
+ * ## HTML/Meta Capture Hooks
+ * HTML capture and meta tag parsing are implemented at two points:
+ * - Primary hook: Lines 51-70 (during redirect loop, for HTML responses)
+ * - Final response: Lines 119-126 (for final hop if not already captured)
+ *
+ * The capture flow:
+ * - readBodyLimited() reads up to MAX_BODY_BYTES (1 MB)
+ * - parseMetaTags() extracts all meta tags via cheerio
+ * - extractCriticalMetaTags() simplifies to critical fields
+ * - calculateMetaDiff() compares with previous hop
  */
 async function fetchUrl(url) {
   const redirectChain = [];
@@ -48,21 +77,32 @@ async function fetchUrl(url) {
       headers: Object.fromEntries(response.headers.entries()),
     };
 
-    // Try to parse meta tags for this hop (for redirect analysis)
+    // ===== HTML/META CAPTURE HOOK (during redirect loop) =====
+    // For HTML responses, capture body and parse meta tags.
+    // This is the primary hook where HTML is read and meta tags are extracted.
+    // The captured data is used for:
+    // - Per-hop meta tag storage (hop.meta)
+    // - Diff calculation between hops (hop.metaDiff)
+    // - Social share preview analysis
+    // - HTML content storage for each hop (hop.html)
     let hopMeta = null;
     let hopHtml = null; // save html so we don't read the body stream twice
-    if (isHtml && response.status === 200) {
+    if (isHtml) {
       try {
         const buffer = await readBodyLimited(response, MAX_BODY_BYTES);
         hopHtml = buffer.toString('utf8');
         hopMeta = parseMetaTags(hopHtml, currentUrl);
-        hop.meta = extractCriticalMetaTags(hopMeta);
 
-        // Calculate diff from previous hop
-        if (lastMeta) {
-          hop.metaDiff = calculateMetaDiff(lastMeta, hop.meta);
+        // Only parse meta for 200 responses
+        if (response.status === 200) {
+          hop.meta = extractCriticalMetaTags(hopMeta);
+
+          // Calculate diff from previous hop
+          if (lastMeta) {
+            hop.metaDiff = calculateMetaDiff(lastMeta, hop.meta);
+          }
+          lastMeta = hop.meta;
         }
-        lastMeta = hop.meta;
       } catch (e) {
         // If we fail to read body, continue without meta
         hop.metaError = e.message;
@@ -91,6 +131,11 @@ async function fetchUrl(url) {
           '302 (temporary) redirect — platforms may cache the redirect URL instead of the final URL';
       }
 
+      // Store HTML content for this redirect hop
+      if (hopHtml !== null) {
+        hop.html = hopHtml;
+      }
+
       redirectChain.push(hop);
       currentUrl = nextUrl;
       hops++;
@@ -100,6 +145,12 @@ async function fetchUrl(url) {
 
     // Non-redirect response
     hop.isFinal = true;
+
+    // Store HTML content for the final hop
+    if (hopHtml !== null) {
+      hop.html = hopHtml;
+    }
+
     redirectChain.push(hop);
     lastResponse = response;
 
@@ -116,7 +167,11 @@ async function fetchUrl(url) {
       html = buffer.toString('utf8');
     }
 
-    // Parse final meta tags if not already done
+    // ===== HTML/META CAPTURE HOOK (final response) =====
+    // For the final hop, parse meta tags if not already captured above.
+    // This handles cases where:
+    // - Final response is HTML but wasn't captured in the redirect loop
+    // - Non-200 final responses that still have HTML
     if (!hopMeta && isHtml) {
       const finalMeta = parseMetaTags(html, currentUrl);
       hop.meta = extractCriticalMetaTags(finalMeta);

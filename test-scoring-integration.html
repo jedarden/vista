@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scoring Simulator Integration Test</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+    .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ccc; border-radius: 8px; }
+    .test-section h2 { margin-top: 0; }
+    .pass { color: green; }
+    .fail { color: red; }
+    .result { margin: 10px 0; padding: 10px; background: #f5f5f5; border-radius: 4px; }
+    pre { background: #f0f0f0; padding: 10px; border-radius: 4px; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <h1>Scoring Simulator Integration Test</h1>
+  <p>Tests that scoring-simulator.js is loaded and functions are accessible.</p>
+
+  <div class="test-section">
+    <h2>Test 1: Script Loading</h2>
+    <div id="test1-result" class="result">Loading...</div>
+  </div>
+
+  <div class="test-section">
+    <h2>Test 2: Function Availability</h2>
+    <div id="test2-result" class="result">Loading...</div>
+  </div>
+
+  <div class="test-section">
+    <h2>Test 3: scoreAll Function Call</h2>
+    <div id="test3-result" class="result">Loading...</div>
+  </div>
+
+  <div class="test-section">
+    <h2>Test 4: simulateFix Function Call</h2>
+    <div id="test4-result" class="result">Loading...</div>
+  </div>
+
+  <div class="test-section">
+    <h2>Test 5: PLATFORMS Constant</h2>
+    <div id="test5-result" class="result">Loading...</div>
+  </div>
+
+  <script src="src/public/scoring-simulator.js"></script>
+  <script>
+    // Test 1: Script Loading
+    setTimeout(() => {
+      const test1Result = document.getElementById('test1-result');
+      try {
+        if (typeof scoreAll !== 'undefined' || typeof simulateFix !== 'undefined') {
+          test1Result.innerHTML = '<span class="pass">✓ PASS</span> - scoring-simulator.js loaded successfully';
+          test1Result.style.background = '#e6ffe6';
+        } else {
+          test1Result.innerHTML = '<span class="fail">✗ FAIL</span> - Functions not found in global scope';
+          test1Result.style.background = '#ffe6e6';
+        }
+      } catch (e) {
+        test1Result.innerHTML = '<span class="fail">✗ FAIL</span> - Error: ' + e.message;
+        test1Result.style.background = '#ffe6e6';
+      }
+    }, 100);
+
+    // Test 2: Function Availability
+    setTimeout(() => {
+      const test2Result = document.getElementById('test2-result');
+      const functions = ['scoreAll', 'simulateFix', 'simulateAllFixes', 'getImpactLevel', 'formatImpactMessage', 'pointsToGrade', 'scorePlatform'];
+      const missing = functions.filter(fn => typeof window[fn] !== 'function');
+
+      if (missing.length === 0) {
+        test2Result.innerHTML = '<span class="pass">✓ PASS</span> - All functions available:<br>' +
+          functions.map(fn => `• ${fn}()`).join('<br>');
+        test2Result.style.background = '#e6ffe6';
+      } else {
+        test2Result.innerHTML = '<span class="fail">✗ FAIL</span> - Missing functions: ' + missing.join(', ');
+        test2Result.style.background = '#ffe6e6';
+      }
+    }, 100);
+
+    // Test 3: scoreAll Function Call
+    setTimeout(() => {
+      const test3Result = document.getElementById('test3-result');
+      try {
+        const testMeta = {
+          title: 'Test Page',
+          description: 'A test description',
+          og: { title: 'Test OG Title', description: 'Test OG Description' },
+          twitter: { card: 'summary_large_image' }
+        };
+
+        const result = scoreAll(testMeta, null);
+
+        if (result && result.overall && typeof result.overall.grade === 'string') {
+          test3Result.innerHTML = '<span class="pass">✓ PASS</span> - scoreAll() executed successfully<br>' +
+            'Result: Overall grade ' + result.overall.grade + ' (' + result.overall.score + '/100)<br>' +
+            'Platforms scored: ' + Object.keys(result.scores || {}).length;
+          test3Result.style.background = '#e6ffe6';
+        } else {
+          test3Result.innerHTML = '<span class="fail">✗ FAIL</span> - Invalid result structure';
+          test3Result.style.background = '#ffe6e6';
+        }
+      } catch (e) {
+        test3Result.innerHTML = '<span class="fail">✗ FAIL</span> - Error: ' + e.message;
+        test3Result.style.background = '#ffe6e6';
+      }
+    }, 100);
+
+    // Test 4: simulateFix Function Call
+    setTimeout(() => {
+      const test4Result = document.getElementById('test4-result');
+      try {
+        const testMeta = { title: 'Test', og: {} };
+        const testImageProbe = null;
+        const testScoring = scoreAll(testMeta, testImageProbe);
+
+        const impact = simulateFix('missing-og-image', testMeta, testImageProbe, testScoring);
+
+        if (impact && typeof impact.platformsImproved !== 'undefined') {
+          test4Result.innerHTML = '<span class="pass">✓ PASS</span> - simulateFix() executed successfully<br>' +
+            'Platforms improved: ' + impact.platformsImproved.length;
+          test4Result.style.background = '#e6ffe6';
+        } else {
+          test4Result.innerHTML = '<span class="fail">✗ FAIL</span> - Invalid impact structure';
+          test4Result.style.background = '#ffe6e6';
+        }
+      } catch (e) {
+        test4Result.innerHTML = '<span class="fail">✗ FAIL</span> - Error: ' + e.message;
+        test4Result.style.background = '#ffe6e6';
+      }
+    }, 100);
+
+    // Test 5: PLATFORMS Constant
+    setTimeout(() => {
+      const test5Result = document.getElementById('test5-result');
+      try {
+        if (PLATFORMS && Array.isArray(PLATFORMS) && PLATFORMS.length > 0) {
+          test5Result.innerHTML = '<span class="pass">✓ PASS</span> - PLATFORMS constant available<br>' +
+            'Total platforms: ' + PLATFORMS.length + '<br>' +
+            'First platform: ' + PLATFORMS[0].name;
+          test5Result.style.background = '#e6ffe6';
+        } else {
+          test5Result.innerHTML = '<span class="fail">✗ FAIL</span> - PLATFORMS not available or empty';
+          test5Result.style.background = '#ffe6e6';
+        }
+      } catch (e) {
+        test5Result.innerHTML = '<span class="fail">✗ FAIL</span> - Error: ' + e.message;
+        test5Result.style.background = '#ffe6e6';
+      }
+    }, 100);
+  </script>
+</body>
+</html>

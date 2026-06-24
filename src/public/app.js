@@ -484,26 +484,108 @@ async function progressiveLoad({ url, html, base }) {
 	history.pushState({}, '', '/?url=' + encodeURIComponent(metaData.url));
   }
 
-  // Step 3: Fetch images and headers in parallel
-  const imagesPromise = fetchImagesAndHeaders({ url, html, base, isHtml });
-  const headersPromise = fetchHeaders({ url, html, base, isHtml });
+  // Step 3: Fetch images and headers in parallel, update UI as each completes
+  let imagesData = null;
+  let headersData = null;
+  let imagesComplete = false;
+  let headersComplete = false;
 
-  // Wait for both to complete
-  const [imagesData, headersData] = await Promise.all([
-	imagesPromise.catch(err => { console.error('[Progressive] Images fetch failed:', err); return null; }),
-	headersPromise.catch(err => { console.error('[Progressive] Headers fetch failed:', err); return null; })
-  ]);
+  const imagesPromise = fetchImagesAndHeaders({ url, html, base, isHtml })
+	.then(data => {
+	  imagesData = data;
+	  imagesComplete = true;
+	  const imagesTime = performance.now() - startTime;
+	  console.log(`[Progressive] Images loaded in ${imagesTime.toFixed(0)}ms`);
+	  return data;
+	})
+	.catch(err => {
+	  console.error('[Progressive] Images fetch failed:', err);
+	  imagesComplete = true;
+	  return null;
+	});
 
+  const headersPromise = fetchHeaders({ url, html, base, isHtml })
+	.then(data => {
+	  headersData = data;
+	  headersComplete = true;
+	  const headersTime = performance.now() - startTime;
+	  console.log(`[Progressive] Headers loaded in ${headersTime.toFixed(0)}ms`);
+	  return data;
+	})
+	.catch(err => {
+	  console.error('[Progressive] Headers fetch failed:', err);
+	  headersComplete = true;
+	  return null;
+	});
+
+  // Handle images loading first - update previews with images
+  imagesPromise.then((imgs) => {
+	if (imgs) {
+	  // Merge images data with current metadata
+	  const withImages = mergeData(metaData, imgs, null);
+	  currentData = withImages;
+
+	  // Extract dominant color for OG image placeholder
+	  const ogImageUrl = withImages.meta.og.image || withImages.meta.twitter.image;
+	  if (ogImageUrl) {
+		extractDominantColor(ogImageUrl).then(color => {
+		  withImages.dominantColor = color;
+		  currentData = withImages;
+		  // Re-render with dominant color
+		  updatePreviewsWithImages(withImages);
+		});
+	  }
+
+	  // Update previews with images
+	  updatePreviewsWithImages(withImages);
+	}
+
+	// Check if both are complete
+	if (headersComplete) {
+	  finalizeProgressiveLoad(metaData, imagesData, headersData, startTime);
+	}
+  });
+
+  // Handle headers loading - update diagnostics
+  headersPromise.then((hdrs) => {
+	if (hdrs) {
+	  // Merge headers data with current metadata
+	  const withHeaders = mergeData(metaData, imagesData, hdrs);
+
+	  // Update diagnostics tab
+	  updateDiagnostics(withHeaders);
+
+	  // Update redirects and fixes
+	  if (withHeaders.redirectChain || withHeaders.responseHeaders || withHeaders.headerAnalysis) {
+		renderRedirects(withHeaders.redirectChain, withHeaders.responseHeaders, withHeaders.headerAnalysis);
+	  }
+	  if (withHeaders.autoFixes) {
+		renderFixes(withHeaders.autoFixes);
+	  }
+	}
+
+	// Check if both are complete
+	if (imagesComplete) {
+	  finalizeProgressiveLoad(metaData, imagesData, headersData, startTime);
+	}
+  });
+}
+
+/**
+ * Finalize progressive loading after both images and headers complete.
+ * Performs client-side verification and initializes remaining features.
+ */
+async function finalizeProgressiveLoad(metaData, imagesData, headersData, startTime) {
   const totalTime = performance.now() - startTime;
   console.log(`[Progressive] All data loaded in ${totalTime.toFixed(0)}ms`);
 
-  // Step 4: Merge and update UI with complete data
+  // Merge all data
   const completeData = mergeData(metaData, imagesData, headersData);
   currentData = completeData;
 
-  // Extract dominant color for OG image placeholder
+  // Extract dominant color if not already done
   const ogImageUrl = completeData.meta.og.image || completeData.meta.twitter.image;
-  if (ogImageUrl) {
+  if (ogImageUrl && !completeData.dominantColor) {
 	completeData.dominantColor = await extractDominantColor(ogImageUrl);
   }
 
@@ -513,18 +595,16 @@ async function progressiveLoad({ url, html, base }) {
 	  const clientFindings = await verifyClientSideTags(completeData.html, completeData.meta);
 	  if (clientFindings.length > 0) {
 		completeData.diagnostics = [...(completeData.diagnostics || []), ...clientFindings];
+		// Re-render diagnostics with client-side findings
+		updateDiagnostics(completeData);
 	  }
 	} catch (e) {
 	  console.warn('Client-side tag verification failed:', e);
 	}
   }
 
-  // Update all panels with complete data
-  updatePreviewsWithImages(completeData);
-  updateDiagnostics(completeData);
+  // Render raw tags and other panels
   renderRawTags(completeData.meta);
-  renderRedirects(completeData.redirectChain, completeData.responseHeaders, completeData.headerAnalysis);
-  renderFixes(completeData.autoFixes);
 
   // Initialize editor and other features
   initEditor(completeData);

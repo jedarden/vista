@@ -261,6 +261,8 @@ function parseMetaTags(html, baseUrl) {
       content: $(el).attr('content') || null,
       httpEquiv: $(el).attr('http-equiv') || null,
       charset: $(el).attr('charset') || null,
+      // Store raw HTML for comparison with rendered DOM
+      rawHtml: $.html(el),
     };
     meta.rawTags.push(tag);
 
@@ -443,6 +445,8 @@ async function fetchRenderedMetaTags(url, options = {}) {
           content: el.getAttribute('content') || null,
           httpEquiv: el.getAttribute('http-equiv') || null,
           charset: el.getAttribute('charset') || null,
+          // Store raw HTML for comparison with source HTML
+          rawHtml: el.outerHTML,
         };
         meta.rawTags.push(tag);
 

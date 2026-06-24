@@ -1,0 +1,555 @@
+/*
+ * Frame Theming System
+ * Comprehensive CSS variables and base styles for all social media context frames
+ *
+ * This system provides:
+ * - Consistent CSS variable naming across all platforms
+ * - Dark/light mode theming for each platform
+ * - Base frame structure and utilities
+ * - Platform-specific styling hooks
+ */
+
+/* ============================================================================
+   GLOBAL FRAME THEME VARIABLES
+   ============================================================================ */
+
+:root {
+  /* Frame Global Colors - Dark Mode (default) */
+  --frame-bg-global: #1a1a1e;
+  --frame-surface-global: #25252a;
+  --frame-border-global: #3a3a3f;
+  --frame-text-primary-global: #e4e4e7;
+  --frame-text-secondary-global: #a1a1aa;
+  --frame-text-muted-global: #71717a;
+  --frame-accent-global: #6366f1;
+  --frame-accent-bg-global: #4f46e5;
+  --frame-link-color-global: #818cf8;
+  --frame-divider-global: #3a3a3f;
+  --frame-input-bg-global: #2d2d33;
+  --frame-overlay-global: rgba(0, 0, 0, 0.5);
+  --frame-shadow-global: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --frame-radius-global: 12px;
+  --frame-radius-sm-global: 8px;
+  --frame-transition-global: 0.2s ease;
+}
+
+/* Light Mode Theme Variables */
+[data-theme='light'] {
+  --frame-bg-global: #ffffff;
+  --frame-surface-global: #f8f9fa;
+  --frame-border-global: #e5e7eb;
+  --frame-text-primary-global: #1f2937;
+  --frame-text-secondary-global: #6b7280;
+  --frame-text-muted-global: #9ca3af;
+  --frame-accent-global: #4f46e5;
+  --frame-accent-bg-global: #eef2ff;
+  --frame-link-color-global: #4f46e5;
+  --frame-divider-global: #e5e7eb;
+  --frame-input-bg-global: #ffffff;
+  --frame-overlay-global: rgba(0, 0, 0, 0.1);
+  --frame-shadow-global: 0 4px 24px rgba(0, 0, 0, 0.08);
+}
+
+/* ============================================================================
+   BASE FRAME STRUCTURE
+   ============================================================================ */
+
+/* Base frame container - applies to all platform frames */
+.frame-base {
+  position: relative;
+  border-radius: var(--frame-radius-global);
+  overflow: hidden;
+  background: var(--frame-bg);
+  border: 1px solid var(--frame-border);
+  font-size: 14px;
+  line-height: 1.5;
+  transition: background var(--frame-transition-global),
+              border-color var(--frame-transition-global),
+              box-shadow var(--frame-transition-global);
+  box-shadow: var(--frame-shadow-global);
+}
+
+/* Frame header - common across platforms */
+.frame-header {
+  padding: 12px 16px;
+  background: var(--frame-surface);
+  border-bottom: 1px solid var(--frame-divider);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--frame-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Frame body - main content area */
+.frame-body {
+  padding: 0;
+  background: var(--frame-bg);
+  color: var(--frame-text-primary);
+}
+
+/* Frame footer - common across platforms */
+.frame-footer {
+  padding: 12px 16px;
+  background: var(--frame-surface);
+  border-top: 1px solid var(--frame-divider);
+  font-size: 12px;
+  color: var(--frame-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ============================================================================
+   FRAME UTILITIES
+   ============================================================================ */
+
+/* Avatar placeholders */
+.frame-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--frame-surface);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--frame-text-muted);
+  font-size: 18px;
+}
+
+.frame-avatar-sm {
+  width: 32px;
+  height: 32px;
+}
+
+.frame-avatar-lg {
+  width: 48px;
+  height: 48px;
+}
+
+/* Typography utilities */
+.frame-text-primary {
+  color: var(--frame-text-primary);
+}
+
+.frame-text-secondary {
+  color: var(--frame-text-secondary);
+}
+
+.frame-text-muted {
+  color: var(--frame-text-muted);
+}
+
+.frame-text-accent {
+  color: var(--frame-accent);
+}
+
+/* Link styling within frames */
+.frame-link {
+  color: var(--frame-link-color);
+  text-decoration: none;
+  transition: color var(--frame-transition-global);
+}
+
+.frame-link:hover {
+  color: var(--frame-accent);
+  text-decoration: underline;
+}
+
+/* Surface/card elements within frames */
+.frame-surface {
+  background: var(--frame-surface);
+  border: 1px solid var(--frame-border);
+  border-radius: var(--frame-radius-sm-global);
+  padding: 12px;
+}
+
+/* Divider lines */
+.frame-divider {
+  height: 1px;
+  background: var(--frame-divider);
+  margin: 12px 0;
+}
+
+/* Badge/icon utilities */
+.frame-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: var(--frame-accent-bg);
+  color: var(--frame-accent);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* ============================================================================
+   LINK PREVIEW COMPONENTS (shared across platforms)
+   ============================================================================ */
+
+/* Base link preview card */
+.frame-link-preview {
+  background: var(--frame-surface);
+  border: 1px solid var(--frame-border);
+  border-radius: var(--frame-radius-sm-global);
+  overflow: hidden;
+  margin: 8px 0;
+}
+
+.frame-link-preview-header {
+  padding: 8px 12px;
+  font-size: 11px;
+  color: var(--frame-text-secondary);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.frame-link-preview-title {
+  padding: 0 12px 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--frame-text-primary);
+  line-height: 1.3;
+}
+
+.frame-link-preview-desc {
+  padding: 0 12px 12px;
+  font-size: 13px;
+  color: var(--frame-text-secondary);
+  line-height: 1.4;
+}
+
+.frame-link-preview-image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.frame-link-preview-placeholder {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: linear-gradient(135deg, var(--frame-surface) 0%, var(--frame-border) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--frame-text-muted);
+  font-size: 24px;
+}
+
+/* ============================================================================
+   POST/MESSAGE COMPONENTS (shared across platforms)
+   ============================================================================ */
+
+/* Post/message header */
+.frame-post-header {
+  display: flex;
+  gap: 10px;
+  padding: 12px;
+  align-items: flex-start;
+}
+
+.frame-post-meta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.frame-author-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--frame-text-primary);
+}
+
+.frame-author-handle {
+  font-size: 13px;
+  color: var(--frame-text-secondary);
+}
+
+.frame-post-time {
+  font-size: 12px;
+  color: var(--frame-text-muted);
+}
+
+/* Post/message content */
+.frame-post-content {
+  padding: 8px 12px;
+  color: var(--frame-text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Post/message actions/stats */
+.frame-post-stats {
+  display: flex;
+  gap: 16px;
+  padding: 8px 12px;
+  color: var(--frame-text-secondary);
+  font-size: 13px;
+  align-items: center;
+}
+
+/* ============================================================================
+   SIDEBAR COMPONENTS (for messaging platforms)
+   ============================================================================ */
+
+.frame-sidebar {
+  width: 80px;
+  background: var(--frame-surface);
+  border-right: 1px solid var(--frame-divider);
+  padding: 12px 8px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.frame-sidebar-item {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: var(--frame-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--frame-text-muted);
+  font-size: 18px;
+  margin: 0 auto;
+  transition: background var(--frame-transition-global);
+}
+
+.frame-sidebar-item:hover {
+  background: var(--frame-accent-bg);
+  color: var(--frame-accent);
+}
+
+/* ============================================================================
+   MESSAGE COMPONENTS (for messaging platforms)
+   ============================================================================ */
+
+.frame-message {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  align-items: flex-start;
+}
+
+.frame-message-dim {
+  opacity: 0.6;
+}
+
+.frame-message-content {
+  flex: 1;
+}
+
+.frame-message-author {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--frame-text-primary);
+  margin-bottom: 2px;
+}
+
+.frame-message-time {
+  font-size: 11px;
+  color: var(--frame-text-muted);
+  margin-left: 8px;
+}
+
+.frame-message-body {
+  color: var(--frame-text-primary);
+  font-size: 14px;
+  line-height: 1.4;
+  margin: 4px 0;
+}
+
+/* ============================================================================
+   RESPONSIVE UTILITIES
+   ============================================================================ */
+
+/* Frame size variants */
+.frame-compact {
+  font-size: 12px;
+  border-radius: var(--frame-radius-sm-global);
+}
+
+.frame-compact .frame-header,
+.frame-compact .frame-footer {
+  padding: 8px 12px;
+}
+
+.frame-compact .frame-avatar {
+  width: 32px;
+  height: 32px;
+}
+
+.frame-expanded {
+  font-size: 15px;
+}
+
+/* ============================================================================
+   ACCESSIBILITY
+   ============================================================================ */
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .frame-base {
+    border-width: 2px;
+  }
+
+  .frame-link-preview {
+    border-width: 2px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .frame-base,
+  .frame-link,
+  .frame-sidebar-item {
+    transition: none;
+  }
+}
+
+/* Focus visible for keyboard navigation */
+.frame-base:focus-within {
+  outline: 2px solid var(--frame-accent);
+  outline-offset: 2px;
+}
+
+/* ============================================================================
+   THEME TRANSITION UTILITIES
+   ============================================================================ */
+
+/* Smooth theme transitions */
+.frame-base,
+.frame-header,
+.frame-body,
+.frame-footer,
+.frame-surface,
+.frame-link-preview,
+.frame-sidebar,
+.frame-sidebar-item {
+  transition-property: background, border-color, color, box-shadow;
+  transition-duration: var(--frame-transition-global);
+  transition-timing-function: ease;
+}
+
+/* ============================================================================
+   PLATFORM-SPECIFIC VARIABLE HOOKS
+   ============================================================================ */
+
+/* Google Search Context */
+.google-context {
+  --frame-bg: var(--google-bg, var(--frame-bg-global));
+  --frame-surface: var(--google-surface, var(--frame-surface-global));
+  --frame-border: var(--google-border, var(--frame-border-global));
+  --frame-text-primary: var(--google-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--google-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--google-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--google-accent, var(--frame-accent-global));
+  --frame-accent-bg: var(--google-accent-bg, var(--frame-accent-bg-global));
+  --frame-link-color: var(--google-link-color, var(--frame-link-color-global));
+  --frame-divider: var(--google-divider, var(--frame-divider-global));
+  --frame-input-bg: var(--google-input-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--google-overlay, var(--frame-overlay-global));
+}
+
+/* Facebook Context */
+.facebook-context {
+  --frame-bg: var(--facebook-bg, var(--frame-bg-global));
+  --frame-surface: var(--facebook-surface, var(--frame-surface-global));
+  --frame-border: var(--facebook-border, var(--frame-border-global));
+  --frame-text-primary: var(--facebook-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--facebook-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--facebook-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--facebook-accent, var(--frame-accent-global));
+  --frame-accent-bg: var(--facebook-accent-bg, var(--frame-accent-bg-global));
+  --frame-link-color: var(--facebook-link-color, var(--frame-link-color-global));
+  --frame-divider: var(--facebook-divider, var(--frame-divider-global));
+  --frame-input-bg: var(--facebook-input-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--facebook-overlay, var(--frame-overlay-global));
+}
+
+/* Twitter/X Context */
+.twitter-context {
+  --frame-bg: var(--twitter-bg, var(--frame-bg-global));
+  --frame-surface: var(--twitter-surface, var(--frame-surface-global));
+  --frame-border: var(--twitter-border, var(--frame-border-global));
+  --frame-text-primary: var(--twitter-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--twitter-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--twitter-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--twitter-accent, var(--frame-accent-global));
+  --frame-accent-bg: var(--twitter-accent-bg, var(--frame-accent-bg-global));
+  --frame-link-color: var(--twitter-link-color, var(--frame-link-color-global));
+  --frame-divider: var(--twitter-divider, var(--frame-divider-global));
+  --frame-input-bg: var(--twitter-input-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--twitter-overlay, var(--frame-overlay-global));
+}
+
+/* LinkedIn Context */
+.linkedin-context {
+  --frame-bg: var(--linkedin-bg, var(--frame-bg-global));
+  --frame-surface: var(--linkedin-surface, var(--frame-surface-global));
+  --frame-border: var(--linkedin-border, var(--frame-border-global));
+  --frame-text-primary: var(--linkedin-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--linkedin-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--linkedin-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--linkedin-accent, var(--frame-accent-global));
+  --frame-accent-bg: var(--linkedin-accent-bg, var(--frame-accent-bg-global));
+  --frame-link-color: var(--linkedin-link-color, var(--frame-link-color-global));
+  --frame-divider: var(--linkedin-divider, var(--frame-divider-global));
+  --frame-input-bg: var(--linkedin-input-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--linkedin-overlay, var(--frame-overlay-global));
+}
+
+/* Slack Context */
+.slack-context {
+  --frame-bg: var(--slack-bg, var(--frame-bg-global));
+  --frame-surface: var(--slack-surface, var(--frame-surface-global));
+  --frame-border: var(--slack-border, var(--frame-border-global));
+  --frame-text-primary: var(--slack-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--slack-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--slack-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--slack-accent, var(--frame-accent-global));
+  --frame-accent-bg: var(--slack-accent-bg, var(--frame-accent-bg-global));
+  --frame-link-color: var(--slack-link-color, var(--frame-link-color-global));
+  --frame-divider: var(--slack-divider, var(--frame-divider-global));
+  --frame-input-bg: var(--slack-input-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--slack-overlay, var(--frame-overlay-global));
+}
+
+/* Discord Context */
+.discord-context {
+  --frame-bg: var(--discord-bg, var(--frame-bg-global));
+  --frame-surface: var(--discord-surface, var(--frame-surface-global));
+  --frame-border: var(--discord-border, var(--frame-border-global));
+  --frame-text-primary: var(--discord-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--discord-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--discord-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--discord-accent, var(--frame-accent-global));
+  --frame-accent-bg: var(--discord-accent-bg, var(--frame-accent-bg-global));
+  --frame-link-color: var(--discord-link-color, var(--frame-link-color-global));
+  --frame-divider: var(--discord-divider, var(--frame-divider-global));
+  --frame-input-bg: var(--discord-input-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--discord-overlay, var(--frame-overlay-global));
+}
+
+/* Generic Context */
+.generic-context {
+  --frame-bg: var(--generic-bg, var(--frame-bg-global));
+  --frame-surface: var(--generic-surface, var(--frame-surface-global));
+  --frame-border: var(--generic-border, var(--frame-border-global));
+  --frame-text-primary: var(--generic-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--generic-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--generic-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--generic-accent, var(--frame-accent-global));
+  --frame-accent-bg: var(--generic-accent-bg, var(--frame-accent-bg-global));
+  --frame-link-color: var(--generic-link-color, var(--frame-link-color-global));
+  --frame-divider: var(--generic-divider, var(--frame-divider-global));
+  --frame-input-bg: var(--generic-input-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--generic-overlay, var(--frame-overlay-global));
+}

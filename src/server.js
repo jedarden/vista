@@ -174,6 +174,76 @@ app.post('/api/preview/meta', async (req, res) => {
 });
 
 /**
+ * GET /api/preview/images?url=https://...
+ * POST /api/preview/images with Content-Type: text/html body (and optional ?base=https://...)
+ * Image probing endpoint that returns image dimensions, crop ratios, and card-specific data.
+ * Slower operation (~1-3s), runs after meta loads.
+ * Probes: og:image, twitter:image, favicon, and any hero.png references.
+ */
+app.get('/api/preview/images', async (req, res) => {
+  const url = req.query.url;
+  if (!url) {
+    return res.status(400).json({ error: 'Missing ?url= parameter' });
+  }
+
+  try {
+    const parsedUrl = new URL(url);
+    if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+      return res.status(400).json({ error: 'Only http and https URLs are supported' });
+    }
+  } catch (_) {
+    return res.status(400).json({ error: 'Invalid URL' });
+  }
+
+  try {
+    const { html, redirectChain, finalUrl, responseHeaders, statusCode } =
+      await fetchUrl(url);
+
+    const result = await buildImagePreviewResult({
+      html,
+      baseUrl: finalUrl,
+      redirectChain,
+      responseHeaders,
+      statusCode,
+      sourceUrl: url,
+    });
+
+    res.json(result);
+  } catch (err) {
+    console.error('Fetch error:', err.message);
+    res.status(502).json({ error: `Failed to fetch URL: ${err.message}` });
+  }
+});
+
+app.post('/api/preview/images', async (req, res) => {
+  const baseUrl = req.query.base || 'https://example.com';
+  let html;
+
+  if (typeof req.body === 'string') {
+    html = req.body;
+  } else if (req.body && req.body.html) {
+    html = req.body.html;
+  } else {
+    return res.status(400).json({ error: 'POST body must be HTML text or JSON { html: "..." }' });
+  }
+
+  try {
+    const result = await buildImagePreviewResult({
+      html,
+      baseUrl,
+      redirectChain: [],
+      responseHeaders: {},
+      statusCode: 200,
+      sourceUrl: baseUrl,
+    });
+    res.json(result);
+  } catch (err) {
+    console.error('Parse error:', err.message);
+    res.status(500).json({ error: `Failed to parse HTML: ${err.message}` });
+  }
+});
+
+/**
  * GET /api/sitemap?url=https://...sitemap.xml
  * Parse sitemap and return all URLs with coverage scores
  */
@@ -1348,6 +1418,241 @@ async function buildMetaPreviewResult({ html, baseUrl, redirectChain, responseHe
     previews,
     redirectChain,
   };
+}
+
+/**
+ * Build image-only preview result (image probing with dimensions and crop ratios).
+ * Slower response (~1-3s) for image-specific data.
+ */
+async function buildImagePreviewResult({ html, baseUrl, redirectChain, responseHeaders, statusCode, sourceUrl }) {
+  const meta = parseMetaTags(html, baseUrl);
+
+  // Collect all image URLs to probe
+  const imageUrls = new Set();
+
+  // Open Graph image
+  if (meta.og.image) {
+    imageUrls.add(meta.og.image);
+  }
+
+  // Twitter image
+  if (meta.twitter.image) {
+    imageUrls.add(meta.twitter.image);
+  }
+
+  // Favicon
+  if (meta.favicon) {
+    imageUrls.add(meta.favicon);
+  }
+
+  // Look for hero.png references in the HTML
+  const heroPattern = /hero\.png(?:\?[^'\"]*)?/gi;
+  const heroMatches = html.match(heroPattern) || [];
+  for (const match of heroMatches) {
+    const heroUrl = resolveUrl(match, baseUrl);
+    imageUrls.add(heroUrl);
+  }
+
+  // Also check for og:image with .png extension
+  if (meta.og.image && meta.og.image.toLowerCase().includes('.png')) {
+    // Already added above
+  }
+
+  // Probe all images in parallel
+  const imageProbes = await Promise.allSettled(
+    Array.from(imageUrls).map(async (imageUrl) => {
+      return {
+        url: imageUrl,
+        probe: await probeImage(imageUrl),
+      };
+    })
+  );
+
+  // Process results and categorize by type
+  const results = {
+    ogImage: null,
+    twitterImage: null,
+    favicon: null,
+    heroImages: [],
+    allImages: [],
+  };
+
+  for (const result of imageProbes) {
+    if (result.status === 'rejected') continue;
+
+    const { url, probe } = result.value;
+
+    // Add to all images list
+    const imageData = {
+      url,
+      ...probe,
+      cropRatios: calculateCropRatios(probe),
+    };
+    results.allImages.push(imageData);
+
+    // Categorize by type
+    if (url === meta.og.image) {
+      results.ogImage = imageData;
+    } else if (url === meta.twitter.image) {
+      results.twitterImage = imageData;
+    } else if (url === meta.favicon) {
+      results.favicon = imageData;
+    } else if (url.toLowerCase().includes('hero.png')) {
+      results.heroImages.push(imageData);
+    }
+  }
+
+  // Build card-specific recommendations
+  const cardRecommendations = buildCardRecommendations(meta, results);
+
+  return {
+    url: sourceUrl,
+    finalUrl: baseUrl,
+    statusCode,
+    // Image probe results
+    images: {
+      og: results.ogImage,
+      twitter: results.twitterImage,
+      favicon: results.favicon,
+      hero: results.heroImages,
+      all: results.allImages,
+    },
+    // Card-specific recommendations based on image dimensions
+    recommendations: cardRecommendations,
+    redirectChain,
+  };
+}
+
+/**
+ * Calculate crop ratios for common platform card sizes.
+ * Returns an object with ratios for different card types.
+ */
+function calculateCropRatios(probe) {
+  if (!probe.width || !probe.height) {
+    return {
+      landscape: null,
+      square: null,
+      portrait: null,
+    };
+  }
+
+  const width = probe.width;
+  const height = probe.height;
+  const aspectRatio = width / height;
+
+  return {
+    aspectRatio: parseFloat(aspectRatio.toFixed(3)),
+    landscape: {
+      ratio: '16:9',
+      recommended: { width: 1200, height: 675 },
+      actual: { width, height },
+      willCrop: aspectRatio < 1.778,
+    },
+    square: {
+      ratio: '1:1',
+      recommended: { width: 1080, height: 1080 },
+      actual: { width, height },
+      willCrop: aspectRatio !== 1.0,
+    },
+    portrait: {
+      ratio: '4:5',
+      recommended: { width: 1080, height: 1350 },
+      actual: { width, height },
+      willCrop: aspectRatio < 0.8 || aspectRatio > 0.8,
+    },
+  };
+}
+
+/**
+ * Build card-specific recommendations based on image dimensions.
+ */
+function buildCardRecommendations(meta, imageResults) {
+  const recommendations = [];
+
+  const ogImage = imageResults.ogImage;
+  const twitterImage = imageResults.twitterImage;
+
+  if (ogImage && ogImage.width && ogImage.height) {
+    const aspectRatio = ogImage.width / ogImage.height;
+
+    // Twitter Large Card: 16:9 (recommended: 1200x675)
+    if (aspectRatio < 1.5) {
+      recommendations.push({
+        platform: 'twitter',
+        cardType: 'large',
+        issue: 'aspect_ratio_too_narrow',
+        message: `Image aspect ratio ${aspectRatio.toFixed(2)} is too narrow for Twitter Large Card (16:9). Image may be cropped.`,
+        recommended: { width: 1200, height: 675, ratio: '16:9' },
+        current: { width: ogImage.width, height: ogImage.height, ratio: aspectRatio.toFixed(2) },
+      });
+    }
+
+    // Facebook/LinkedIn: 16:9 to 4:5
+    if (aspectRatio < 0.8 || aspectRatio > 2.0) {
+      recommendations.push({
+        platform: 'facebook,linkedin',
+        cardType: 'opengraph',
+        issue: 'aspect_ratio_out_of_range',
+        message: `Image aspect ratio ${aspectRatio.toFixed(2)} is outside optimal range (0.8-2.0) for Open Graph cards.`,
+        recommended: { ratio: '16:9 (1.78)', min: '4:5 (0.8)', max: '2:1 (2.0)' },
+        current: { width: ogImage.width, height: ogImage.height, ratio: aspectRatio.toFixed(2) },
+      });
+    }
+
+    // Minimum size check
+    if (ogImage.width < 1200 || ogImage.height < 630) {
+      recommendations.push({
+        platform: 'facebook,linkedin',
+        cardType: 'opengraph',
+        issue: 'image_too_small',
+        message: `Image dimensions (${ogImage.width}x${ogImage.height}) are below recommended minimum (1200x630).`,
+        recommended: { width: 1200, height: 630 },
+        current: { width: ogImage.width, height: ogImage.height },
+      });
+    }
+  }
+
+  if (twitterImage && twitterImage.width && twitterImage.height) {
+    const aspectRatio = twitterImage.width / twitterImage.height;
+
+    // Twitter Summary Card: 1:1 or close to square
+    if (aspectRatio < 0.8 || aspectRatio > 1.25) {
+      recommendations.push({
+        platform: 'twitter',
+        cardType: 'summary',
+        issue: 'aspect_ratio_not_square',
+        message: `Image aspect ratio ${aspectRatio.toFixed(2)} is not optimal for Twitter Summary Card (1:1).`,
+        recommended: { width: 800, height: 800, ratio: '1:1' },
+        current: { width: twitterImage.width, height: twitterImage.height, ratio: aspectRatio.toFixed(2) },
+      });
+    }
+  }
+
+  // Check if og:image and twitter:image are the same
+  if (ogImage && twitterImage && ogImage.url === twitterImage.url) {
+    recommendations.push({
+      platform: 'twitter',
+      cardType: 'large,summary',
+      issue: 'same_image_for_both_cards',
+      message: 'Using the same image for both og:image and twitter:image. Consider using Twitter-specific images for optimal display.',
+      ogImage: { width: ogImage.width, height: ogImage.height },
+      twitterImage: { width: twitterImage.width, height: twitterImage.height },
+    });
+  }
+
+  return recommendations;
+}
+
+/**
+ * Helper function to resolve URLs (copied from fetcher.js for local use)
+ */
+function resolveUrl(href, baseUrl) {
+  if (!href) return null;
+  try {
+    return new URL(href, baseUrl).toString();
+  } catch (_) {
+    return href;
+  }
 }
 
 /**

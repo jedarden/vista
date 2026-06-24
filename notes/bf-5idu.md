@@ -53,6 +53,8 @@ function announce(message, priority = 'polite') {
 - Uses assertive priority for errors
 - Ensures screen readers immediately interrupt for critical issues
 
+**Enhancement (2024-06-24):** Added missing error announcement in `inspectHtml` error handler for consistency with `inspectUrl` error handling.
+
 ## Implementation Summary
 
 The implementation covers:

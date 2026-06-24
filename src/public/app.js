@@ -467,6 +467,7 @@ async function inspectHtml(html, base) {
     // Clear skeletons and show error
     previewGrid.innerHTML = '';
     showToast('Error: ' + err.message, 3000);
+    announce('Error: ' + err.message, 'assertive');
   }
 }
 

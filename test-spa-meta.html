@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test SPA - Client-side Meta Tags</title>
+    <meta charset="utf-8">
+    <!-- No og:image here - will be injected by JS -->
+</head>
+<body>
+    <h1>Test Page with JS-injected Meta Tags</h1>
+    <p>This page injects Open Graph meta tags via JavaScript after page load.</p>
+
+    <script>
+        // Simulate SPA behavior: inject meta tags after page load
+        setTimeout(() => {
+            // Create og:image meta tag
+            const ogImage = document.createElement('meta');
+            ogImage.setAttribute('property', 'og:image');
+            ogImage.setAttribute('content', 'https://example.com/injected-image.jpg');
+            document.head.appendChild(ogImage);
+
+            // Create og:title meta tag
+            const ogTitle = document.createElement('meta');
+            ogTitle.setAttribute('property', 'og:title');
+            ogTitle.setAttribute('content', 'Injected Title via JS');
+            document.head.appendChild(ogTitle);
+
+            // Create og:description meta tag
+            const ogDesc = document.createElement('meta');
+            ogDesc.setAttribute('property', 'og:description');
+            ogDesc.setAttribute('content', 'This description was injected by JavaScript');
+            document.head.appendChild(ogDesc);
+
+            console.log('Meta tags injected via JavaScript');
+        }, 100);
+    </script>
+</body>
+</html>

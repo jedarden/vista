@@ -114,6 +114,7 @@ async function fetchUrl(url) {
       const location = response.headers.get('location');
       if (!location) {
         hop.warning = 'Redirect with no Location header';
+        hop.html = hopHtml;
         redirectChain.push(hop);
         break;
       }
@@ -131,10 +132,8 @@ async function fetchUrl(url) {
           '302 (temporary) redirect — platforms may cache the redirect URL instead of the final URL';
       }
 
-      // Store HTML content for this redirect hop
-      if (hopHtml !== null) {
-        hop.html = hopHtml;
-      }
+      // Store HTML content for this redirect hop (will be undefined if no HTML)
+      hop.html = hopHtml;
 
       redirectChain.push(hop);
       currentUrl = nextUrl;
@@ -146,10 +145,8 @@ async function fetchUrl(url) {
     // Non-redirect response
     hop.isFinal = true;
 
-    // Store HTML content for the final hop
-    if (hopHtml !== null) {
-      hop.html = hopHtml;
-    }
+    // Store HTML content for the final hop (will be undefined if no HTML)
+    hop.html = hopHtml;
 
     redirectChain.push(hop);
     lastResponse = response;

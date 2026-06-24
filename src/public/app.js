@@ -431,6 +431,189 @@ function clearSuggestionChips() {
 }
 
 // ── Inspect ──
+/**
+ * Progressive loading implementation:
+ * 1. Show skeleton grid instantly
+ * 2. Call /api/preview/meta, populate score and text cards
+ * 3. Call /api/preview/images in parallel with /api/preview/headers
+ * 4. Fill in image cards and diagnostics tab as they arrive
+ * 5. Hide loading state when all complete
+ */
+async function progressiveLoad({ url, html, base }) {
+  const isHtml = !!html;
+  const startTime = performance.now();
+
+  // Step 1: Fetch metadata first (fast, ~200-400ms)
+  let metaResp;
+  if (isHtml) {
+	metaResp = await fetch(`/api/preview/meta${base ? '?base=' + encodeURIComponent(base) : ''}`, {
+	  method: 'POST',
+	  headers: { 'Content-Type': 'text/html' },
+	  body: html,
+	});
+  } else {
+	metaResp = await fetch(`/api/preview/meta?url=${encodeURIComponent(url)}`);
+  }
+
+  if (!metaResp.ok) {
+	const error = await metaResp.json();
+	throw new Error(error.error || 'Failed to fetch metadata');
+  }
+
+  const metaData = await metaResp.json();
+  const metaTime = performance.now() - startTime;
+  console.log(`[Progressive] Metadata loaded in ${metaTime.toFixed(0)}ms`);
+
+  // Step 2: Populate score and text cards immediately
+  currentData = metaData; // Store for later merging
+  window.currentRedirectChain = metaData.redirectChain || null;
+  saveToRecents(metaData);
+
+  // Compact hero and show results section
+  hero.classList.add('compact');
+  document.body.classList.add('has-results');
+  resultsSection.classList.remove('hidden');
+  switchTab('previews');
+
+  // Render summary bar and text-based previews
+  renderSummaryBar(metaData);
+  renderTextPreviewsOnly(metaData);
+
+  // Update URL for sharing
+  if (metaData.url && metaData.url !== window.location.href) {
+	history.pushState({}, '', '/?url=' + encodeURIComponent(metaData.url));
+  }
+
+  // Step 3: Fetch images and headers in parallel
+  const imagesPromise = fetchImagesAndHeaders({ url, html, base, isHtml });
+  const headersPromise = fetchHeaders({ url, html, base, isHtml });
+
+  // Wait for both to complete
+  const [imagesData, headersData] = await Promise.all([
+	imagesPromise.catch(err => { console.error('[Progressive] Images fetch failed:', err); return null; }),
+	headersPromise.catch(err => { console.error('[Progressive] Headers fetch failed:', err); return null; })
+  ]);
+
+  const totalTime = performance.now() - startTime;
+  console.log(`[Progressive] All data loaded in ${totalTime.toFixed(0)}ms`);
+
+  // Step 4: Merge and update UI with complete data
+  const completeData = mergeData(metaData, imagesData, headersData);
+  currentData = completeData;
+
+  // Extract dominant color for OG image placeholder
+  const ogImageUrl = completeData.meta.og.image || completeData.meta.twitter.image;
+  if (ogImageUrl) {
+	completeData.dominantColor = await extractDominantColor(ogImageUrl);
+  }
+
+  // Client-side DOM verification for JS-injected tags
+  if (completeData.html && completeData.meta) {
+	try {
+	  const clientFindings = await verifyClientSideTags(completeData.html, completeData.meta);
+	  if (clientFindings.length > 0) {
+		completeData.diagnostics = [...(completeData.diagnostics || []), ...clientFindings];
+	  }
+	} catch (e) {
+	  console.warn('Client-side tag verification failed:', e);
+	}
+  }
+
+  // Update all panels with complete data
+  updatePreviewsWithImages(completeData);
+  updateDiagnostics(completeData);
+  renderRawTags(completeData.meta);
+  renderRedirects(completeData.redirectChain, completeData.responseHeaders, completeData.headerAnalysis);
+  renderFixes(completeData.autoFixes);
+
+  // Initialize editor and other features
+  initEditor(completeData);
+  initCacheHub();
+  generateCodeSnippet();
+
+  // Announce final results
+  if (completeData.scoring) {
+	const { grade, score } = completeData.scoring.overall;
+	const { passing, warning, failing } = completeData.scoring.summary;
+	announce(`Inspection complete. Overall grade: ${grade} (${score}/100). ${passing} passing, ${warning} warnings, ${failing} failing.`);
+  }
+
+  // Update sr-only h1 for results page state
+  const resultsHeading = document.getElementById('resultsPageHeading');
+  if (resultsHeading) {
+	const domain = (completeData.finalUrl || completeData.url || '').replace(/^https?:\/\//, '').split('/')[0];
+	resultsHeading.textContent = `VISTA Results: ${domain}`;
+  }
+
+  // Check for perfect score and trigger celebration
+  checkAndCelebrate(completeData);
+}
+
+async function fetchImagesAndHeaders({ url, html, base, isHtml }) {
+  if (isHtml) {
+	return await fetch(`/api/preview/images${base ? '?base=' + encodeURIComponent(base) : ''}`, {
+	  method: 'POST',
+	  headers: { 'Content-Type': 'text/html' },
+	  body: html,
+	}).then(resp => resp.json());
+  } else {
+	return await fetch(`/api/preview/images?url=${encodeURIComponent(url)}`).then(resp => resp.json());
+  }
+}
+
+async function fetchHeaders({ url, html, base, isHtml }) {
+  if (isHtml) {
+	return await fetch(`/api/preview/headers${base ? '?base=' + encodeURIComponent(base) : ''}`, {
+	  method: 'POST',
+	  headers: { 'Content-Type': 'text/html' },
+	  body: html,
+	}).then(resp => resp.json());
+  } else {
+	return await fetch(`/api/preview/headers?url=${encodeURIComponent(url)}`).then(resp => resp.json());
+  }
+}
+
+function mergeData(metaData, imagesData, headersData) {
+  const merged = { ...metaData };
+
+  if (imagesData) {
+	Object.assign(merged, {
+	  previews: imagesData.previews,
+	  imageProbe: imagesData.imageProbe,
+	  cropper: imagesData.cropper,
+	});
+  }
+
+  if (headersData) {
+	Object.assign(merged, {
+	  headers: headersData.headers,
+	  security: headersData.security,
+	  cors: headersData.cors,
+	  performance: headersData.performance,
+	  server: headersData.server,
+	  diagnostics: headersData.diagnostics || [],
+	  headerAnalysis: headersData.headerAnalysis,
+	});
+  }
+
+  return merged;
+}
+
+
+/**
+ * Update diagnostics tab with header analysis results
+ */
+function updateDiagnostics(data) {
+  if (!data.diagnostics || data.diagnostics.length === 0) {
+    diagPanel.innerHTML = '<div class="diag-empty">&#10003; No issues detected. All checks passed.</div>';
+    announce('No diagnostic issues found. All checks passed.');
+    return;
+  }
+
+  renderDiagnostics(data.diagnostics);
+  console.log('[Progressive] Diagnostics tab populated');
+}
+
 async function inspectUrl(url) {
   if (!url) return;
   if (!url.startsWith('http://') && !url.startsWith('https://')) {
@@ -439,10 +622,7 @@ async function inspectUrl(url) {
   }
   renderSkeletons(); // Show skeletons immediately at 0ms - skeleton cards serve as loading indicator
   try {
-    const resp = await fetch(`/api/preview?url=${encodeURIComponent(url)}`);
-    const data = await resp.json();
-    if (!resp.ok) throw new Error(data.error || 'Fetch failed');
-    handleResult(data);
+	await progressiveLoad({ url });
   } catch (err) {
     // Clear skeletons and show error
     previewGrid.innerHTML = '';
@@ -455,14 +635,7 @@ async function inspectHtml(html, base) {
   if (!html) { showToast('Please paste some HTML first.', 2000); return; }
   renderSkeletons(); // Show skeletons immediately at 0ms - skeleton cards serve as loading indicator
   try {
-    const resp = await fetch(`/api/preview${base ? '?base=' + encodeURIComponent(base) : ''}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/html' },
-      body: html,
-    });
-    const data = await resp.json();
-    if (!resp.ok) throw new Error(data.error || 'Parse failed');
-    handleResult(data);
+	await progressiveLoad({ html, base });
   } catch (err) {
     // Clear skeletons and show error
     previewGrid.innerHTML = '';
@@ -1148,6 +1321,216 @@ function renderPreviews(data) {
     groupEl.appendChild(row);
     previewGrid.appendChild(groupEl);
   });
+
+  // Initialize drag and drop for cards
+  initCardDragAndDrop();
+}
+
+/**
+ * Render text-only previews immediately after metadata loads.
+ * Shows score badge and card text content, with loading indicators for images.
+ * This allows users to see text content within ~600ms while images load progressively.
+ */
+function renderTextPreviewsOnly(data) {
+  // Store that we're in progressive loading mode
+  window.progressiveLoading = true;
+
+  previewGrid.innerHTML = '';
+
+  PLATFORM_GROUPS.forEach((group, gi) => {
+    const groupEl = document.createElement('div');
+    groupEl.className = 'platform-group' + (group.collapsed ? ' collapsed' : '');
+    groupEl.id = 'group-' + group.id;
+    groupEl.dataset.groupId = group.id;
+
+    // Count scores for group
+    const groupScores = group.platforms.map(pid => data.scoring.scores[pid]).filter(Boolean);
+    const gPassing = groupScores.filter(s => ['A+','A'].includes(s.grade)).length;
+    const gWarn = groupScores.filter(s => ['B','C'].includes(s.grade)).length;
+    const gFail = groupScores.filter(s => ['D','F'].includes(s.grade)).length;
+
+    const header = document.createElement('div');
+    header.className = 'platform-group-header';
+    header.innerHTML = `
+      <span class="group-chevron">&#9660;</span>
+      <span class="group-title">${escHtml(group.title)}</span>
+      <span class="group-subtitle">${gPassing} &#10003; ${gWarn > 0 ? gWarn + ' &#9888; ' : ''}${gFail > 0 ? gFail + ' &#10007;' : ''}</span>
+    `;
+    header.addEventListener('click', () => {
+      groupEl.classList.toggle('collapsed');
+    });
+    groupEl.appendChild(header);
+
+    const row = document.createElement('div');
+    row.className = 'cards-row';
+    row.dataset.groupId = group.id;
+
+    // Use custom order if available
+    let platforms = group.platforms;
+    if (platformPrefs.cardOrder[group.id]) {
+      const customOrder = platformPrefs.cardOrder[group.id].filter(pid => group.platforms.includes(pid));
+      const newPlatforms = group.platforms.filter(pid => !customOrder.includes(pid));
+      platforms = [...customOrder, ...newPlatforms];
+    }
+
+    platforms.forEach((pid, i) => {
+      const scoreData = data.scoring.scores[pid];
+      if (!scoreData) return;
+      const animDelay = prefersReducedMotion() ? 0 : i * 60;
+      const card = buildTextOnlyCard(pid, scoreData, data, animDelay, group.id);
+      row.appendChild(card);
+    });
+
+    groupEl.appendChild(row);
+    previewGrid.appendChild(groupEl);
+  });
+}
+
+/**
+ * Build a text-only card with loading indicator for images.
+ * Used during progressive loading to show text content immediately.
+ */
+function buildTextOnlyCard(pid, scoreData, data, animDelay, groupId) {
+  const card = document.createElement('div');
+  card.className = `platform-card ${gradeClass(scoreData.grade)}`;
+  card.style.animationDelay = animDelay + 'ms';
+  card.dataset.pid = pid;
+  card.dataset.groupId = groupId;
+  card.dataset.loadingImages = 'true';
+  card.tabIndex = -1;
+  card.draggable = true;
+
+  // Initialize context state
+  if (!cardContextState[pid]) {
+    cardContextState[pid] = { context: false, theme: 'dark' };
+  }
+
+  // Header with loading badge
+  const header = document.createElement('div');
+  header.className = 'card-header';
+  const supportsTheme = PLATFORMS_WITH_THEME.includes(pid);
+
+  header.innerHTML = `
+    <span class="card-platform-icon">${PLATFORM_ICONS[pid] || '🌐'}</span>
+    <span class="card-platform-name">${escHtml(PLATFORM_NAMES[pid] || pid)}</span>
+    <div class="card-header-controls">
+      ${supportsTheme ? `
+        <button class="card-theme-toggle" data-pid="${pid}" title="Toggle theme" disabled>
+          <span class="theme-icon">${cardContextState[pid].theme === 'dark' ? '🌙' : '☀️'}</span>
+        </button>
+      ` : ''}
+      <button class="card-screenshot-btn" data-pid="${pid}" title="Download screenshot" disabled>
+        <span>&#128190;</span>
+      </button>
+      <button class="card-context-toggle" data-pid="${pid}" title="Toggle context view" disabled>
+        <span class="context-icon">🃏</span>
+        <span class="context-label">Loading...</span>
+      </button>
+      <span class="card-grade ${gradeClass(scoreData.grade)}">${scoreData.grade}</span>
+    </div>
+  `;
+  card.appendChild(header);
+
+  // Body with text content and loading placeholder for images
+  const body = document.createElement('div');
+  body.className = 'card-body';
+  body.id = `card-body-${pid}`;
+
+  // Render card with text but no actual images (use placeholders)
+  body.innerHTML = renderPlatformCard(pid, data.meta, null, data.finalUrl, null);
+
+  // Add loading spinner overlay for image areas
+  const loadingOverlay = document.createElement('div');
+  loadingOverlay.className = 'card-image-loading';
+  loadingOverlay.innerHTML = '<div class="loading-spinner-small"></div>';
+  body.appendChild(loadingOverlay);
+
+  card.appendChild(body);
+
+  // Footer with issues
+  if (scoreData.issues && scoreData.issues.length > 0) {
+    const footer = document.createElement('div');
+    footer.className = 'card-footer';
+    scoreData.issues.slice(0, 3).forEach(issue => {
+      const div = document.createElement('div');
+      div.className = 'card-issue';
+      const isError = scoreData.grade === 'D' || scoreData.grade === 'F';
+      div.innerHTML = `<span class="${isError ? 'issue-icon-err' : 'issue-icon-warn'}">${isError ? '✗' : '⚠'}</span><span>${escHtml(issue)}</span>`;
+      footer.appendChild(div);
+    });
+    card.appendChild(footer);
+  }
+
+  return card;
+}
+
+/**
+ * Update existing cards with image data as it arrives.
+ * Replaces loading placeholders with actual images progressively.
+ */
+function updatePreviewsWithImages(data) {
+  // Update each existing card with image data
+  PLATFORM_GROUPS.forEach((group) => {
+    group.platforms.forEach((pid) => {
+      const existingCard = document.querySelector(`.platform-card[data-pid="${pid}"]`);
+      if (!existingCard) return;
+
+      // Remove loading state
+      delete existingCard.dataset.loadingImages;
+
+      // Update score badge in case it changed
+      const scoreData = data.scoring.scores[pid];
+      if (scoreData) {
+        const gradeBadge = existingCard.querySelector('.card-grade');
+        if (gradeBadge) {
+          gradeBadge.className = 'card-grade ' + gradeClass(scoreData.grade);
+          gradeBadge.textContent = scoreData.grade;
+        }
+
+        // Update card grade class
+        existingCard.className = `platform-card ${gradeClass(scoreData.grade)}`;
+      }
+
+      // Update card body with images
+      const body = existingCard.querySelector(`#card-body-${pid}`);
+      if (body) {
+        // Remove loading overlay
+        const loadingOverlay = body.querySelector('.card-image-loading');
+        if (loadingOverlay) {
+          loadingOverlay.remove();
+        }
+
+        // Re-render with actual images
+        body.innerHTML = renderPlatformCard(pid, data.meta, data.imageProbe, data.finalUrl, data.dominantColor);
+      }
+
+      // Enable controls that were disabled during loading
+      const screenshotBtn = existingCard.querySelector('.card-screenshot-btn');
+      if (screenshotBtn) {
+        screenshotBtn.disabled = false;
+        screenshotBtn.addEventListener('click', () => downloadScreenshot(pid, data));
+      }
+
+      const contextToggle = existingCard.querySelector('.card-context-toggle');
+      if (contextToggle) {
+        contextToggle.disabled = false;
+        contextToggle.querySelector('.context-label').textContent = 'Card only';
+        contextToggle.addEventListener('click', () => toggleCardContext(pid, data));
+      }
+
+      const themeToggle = existingCard.querySelector('.card-theme-toggle');
+      if (themeToggle) {
+        themeToggle.disabled = false;
+        themeToggle.addEventListener('click', () => toggleCardTheme(pid, data));
+      }
+
+      // Add context menu listener
+      existingCard.addEventListener('contextmenu', (e) => showCardContextMenu(e, pid, group.id, data));
+    });
+  });
+
+  // No longer in progressive loading mode
+  window.progressiveLoading = false;
 
   // Initialize drag and drop for cards
   initCardDragAndDrop();

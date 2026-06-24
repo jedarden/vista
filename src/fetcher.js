@@ -23,6 +23,7 @@ const MAX_BODY_BYTES = 1024 * 1024; // 1 MB read limit for HTML
  * - warning: Warnings about redirect behavior (HTTP→HTTPS, 302 caching, etc)
  * - isFinal: Boolean flag for the final hop
  * - html: HTML response content (for all HTML responses, including 3xx redirects)
+ * - metaTags: Array of all meta tags with name/content or property/content pairs
  * - meta: Critical meta tags (title, og:*, twitter:*, canonical) for 200 HTML responses
  * - metaDiff: Diff from previous hop's meta (changed/added/removed fields)
  * - metaError: Error message if meta parsing failed
@@ -41,8 +42,8 @@ const MAX_BODY_BYTES = 1024 * 1024; // 1 MB read limit for HTML
  *
  * The capture flow:
  * - readBodyLimited() reads up to MAX_BODY_BYTES (1 MB)
- * - parseMetaTags() extracts all meta tags via cheerio
- * - extractCriticalMetaTags() simplifies to critical fields
+ * - parseMetaTags() extracts all meta tags via cheerio and stores in metaTags array
+ * - extractCriticalMetaTags() simplifies to critical fields for meta object
  * - calculateMetaDiff() compares with previous hop
  */
 async function fetchUrl(url) {
@@ -81,7 +82,7 @@ async function fetchUrl(url) {
     // For HTML responses, capture body and parse meta tags.
     // This is the primary hook where HTML is read and meta tags are extracted.
     // The captured data is used for:
-    // - Per-hop meta tag storage (hop.meta)
+    // - Per-hop meta tag storage (hop.meta, hop.metaTags)
     // - Diff calculation between hops (hop.metaDiff)
     // - Social share preview analysis
     // - HTML content storage for each hop (hop.html)
@@ -92,6 +93,9 @@ async function fetchUrl(url) {
         const buffer = await readBodyLimited(response, MAX_BODY_BYTES);
         hopHtml = buffer.toString('utf8');
         hopMeta = parseMetaTags(hopHtml, currentUrl);
+
+        // Store all meta tags for this hop (for all HTML responses)
+        hop.metaTags = hopMeta.rawTags || [];
 
         // Only parse meta for 200 responses
         if (response.status === 200) {
@@ -106,10 +110,26 @@ async function fetchUrl(url) {
       } catch (e) {
         // If we fail to read body, continue without meta
         hop.metaError = e.message;
+        hop.metaTags = [];
       }
+    } else {
+      // Ensure metaTags is initialized for non-HTML responses
+      hop.metaTags = [];
     }
 
     const isRedirect = [301, 302, 303, 307, 308].includes(response.status);
+
+    // For redirect responses, attempt to read body even if not explicitly text/html
+    // Some redirects return HTML (error pages, "click here" messages) without proper Content-Type
+    if (isRedirect && !hopHtml) {
+      try {
+        const buffer = await readBodyLimited(response, MAX_BODY_BYTES);
+        hopHtml = buffer.toString('utf8');
+      } catch (e) {
+        // Failed to read body - leave hopHtml as null
+      }
+    }
+
     if (isRedirect) {
       const location = response.headers.get('location');
       if (!location) {
@@ -170,11 +190,22 @@ async function fetchUrl(url) {
     // - Final response is HTML but wasn't captured in the redirect loop
     // - Non-200 final responses that still have HTML
     if (!hopMeta && isHtml) {
-      const finalMeta = parseMetaTags(html, currentUrl);
-      hop.meta = extractCriticalMetaTags(finalMeta);
-      if (lastMeta) {
-        hop.metaDiff = calculateMetaDiff(lastMeta, hop.meta);
+      try {
+        const finalMeta = parseMetaTags(html, currentUrl);
+        hop.metaTags = finalMeta.rawTags || [];
+        hop.meta = extractCriticalMetaTags(finalMeta);
+        if (lastMeta) {
+          hop.metaDiff = calculateMetaDiff(lastMeta, hop.meta);
+        }
+      } catch (e) {
+        hop.metaError = e.message;
+        hop.metaTags = [];
       }
+    }
+
+    // Ensure metaTags exists for all hops (including non-HTML)
+    if (!hop.metaTags) {
+      hop.metaTags = [];
     }
 
     return {

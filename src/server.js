@@ -174,6 +174,76 @@ app.post('/api/preview/meta', async (req, res) => {
 });
 
 /**
+ * GET /api/preview/headers?url=https://...
+ * POST /api/preview/headers with Content-Type: text/html body (and optional ?base=https://...)
+ * HTTP header analysis endpoint that returns comprehensive header diagnostics.
+ * Fast operation that analyzes security headers, CORS headers, server info, and performance headers.
+ * Runs independently and can be called in parallel with image probe.
+ */
+app.get('/api/preview/headers', async (req, res) => {
+  const url = req.query.url;
+  if (!url) {
+    return res.status(400).json({ error: 'Missing ?url= parameter' });
+  }
+
+  try {
+    const parsedUrl = new URL(url);
+    if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+      return res.status(400).json({ error: 'Only http and https URLs are supported' });
+    }
+  } catch (_) {
+    return res.status(400).json({ error: 'Invalid URL' });
+  }
+
+  try {
+    const { html, redirectChain, finalUrl, responseHeaders, statusCode } =
+      await fetchUrl(url);
+
+    const result = await buildHeadersPreviewResult({
+      html,
+      baseUrl: finalUrl,
+      redirectChain,
+      responseHeaders,
+      statusCode,
+      sourceUrl: url,
+    });
+
+    res.json(result);
+  } catch (err) {
+    console.error('Fetch error:', err.message);
+    res.status(502).json({ error: `Failed to fetch URL: ${err.message}` });
+  }
+});
+
+app.post('/api/preview/headers', async (req, res) => {
+  const baseUrl = req.query.base || 'https://example.com';
+  let html;
+
+  if (typeof req.body === 'string') {
+    html = req.body;
+  } else if (req.body && req.body.html) {
+    html = req.body.html;
+  } else {
+    return res.status(400).json({ error: 'POST body must be HTML text or JSON { html: "..." }' });
+  }
+
+  try {
+    const result = await buildHeadersPreviewResult({
+      html,
+      baseUrl,
+      redirectChain: [],
+      responseHeaders: {},
+      statusCode: 200,
+      sourceUrl: baseUrl,
+    });
+    res.json(result);
+  } catch (err) {
+    console.error('Parse error:', err.message);
+    res.status(500).json({ error: `Failed to parse HTML: ${err.message}` });
+  }
+});
+
+/**
  * GET /api/preview/images?url=https://...
  * POST /api/preview/images with Content-Type: text/html body (and optional ?base=https://...)
  * Image probing endpoint that returns image dimensions, crop ratios, and card-specific data.
@@ -1357,6 +1427,74 @@ function buildAutoFixes(meta, diagnostics, scoring) {
 }
 
 /**
+ * Build headers-only preview result (HTTP header analysis).
+ * Fast response for header diagnostics including security headers, CORS, server info, and performance headers.
+ */
+async function buildHeadersPreviewResult({ html, baseUrl, redirectChain, responseHeaders, statusCode, sourceUrl }) {
+  const meta = parseMetaTags(html, baseUrl);
+
+  // Header analysis
+  const headerAnalysis = analyzeResponseHeaders(responseHeaders, null, meta);
+
+  // Extract and categorize all headers
+  const categorizedHeaders = categorizeHeaders(responseHeaders);
+
+  // Security score assessment
+  const securityScore = assessSecurityHeaders(responseHeaders);
+
+  // Performance assessment
+  const performanceAssessment = assessPerformanceHeaders(responseHeaders);
+
+  return {
+    url: sourceUrl,
+    finalUrl: baseUrl,
+    statusCode,
+    // Categorized headers
+    headers: categorizedHeaders,
+    // Security header analysis
+    security: {
+      score: securityScore.score,
+      grade: securityScore.grade,
+      headers: securityScore.headers,
+      issues: securityScore.issues,
+      recommendations: securityScore.recommendations,
+    },
+    // CORS analysis
+    cors: {
+      origin: responseHeaders['access-control-allow-origin'] || null,
+      allowHeaders: responseHeaders['access-control-allow-headers'] || null,
+      exposeHeaders: responseHeaders['access-control-expose-headers'] || null,
+      credentials: responseHeaders['access-control-allow-credentials'] || null,
+      maxAge: responseHeaders['access-control-max-age'] || null,
+      methods: responseHeaders['access-control-allow-methods'] || null,
+      analysis: analyzeCorsHeaders(responseHeaders),
+    },
+    // Server information
+    server: {
+      software: responseHeaders['server'] || null,
+      xPoweredBy: responseHeaders['x-powered-by'] || null,
+      xGenerator: responseHeaders['generator'] || null,
+      xAspNetVersion: responseHeaders['x-aspnet-version'] || null,
+      xPhpVersion: responseHeaders['x-php-version'] || null,
+      analysis: analyzeServerHeaders(responseHeaders),
+    },
+    // Performance headers
+    performance: {
+      cacheControl: responseHeaders['cache-control'] || null,
+      expires: responseHeaders['expires'] || null,
+      etag: responseHeaders['etag'] || null,
+      lastModified: responseHeaders['last-modified'] || null,
+      contentEncoding: responseHeaders['content-encoding'] || null,
+      transferEncoding: responseHeaders['transfer-encoding'] || null,
+      assessment: performanceAssessment,
+    },
+    // Full analysis from header-analyzer
+    analysis: headerAnalysis,
+    redirectChain,
+  };
+}
+
+/**
  * Build meta-only preview result (no image probing).
  * Fast response for text-based data only.
  */
@@ -1766,6 +1904,529 @@ async function parseSitemap(xml, baseUrl) {
   // Regular sitemap - extract all URLs
   const locs = $('url > loc').map((_, el) => $(el).text()).get();
   return locs;
+}
+
+/**
+ * Categorize HTTP response headers by type.
+ */
+function categorizeHeaders(headers) {
+  const categories = {
+    security: [],
+    cors: [],
+    performance: [],
+    server: [],
+    content: [],
+    other: [],
+  };
+
+  const securityHeaders = [
+    'content-security-policy',
+    'strict-transport-security',
+    'x-frame-options',
+    'x-content-type-options',
+    'x-xss-protection',
+    'referrer-policy',
+    'permissions-policy',
+    'cross-origin-resource-policy',
+    'cross-origin-opener-policy',
+    'cross-origin-embedder-policy',
+  ];
+
+  const corsHeaders = [
+    'access-control-allow-origin',
+    'access-control-allow-methods',
+    'access-control-allow-headers',
+    'access-control-allow-credentials',
+    'access-control-expose-headers',
+    'access-control-max-age',
+  ];
+
+  const performanceHeaders = [
+    'cache-control',
+    'expires',
+    'etag',
+    'last-modified',
+    'age',
+    'cache-status',
+    'content-encoding',
+    'transfer-encoding',
+    'vary',
+  ];
+
+  const serverHeaders = [
+    'server',
+    'x-powered-by',
+    'x-generator',
+    'x-aspnet-version',
+    'x-php-version',
+    'x-ua-compatible',
+  ];
+
+  const contentHeaders = [
+    'content-type',
+    'content-length',
+    'content-disposition',
+    'content-language',
+    'location',
+    'content-location',
+  ];
+
+  for (const [key, value] of Object.entries(headers)) {
+    const lowerKey = key.toLowerCase();
+    let categorized = false;
+
+    if (securityHeaders.includes(lowerKey)) {
+      categories.security.push({ name: key, value });
+      categorized = true;
+    }
+    if (corsHeaders.includes(lowerKey)) {
+      categories.cors.push({ name: key, value });
+      categorized = true;
+    }
+    if (performanceHeaders.includes(lowerKey)) {
+      categories.performance.push({ name: key, value });
+      categorized = true;
+    }
+    if (serverHeaders.includes(lowerKey)) {
+      categories.server.push({ name: key, value });
+      categorized = true;
+    }
+    if (contentHeaders.includes(lowerKey)) {
+      categories.content.push({ name: key, value });
+      categorized = true;
+    }
+    if (!categorized) {
+      categories.other.push({ name: key, value });
+    }
+  }
+
+  return categories;
+}
+
+/**
+ * Assess security headers and provide a score with recommendations.
+ */
+function assessSecurityHeaders(headers) {
+  const score = { raw: 100, deductions: [], headers: {}, issues: [], recommendations: [] };
+
+  // Check HSTS
+  const hsts = headers['strict-transport-security'];
+  if (hsts) {
+    score.headers.hsts = { present: true, value: hsts };
+    const hasMaxAge = hsts.includes('max-age=');
+    const hasIncludeSubdomains = hsts.includes('includeSubDomains');
+    const hasPreload = hsts.includes('preload');
+
+    if (!hasMaxAge) {
+      score.deductions.push({ header: 'HSTS', reason: 'Missing max-age directive', deduction: 10 });
+      score.raw -= 10;
+      score.issues.push({
+        severity: 'warning',
+        header: 'strict-transport-security',
+        message: 'HSTS is present but missing max-age directive',
+        recommendation: 'Add max-age=31536000 (1 year) to enable HSTS properly',
+      });
+    }
+    if (!hasIncludeSubdomains) {
+      score.recommendations.push({
+        header: 'strict-transport-security',
+        message: 'Consider adding includeSubdomains to protect all subdomains',
+        recommendation: 'Add includeSubdomains to your HSTS header',
+      });
+    }
+  } else {
+    score.deductions.push({ header: 'HSTS', reason: 'Missing HSTS header', deduction: 20 });
+    score.raw -= 20;
+    score.issues.push({
+      severity: 'warning',
+      header: 'strict-transport-security',
+      message: 'Missing HSTS header',
+      recommendation: 'Add Strict-Transport-Security: max-age=31536000; includeSubDomains to enforce HTTPS',
+      affectedPlatforms: ['All'],
+    });
+  }
+
+  // Check CSP
+  const csp = headers['content-security-policy'];
+  if (csp) {
+    score.headers.csp = { present: true, value: csp };
+    const hasDefaultSrc = csp.includes('default-src');
+    const hasScriptSrc = csp.includes('script-src');
+    const hasObjectSrc = csp.includes('object-src');
+    const hasUpgradeInsecure = csp.includes('upgrade-insecure-requests');
+
+    if (!hasDefaultSrc && !hasScriptSrc) {
+      score.deductions.push({ header: 'CSP', reason: 'CSP missing key directives', deduction: 5 });
+      score.raw -= 5;
+    }
+    if (!hasUpgradeInsecure) {
+      score.recommendations.push({
+        header: 'content-security-policy',
+        message: 'Consider adding upgrade-insecure-requests to CSP',
+        recommendation: 'Add upgrade-insecure-requests to ensure all content is loaded over HTTPS',
+      });
+    }
+  } else {
+    score.deductions.push({ header: 'CSP', reason: 'Missing CSP header', deduction: 15 });
+    score.raw -= 15;
+    score.issues.push({
+      severity: 'info',
+      header: 'content-security-policy',
+      message: 'Missing Content-Security-Policy header',
+      recommendation: 'Add a CSP header to control which resources can be loaded',
+      affectedPlatforms: ['All'],
+    });
+  }
+
+  // Check X-Frame-Options
+  const xFrameOptions = headers['x-frame-options'];
+  if (xFrameOptions) {
+    score.headers.xFrameOptions = { present: true, value: xFrameOptions };
+    if (xFrameOptions !== 'DENY' && xFrameOptions !== 'SAMEORIGIN') {
+      score.recommendations.push({
+        header: 'x-frame-options',
+        message: 'X-Frame-Options is present but not set to DENY or SAMEORIGIN',
+        recommendation: 'Set X-Frame-Options to DENY or SAMEORIGIN to prevent clickjacking',
+      });
+    }
+  } else {
+    score.recommendations.push({
+      header: 'x-frame-options',
+      message: 'Missing X-Frame-Options header',
+      recommendation: 'Add X-Frame-Options: SAMEORIGIN to prevent clickjacking (deprecated but still supported)',
+    });
+  }
+
+  // Check X-Content-Type-Options
+  const xContentTypeOptions = headers['x-content-type-options'];
+  if (xContentTypeOptions) {
+    score.headers.xContentTypeOptions = { present: true, value: xContentTypeOptions };
+    if (xContentTypeOptions !== 'nosniff') {
+      score.recommendations.push({
+        header: 'x-content-type-options',
+        message: 'X-Content-Type-Options should be set to nosniff',
+        recommendation: 'Set X-Content-Type-Options: nosniff to prevent MIME type sniffing',
+      });
+    }
+  } else {
+    score.recommendations.push({
+      header: 'x-content-type-options',
+      message: 'Missing X-Content-Type-Options header',
+      recommendation: 'Add X-Content-Type-Options: nosniff to prevent MIME type sniffing',
+    });
+  }
+
+  // Check Referrer-Policy
+  const referrerPolicy = headers['referrer-policy'];
+  if (!referrerPolicy) {
+    score.recommendations.push({
+      header: 'referrer-policy',
+      message: 'Missing Referrer-Policy header',
+      recommendation: 'Add Referrer-Policy: strict-origin-when-cross-origin to control referrer information',
+    });
+  } else {
+    score.headers.referrerPolicy = { present: true, value: referrerPolicy };
+  }
+
+  // Check for information disclosure
+  const server = headers['server'];
+  const xPoweredBy = headers['x-powered-by'];
+  if (server && server.length > 30) {
+    score.recommendations.push({
+      header: 'server',
+      message: 'Server header exposes detailed version information',
+      recommendation: 'Minimize server header to avoid information disclosure',
+    });
+  }
+  if (xPoweredBy) {
+    score.recommendations.push({
+      header: 'x-powered-by',
+      message: 'X-Powered-By header exposes technology stack',
+      recommendation: 'Remove X-Powered-By header to hide technology information',
+    });
+  }
+
+  // Calculate grade
+  let grade;
+  if (score.raw >= 90) grade = 'A';
+  else if (score.raw >= 80) grade = 'B';
+  else if (score.raw >= 70) grade = 'C';
+  else if (score.raw >= 60) grade = 'D';
+  else grade = 'F';
+
+  score.grade = grade;
+  score.score = Math.max(0, score.raw);
+
+  return score;
+}
+
+/**
+ * Analyze CORS headers for configuration issues.
+ */
+function analyzeCorsHeaders(headers) {
+  const analysis = {
+    configured: false,
+    public: false,
+    restricted: false,
+    issues: [],
+    recommendations: [],
+  };
+
+  const origin = headers['access-control-allow-origin'];
+  const credentials = headers['access-control-allow-credentials'];
+  const methods = headers['access-control-allow-methods'];
+  const exposedHeaders = headers['access-control-expose-headers'];
+
+  if (origin) {
+    analysis.configured = true;
+
+    if (origin === '*') {
+      analysis.public = true;
+      if (credentials === 'true') {
+        analysis.issues.push({
+          severity: 'warning',
+          message: 'CORS allows all origins (*) but credentials are enabled',
+          detail: 'This is an invalid configuration - browsers will reject this combination',
+          recommendation: 'Either remove credentials or specify a specific origin instead of *',
+        });
+      }
+    } else {
+      analysis.restricted = true;
+      analysis.recommendations.push({
+        message: 'CORS is restricted to specific origins',
+        detail: `Origin is set to: ${origin}`,
+        recommendation: 'Ensure this matches your expected frontend domain',
+      });
+    }
+  } else {
+    analysis.recommendations.push({
+      message: 'No CORS headers present',
+      detail: 'Cross-origin requests will be blocked by browsers',
+      recommendation: 'Add Access-Control-Allow-Origin if you want to allow cross-origin requests',
+    });
+  }
+
+  if (methods && methods.includes('*')) {
+    analysis.recommendations.push({
+      message: 'CORS allows all methods (*)',
+      recommendation: 'Consider restricting to specific methods (GET, POST, etc.) for better security',
+    });
+  }
+
+  if (!exposedHeaders) {
+    analysis.recommendations.push({
+      message: 'No CORS exposed headers configured',
+      detail: 'Custom headers will not be readable by JavaScript in cross-origin requests',
+      recommendation: 'Add Access-Control-Expose-Headers for custom headers you want to expose',
+    });
+  }
+
+  return analysis;
+}
+
+/**
+ * Analyze server headers for information disclosure.
+ */
+function analyzeServerHeaders(headers) {
+  const analysis = {
+    software: null,
+    version: null,
+    framework: null,
+    disclosureLevel: 'none',
+    issues: [],
+    recommendations: [],
+  };
+
+  const server = headers['server'];
+  const xPoweredBy = headers['x-powered-by'];
+  const xGenerator = headers['generator'];
+  const xAspNetVersion = headers['x-aspnet-version'];
+  const xPhpVersion = headers['x-php-version'];
+
+  if (server) {
+    analysis.software = server;
+    // Try to extract version
+    const versionMatch = server.match(/\/?\s*[\d.]+/);
+    if (versionMatch) {
+      analysis.version = versionMatch[0].trim();
+      analysis.disclosureLevel = 'high';
+      analysis.issues.push({
+        severity: 'info',
+        message: 'Server header exposes version information',
+        detail: `Server: ${server}`,
+        recommendation: 'Configure server to send minimal Server header (e.g., "Server" without version)',
+      });
+    } else {
+      analysis.disclosureLevel = 'medium';
+    }
+  }
+
+  if (xPoweredBy) {
+    analysis.framework = xPoweredBy;
+    analysis.issues.push({
+      severity: 'info',
+      message: 'X-Powered-By header exposes framework',
+      detail: `X-Powered-By: ${xPoweredBy}`,
+      recommendation: 'Disable X-Powered-By header in server configuration',
+    });
+  }
+
+  if (xGenerator) {
+    analysis.issues.push({
+      severity: 'info',
+      message: 'Generator header exposes CMS or tool information',
+      detail: `Generator: ${xGenerator}`,
+      recommendation: 'Remove or obscure generator meta tag and header',
+    });
+  }
+
+  if (xAspNetVersion) {
+    analysis.issues.push({
+      severity: 'info',
+      message: 'X-AspNet-Version header exposes .NET version',
+      detail: `X-AspNet-Version: ${xAspNetVersion}`,
+      recommendation: 'Disable X-AspNet-Version header in web.config',
+    });
+  }
+
+  if (xPhpVersion) {
+    analysis.issues.push({
+      severity: 'info',
+      message: 'X-PHP-Version header exposes PHP version',
+      detail: `X-PHP-Version: ${xPhpVersion}`,
+      recommendation: 'Disable expose_php in php.ini',
+    });
+  }
+
+  return analysis;
+}
+
+/**
+ * Assess performance-related headers.
+ */
+function assessPerformanceHeaders(headers) {
+  const assessment = {
+    caching: 'none',
+    compression: false,
+    optimization: 'none',
+    score: 0,
+    recommendations: [],
+  };
+
+  const cacheControl = headers['cache-control'];
+  const expires = headers['expires'];
+  const etag = headers['etag'];
+  const contentEncoding = headers['content-encoding'];
+  const transferEncoding = headers['transfer-encoding'];
+  const vary = headers['vary'];
+
+  // Assess caching
+  if (cacheControl) {
+    const directives = cacheControl.toLowerCase().split(',').map(d => d.trim());
+    const hasNoStore = directives.includes('no-store');
+    const hasNoCache = directives.includes('no-cache');
+    const hasPublic = directives.includes('public');
+    const hasPrivate = directives.includes('private');
+    const hasMaxAge = directives.find(d => d.startsWith('max-age='));
+
+    if (hasNoStore) {
+      assessment.caching = 'disabled';
+      assessment.recommendations.push({
+        header: 'cache-control',
+        message: 'Caching is disabled with no-store',
+        detail: 'Content will never be cached by browsers or CDNs',
+        recommendation: 'Consider using max-age with a reasonable TTL for public content',
+      });
+    } else if (hasNoCache) {
+      assessment.caching = 'validation-required';
+      assessment.recommendations.push({
+        header: 'cache-control',
+        message: 'Cache requires revalidation with no-cache',
+        detail: 'Content must be revalidated before each use',
+        recommendation: 'Consider using max-age for better performance',
+      });
+    } else if (hasMaxAge) {
+      const match = hasMaxAge.match(/max-age=(\d+)/);
+      if (match) {
+        const maxAge = parseInt(match[1], 10);
+        if (maxAge >= 3600) {
+          assessment.caching = 'good';
+          assessment.score += 40;
+        } else if (maxAge >= 300) {
+          assessment.caching = 'short';
+          assessment.score += 20;
+        } else {
+          assessment.caching = 'very-short';
+          assessment.score += 10;
+        }
+      }
+    }
+
+    if (hasPrivate) {
+      assessment.recommendations.push({
+        header: 'cache-control',
+        message: 'Cache is set to private',
+        detail: 'Shared caches (CDNs, proxies) will not store this content',
+        recommendation: 'Use public for content that can be cached by CDNs',
+      });
+    }
+  } else if (expires) {
+    assessment.caching = 'legacy';
+    assessment.recommendations.push({
+      header: 'expires',
+      message: 'Using legacy Expires header instead of Cache-Control',
+      recommendation: 'Migrate to Cache-Control with max-age for better control',
+    });
+  } else {
+    assessment.recommendations.push({
+      header: 'cache-control',
+      message: 'No caching headers present',
+      detail: 'Browsers may use heuristic caching',
+      recommendation: 'Add Cache-Control header with max-age for better performance',
+    });
+  }
+
+  // Check compression
+  if (contentEncoding === 'gzip' || contentEncoding === 'br' || contentEncoding === 'deflate') {
+    assessment.compression = true;
+    assessment.score += 30;
+  } else {
+    assessment.recommendations.push({
+      header: 'content-encoding',
+      message: 'No compression detected',
+      detail: 'Responses are not being compressed',
+      recommendation: 'Enable gzip or Brotli compression for text-based content',
+    });
+  }
+
+  // Check ETag for validation
+  if (etag) {
+    assessment.score += 15;
+  } else {
+    assessment.recommendations.push({
+      header: 'etag',
+      message: 'No ETag header present',
+      detail: 'Clients cannot efficiently validate cached content',
+      recommendation: 'Add ETag header for conditional requests',
+    });
+  }
+
+  // Check Vary header for proper caching
+  if (vary) {
+    const varyHeaders = vary.toLowerCase().split(',').map(v => v.trim());
+    if (varyHeaders.includes('accept-encoding')) {
+      assessment.score += 15;
+    } else {
+      assessment.recommendations.push({
+        header: 'vary',
+        message: 'Vary header should include Accept-Encoding',
+        detail: 'Ensures different compressed versions are cached separately',
+        recommendation: 'Add Accept-Encoding to Vary header',
+      });
+    }
+  }
+
+  return assessment;
 }
 
 app.listen(PORT, () => {

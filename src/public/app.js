@@ -1139,7 +1139,9 @@ function renderPreviews(data) {
     platforms.forEach((pid, i) => {
       const scoreData = data.scoring.scores[pid];
       if (!scoreData) return;
-      const card = buildCard(pid, scoreData, data, i * 60, group.id); // staggered delay
+      // Respect prefers-reduced-motion for staggered animation delay
+      const animDelay = prefersReducedMotion() ? 0 : i * 60;
+      const card = buildCard(pid, scoreData, data, animDelay, group.id);
       row.appendChild(card);
     });
 

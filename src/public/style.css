@@ -514,6 +514,7 @@ html[data-theme='light'] .theme-icon-dark { display: inline; }
 
 /* Respect prefers-reduced-motion */
 @media (prefers-reduced-motion: reduce) {
+  /* Disable all skeleton animations */
   .platform-skeleton-card,
   .skeleton-fade-in,
   .skeleton-icon, .skeleton-title, .skeleton-badge,
@@ -529,6 +530,7 @@ html[data-theme='light'] .theme-icon-dark { display: inline; }
     transform: none;
   }
 
+  /* Override keyframe animations to no-op */
   @keyframes skeletonIn {
     from, to {
       opacity: 1;
@@ -541,6 +543,137 @@ html[data-theme='light'] .theme-icon-dark { display: inline; }
       opacity: 1;
       transform: none;
     }
+  }
+
+  @keyframes slideDown {
+    from, to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes fadeIn {
+    from, to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes cardIn {
+    from, to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes toastIn {
+    from, to {
+      opacity: 1;
+      transform: translateX(-50%);
+    }
+  }
+
+  @keyframes modalIn {
+    from, to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes contextMenuIn {
+    from, to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes spin {
+    from, to {
+      transform: none;
+    }
+  }
+
+  @keyframes shimmer {
+    from, to {
+      background-position: 0% 0;
+    }
+  }
+
+  /* Disable card entrance and hover animations */
+  .platform-card {
+    transition: none !important;
+    animation: none !important;
+  }
+  .platform-card:hover {
+    transform: none !important;
+  }
+
+  /* Disable suggestion chip slide-down animation */
+  .suggestion-chips {
+    animation: none !important;
+  }
+
+  /* Disable tab pane fade-in animation */
+  .tab-pane {
+    animation: none !important;
+  }
+
+  /* Disable loading spinner */
+  .loading-spinner,
+  .loading-spinner-small {
+    animation: none !important;
+  }
+
+  /* Disable toast animation */
+  .toast {
+    animation: none !important;
+  }
+
+  /* Disable modal overlay animation */
+  .modal-overlay,
+  .feedback-panel,
+  .card-context-menu {
+    animation: none !important;
+  }
+
+  /* Disable image loading blur transitions */
+  .img-loading-container img,
+  img.img-loading {
+    transition: none !important;
+  }
+
+  /* Disable all theme toggle and hover transitions */
+  html, body, .site-header, .theme-toggle,
+  .nav-btn, .chip, .suggestion-action, .suggestion-dismiss,
+  .action-btn, .tab-btn, .inspect-btn, .input-row,
+  .card-context-toggle, .card-theme-toggle, .card-screenshot-btn,
+  .cropper-platform-toggle, .copy-btn, .fix-copy-btn,
+  .group-chevron {
+    transition: none !important;
+  }
+
+  /* Disable scroll behavior */
+  html {
+    scroll-behavior: auto !important;
+  }
+
+  /* Disable all shimmer animations */
+  .skeleton-line, .skeleton-img,
+  .skeleton-icon, .skeleton-title, .skeleton-badge,
+  .skeleton-tall-img, .skeleton-tall-domain, .skeleton-tall-title, .skeleton-tall-desc, .skeleton-tall-desc-short,
+  .skeleton-short-thumb, .skeleton-short-domain, .skeleton-short-title, .skeleton-short-desc,
+  .skeleton-text-favicon, .skeleton-text-domain, .skeleton-text-title, .skeleton-text-desc, .skeleton-text-desc-short,
+  .skeleton-issue {
+    animation: none !important;
+  }
+
+  /* Ensure shimmer gradient is static */
+  .skeleton-line, .skeleton-img,
+  .skeleton-icon, .skeleton-title, .skeleton-badge,
+  .skeleton-tall-img, .skeleton-tall-domain, .skeleton-tall-title, .skeleton-tall-desc, .skeleton-tall-desc-short,
+  .skeleton-short-thumb, .skeleton-short-domain, .skeleton-short-title, .skeleton-short-desc,
+  .skeleton-text-favicon, .skeleton-text-domain, .skeleton-text-title, .skeleton-text-desc, .skeleton-text-desc-short,
+  .skeleton-issue {
+    background-position: 0% 0 !important;
   }
 }
 

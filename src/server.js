@@ -105,6 +105,75 @@ app.get('/api/platforms', (req, res) => {
 });
 
 /**
+ * GET /api/preview/meta?url=https://...
+ * POST /api/preview/meta with Content-Type: text/html body (and optional ?base=https://...)
+ * Fast endpoint that returns text-based data without image probing.
+ * Returns: score, meta tags, text-based card previews.
+ */
+app.get('/api/preview/meta', async (req, res) => {
+  const url = req.query.url;
+  if (!url) {
+    return res.status(400).json({ error: 'Missing ?url= parameter' });
+  }
+
+  try {
+    const parsedUrl = new URL(url);
+    if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+      return res.status(400).json({ error: 'Only http and https URLs are supported' });
+    }
+  } catch (_) {
+    return res.status(400).json({ error: 'Invalid URL' });
+  }
+
+  try {
+    const { html, redirectChain, finalUrl, responseHeaders, statusCode } =
+      await fetchUrl(url);
+
+    const result = await buildMetaPreviewResult({
+      html,
+      baseUrl: finalUrl,
+      redirectChain,
+      responseHeaders,
+      statusCode,
+      sourceUrl: url,
+    });
+
+    res.json(result);
+  } catch (err) {
+    console.error('Fetch error:', err.message);
+    res.status(502).json({ error: `Failed to fetch URL: ${err.message}` });
+  }
+});
+
+app.post('/api/preview/meta', async (req, res) => {
+  const baseUrl = req.query.base || 'https://example.com';
+  let html;
+
+  if (typeof req.body === 'string') {
+    html = req.body;
+  } else if (req.body && req.body.html) {
+    html = req.body.html;
+  } else {
+    return res.status(400).json({ error: 'POST body must be HTML text or JSON { html: "..." }' });
+  }
+
+  try {
+    const result = await buildMetaPreviewResult({
+      html,
+      baseUrl,
+      redirectChain: [],
+      responseHeaders: {},
+      statusCode: 200,
+      sourceUrl: baseUrl,
+    });
+    res.json(result);
+  } catch (err) {
+    console.error('Parse error:', err.message);
+    res.status(500).json({ error: `Failed to parse HTML: ${err.message}` });
+  }
+});
+
+/**
  * GET /api/sitemap?url=https://...sitemap.xml
  * Parse sitemap and return all URLs with coverage scores
  */
@@ -1215,6 +1284,162 @@ function buildAutoFixes(meta, diagnostics, scoring) {
   }
 
   return fixes;
+}
+
+/**
+ * Build meta-only preview result (no image probing).
+ * Fast response for text-based data only.
+ */
+async function buildMetaPreviewResult({ html, baseUrl, redirectChain, responseHeaders, statusCode, sourceUrl }) {
+  const meta = parseMetaTags(html, baseUrl);
+
+  // Scoring WITHOUT image probing (pass null for imageProbe)
+  // This gives us a score without blocking on image dimension checks
+  const scoring = scoreAll(meta, null);
+
+  // Text-based card previews
+  const previews = buildTextPreviews(meta, baseUrl);
+
+  return {
+    url: sourceUrl,
+    finalUrl: baseUrl,
+    statusCode,
+    // Meta tags
+    meta: {
+      title: meta.title || null,
+      description: meta.description || null,
+      og: {
+        title: meta.og.title || null,
+        description: meta.og.description || null,
+        image: meta.og.image || null,
+        url: meta.og.url || null,
+        type: meta.og.type || null,
+        siteName: meta.og.site_name || null,
+      },
+      twitter: {
+        card: meta.twitter.card || null,
+        title: meta.twitter.title || null,
+        description: meta.twitter.description || null,
+        image: meta.twitter.image || null,
+        site: meta.twitter.site || null,
+      },
+      favicon: meta.favicon || null,
+      themeColor: meta.themeColor || null,
+    },
+    // Scoring (without image dimension data)
+    scoring: {
+      overall: scoring.overall,
+      summary: scoring.summary,
+      gradeCounts: scoring.gradeCounts,
+      // Include individual platform scores for quick inspection
+      platformScores: Object.fromEntries(
+        Object.entries(scoring.scores).map(([id, result]) => [
+          id,
+          {
+            grade: result.grade,
+            score: result.score,
+            issues: result.issues,
+            fixes: result.fixes,
+          },
+        ])
+      ),
+    },
+    // Text-based card previews
+    previews,
+    redirectChain,
+  };
+}
+
+/**
+ * Build text-based card previews for various platforms.
+ * Returns object with Google SERP and Twitter card text representations.
+ */
+function buildTextPreviews(meta, url) {
+  const title = meta.og.title || meta.title || '';
+  const description = meta.og.description || meta.description || '';
+  const domain = new URL(url).hostname;
+  const displayUrl = formatDisplayUrl(url);
+
+  // Google SERP preview
+  const googleSerp = {
+    type: 'google-serp',
+    title: truncateText(title, 60),
+    url: displayUrl,
+    description: truncateText(description, 158),
+  };
+
+  // Twitter/X card preview
+  const twitterCard = {
+    type: 'twitter-card',
+    cardType: meta.twitter.card || 'summary',
+    title: truncateText(meta.twitter.title || meta.og.title || meta.title || '', 70),
+    description: truncateText(
+      meta.twitter.description || meta.og.description || meta.description || '',
+      70
+    ),
+    image: meta.twitter.image || meta.og.image || null,
+    domain,
+  };
+
+  // Facebook/LinkedIn card preview (same format)
+  const openGraphCard = {
+    type: 'opengraph-card',
+    title: truncateText(meta.og.title || meta.title || '', 100),
+    description: truncateText(meta.og.description || meta.description || '', 160),
+    image: meta.og.image || null,
+    domain,
+    url: displayUrl,
+  };
+
+  // Slack/Discord preview
+  const messagingCard = {
+    type: 'messaging-card',
+    title: truncateText(meta.og.title || meta.title || '', 100),
+    description: truncateText(meta.og.description || meta.description || '', 150),
+    image: meta.og.image || null,
+    domain,
+  };
+
+  return {
+    google: googleSerp,
+    twitter: twitterCard,
+    facebook: openGraphCard,
+    linkedin: openGraphCard,
+    slack: messagingCard,
+    discord: messagingCard,
+  };
+}
+
+/**
+ * Format URL for display in search results (like Google does).
+ * Shows protocol + domain + truncated path.
+ */
+function formatDisplayUrl(url) {
+  try {
+    const parsed = new URL(url);
+    const protocol = parsed.protocol === 'https:' ? 'https' : 'http';
+    const domain = parsed.hostname;
+    const path = parsed.pathname + parsed.search;
+
+    // Truncate path if too long
+    let displayPath = path;
+    if (displayPath.length > 35) {
+      displayPath = displayPath.substring(0, 32) + '...';
+    }
+
+    return `${protocol}://${domain}${displayPath}`;
+  } catch (_) {
+    return url;
+  }
+}
+
+/**
+ * Truncate text to max length, adding ellipsis if truncated.
+ */
+function truncateText(text, maxLength) {
+  if (!text) return '';
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength - 3) + '...';
 }
 
 /**

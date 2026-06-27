@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Quick Smart Ordering Verification</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #1e1e1e; color: #d4d4d4; }
+    .log { margin: 5px 0; padding: 5px; border-left: 3px solid #555; }
+    .log.success { border-left-color: #4ec9b0; color: #4ec9b0; }
+    .log.error { border-left-color: #f48771; color: #f48771; }
+    .log.info { border-left-color: #569cd6; color: #569cd6; }
+    h2 { color: #dcdcaa; }
+  </style>
+</head>
+<body>
+  <h2>🧪 Quick Smart Ordering Verification</h2>
+  <div id="logs"></div>
+
+  <script>
+    // Intercept console before any other scripts run
+    const logs = [];
+    const originalLog = console.log;
+    const originalError = console.error;
+    const originalWarn = console.warn;
+
+    console.log = function(...args) {
+      const msg = args.join(' ');
+      if (msg.includes('applySmartOrdering') || msg.includes('handleResult hook') || msg.includes('smartOrdering')) {
+        logs.push({ type: 'log', message: msg });
+        addLog(msg, 'info');
+      }
+      originalLog.apply(console, args);
+    };
+
+    console.error = function(...args) {
+      logs.push({ type: 'error', message: args.join(' ') });
+      addLog('[ERROR] ' + args.join(' '), 'error');
+      originalError.apply(console, args);
+    };
+
+    console.warn = function(...args) {
+      logs.push({ type: 'warn', message: args.join(' ') });
+      addLog('[WARN] ' + args.join(' '), 'error');
+      originalWarn.apply(console, args);
+    };
+
+    function addLog(msg, type) {
+      const div = document.createElement('div');
+      div.className = `log ${type}`;
+      div.textContent = msg;
+      document.getElementById('logs').appendChild(div);
+    }
+
+    // After 5 seconds, analyze logs
+    setTimeout(() => {
+      const hasHookCalled = logs.some(l => l.message.includes('[handleResult hook]'));
+      const hasFunctionCalled = logs.some(l => l.message.includes('[applySmartOrdering] Function called'));
+      const hasComplete = logs.some(l => l.message.includes('[applySmartOrdering] Function complete'));
+      const hasErrors = logs.some(l => l.type === 'error');
+
+      addLog('=== ANALYSIS RESULTS ===', 'info');
+      addLog(`Hook called: ${hasHookCalled ? '✅ YES' : '❌ NO'}`, hasHookCalled ? 'success' : 'error');
+      addLog(`Function called: ${hasFunctionCalled ? '✅ YES' : '❌ NO'}`, hasFunctionCalled ? 'success' : 'error');
+      addLog(`Function complete: ${hasComplete ? '✅ YES' : '❌ NO'}`, hasComplete ? 'success' : 'error');
+      addLog(`Errors detected: ${hasErrors ? '❌ YES' : '✅ NO'}`, hasErrors ? 'error' : 'success');
+
+      const allGood = hasHookCalled && hasFunctionCalled && hasComplete && !hasErrors;
+      addLog(`\n${allGood ? '✅ ALL CHECKS PASSED' : '❌ SOME CHECKS FAILED'}`, allGood ? 'success' : 'error');
+    }, 5000);
+  </script>
+
+  <!-- Load the actual app.js to test -->
+  <script src="app.js"></script>
+
+  <script>
+    // Trigger a test URL inspection
+    setTimeout(() => {
+      addLog('Triggering test URL inspection...', 'info');
+      if (typeof handleResult === 'function') {
+        // Simulate handleResult being called with test data
+        const testData = {
+          meta: {
+            og: { type: 'article', url: 'https://example.com/test' },
+            canonical: 'https://example.com/test'
+          }
+        };
+        handleResult(testData);
+      } else {
+        addLog('ERROR: handleResult not available', 'error');
+      }
+    }, 1000);
+  </script>
+</body>
+</html>

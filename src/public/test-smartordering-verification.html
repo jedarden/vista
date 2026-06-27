@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Vista Smart Ordering Verification</title>
+  <style>
+    body { font-family: monospace; padding: 20px; max-width: 800px; margin: 0 auto; }
+    .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+    .log { background: #f5f5f5; padding: 10px; max-height: 400px; overflow-y: auto; font-size: 12px; }
+    .log-entry { margin: 2px 0; padding: 2px 5px; }
+    .log-entry.called { background: #c8e6c9; }
+    .log-entry.error { background: #ffcdd2; }
+    .log-entry.info { background: #bbdefb; }
+    button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    button:disabled { opacity: 0.5; }
+    #status { padding: 10px; margin: 10px 0; font-weight: bold; }
+    .success { background: #c8e6c9; }
+    .failure { background: #ffcdd2; }
+  </style>
+</head>
+<body>
+  <h1>Vista Smart Ordering Verification</h1>
+
+  <div class="test-section">
+    <h2>Test: Verify applySmartOrdering() Execution</h2>
+    <p>This test verifies that applySmartOrdering() is called when smartOrdering is enabled.</p>
+
+    <button id="loadVista" onclick="loadVistaApp()">1. Load Vista App</button>
+    <button id="triggerTest" disabled onclick="triggerInspection()">2. Trigger Inspection</button>
+    <button id="showResults" disabled onclick="showResults()">3. Show Results</button>
+
+    <div id="status"></div>
+
+    <h3>Console Log Capture:</h3>
+    <div id="log" class="log"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>Verification Criteria:</h2>
+    <ul>
+      <li id="criteria-called">applySmartOrdering function is called: <span id="check-called">❌ NOT VERIFIED</span></li>
+      <li id="criteria-logs">Console logs appear: <span id="check-logs">❌ NOT VERIFIED</span></li>
+      <li id="criteria-no-errors">No errors in console: <span id="check-no-errors">❌ NOT VERIFIED</span></li>
+      <li id="criteria-smartordering-enabled">smartOrdering is enabled: <span id="check-enabled">❌ NOT VERIFIED</span></li>
+    </ul>
+  </div>
+
+  <iframe id="vistaFrame" style="width: 100%; height: 600px; border: 1px solid #ccc; display: none;"></iframe>
+
+  <script>
+    const logs = [];
+    let vistaWindow = null;
+    let originalLog = null;
+
+    function addLog(message, type = 'info') {
+      logs.push({ message, type, timestamp: new Date().toISOString() });
+      const logDiv = document.getElementById('log');
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      logDiv.appendChild(entry);
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    function showStatus(message, isSuccess) {
+      const statusDiv = document.getElementById('status');
+      statusDiv.textContent = message;
+      statusDiv.className = isSuccess ? 'success' : 'failure';
+    }
+
+    function loadVistaApp() {
+      try {
+        addLog('Loading Vista app from: http://100.72.170.64:3000', 'info');
+
+        // Capture console logs from the iframe
+        const iframe = document.getElementById('vistaFrame');
+        iframe.style.display = 'block';
+
+        iframe.onload = function() {
+          try {
+            vistaWindow = iframe.contentWindow;
+
+            // Intercept console.log in the iframe
+            if (vistaWindow.console) {
+              const originalConsoleLog = vistaWindow.console.log;
+              const originalConsoleError = vistaWindow.console.error;
+
+              vistaWindow.console.log = function(...args) {
+                addLog('[VISTA] ' + args.join(' '), 'called');
+                originalConsoleLog.apply(vistaWindow.console, args);
+              };
+
+              vistaWindow.console.error = function(...args) {
+                addLog('[VISTA ERROR] ' + args.join(' '), 'error');
+                originalConsoleError.apply(vistaWindow.console, args);
+              };
+
+              addLog('Console log interception installed', 'info');
+            }
+
+            document.getElementById('triggerTest').disabled = false;
+            document.getElementById('loadVista').disabled = true;
+            showStatus('Vista loaded! Ready to test.', true);
+            addLog('Vista app loaded successfully', 'info');
+          } catch (e) {
+            addLog('Error accessing iframe: ' + e.message, 'error');
+            showStatus('Failed to access iframe: ' + e.message, false);
+          }
+        };
+
+        iframe.src = 'http://100.72.170.64:3000';
+
+      } catch (e) {
+        addLog('Error loading Vista: ' + e.message, 'error');
+        showStatus('Failed to load: ' + e.message, false);
+      }
+    }
+
+    function triggerInspection() {
+      try {
+        if (!vistaWindow) {
+          addLog('Vista window not available', 'error');
+          return;
+        }
+
+        addLog('Triggering URL inspection...', 'info');
+
+        // Find the URL input field and submit button
+        const urlInput = vistaWindow.document.querySelector('input[type="url"], input[placeholder*="URL"]');
+        const submitButton = vistaWindow.document.querySelector('button[type="submit"], button:contains("Inspect")');
+
+        if (urlInput) {
+          addLog('Found URL input field', 'info');
+          // Set a test URL
+          urlInput.value = 'https://example.com';
+
+          // Trigger input and change events
+          urlInput.dispatchEvent(new Event('input', { bubbles: true }));
+          urlInput.dispatchEvent(new Event('change', { bubbles: true }));
+
+          // Try to submit
+          if (submitButton) {
+            addLog('Clicking submit button...', 'info');
+            submitButton.click();
+          } else {
+            // Try pressing Enter
+            addLog('Submit button not found, trying Enter key...', 'info');
+            const enterEvent = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true });
+            urlInput.dispatchEvent(enterEvent);
+          }
+        } else {
+          addLog('URL input field not found, trying direct URL navigation...', 'info');
+          // Try navigating directly to a preview URL
+          vistaWindow.location.href = 'http://100.72.170.64:3000/?url=https://example.com';
+        }
+
+        // Wait for results
+        setTimeout(() => {
+          document.getElementById('showResults').disabled = false;
+          document.getElementById('triggerTest').disabled = true;
+          addLog('Waiting for applySmartOrdering to be called...', 'info');
+        }, 2000);
+
+      } catch (e) {
+        addLog('Error triggering inspection: ' + e.message, 'error');
+        showStatus('Failed to trigger: ' + e.message, false);
+      }
+    }
+
+    function showResults() {
+      addLog('Analyzing results...', 'info');
+
+      // Check if applySmartOrdering was called
+      const applySmartOrderingCalled = logs.some(log =>
+        log.message.includes('[applySmartOrdering] Function called')
+      );
+
+      // Check if there are any errors
+      const hasErrors = logs.some(log => log.type === 'error');
+
+      // Check if smartOrdering is enabled
+      const smartOrderingEnabled = logs.some(log =>
+        log.message.includes('smartOrdering enabled: true') ||
+        log.message.includes('smartOrderingEnabled: true')
+      );
+
+      // Update criteria
+      document.getElementById('check-called').innerHTML = applySmartOrderingCalled ? '✅ VERIFIED' : '❌ FAILED';
+      document.getElementById('check-logs').innerHTML = logs.length > 0 ? '✅ VERIFIED' : '❌ FAILED';
+      document.getElementById('check-no-errors').innerHTML = !hasErrors ? '✅ VERIFIED' : '❌ FAILED';
+      document.getElementById('check-enabled').innerHTML = smartOrderingEnabled ? '✅ VERIFIED' : '❌ FAILED';
+
+      if (applySmartOrderingCalled && !hasErrors) {
+        showStatus('SUCCESS: applySmartOrdering is working!', true);
+        addLog('✅ TEST PASSED: applySmartOrdering executed successfully', 'called');
+      } else {
+        showStatus('FAILED: applySmartOrdering not called or errors occurred', false);
+        addLog('❌ TEST FAILED: applySmartOrdering issues detected', 'error');
+      }
+
+      addLog('Total logs captured: ' + logs.length, 'info');
+      addLog('applySmartOrdering called: ' + applySmartOrderingCalled, applySmartOrderingCalled ? 'called' : 'error');
+      addLog('Errors detected: ' + hasErrors, hasErrors ? 'error' : 'called');
+    }
+  </script>
+</body>
+</html>

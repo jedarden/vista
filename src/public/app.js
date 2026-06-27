@@ -1379,6 +1379,11 @@ function renderSkeletons() {
   });
 }
 
+// Show skeleton cards immediately at 0ms (wrapper function for clarity)
+function showSkeletonCards() {
+  renderSkeletons();
+}
+
 function renderPreviews(data) {
   previewGrid.innerHTML = '';
   PLATFORM_GROUPS.forEach((group, gi) => {

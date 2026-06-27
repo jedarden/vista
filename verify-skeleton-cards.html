@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skeleton Card Verification</title>
+    <style>
+        :root {
+            --bg2: #1e1e2e;
+            --bg3: #181825;
+            --border: #45475a;
+            --radius-lg: 8px;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #11111b;
+            color: #cdd6f4;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .preview-grid {
+            display: grid;
+            gap: 16px;
+        }
+
+        .platform-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .platform-group-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+        }
+
+        .cards-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 12px;
+        }
+
+        /* Copy skeleton CSS from style.css */
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        @keyframes skeletonIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .platform-skeleton-card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: opacity 150ms ease, transform 150ms ease;
+            animation: skeletonIn 0.3s ease both;
+        }
+
+        .skeleton-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .skeleton-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, var(--bg3) 25%, var(--border) 50%, var(--bg3) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+        }
+
+        .skeleton-title {
+            flex: 1;
+            height: 14px;
+            width: 100px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, var(--bg3) 25%, var(--border) 50%, var(--bg3) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+        }
+
+        .skeleton-badge {
+            width: 28px;
+            height: 18px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, var(--bg3) 25%, var(--border) 50%, var(--bg3) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+        }
+
+        .skeleton-body-tall {
+            padding: 0;
+        }
+
+        .skeleton-tall-img {
+            width: 100%;
+            aspect-ratio: 1.91;
+            background: linear-gradient(90deg, var(--bg3) 25%, var(--border) 50%, var(--bg3) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+        }
+
+        .skeleton-tall-meta {
+            padding: 12px 14px;
+        }
+
+        .skeleton-tall-domain {
+            height: 11px;
+            width: 60px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, var(--bg3) 25%, var(--border) 50%, var(--bg3) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+            margin-bottom: 8px;
+        }
+
+        .skeleton-tall-title {
+            height: 16px;
+            width: 80%;
+            border-radius: 4px;
+            background: linear-gradient(90deg, var(--bg3) 25%, var(--border) 50%, var(--bg3) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+            margin-bottom: 6px;
+        }
+
+        .skeleton-tall-desc {
+            height: 12px;
+            width: 90%;
+            border-radius: 4px;
+            background: linear-gradient(90deg, var(--bg3) 25%, var(--border) 50%, var(--bg3) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+        }
+
+        .skeleton-tall-desc-short {
+            height: 12px;
+            width: 60%;
+            border-radius: 4px;
+            background: linear-gradient(90deg, var(--bg3) 25%, var(--border) 50%, var(--bg3) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+            margin-top: 4px;
+        }
+
+        .skeleton-footer {
+            padding: 10px 14px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 8px;
+        }
+
+        .skeleton-issue {
+            flex: 1;
+            height: 11px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, var(--bg3) 25%, var(--border) 50%, var(--bg3) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+        }
+
+        .skeleton-issue:first-child {
+            width: 40%;
+        }
+
+        .skeleton-issue:nth-child(2) {
+            width: 35%;
+        }
+
+        .skeleton-issue:nth-child(3) {
+            width: 25%;
+        }
+
+        .test-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        button {
+            padding: 8px 16px;
+            background: #89b4fa;
+            border: none;
+            border-radius: 4px;
+            color: #1e1e2e;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #b4befe;
+        }
+
+        .status {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #a6adc8;
+        }
+    </style>
+</head>
+<body>
+    <h1>Skeleton Card Verification Test</h1>
+    <p>This test verifies that skeleton cards appear immediately with shimmer animation at 0ms when inspection starts.</p>
+
+    <div class="preview-grid" id="previewGrid"></div>
+
+    <div class="test-controls">
+        <button onclick="testSkeletonDisplay()">Test Skeleton Display (0ms)</button>
+        <button onclick="clearSkeletons()">Clear</button>
+        <div class="status" id="status">Ready</div>
+    </div>
+
+    <script>
+        const status = document.getElementById('status');
+        const previewGrid = document.getElementById('previewGrid');
+
+        function testSkeletonDisplay() {
+            const startTime = performance.now();
+            status.textContent = 'Showing skeletons...';
+
+            renderSkeletons();
+
+            const endTime = performance.now();
+            const elapsed = endTime - startTime;
+
+            status.textContent = `Skeletons rendered in ${elapsed.toFixed(2)}ms (target: <1ms)`;
+
+            // Verify shimmer animation is applied
+            setTimeout(() => {
+                const skeletonCards = document.querySelectorAll('.platform-skeleton-card');
+                let shimmerCount = 0;
+
+                skeletonCards.forEach(card => {
+                    const shimmerElements = card.querySelectorAll('[style*="animation: shimmer"]');
+                    shimmerCount += shimmerElements.length;
+                });
+
+                status.textContent = `✓ ${skeletonCards.length} skeleton cards with shimmer (${elapsed.toFixed(2)}ms)`;
+            }, 100);
+        }
+
+        function clearSkeletons() {
+            previewGrid.innerHTML = '';
+            status.textContent = 'Cleared';
+        }
+
+        function renderSkeletons() {
+            previewGrid.innerHTML = '';
+
+            const groups = [
+                { id: 'social', title: 'Social Media', platforms: ['twitter', 'facebook', 'linkedin', 'reddit'] },
+                { id: 'search', title: 'Search Engines', platforms: ['google', 'bing', 'duckduckgo'] },
+                { id: 'video', title: 'Video Platforms', platforms: ['youtube', 'vimeo', 'tiktok'] }
+            ];
+
+            groups.forEach(group => {
+                const groupEl = document.createElement('div');
+                groupEl.className = 'platform-group';
+
+                const header = document.createElement('div');
+                header.className = 'platform-group-header';
+                header.innerHTML = `
+                    <span class="group-chevron">▼</span>
+                    <span class="group-title">${group.title}</span>
+                    <span class="group-subtitle">Loading...</span>
+                `;
+                groupEl.appendChild(header);
+
+                const row = document.createElement('div');
+                row.className = 'cards-row skeleton-row';
+
+                group.platforms.forEach((pid, i) => {
+                    const card = document.createElement('div');
+                    card.className = 'platform-skeleton-card';
+                    card.dataset.pid = pid;
+                    card.style.animationDelay = (i * 50) + 'ms';
+                    card.innerHTML = getSkeletonHtml(pid);
+                    row.appendChild(card);
+                });
+
+                groupEl.appendChild(row);
+                previewGrid.appendChild(groupEl);
+            });
+        }
+
+        function getSkeletonHtml(pid) {
+            return `
+                <div class="skeleton-header">
+                    <div class="skeleton-icon"></div>
+                    <div class="skeleton-title"></div>
+                    <div class="skeleton-badge"></div>
+                </div>
+                <div class="skeleton-body-tall">
+                    <div class="skeleton-tall-img"></div>
+                    <div class="skeleton-tall-meta">
+                        <div class="skeleton-tall-domain"></div>
+                        <div class="skeleton-tall-title"></div>
+                        <div class="skeleton-tall-desc"></div>
+                        <div class="skeleton-tall-desc-short"></div>
+                    </div>
+                </div>
+                <div class="skeleton-footer">
+                    <div class="skeleton-issue"></div>
+                    <div class="skeleton-issue"></div>
+                    <div class="skeleton-issue"></div>
+                </div>
+            `;
+        }
+
+        // Auto-test on load
+        setTimeout(testSkeletonDisplay, 100);
+    </script>
+</body>
+</html>

@@ -8,6 +8,26 @@ let cardContextState = {}; // Track context mode per platform: { pid: { context:
 let compareData = { before: null, after: null, swapped: false }; // Comparison state
 let hasCelebratedPerfectScore = false; // Track one-time celebration per session
 
+// ── Debug Flags ──
+/**
+ * DEBUG_SMART_ORDERING: Enable detailed logging for smart ordering functionality
+ *
+ * To enable from browser console:
+ *   window.DEBUG_SMART_ORDERING = true;
+ *
+ * To disable from browser console:
+ *   window.DEBUG_SMART_ORDERING = false;
+ *
+ * When enabled, logs:
+ * - Input platform cards array with scores before reordering
+ * - Computed scores for each platform card (score, grade, passing/warning/failing counts)
+ * - Preferred platform order based on detected page type
+ * - Platform groups before and after reordering
+ * - Output array after reordering
+ * - localStorage save operations
+ */
+let DEBUG_SMART_ORDERING = false; // Set to true to enable smart ordering debug logs
+
 // ── Keyboard Navigation State ──
 let focusedCardIndex = -1; // Index of currently focused card in preview grid
 let focusedCardPids = []; // Array of platform IDs in current grid
@@ -6738,41 +6758,81 @@ function getPlatformOrderForPageType(pageType) {
 }
 
 function applySmartOrdering() {
-  console.log('[applySmartOrdering] Function called');
+  if (DEBUG_SMART_ORDERING) {
+    console.log('[applySmartOrdering] ===== FUNCTION START =====');
+  }
 
   // Early exit conditions
   if (!currentData) {
-    console.log('[applySmartOrdering] Early exit: no currentData available');
+    if (DEBUG_SMART_ORDERING) {
+      console.log('[applySmartOrdering] Early exit: no currentData available');
+    }
     return;
   }
   if (!platformPrefs.smartOrdering) {
-    console.log('[applySmartOrdering] Early exit: smart ordering disabled in preferences');
+    if (DEBUG_SMART_ORDERING) {
+      console.log('[applySmartOrdering] Early exit: smart ordering disabled in preferences');
+    }
     return;
   }
 
   // Log items being processed
-  console.log('[applySmartOrdering] Items (currentData):', {
-    hasData: !!currentData,
-    hasMeta: !!currentData?.meta,
-    ogType: currentData?.meta?.og?.type,
-    canonical: currentData?.meta?.canonical,
-    url: currentData?.meta?.canonical || currentData?.meta?.og?.url || '(none)'
-  });
+  if (DEBUG_SMART_ORDERING) {
+    console.log('[applySmartOrdering] Items (currentData):', {
+      hasData: !!currentData,
+      hasMeta: !!currentData?.meta,
+      ogType: currentData?.meta?.og?.type,
+      canonical: currentData?.meta?.canonical,
+      url: currentData?.meta?.canonical || currentData?.meta?.og?.url || '(none)'
+    });
 
-  // Log context/flag parameters
-  console.log('[applySmartOrdering] Context/Flag parameters:', {
-    smartOrderingEnabled: platformPrefs.smartOrdering,
-    hasPagePreferences: !!platformPrefs.pageType
-  });
+    // Log context/flag parameters
+    console.log('[applySmartOrdering] Context/Flag parameters:', {
+      smartOrderingEnabled: platformPrefs.smartOrdering,
+      hasPagePreferences: !!platformPrefs.pageType
+    });
+  }
 
   const pageType = detectPageType(currentData.meta);
-  console.log(`[applySmartOrdering] Page type detected: "${pageType}"`);
+  if (DEBUG_SMART_ORDERING) {
+    console.log(`[applySmartOrdering] Page type detected: "${pageType}"`);
+  }
 
   const preferredOrder = getPlatformOrderForPageType(pageType);
-  console.log(`[applySmartOrdering] Preferred platform order for "${pageType}":`, preferredOrder);
+  if (DEBUG_SMART_ORDERING) {
+    console.log(`[applySmartOrdering] Preferred platform order for "${pageType}":`, preferredOrder);
+  }
+
+  // Log input platform cards array with scores BEFORE reordering
+  if (DEBUG_SMART_ORDERING) {
+    console.log('[applySmartOrdering] ===== INPUT STATE (before reordering) =====');
+    PLATFORM_GROUPS.forEach((group, groupIndex) => {
+      console.log(`[applySmartOrdering] Group ${groupIndex} "${group.title}" [${group.id}]:`);
+      console.log('[applySmartOrdering]   Platform order BEFORE:', group.platforms);
+
+      // Log computed scores for each platform in this group
+      group.platforms.forEach(pid => {
+        const scoreData = currentData?.scoring?.scores?.[pid];
+        if (scoreData) {
+          console.log(`[applySmartOrdering]   - ${pid}:`, {
+            score: scoreData.score,
+            grade: scoreData.grade,
+            passing: scoreData.passing?.length || 0,
+            warning: scoreData.warning?.length || 0,
+            failing: scoreData.failing?.length || 0
+          });
+        } else {
+          console.log(`[applySmartOrdering]   - ${pid}: (no score data)`);
+        }
+      });
+    });
+  }
 
   // Update platform groups to show relevance
-  console.log('[applySmartOrdering] Reordering platform groups...');
+  if (DEBUG_SMART_ORDERING) {
+    console.log('[applySmartOrdering] ===== REORDERING PLATFORMS =====');
+  }
+
   PLATFORM_GROUPS.forEach((group, groupIndex) => {
     const originalOrder = [...group.platforms];
     group.platforms.sort((a, b) => {
@@ -6791,31 +6851,57 @@ function applySmartOrdering() {
     }
     platformPrefs.cardOrder[group.id] = [...group.platforms];
 
-    if (JSON.stringify(originalOrder) !== JSON.stringify(group.platforms)) {
-      console.log(`[applySmartOrdering] Group ${groupIndex} "${group.title}" reordered:`, {
-        from: originalOrder,
-        to: group.platforms
-      });
-    } else {
-      console.log(`[applySmartOrdering] Group ${groupIndex} "${group.title}": no change needed`);
+    if (DEBUG_SMART_ORDERING) {
+      if (JSON.stringify(originalOrder) !== JSON.stringify(group.platforms)) {
+        console.log(`[applySmartOrdering] Group ${groupIndex} "${group.title}" REORDERED:`, {
+          from: originalOrder,
+          to: group.platforms
+        });
+      } else {
+        console.log(`[applySmartOrdering] Group ${groupIndex} "${group.title}": no change needed`);
+      }
     }
   });
+
+  // Log output array AFTER reordering
+  if (DEBUG_SMART_ORDERING) {
+    console.log('[applySmartOrdering] ===== OUTPUT STATE (after reordering) =====');
+    PLATFORM_GROUPS.forEach((group, groupIndex) => {
+      console.log(`[applySmartOrdering] Group ${groupIndex} "${group.title}" [${group.id}]:`);
+      console.log('[applySmartOrdering]   Platform order AFTER:', group.platforms);
+
+      // Show how order changed
+      const storedOrder = platformPrefs.cardOrder?.[group.id];
+      if (storedOrder) {
+        console.log('[applySmartOrdering]   Stored in cardOrder:', storedOrder);
+      }
+    });
+  }
 
   // Save the updated preferences to persist across page refreshes
   try {
     localStorage.setItem('vista-platform-prefs', JSON.stringify(platformPrefs));
-    console.log('[applySmartOrdering] Platform preferences saved to localStorage');
+    if (DEBUG_SMART_ORDERING) {
+      console.log('[applySmartOrdering] Platform preferences saved to localStorage');
+    }
   } catch (e) {
     console.error('[applySmartOrdering] Failed to save preferences:', e);
   }
 
   // Re-render previews
-  console.log('[applySmartOrdering] Re-rendering previews with new platform order...');
+  if (DEBUG_SMART_ORDERING) {
+    console.log('[applySmartOrdering] Re-rendering previews with new platform order...');
+  }
   renderPreviews(currentData);
-  console.log('[applySmartOrdering] Preview re-render complete');
+  if (DEBUG_SMART_ORDERING) {
+    console.log('[applySmartOrdering] Preview re-render complete');
+  }
 
   showToast(`Page type detected: ${pageType}. Platforms reordered.`, 2000);
-  console.log('[applySmartOrdering] Function complete ✅');
+
+  if (DEBUG_SMART_ORDERING) {
+    console.log('[applySmartOrdering] ===== FUNCTION COMPLETE ✅ =====');
+  }
 }
 
 // ── Initialize inline editing on DOM ready ──

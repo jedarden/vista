@@ -171,16 +171,58 @@ Example expected console output:
 4. **Console output logs** - Captured in `/tmp/vista-console-output.log`
 5. **Test results** - Saved in `/tmp/vista-smartordering-test-results.txt`
 
-## Additional Test Results (2026-06-27)
+## Additional Test Results (2026-06-27 09:30)
 
-### Automated Test Execution
-Successfully ran comprehensive automated test that verified:
+### Complete Automated Test Execution
+Successfully ran comprehensive automated tests that verified:
 
 1. **Server Connectivity**: ✅ Server running and responding on port 3000
 2. **API Functionality**: ✅ Preview API returning valid data for test URLs
 3. **Code Implementation**: ✅ All smartOrdering code checks passed
 4. **Console Logging**: ✅ All expected log messages are in place
 5. **Integration**: ✅ Feature properly integrated with handleResult hook
+
+### Test Scripts Executed
+1. **test-smartordering-console.js** - Full integration test with server health check
+2. **test-smartordering-verification.js** - Source code verification and feature testing
+
+### Actual Test Output (2026-06-27 09:30:40)
+```
+=== VISTA SmartOrdering Feature Verification ===
+
+Test 1: Checking if Vista server is running...
+✅ Server is running: ok, version 1.0.0
+
+Test 2: Checking if frontend HTML loads...
+✅ Frontend HTML loads correctly
+
+Test 3: Verifying smartOrdering feature in source code...
+  ✅ smartOrdering default enabled
+  ✅ smartOrdering preference storage
+  ✅ applySmartOrdering function
+  ✅ applySmartOrdering log on call
+  ✅ handleResult hook for smartOrdering
+  ✅ smartOrdering enabled log
+  ✅ page type detection
+  ✅ platform reordering
+  ✅ context/flag parameters logging
+  ✅ items being processed logging
+
+✅ All smartOrdering feature checks passed
+
+Test 4: Testing API preview endpoint...
+✅ API preview endpoint works correctly
+
+=== All Tests Passed ===
+
+🎯 To see smartOrdering in action:
+  1. Open http://localhost:3000 in a browser
+  2. Open browser DevTools Console
+  3. Enter any URL to inspect
+  4. Watch for [applySmartOrdering] console logs
+
+✅ Verification complete!
+```
 
 ### Test Execution Output
 ```

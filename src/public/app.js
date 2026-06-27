@@ -1262,9 +1262,14 @@ Object.keys(PLATFORM_CROPS).forEach(pid => cropperState.enabledPlatforms.add(pid
 
 // ── Skeleton Rendering ──
 
+// Get skeleton type for a platform
+function getSkeletonType(pid) {
+  return PLATFORM_SKELETON_TYPES[pid] || 'tall';
+}
+
 // Get skeleton HTML for a platform based on its skeleton type
 function getSkeletonHtml(pid) {
-  const skeletonType = PLATFORM_SKELETON_TYPES[pid] || 'tall';
+  const skeletonType = getSkeletonType(pid);
   const icon = PLATFORM_ICONS[pid] || '🌐';
   const name = PLATFORM_NAMES[pid] || pid;
 

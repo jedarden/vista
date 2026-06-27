@@ -1112,8 +1112,10 @@ html[data-theme='light'] .github-domain { color: #57606a; }
 .loading-text { font-size: 16px; color: var(--text2); }
 
 /* Toast */
-.toast { position: fixed; bottom: 72px; left: 50%; transform: translateX(-50%); background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 10px 20px; font-size: 14px; color: var(--text); z-index: 300; animation: toastIn 0.2s ease; box-shadow: var(--shadow); white-space: nowrap; }
+.toast { position: fixed; bottom: 72px; left: 50%; transform: translateX(-50%); background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 10px 20px; font-size: 14px; color: var(--text); z-index: 300; animation: toastIn 0.2s ease; box-shadow: var(--shadow); white-space: nowrap; display: flex; align-items: center; gap: 8px; }
 @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(8px); } to { opacity: 1; transform: translateX(-50%); } }
+.toast-dismiss { background: none; border: none; color: inherit; cursor: pointer; font-size: 16px; padding: 0 4px; line-height: 1; opacity: 0.7; transition: opacity var(--transition); }
+.toast-dismiss:hover { opacity: 1; }
 
 /* Modal */
 .modal-overlay { position: fixed; inset: 0; background: rgba(15,17,23,0.85); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 400; animation: modalIn 0.2s ease; }

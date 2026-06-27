@@ -217,6 +217,15 @@ document.addEventListener('click', (e) => {
       clearSuggestionChips();
       switchMode('compare');
     }
+    if (action === 'open-templates') {
+      clearSuggestionChips();
+      // Switch to Templates tab if results section is visible
+      if (!resultsSection.classList.contains('hidden')) {
+        switchTab('templates');
+        // Announce to screen readers
+        announce('Opened Templates tab. Choose a template to create meta tags for your page.');
+      }
+    }
   }
   if (e.target.classList.contains('suggestion-dismiss')) {
     const chip = e.target.closest('.suggestion-chips');
@@ -499,6 +508,9 @@ async function progressiveLoad({ url, html, base }) {
   window.currentRedirectChain = metaData.redirectChain || null;
   saveToRecents(metaData);
 
+  // Check for missing meta tags and show suggestion
+  checkForNoMetaTags(metaData);
+
   // Compact hero and show results section
   hero.classList.add('compact');
   document.body.classList.add('has-results');
@@ -657,6 +669,9 @@ async function finalizeProgressiveLoad(metaData, imagesData, headersData, startT
 
   // Check for perfect score and trigger celebration
   checkAndCelebrate(completeData);
+
+  // Show first-visit toast (show once per user)
+  showFirstVisitToast();
 }
 
 async function fetchImagesAndHeaders({ url, html, base, isHtml }) {
@@ -4433,6 +4448,87 @@ function showToast(msg, duration) {
   toast.classList.remove('hidden');
   clearTimeout(toast._timer);
   toast._timer = setTimeout(() => toast.classList.add('hidden'), duration || 3000);
+}
+
+/**
+ * Show first-visit toast (one-time per user)
+ * Displays a helpful hint about card expansion and diagnostics on first inspection
+ */
+function showFirstVisitToast() {
+  const STORAGE_KEY = 'vista-first-visit-shown';
+  const alreadyShown = localStorage.getItem(STORAGE_KEY);
+
+  if (!alreadyShown) {
+    // Show the toast with a dismissible message
+    const toastMsg = 'Click any card to expand. Try the Diagnostics tab for issues.';
+
+    // Create a dismissible toast
+    toast.innerHTML = `
+      <span>${toastMsg}</span>
+      <button class="toast-dismiss" aria-label="Dismiss" style="margin-left:12px;background:none;border:none;color:inherit;cursor:pointer;font-size:16px;">&times;</button>
+    `;
+
+    toast.classList.remove('hidden');
+
+    // Handle dismiss button click
+    const dismissBtn = toast.querySelector('.toast-dismiss');
+    if (dismissBtn) {
+      dismissBtn.addEventListener('click', () => {
+        toast.classList.add('hidden');
+        localStorage.setItem(STORAGE_KEY, 'true');
+      });
+    }
+
+    // Auto-hide after 8 seconds (longer than regular toasts)
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => {
+      toast.classList.add('hidden');
+      localStorage.setItem(STORAGE_KEY, 'true');
+    }, 8000);
+
+    // Mark as shown
+    localStorage.setItem(STORAGE_KEY, 'true');
+  }
+}
+
+/**
+ * Check if the page has no meta tags and show template picker suggestion
+ * Detects if Open Graph and Twitter Card tags are missing
+ */
+function checkForNoMetaTags(metaData) {
+  if (!metaData || !metaData.meta) return;
+
+  const meta = metaData.meta;
+  const hasOgTags = !!(meta.og &&
+    (meta.og.title || meta.og.description || meta.og.image));
+  const hasTwitterTags = !!(meta.twitter &&
+    (meta.twitter.title || meta.twitter.description || meta.twitter.image || meta.twitter.card));
+  const hasBasicTags = !!(meta.title || meta.description);
+
+  // Only show suggestion if truly no relevant meta tags
+  if (!hasOgTags && !hasTwitterTags && !hasBasicTags) {
+    // Clear any existing suggestion chips first
+    clearSuggestionChips();
+
+    // Create suggestion chip with action to open Templates tab
+    const chip = document.createElement('div');
+    chip.className = 'suggestion-chips';
+    chip.innerHTML = `
+      <span class="suggestion-icon">&#128556;</span>
+      <span class="suggestion-text"><strong>This page has no Open Graph or Twitter Card tags.</strong> Want to create them?</span>
+      <button class="suggestion-action" data-action="open-templates">Open Templates</button>
+      <button class="suggestion-dismiss" aria-label="Dismiss">&times;</button>
+    `;
+
+    // Insert after the URL input form
+    const insertAfter = document.querySelector('#urlMode .input-mode-toggle');
+    if (insertAfter && insertAfter.parentNode) {
+      insertAfter.parentNode.insertBefore(chip, insertAfter.nextSibling);
+    }
+
+    // Log for debugging
+    console.log('[NoMetaTags] No meta tags detected. Showing template suggestion.');
+  }
 }
 
 function gradeClass(grade) {

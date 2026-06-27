@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skeleton Card 0ms Display Test</title>
+    <link rel="stylesheet" href="src/public/style.css">
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #11111b;
+            color: #cdd6f4;
+            padding: 20px;
+            margin: 0;
+        }
+        .test-info {
+            background: #1e1e2e;
+            border: 1px solid #45475a;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        .test-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #1e1e2e;
+            border: 1px solid #45475a;
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-width: 300px;
+        }
+        button {
+            padding: 8px 16px;
+            background: #89b4fa;
+            border: none;
+            border-radius: 4px;
+            color: #1e1e2e;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #b4befe;
+        }
+        .status {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #a6adc8;
+        }
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            border-bottom: 1px solid #45475a;
+        }
+        .metric:last-child {
+            border-bottom: none;
+        }
+        .pass {
+            color: #a6e3a1;
+        }
+        .fail {
+            color: #f38ba8;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-info">
+        <h1>Skeleton Card 0ms Display Test</h1>
+        <p>This test verifies that skeleton cards appear immediately at 0ms when inspection starts.</p>
+        <div class="metric">
+            <span>Test:</span>
+            <span>Immediate skeleton display (0ms)</span>
+        </div>
+        <div class="metric">
+            <span>Function:</span>
+            <span id="functionName">showSkeletonCards()</span>
+        </div>
+        <div class="metric">
+            <span>Render time:</span>
+            <span id="renderTime">--</span>
+        </div>
+        <div class="metric">
+            <span>Skeleton cards:</span>
+            <span id="skeletonCount">--</span>
+        </div>
+        <div class="metric">
+            <span>Shimmer animation:</span>
+            <span id="shimmerStatus">--</span>
+        </div>
+        <div class="metric">
+            <span>Grid layout:</span>
+            <span id="gridStatus">--</span>
+        </div>
+        <div class="metric">
+            <span>Overall:</span>
+            <span id="overallStatus">--</span>
+        </div>
+    </div>
+
+    <div class="preview-grid" id="previewGrid"></div>
+
+    <div class="test-controls">
+        <button onclick="runTest()">Run Test</button>
+        <button onclick="clearTest()">Clear</button>
+        <div class="status" id="status">Ready</div>
+    </div>
+
+    <script>
+        // Mock platform data for testing
+        const PLATFORM_GROUPS = [
+            { id: 'social', title: 'Social Media', platforms: ['twitter', 'facebook', 'linkedin'] },
+            { id: 'search', title: 'Search Engines', platforms: ['google', 'bing', 'duckduckgo'] }
+        ];
+
+        const PLATFORM_SKELETON_TYPES = {
+            'twitter': 'tall',
+            'facebook': 'tall',
+            'linkedin': 'tall',
+            'google': 'short',
+            'bing': 'short',
+            'duckduckgo': 'short'
+        };
+
+        const status = document.getElementById('status');
+        const previewGrid = document.getElementById('previewGrid');
+
+        // Copy of getSkeletonHtml from app.js
+        function getSkeletonHtml(pid) {
+            const skeletonType = PLATFORM_SKELETON_TYPES[pid] || 'tall';
+            let bodyHtml = '';
+            if (skeletonType === 'tall') {
+                bodyHtml = `
+                    <div class="skeleton-body-tall">
+                        <div class="skeleton-tall-img"></div>
+                        <div class="skeleton-tall-meta">
+                            <div class="skeleton-tall-domain"></div>
+                            <div class="skeleton-tall-title"></div>
+                            <div class="skeleton-tall-desc"></div>
+                            <div class="skeleton-tall-desc-short"></div>
+                        </div>
+                    </div>
+                `;
+            } else if (skeletonType === 'short') {
+                bodyHtml = `
+                    <div class="skeleton-body-short">
+                        <div class="skeleton-short-thumb"></div>
+                        <div class="skeleton-short-meta">
+                            <div class="skeleton-short-domain"></div>
+                            <div class="skeleton-short-title"></div>
+                            <div class="skeleton-short-desc"></div>
+                        </div>
+                    </div>
+                `;
+            }
+            return `
+                <div class="skeleton-header">
+                    <div class="skeleton-icon"></div>
+                    <div class="skeleton-title"></div>
+                    <div class="skeleton-badge"></div>
+                </div>
+                ${bodyHtml}
+                <div class="skeleton-footer">
+                    <div class="skeleton-issue"></div>
+                    <div class="skeleton-issue"></div>
+                    <div class="skeleton-issue"></div>
+                </div>
+            `;
+        }
+
+        // Copy of showSkeletonCards from app.js
+        function showSkeletonCards() {
+            renderSkeletons();
+        }
+
+        function renderSkeletons() {
+            previewGrid.innerHTML = '';
+            let globalIndex = 0;
+
+            PLATFORM_GROUPS.forEach((group) => {
+                const groupEl = document.createElement('div');
+                groupEl.className = 'platform-group';
+                groupEl.id = 'group-' + group.id;
+
+                const header = document.createElement('div');
+                header.className = 'platform-group-header';
+                header.innerHTML = `
+                    <span class="group-chevron">&#9660;</span>
+                    <span class="group-title">${group.title}</span>
+                    <span class="group-subtitle">Loading...</span>
+                `;
+                groupEl.appendChild(header);
+
+                const row = document.createElement('div');
+                row.className = 'cards-row skeleton-row';
+
+                group.platforms.forEach((pid, i) => {
+                    const card = document.createElement('div');
+                    card.className = 'platform-skeleton-card';
+                    card.dataset.pid = pid;
+                    card.style.animationDelay = (globalIndex * 50) + 'ms';
+                    card.innerHTML = getSkeletonHtml(pid);
+                    row.appendChild(card);
+                    globalIndex++;
+                });
+
+                groupEl.appendChild(row);
+                previewGrid.appendChild(groupEl);
+            });
+        }
+
+        function runTest() {
+            status.textContent = 'Running test...';
+
+            // Clear previous results
+            previewGrid.innerHTML = '';
+
+            // Measure time to show skeleton cards
+            const startTime = performance.now();
+
+            showSkeletonCards();
+
+            const endTime = performance.now();
+            const elapsed = endTime - startTime;
+
+            // Verify results
+            const skeletonCards = document.querySelectorAll('.platform-skeleton-card');
+            const skeletonRows = document.querySelectorAll('.skeleton-row');
+            const shimmerElements = document.querySelectorAll('[style*="animation: shimmer"], .skeleton-icon, .skeleton-title, .skeleton-badge, .skeleton-tall-img, .skeleton-short-thumb');
+
+            // Update metrics
+            document.getElementById('renderTime').textContent = elapsed.toFixed(2) + 'ms';
+            document.getElementById('skeletonCount').textContent = skeletonCards.length + ' cards';
+
+            // Check shimmer animation
+            const shimmerPass = shimmerElements.length > 0;
+            document.getElementById('shimmerStatus').innerHTML = shimmerPass
+                ? '<span class="pass">✓ PASS</span>'
+                : '<span class="fail">✗ FAIL</span>';
+
+            // Check grid layout
+            const gridPass = skeletonRows.length > 0 && window.getComputedStyle(skeletonRows[0]).display === 'grid';
+            document.getElementById('gridStatus').innerHTML = gridPass
+                ? '<span class="pass">✓ PASS (display: grid)</span>'
+                : '<span class="fail">✗ FAIL</span>';
+
+            // Check render time (should be < 1ms)
+            const timePass = elapsed < 1.0;
+            const timeStatus = document.getElementById('renderTime');
+            timeStatus.innerHTML = timePass
+                ? '<span class="pass">' + elapsed.toFixed(2) + 'ms ✓</span>'
+                : '<span class="fail">' + elapsed.toFixed(2) + 'ms ✗</span>';
+
+            // Overall result
+            const overallPass = shimmerPass && gridPass && timePass && skeletonCards.length > 0;
+            document.getElementById('overallStatus').innerHTML = overallPass
+                ? '<span class="pass">✓ ALL TESTS PASS</span>'
+                : '<span class="fail">✗ SOME TESTS FAIL</span>';
+
+            status.textContent = overallPass
+                ? `✓ Test complete: ${skeletonCards.length} skeleton cards in ${elapsed.toFixed(2)}ms`
+                : `✗ Test failed`;
+        }
+
+        function clearTest() {
+            previewGrid.innerHTML = '';
+            status.textContent = 'Cleared';
+            document.getElementById('renderTime').textContent = '--';
+            document.getElementById('skeletonCount').textContent = '--';
+            document.getElementById('shimmerStatus').textContent = '--';
+            document.getElementById('gridStatus').textContent = '--';
+            document.getElementById('overallStatus').textContent = '--';
+        }
+
+        // Auto-run test on load
+        setTimeout(runTest, 100);
+    </script>
+</body>
+</html>

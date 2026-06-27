@@ -484,6 +484,16 @@ async function progressiveLoad({ url, html, base }) {
   const metaTime = performance.now() - startTime;
   console.log(`[Progressive] Metadata loaded in ${metaTime.toFixed(0)}ms`);
 
+  // Extract dominant color immediately for placeholder background
+  const ogImageUrl = metaData.meta.og.image || metaData.meta.twitter.image;
+  if (ogImageUrl) {
+    // Don't await - extract in background, use placeholder color meanwhile
+    extractDominantColor(ogImageUrl).then(color => {
+      metaData.dominantColor = color;
+      console.log(`[Progressive] Dominant color extracted: ${color}`);
+    });
+  }
+
   // Step 2: Populate score and text cards immediately
   currentData = metaData; // Store for later merging
   window.currentRedirectChain = metaData.redirectChain || null;
@@ -1435,35 +1445,64 @@ function renderTextPreviewsOnly(data) {
   // Store that we're in progressive loading mode
   window.progressiveLoading = true;
 
-  previewGrid.innerHTML = '';
+  // Crossfade skeleton cards to text-only content
+  const reducedMotion = prefersReducedMotion();
 
   PLATFORM_GROUPS.forEach((group, gi) => {
-    const groupEl = document.createElement('div');
-    groupEl.className = 'platform-group' + (group.collapsed ? ' collapsed' : '');
-    groupEl.id = 'group-' + group.id;
-    groupEl.dataset.groupId = group.id;
+    // Find existing skeleton row or create new structure
+    let groupEl = document.getElementById('group-' + group.id);
+    let row, header;
 
-    // Count scores for group
-    const groupScores = group.platforms.map(pid => data.scoring.scores[pid]).filter(Boolean);
-    const gPassing = groupScores.filter(s => ['A+','A'].includes(s.grade)).length;
-    const gWarn = groupScores.filter(s => ['B','C'].includes(s.grade)).length;
-    const gFail = groupScores.filter(s => ['D','F'].includes(s.grade)).length;
+    if (groupEl) {
+      // Update existing group header with actual scores
+      header = groupEl.querySelector('.platform-group-header');
+      row = groupEl.querySelector('.cards-row');
 
-    const header = document.createElement('div');
-    header.className = 'platform-group-header';
-    header.innerHTML = `
-      <span class="group-chevron">&#9660;</span>
-      <span class="group-title">${escHtml(group.title)}</span>
-      <span class="group-subtitle">${gPassing} &#10003; ${gWarn > 0 ? gWarn + ' &#9888; ' : ''}${gFail > 0 ? gFail + ' &#10007;' : ''}</span>
-    `;
-    header.addEventListener('click', () => {
-      groupEl.classList.toggle('collapsed');
-    });
-    groupEl.appendChild(header);
+      // Count scores for group
+      const groupScores = group.platforms.map(pid => data.scoring.scores[pid]).filter(Boolean);
+      const gPassing = groupScores.filter(s => ['A+','A'].includes(s.grade)).length;
+      const gWarn = groupScores.filter(s => ['B','C'].includes(s.grade)).length;
+      const gFail = groupScores.filter(s => ['D','F'].includes(s.grade)).length;
 
-    const row = document.createElement('div');
-    row.className = 'cards-row';
-    row.dataset.groupId = group.id;
+      header.innerHTML = `
+        <span class="group-chevron">&#9660;</span>
+        <span class="group-title">${escHtml(group.title)}</span>
+        <span class="group-subtitle">${gPassing} &#10003; ${gWarn > 0 ? gWarn + ' &#9888; ' : ''}${gFail > 0 ? gFail + ' &#10007;' : ''}</span>
+      `;
+      header.addEventListener('click', () => {
+        groupEl.classList.toggle('collapsed');
+      });
+    } else {
+      // Fallback: create new group structure (shouldn't happen with proper skeleton flow)
+      groupEl = document.createElement('div');
+      groupEl.className = 'platform-group' + (group.collapsed ? ' collapsed' : '');
+      groupEl.id = 'group-' + group.id;
+      groupEl.dataset.groupId = group.id;
+
+      // Count scores for group
+      const groupScores = group.platforms.map(pid => data.scoring.scores[pid]).filter(Boolean);
+      const gPassing = groupScores.filter(s => ['A+','A'].includes(s.grade)).length;
+      const gWarn = groupScores.filter(s => ['B','C'].includes(s.grade)).length;
+      const gFail = groupScores.filter(s => ['D','F'].includes(s.grade)).length;
+
+      header = document.createElement('div');
+      header.className = 'platform-group-header';
+      header.innerHTML = `
+        <span class="group-chevron">&#9660;</span>
+        <span class="group-title">${escHtml(group.title)}</span>
+        <span class="group-subtitle">${gPassing} &#10003; ${gWarn > 0 ? gWarn + ' &#9888; ' : ''}${gFail > 0 ? gFail + ' &#10007;' : ''}</span>
+      `;
+      header.addEventListener('click', () => {
+        groupEl.classList.toggle('collapsed');
+      });
+      groupEl.appendChild(header);
+
+      row = document.createElement('div');
+      row.className = 'cards-row';
+      row.dataset.groupId = group.id;
+      groupEl.appendChild(row);
+      previewGrid.appendChild(groupEl);
+    }
 
     // Use custom order if available
     let platforms = group.platforms;
@@ -1473,16 +1512,46 @@ function renderTextPreviewsOnly(data) {
       platforms = [...customOrder, ...newPlatforms];
     }
 
+    // Crossfade: fade out skeleton cards, then replace with text-only cards
+    let globalIndex = 0;
     platforms.forEach((pid, i) => {
       const scoreData = data.scoring.scores[pid];
       if (!scoreData) return;
-      const animDelay = prefersReducedMotion() ? 0 : i * 60;
-      const card = buildTextOnlyCard(pid, scoreData, data, animDelay, group.id);
-      row.appendChild(card);
-    });
 
-    groupEl.appendChild(row);
-    previewGrid.appendChild(groupEl);
+      const existingSkeleton = row.querySelector(`.platform-skeleton-card[data-pid="${pid}"]`);
+      const animDelay = reducedMotion ? 0 : globalIndex * 50; // 50ms stagger for crossfade
+
+      if (existingSkeleton) {
+        // Crossfade out: add fade-out class
+        existingSkeleton.classList.add('skeleton-fade-out');
+        existingSkeleton.style.transition = reducedMotion ? 'none' : `opacity 150ms ease, transform 150ms ease`;
+        existingSkeleton.style.transitionDelay = animDelay + 'ms';
+
+        // After fade-out, replace with text-only card
+        setTimeout(() => {
+          const textCard = buildTextOnlyCard(pid, scoreData, data, reducedMotion ? 0 : i * 60, group.id);
+
+          // Add fade-in animation
+          if (!reducedMotion) {
+            textCard.classList.add('skeleton-fade-in');
+            textCard.style.animationDelay = animDelay + 'ms';
+          }
+
+          existingSkeleton.replaceWith(textCard);
+        }, reducedMotion ? 0 : 150 + animDelay);
+      } else {
+        // No skeleton found, directly add text-only card
+        const textCard = buildTextOnlyCard(pid, scoreData, data, reducedMotion ? 0 : i * 60, group.id);
+
+        if (!reducedMotion) {
+          textCard.classList.add('skeleton-fade-in');
+        }
+
+        row.appendChild(textCard);
+      }
+
+      globalIndex++;
+    });
   });
 }
 
@@ -1569,6 +1638,9 @@ function buildTextOnlyCard(pid, scoreData, data, animDelay, groupId) {
  * Replaces loading placeholders with actual images progressively.
  */
 function updatePreviewsWithImages(data) {
+  const reducedMotion = prefersReducedMotion();
+  const crossfadeDuration = reducedMotion ? 0 : 150; // 150ms crossfade
+
   // Update each existing card with image data
   PLATFORM_GROUPS.forEach((group) => {
     group.platforms.forEach((pid) => {
@@ -1591,17 +1663,32 @@ function updatePreviewsWithImages(data) {
         existingCard.className = `platform-card ${gradeClass(scoreData.grade)}`;
       }
 
-      // Update card body with images
+      // Update card body with images using crossfade
       const body = existingCard.querySelector(`#card-body-${pid}`);
       if (body) {
-        // Remove loading overlay
-        const loadingOverlay = body.querySelector('.card-image-loading');
-        if (loadingOverlay) {
-          loadingOverlay.remove();
+        // Crossfade: fade out old content, replace, fade in new content
+        if (!reducedMotion) {
+          body.style.opacity = '0';
+          body.style.transform = 'translateY(4px)';
+          body.style.transition = `opacity ${crossfadeDuration}ms ease, transform ${crossfadeDuration}ms`;
         }
 
-        // Re-render with actual images
-        body.innerHTML = renderPlatformCard(pid, data.meta, data.imageProbe, data.finalUrl, data.dominantColor);
+        setTimeout(() => {
+          // Remove loading overlay
+          const loadingOverlay = body.querySelector('.card-image-loading');
+          if (loadingOverlay) {
+            loadingOverlay.remove();
+          }
+
+          // Re-render with actual images
+          body.innerHTML = renderPlatformCard(pid, data.meta, data.imageProbe, data.finalUrl, data.dominantColor);
+
+          // Fade in new content
+          if (!reducedMotion) {
+            body.style.opacity = '1';
+            body.style.transform = 'translateY(0)';
+          }
+        }, crossfadeDuration);
       }
 
       // Enable controls that were disabled during loading

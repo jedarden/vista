@@ -135,6 +135,7 @@ html[data-theme='light'] .theme-icon-dark { display: inline; }
 .hero-tagline h1 { font-size: clamp(28px,5vw,48px); font-weight: 800; line-height: 1.2; background: linear-gradient(135deg,#fff 40%,var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 12px; }
 .hero-tagline p { font-size: 18px; color: var(--text2); }
 .hero.compact .hero-tagline { display: none; }
+.hero.compact .example-chips { display: none; }
 
 /* Input */
 .input-block { width: 100%; }

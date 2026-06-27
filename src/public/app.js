@@ -6784,15 +6784,30 @@ function applySmartOrdering() {
       return aIndex - bIndex;
     });
 
+    // Update platformPrefs.cardOrder to persist the smart ordering
+    // This ensures renderPreviews() uses the new smart order instead of custom order
+    if (!platformPrefs.cardOrder) {
+      platformPrefs.cardOrder = {};
+    }
+    platformPrefs.cardOrder[group.id] = [...group.platforms];
+
     if (JSON.stringify(originalOrder) !== JSON.stringify(group.platforms)) {
-      console.log(`[applySmartOrdering] Group ${groupIndex} "${group.name}" reordered:`, {
+      console.log(`[applySmartOrdering] Group ${groupIndex} "${group.title}" reordered:`, {
         from: originalOrder,
         to: group.platforms
       });
     } else {
-      console.log(`[applySmartOrdering] Group ${groupIndex} "${group.name}": no change needed`);
+      console.log(`[applySmartOrdering] Group ${groupIndex} "${group.title}": no change needed`);
     }
   });
+
+  // Save the updated preferences to persist across page refreshes
+  try {
+    localStorage.setItem('vista-platform-prefs', JSON.stringify(platformPrefs));
+    console.log('[applySmartOrdering] Platform preferences saved to localStorage');
+  } catch (e) {
+    console.error('[applySmartOrdering] Failed to save preferences:', e);
+  }
 
   // Re-render previews
   console.log('[applySmartOrdering] Re-rendering previews with new platform order...');

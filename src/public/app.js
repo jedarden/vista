@@ -14,7 +14,7 @@ let focusedCardPids = []; // Array of platform IDs in current grid
 let editorUndoStack = []; // Undo stack for editor changes
 
 // ── Theme State ──
-let globalTheme = 'dark'; // 'dark' | 'light'
+// globalTheme is declared in frames-theme.js (loaded before this file)
 
 // ── Accessibility: Screen Reader Announcements ──
 /**
@@ -6750,13 +6750,19 @@ function applySmartOrdering() {
     return;
   }
 
-  // Log input parameters
-  console.log('[applySmartOrdering] Input parameters:', {
-    hasCurrentData: !!currentData,
+  // Log items being processed
+  console.log('[applySmartOrdering] Items (currentData):', {
+    hasData: !!currentData,
     hasMeta: !!currentData?.meta,
-    smartOrderingEnabled: platformPrefs.smartOrdering,
     ogType: currentData?.meta?.og?.type,
-    canonical: currentData?.meta?.canonical
+    canonical: currentData?.meta?.canonical,
+    url: currentData?.meta?.canonical || currentData?.meta?.og?.url || '(none)'
+  });
+
+  // Log context/flag parameters
+  console.log('[applySmartOrdering] Context/Flag parameters:', {
+    smartOrderingEnabled: platformPrefs.smartOrdering,
+    hasPagePreferences: !!platformPrefs.pageType
   });
 
   const pageType = detectPageType(currentData.meta);

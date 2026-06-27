@@ -6819,8 +6819,12 @@ renderDiagnostics = function(diagnostics) {
 const originalHandleResult2 = handleResult;
 handleResult = function(data) {
   originalHandleResult2(data);
+  console.log('[handleResult hook] smartOrdering enabled:', platformPrefs.smartOrdering);
   if (platformPrefs.smartOrdering) {
+    console.log('[handleResult hook] about to call applySmartOrdering after 200ms delay');
     setTimeout(applySmartOrdering, 200);
+  } else {
+    console.log('[handleResult hook] smartOrdering disabled - skipping applySmartOrdering call');
   }
 };
 

@@ -5,6 +5,8 @@
  * Returns A+, A, B, C, D, or F for each platform.
  */
 
+const { getSkeletonType: getSkeletonTypeImpl } = require('./skeleton-types');
+
 const PLATFORMS = [
   // Social & Microblogging
   { id: 'google', name: 'Google Search', category: 'Social & Microblogging', weight: 10 },
@@ -296,4 +298,4 @@ function scoreAll(meta, imageProbe) {
   };
 }
 
-module.exports = { scoreAll, PLATFORMS };
+module.exports = { scoreAll, PLATFORMS, getSkeletonType: getSkeletonTypeImpl };

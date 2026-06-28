@@ -13,7 +13,7 @@ A lightweight web tool that previews how any URL will appear when shared across 
 ## Architecture
 
 - **Frontend**: Static HTML/CSS/JS — renders platform-accurate preview cards
-- **Backend**: Cloudflare Worker — proxies URL fetches (bypasses CORS) and extracts meta tags
+- **Backend**: Node.js/Express — proxies URL fetches (bypasses CORS) and extracts meta tags
 
 ## Development
 

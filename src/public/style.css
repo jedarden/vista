@@ -189,6 +189,25 @@ html[data-theme='light'] .theme-icon-dark { display: inline; }
 .grade-badge.grade-C, .card-grade.grade-C { background: rgba(249,115,22,0.12); color: #f97316; }
 .grade-badge.grade-D, .card-grade.grade-D { background: rgba(239,68,68,0.12); color: #ef4444; }
 .grade-badge.grade-F, .card-grade.grade-F { background: rgba(239,68,68,0.2); color: #f87171; }
+
+/* Perfect score golden glow effect */
+.grade-badge.perfect-score-glow {
+  animation: perfectGlow 2s ease-in-out infinite alternate;
+  box-shadow: 0 0 12px rgba(234, 179, 8, 0.6), 0 0 24px rgba(234, 179, 8, 0.3);
+  border: 1px solid rgba(234, 179, 8, 0.5);
+}
+
+@keyframes perfectGlow {
+  0% {
+    box-shadow: 0 0 12px rgba(234, 179, 8, 0.6), 0 0 24px rgba(234, 179, 8, 0.3);
+    transform: scale(1);
+  }
+  100% {
+    box-shadow: 0 0 16px rgba(234, 179, 8, 0.8), 0 0 32px rgba(234, 179, 8, 0.5);
+    transform: scale(1.05);
+  }
+}
+
 .summary-counts { display: flex; gap: 12px; font-size: 13px; }
 .count-chip { display: flex; align-items: center; gap: 5px; color: var(--text2); }
 .dot { width: 8px; height: 8px; border-radius: 50%; }

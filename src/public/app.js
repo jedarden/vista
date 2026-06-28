@@ -7,6 +7,7 @@ let currentMode = 'url'; // 'url' | 'paste' | 'compare'
 let cardContextState = {}; // Track context mode per platform: { pid: { context: boolean, theme: 'dark'|'light' } }
 let compareData = { before: null, after: null, swapped: false }; // Comparison state
 let hasCelebratedPerfectScore = false; // Track one-time celebration per session
+let isFreshFetch = true; // Track whether current inspection is a fresh fetch (vs page load auto-inspect)
 let currentTab = 'previews'; // Active tab state for hash encoding
 let pendingWhatIfTags = null; // Store pending What If tags from hash before data loads
 
@@ -879,6 +880,7 @@ async function inspectUrl(url) {
     url = 'https://' + url;
     urlInput.value = url;
   }
+  isFreshFetch = true; // Mark as fresh fetch for celebration
   renderSkeletons(); // Show skeletons immediately at 0ms - skeleton cards serve as loading indicator
   try {
 	await progressiveLoad({ url });
@@ -892,6 +894,7 @@ async function inspectUrl(url) {
 
 async function inspectHtml(html, base) {
   if (!html) { showToast('Please paste some HTML first.', 2000); return; }
+  isFreshFetch = true; // Mark as fresh fetch for celebration
   renderSkeletons(); // Show skeletons immediately at 0ms - skeleton cards serve as loading indicator
   try {
 	await progressiveLoad({ html, base });
@@ -1159,13 +1162,49 @@ function checkAndCelebrate(data) {
   // One-time celebration per session
   if (hasCelebratedPerfectScore) return;
 
+  // Guard: Skip in Compare mode (and sitemap mode)
+  if (currentMode === 'compare' || currentMode === 'sitemap') return;
+
+  // Guard: Only trigger on fresh fetches, not cached/restored results
+  if (!isFreshFetch) return;
+
   if (isPerfectScore(data)) {
     hasCelebratedPerfectScore = true;
+    // Apply golden glow to grade badge
+    overallGrade.classList.add('perfect-score-glow');
     // Small delay to let the results render first
     setTimeout(() => {
       triggerConfetti();
+      showPerfectScoreToast(data);
     }, 300);
   }
+}
+
+function showPerfectScoreToast(data) {
+  const domain = (data.finalUrl || data.url || '').replace(/^https?:\/\//, '').split('/')[0];
+  const shareText = `${domain} scored A+ on all 31 VISTA platforms`;
+
+  toast.innerHTML = `
+    <span>Perfect score! Your page is fully optimized across all 31 platforms.</span>
+    <button class="toast-share-btn" aria-label="Share perfect score" style="margin-left:12px;padding:4px 12px;background:var(--accent);border:none;color:#fff;border-radius:4px;cursor:pointer;font-size:13px;font-weight:500;">Share</button>
+  `;
+
+  toast.classList.remove('hidden');
+
+  // Handle share button click
+  const shareBtn = toast.querySelector('.toast-share-btn');
+  if (shareBtn) {
+    shareBtn.addEventListener('click', () => {
+      copyText(shareText);
+      showToast('Copied to clipboard!', 1500);
+    });
+  }
+
+  // Auto-hide after 8 seconds
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => {
+    toast.classList.add('hidden');
+  }, 8000);
 }
 
 // ── Summary bar ──

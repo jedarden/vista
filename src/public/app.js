@@ -6331,8 +6331,38 @@ const TEMPLATES = [
     tags: ['article', 'blog'],
     values: {
       'og.type': 'article',
-      'twitter.card': 'summary_large_image'
-    }
+      'og.title': 'Your Article Title Here - Blog Name',
+      'og.description': 'A compelling 2-3 sentence summary of your article that entices readers to click through.',
+      'og.image': 'https://example.com/blog-hero-image.jpg',
+      'og.site_name': 'Your Blog Name',
+      'twitter.card': 'summary_large_image',
+      'article:author': 'Author Name',
+      'article:published_time': '2024-01-15T10:00:00Z',
+      'article:section': 'Technology',
+      'schema.type': 'Article',
+      'schema.data': {
+        '@context': 'https://schema.org',
+        '@type': 'Article',
+        'headline': 'Your Article Title Here',
+        'author': {
+          '@type': 'Person',
+          'name': 'Author Name'
+        },
+        'datePublished': '2024-01-15',
+        'dateModified': '2024-01-15',
+        'description': 'A compelling 2-3 sentence summary of your article.',
+        'image': 'https://example.com/blog-hero-image.jpg',
+        'publisher': {
+          '@type': 'Organization',
+          'name': 'Your Blog Name',
+          'logo': {
+            '@type': 'ImageObject',
+            'url': 'https://example.com/logo.png'
+          }
+        }
+      }
+    },
+    notes: 'Blog posts benefit from summary_large_image cards. Include author info and publish date for SEO. Use 1200x630px images for optimal display. Add article:section for categorization.'
   },
   {
     id: 'saas',
@@ -6342,8 +6372,33 @@ const TEMPLATES = [
     tags: ['product', 'saas'],
     values: {
       'og.type': 'website',
-      'twitter.card': 'summary_large_image'
-    }
+      'og.title': 'Product Name - Tagline that explains value',
+      'og.description': 'Brief description of your SaaS product highlighting key benefits and target audience.',
+      'og.image': 'https://example.com/product-screenshot.jpg',
+      'og.site_name': 'Product Name',
+      'twitter.card': 'summary_large_image',
+      'twitter:label1': 'Pricing',
+      'twitter:data1': 'From $29/month',
+      'schema.type': 'SoftwareApplication',
+      'schema.data': {
+        '@context': 'https://schema.org',
+        '@type': 'SoftwareApplication',
+        'name': 'Product Name',
+        'description': 'Brief description of your SaaS product.',
+        'applicationCategory': 'BusinessApplication',
+        'offers': {
+          '@type': 'Offer',
+          'price': '29.00',
+          'priceCurrency': 'USD'
+        },
+        'aggregateRating': {
+          '@type': 'AggregateRating',
+          'ratingValue': '4.8',
+          'ratingCount': '1250'
+        }
+      }
+    },
+    notes: 'SaaS landing pages should emphasize value proposition. Use pricing in twitter:data1 for Slack unfurls. Include aggregateRating if available. 1200x630px recommended for hero images.'
   },
   {
     id: 'ecommerce',
@@ -6353,8 +6408,38 @@ const TEMPLATES = [
     tags: ['product', 'shop'],
     values: {
       'og.type': 'product',
-      'twitter.card': 'summary_large_image'
-    }
+      'og.title': 'Product Name - Product Category',
+      'og.description': 'Product description highlighting key features, materials, and benefits.',
+      'og.image': 'https://example.com/product-photo.jpg',
+      'og.site_name': 'Store Name',
+      'og.product:availability': 'in stock',
+      'og.product:condition': 'new',
+      'og.product:price:amount': '99.99',
+      'og.product:price:currency': 'USD',
+      'twitter.card': 'summary_large_image',
+      'twitter:label1': 'Price',
+      'twitter:data1': '$99.99',
+      'schema.type': 'Product',
+      'schema.data': {
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        'name': 'Product Name',
+        'description': 'Product description highlighting key features.',
+        'image': 'https://example.com/product-photo.jpg',
+        'brand': {
+          '@type': 'Brand',
+          'name': 'Brand Name'
+        },
+        'offers': {
+          '@type': 'Offer',
+          'price': '99.99',
+          'priceCurrency': 'USD',
+          'availability': 'https://schema.org/InStock',
+          'itemCondition': 'https://schema.org/NewCondition'
+        }
+      }
+    },
+    notes: 'Product pages require price and availability for rich results. Use high-quality product images (square 1:1 ratio for Pinterest). Include brand information for Google Shopping.'
   },
   {
     id: 'portfolio',
@@ -6364,8 +6449,29 @@ const TEMPLATES = [
     tags: ['website', 'personal'],
     values: {
       'og.type': 'website',
-      'twitter.card': 'summary_large_image'
-    }
+      'og.title': 'Your Name - Portfolio / Job Title',
+      'og.description': 'Professional bio: Your expertise, experience, and what you create.',
+      'og.image': 'https://example.com/portfolio-preview.jpg',
+      'og.site_name': 'yourname.com',
+      'twitter.card': 'summary_large_image',
+      'schema.type': 'Person',
+      'schema.data': {
+        '@context': 'https://schema.org',
+        '@type': 'Person',
+        'name': 'Your Name',
+        'jobTitle': 'Job Title',
+        'description': 'Professional bio: Your expertise and what you create.',
+        'url': 'https://yourname.com',
+        'image': 'https://example.com/portfolio-preview.jpg',
+        'sameAs': [
+          'https://linkedin.com/in/yourprofile',
+          'https://github.com/yourusername',
+          'https://twitter.com/yourusername'
+        ],
+        'knowsAbout': ['Design', 'Development', 'UI/UX']
+      }
+    },
+    notes: 'Portfolio pages should showcase your best work. Link to social profiles in sameAs for authorship. Use professional headshots or portfolio highlights for og.image.'
   },
   {
     id: 'event',
@@ -6375,8 +6481,45 @@ const TEMPLATES = [
     tags: ['event', 'calendar'],
     values: {
       'og.type': 'website',
-      'twitter.card': 'summary_large_image'
-    }
+      'og.title': 'Event Name - Date | Location',
+      'og.description': 'Event description: what, who should attend, key speakers, and why it matters.',
+      'og.image': 'https://example.com/event-banner.jpg',
+      'og.site_name': 'Event Name',
+      'twitter.card': 'summary_large_image',
+      'schema.type': 'Event',
+      'schema.data': {
+        '@context': 'https://schema.org',
+        '@type': 'Event',
+        'name': 'Event Name',
+        'description': 'Event description: what, who should attend, and key speakers.',
+        'startDate': '2024-03-15T09:00:00',
+        'endDate': '2024-03-15T17:00:00',
+        'location': {
+          '@type': 'Place',
+          'name': 'Venue Name',
+          'address': {
+            '@type': 'PostalAddress',
+            'streetAddress': '123 Main St',
+            'addressLocality': 'City',
+            'postalCode': '12345',
+            'addressCountry': 'US'
+          }
+        },
+        'image': 'https://example.com/event-banner.jpg',
+        'organizer': {
+          '@type': 'Organization',
+          'name': 'Organizer Name'
+        },
+        'offers': {
+          '@type': 'Offer',
+          'price': '199.00',
+          'priceCurrency': 'USD',
+          'availability': 'https://schema.org/InStock',
+          'url': 'https://example.com/registration'
+        }
+      }
+    },
+    notes: 'Event pages need location and dates for calendar integration. Include pricing and registration link in offers. Use event posters or venue photos for images. Ensure dates are in ISO 8601 format.'
   },
   {
     id: 'recipe',
@@ -6386,8 +6529,50 @@ const TEMPLATES = [
     tags: ['article', 'food'],
     values: {
       'og.type': 'article',
-      'twitter.card': 'summary_large_image'
-    }
+      'og.title': 'Recipe Name - Cooking Time | Difficulty',
+      'og.description': 'Tempting description of the dish with key ingredients and why it is delicious.',
+      'og.image': 'https://example.com/recipe-photo.jpg',
+      'og.site_name': 'Food Blog Name',
+      'twitter.card': 'summary_large_image',
+      'article:author': 'Chef Name',
+      'article:published_time': '2024-01-15T10:00:00Z',
+      'article:section': 'Recipes',
+      'schema.type': 'Recipe',
+      'schema.data': {
+        '@context': 'https://schema.org',
+        '@type': 'Recipe',
+        'name': 'Recipe Name',
+        'description': 'Tempting description of the dish.',
+        'image': 'https://example.com/recipe-photo.jpg',
+        'author': {
+          '@type': 'Person',
+          'name': 'Chef Name'
+        },
+        'datePublished': '2024-01-15',
+        'prepTime': 'PT15M',
+        'cookTime': 'PT30M',
+        'totalTime': 'PT45M',
+        'recipeYield': '4 servings',
+        'recipeCategory': 'Dinner',
+        'nutrition': {
+          '@type': 'NutritionInformation',
+          'calories': '350 kcal',
+          'proteinContent': '25g'
+        },
+        'recipeIngredient': [
+          '1 lb chicken breast',
+          '2 cups broccoli',
+          '1/4 cup soy sauce'
+        ],
+        'recipeInstructions': [
+          {
+            '@type': 'HowToStep',
+            'text': 'Prepare ingredients...'
+          }
+        ]
+      }
+    },
+    notes: 'Recipe pages need cooking time, servings, and ingredients for rich cards. Use high-quality food photos (4:3 aspect ratio). Nutrition information helps with health-related searches.'
   },
   {
     id: 'podcast',
@@ -6397,8 +6582,38 @@ const TEMPLATES = [
     tags: ['audio', 'podcast'],
     values: {
       'og.type': 'website',
-      'twitter.card': 'summary_large_image'
-    }
+      'og.title': 'Episode #123: Episode Title - Podcast Name',
+      'og.description': 'Episode summary: topics discussed, guests, and key takeaways.',
+      'og.image': 'https://example.com/podcast-cover-art.jpg',
+      'og.site_name': 'Podcast Name',
+      'og.audio': 'https://example.com/episode.mp3',
+      'twitter.card': 'summary_large_image',
+      'twitter:label1': 'Episode',
+      'twitter:data1': '#123',
+      'schema.type': 'PodcastEpisode',
+      'schema.data': {
+        '@context': 'https://schema.org',
+        '@type': 'PodcastEpisode',
+        'name': 'Episode #123: Episode Title',
+        'description': 'Episode summary: topics discussed and key takeaways.',
+        'datePublished': '2024-01-15',
+        'partOfSeries': {
+          '@type': 'PodcastSeries',
+          'name': 'Podcast Name'
+        },
+        'image': 'https://example.com/podcast-cover-art.jpg',
+        'enclosure': {
+          '@type': 'MediaObject',
+          'contentUrl': 'https://example.com/episode.mp3'
+        },
+        'associatedMedia': {
+          '@type': 'MediaObject',
+          'contentUrl': 'https://example.com/episode.mp3',
+          'encodingFormat': 'audio/mpeg'
+        }
+      }
+    },
+    notes: 'Podcast episodes should include episode number and duration. Use square cover art (1:1) for best display. Link to audio file in og.audio for embeddable players.'
   },
   {
     id: 'docs',
@@ -6408,8 +6623,25 @@ const TEMPLATES = [
     tags: ['docs', 'reference'],
     values: {
       'og.type': 'website',
-      'twitter.card': 'summary'
-    }
+      'og.title': 'Documentation - Feature Name | Product',
+      'og.description': 'Clear description of what this documentation covers and who it is for.',
+      'og.image': 'https://example.com/docs-preview.jpg',
+      'og.site_name': 'Product Docs',
+      'twitter.card': 'summary',
+      'twitter:label1': 'Read Time',
+      'twitter:data1': '5 min read',
+      'schema.type': 'TechArticle',
+      'schema.data': {
+        '@context': 'https://schema.org',
+        '@type': 'TechArticle',
+        'headline': 'Documentation - Feature Name',
+        'description': 'Clear description of what this documentation covers.',
+        'proficiencyLevel': 'Beginner',
+        'dependencies': 'Previous knowledge of basic concepts',
+        'image': 'https://example.com/docs-preview.jpg'
+      }
+    },
+    notes: 'Documentation pages should use summary card (not summary_large_image). Include read time estimates. Link to related docs in dependencies. Ensure URLs are clean and hierarchical.'
   },
   {
     id: 'oss',
@@ -6419,8 +6651,34 @@ const TEMPLATES = [
     tags: ['github', 'code'],
     values: {
       'og.type': 'website',
-      'twitter.card': 'summary_large_image'
-    }
+      'og.title': 'Repository Name - Short description',
+      'og.description': 'What this project does, who it is for, and why it is useful.',
+      'og.image': 'https://example.com/repo-social-preview.jpg',
+      'og.site_name': 'GitHub - username/repo',
+      'twitter.card': 'summary_large_image',
+      'twitter:label1': 'Language',
+      'twitter:data1': 'TypeScript',
+      'schema.type': 'SoftwareSourceCode',
+      'schema.data': {
+        '@context': 'https://schema.org',
+        '@type': 'SoftwareSourceCode',
+        'name': 'Repository Name',
+        'description': 'What this project does and why it is useful.',
+        'codeRepository': 'https://github.com/username/repo',
+        'programmingLanguage': 'TypeScript',
+        'license': 'MIT',
+        'runtimePlatform': 'Node.js',
+        'author': {
+          '@type': 'Person',
+          'name': 'Author Name'
+        },
+        'contributor': [
+          {'@type': 'Person', 'name': 'Contributor 1'},
+          {'@type': 'Person', 'name': 'Contributor 2'}
+        ]
+      }
+    },
+    notes: 'OSS projects should show GitHub stars/forks in preview. Include programming language and license in structured data. Use repo social preview images (1200x630px) for professional look.'
   },
   {
     id: 'newsletter',
@@ -6430,8 +6688,34 @@ const TEMPLATES = [
     tags: ['email', 'content'],
     values: {
       'og.type': 'website',
-      'twitter.card': 'summary_large_image'
-    }
+      'og.title': 'Newsletter Name - Issue #123: Main Topic',
+      'og.description': 'Brief summary of this issue: featured articles, key insights, and what readers will learn.',
+      'og.image': 'https://example.com/newsletter-header.jpg',
+      'og.site_name': 'Newsletter Name',
+      'twitter.card': 'summary_large_image',
+      'article:author': 'Editor Name',
+      'article:published_time': '2024-01-15T10:00:00Z',
+      'twitter:label1': 'Subscribers',
+      'twitter:data1': '10K+',
+      'schema.type': 'Article',
+      'schema.data': {
+        '@context': 'https://schema.org',
+        '@type': 'Article',
+        'headline': 'Newsletter Issue #123: Main Topic',
+        'description': 'Brief summary of this issue and what readers will learn.',
+        'author': {
+          '@type': 'Person',
+          'name': 'Editor Name'
+        },
+        'datePublished': '2024-01-15',
+        'publisher': {
+          '@type': 'Organization',
+          'name': 'Newsletter Name'
+        },
+        'image': 'https://example.com/newsletter-header.jpg'
+      }
+    },
+    notes: 'Newsletter archives should include issue numbers and publication dates. Show subscriber count to build credibility. Use branded header images for consistency across issues.'
   }
 ];
 

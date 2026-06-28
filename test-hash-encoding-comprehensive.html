@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Comprehensive Hash Encoding Test</title>
+  <style>
+    body { font-family: system-ui; sans-serif; padding: 20px; }
+    .test { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
+    .pass { background: #d4edda; }
+    .fail { background: #f8d7da; }
+    h2 { margin-top: 0; }
+    code { background: #f5f5f5; padding: 2px 6px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>URL Hash Encoding - Comprehensive Test</h1>
+  <p>Tests for VISTA hash-based state encoding (bf-139)</p>
+
+  <div id="output"></div>
+
+  <script>
+    // Copy the functions from app.js
+    let currentTab = 'previews';
+    let currentMode = 'url';
+    let disabledTags = new Set();
+    let compareData = { before: null, after: null, swapped: false };
+
+    function getHashState() {
+      const hash = window.location.hash.slice(1);
+      const state = {};
+      if (!hash) return state;
+
+      hash.split('&').forEach(pair => {
+        const [key, value] = pair.split('=');
+        if (key) {
+          state[key] = value ? decodeURIComponent(value) : '';
+        }
+      });
+      return state;
+    }
+
+    function updateHash(options = {}) {
+      const parts = [];
+
+      // Tab state
+      const tab = options.tab !== undefined ? options.tab : currentTab;
+      if (tab && tab !== 'previews') {
+        parts.push(`tab=${tab}`);
+      }
+
+      // Compare mode with second URL
+      if (currentMode === 'compare' && compareData.after) {
+        parts.push(`mode=compare`);
+        const b = options.b !== undefined ? options.b : compareData.after.url;
+        if (b) {
+          parts.push(`b=${encodeURIComponent(b)}`);
+        }
+      }
+
+      // What If disabled tags
+      const without = options.without !== undefined ? options.without : Array.from(disabledTags).join(',');
+      if (without) {
+        parts.push(`without=${without}`);
+      }
+
+      const hash = parts.length > 0 ? `#${parts.join('&')}` : '';
+      history.replaceState(null, null, hash);
+    }
+
+    // Test scenarios
+    const tests = [
+      {
+        name: 'Tab switching to diagnostics',
+        setup: () => {
+          currentTab = 'diagnostics';
+          updateHash({ tab: 'diagnostics' });
+        },
+        expectedHash: '#tab=diagnostics',
+        expectedState: { tab: 'diagnostics' }
+      },
+      {
+        name: 'Tab switching to rawtags',
+        setup: () => {
+          currentTab = 'rawtags';
+          updateHash({ tab: 'rawtags' });
+        },
+        expectedHash: '#tab=rawtags',
+        expectedState: { tab: 'rawtags' }
+      },
+      {
+        name: 'What If mode with disabled tags',
+        setup: () => {
+          disabledTags = new Set(['og:image', 'twitter:card']);
+          updateHash({ without: 'og:image,twitter:card' });
+        },
+        expectedHash: '#without=og:image,twitter:card',
+        expectedState: { without: 'og:image,twitter:card' }
+      },
+      {
+        name: 'Compare mode with second URL',
+        setup: () => {
+          currentMode = 'compare';
+          compareData.after = { url: 'https://example.com/after' };
+          updateHash({ b: 'https://example.com/after' });
+        },
+        expectedHash: '#mode=compare&b=https://example.com/after',
+        expectedState: { mode: 'compare', b: 'https://example.com/after' }
+      },
+      {
+        name: 'Combined state: tab + What If tags',
+        setup: () => {
+          currentTab = 'diagnostics';
+          disabledTags = new Set(['og:image']);
+          updateHash({ tab: 'diagnostics', without: 'og:image' });
+        },
+        expectedHash: '#tab=diagnostics&without=og:image',
+        expectedState: { tab: 'diagnostics', without: 'og:image' }
+      },
+      {
+        name: 'Full state: compare + tab + What If',
+        setup: () => {
+          currentMode = 'compare';
+          currentTab = 'compare';
+          compareData.after = { url: 'https://example.com/after' };
+          disabledTags = new Set(['og:image']);
+          updateHash({ tab: 'compare', b: 'https://example.com/after', without: 'og:image' });
+        },
+        expectedHash: '#tab=compare&mode=compare&b=https://example.com/after&without=og:image',
+        expectedState: { tab: 'compare', mode: 'compare', b: 'https://example.com/after', without: 'og:image' }
+      },
+      {
+        name: 'Clear hash (default state)',
+        setup: () => {
+          currentTab = 'previews';
+          currentMode = 'url';
+          disabledTags = new Set();
+          compareData = { before: null, after: null, swapped: false };
+          updateHash();
+        },
+        expectedHash: '',
+        expectedState: {}
+      },
+      {
+        name: 'Special characters in URL encoding',
+        setup: () => {
+          currentMode = 'compare';
+          compareData.after = { url: 'https://example.com/path?query=value&foo=bar' };
+          updateHash({ b: 'https://example.com/path?query=value&foo=bar' });
+        },
+        expectedHash: '#mode=compare&b=https://example.com/path?query=value&foo=bar',
+        expectedState: { mode: 'compare', b: 'https://example.com/path?query=value&foo=bar' }
+      }
+    ];
+
+    let output = '<h2>Test Results:</h2>';
+    let passCount = 0;
+    let failCount = 0;
+
+    tests.forEach((test, i) => {
+      try {
+        // Reset state
+        currentTab = 'previews';
+        currentMode = 'url';
+        disabledTags = new Set();
+        compareData = { before: null, after: null, swapped: false };
+        history.replaceState(null, null, ' ');
+
+        // Run test setup
+        test.setup();
+
+        // Check results
+        const actualHash = window.location.hash;
+        const actualState = getHashState();
+
+        const hashMatch = actualHash === test.expectedHash;
+        const stateMatch = JSON.stringify(actualState) === JSON.stringify(test.expectedState);
+        const passed = hashMatch && stateMatch;
+
+        if (passed) {
+          passCount++;
+        } else {
+          failCount++;
+        }
+
+        output += `<div class="test ${passed ? 'pass' : 'fail'}">`;
+        output += `<h3>Test ${i + 1}: ${passed ? '✓ PASS' : '✗ FAIL'}</h3>`;
+        output += `<p><strong>${test.name}</strong></p>`;
+        output += `<p>Expected hash: <code>${test.expectedHash}</code></p>`;
+        output += `<p>Actual hash: <code>${actualHash}</code></p>`;
+        if (!hashMatch) {
+          output += `<p style="color: darkred">Hash mismatch!</p>`;
+        }
+        if (!stateMatch) {
+          output += `<p>Expected state: <code>${JSON.stringify(test.expectedState)}</code></p>`;
+          output += `<p>Actual state: <code>${JSON.stringify(actualState)}</code></p>`;
+          output += `<p style="color: darkred">State mismatch!</p>`;
+        }
+        output += `</div>`;
+      } catch (err) {
+        failCount++;
+        output += `<div class="test fail">`;
+        output += `<h3>Test ${i + 1}: ✗ ERROR</h3>`;
+        output += `<p><strong>${test.name}</strong></p>`;
+        output += `<p>Error: ${err.message}</p>`;
+        output += `</div>`;
+      }
+    });
+
+    output += `<h2>Summary: ${passCount}/${tests.length} passed</h2>`;
+
+    document.getElementById('output').innerHTML = output;
+  </script>
+</body>
+</html>

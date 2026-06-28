@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Hash Encoding</title>
+</head>
+<body>
+  <h1>Hash Encoding Test</h1>
+  <p>Testing getHashState and updateHash functions from app.js</p>
+
+  <div id="output"></div>
+
+  <script>
+    // Copy the functions from app.js
+    function getHashState() {
+      const hash = window.location.hash.slice(1); // Remove leading #
+      const state = {};
+      if (!hash) return state;
+
+      hash.split('&').forEach(pair => {
+        const [key, value] = pair.split('=');
+        if (key) {
+          state[key] = value ? decodeURIComponent(value) : '';
+        }
+      });
+      return state;
+    }
+
+    // Test cases
+    const tests = [
+      { hash: '#tab=diagnostics', expected: { tab: 'diagnostics' } },
+      { hash: '#mode=compare&b=https://example.com/after', expected: { mode: 'compare', b: 'https://example.com/after' } },
+      { hash: '#without=og:image,twitter:card', expected: { without: 'og:image,twitter:card' } },
+      { hash: '#tab=diagnostics&without=og:image', expected: { tab: 'diagnostics', without: 'og:image' } },
+      { hash: '#mode=compare&b=https://example.com/after&tab=compare&without=og:image', expected: { mode: 'compare', b: 'https://example.com/after', tab: 'compare', without: 'og:image' } },
+    ];
+
+    let output = '<h2>Test Results:</h2>';
+
+    tests.forEach((test, i) => {
+      // Temporarily set the hash
+      window.location.hash = test.hash.substring(1);
+      const result = getHashState();
+
+      const passed = JSON.stringify(result) === JSON.stringify(test.expected);
+      output += `<div style="color: ${passed ? 'green' : 'red'}">`;
+      output += `Test ${i + 1}: ${passed ? 'PASS' : 'FAIL'}<br>`;
+      output += `  Hash: ${test.hash}<br>`;
+      output += `  Expected: ${JSON.stringify(test.expected)}<br>`;
+      output += `  Got: ${JSON.stringify(result)}<br>`;
+      output += `</div><br>`;
+    });
+
+    document.getElementById('output').innerHTML = output;
+  </script>
+</body>
+</html>

@@ -8,6 +8,7 @@ let cardContextState = {}; // Track context mode per platform: { pid: { context:
 let compareData = { before: null, after: null, swapped: false }; // Comparison state
 let hasCelebratedPerfectScore = false; // Track one-time celebration per session
 let currentTab = 'previews'; // Active tab state for hash encoding
+let pendingWhatIfTags = null; // Store pending What If tags from hash before data loads
 
 // ── Debug Flags ──
 /**
@@ -416,8 +417,12 @@ function restoreHashState() {
   }
 
   // Restore compare mode second URL
-  if (state.mode === 'compare' && state.b) {
-    compareUrl2.value = state.b;
+  if (state.mode === 'compare') {
+    // Switch to compare mode UI
+    switchMode('compare');
+    if (state.b) {
+      compareUrl2.value = state.b;
+    }
     // Note: We don't auto-trigger compare here, just populate the field
     // User needs to click Compare to run the comparison
   }
@@ -425,27 +430,32 @@ function restoreHashState() {
   // Restore What If disabled tags
   if (state.without) {
     const tags = state.without.split(',').filter(t => t);
-    if (tags.length > 0 && currentData) {
-      // Enable What If mode and disable the specified tags
-      whatIfMode = true;
-      const btn = document.getElementById('whatIfToggleBtn');
-      if (btn) {
-        btn.classList.add('active');
-        btn.textContent = '✓ What If On';
-      }
-      showWhatIfPanel();
-
-      // Uncheck the specified tags
-      tags.forEach(tag => {
-        disabledTags.add(tag);
-        const cb = document.querySelector(`#whatIfPanel .what-if-toggle input[data-tag="${tag}"]`);
-        if (cb) {
-          cb.checked = false;
+    if (tags.length > 0) {
+      if (currentData) {
+        // Enable What If mode and disable the specified tags
+        whatIfMode = true;
+        const btn = document.getElementById('whatIfToggleBtn');
+        if (btn) {
+          btn.classList.add('active');
+          btn.textContent = '✓ What If On';
         }
-      });
+        showWhatIfPanel();
 
-      // Auto-apply the changes
-      applyWhatIfChanges();
+        // Uncheck the specified tags
+        tags.forEach(tag => {
+          disabledTags.add(tag);
+          const cb = document.querySelector(`#whatIfPanel .what-if-toggle input[data-tag="${tag}"]`);
+          if (cb) {
+            cb.checked = false;
+          }
+        });
+
+        // Auto-apply the changes
+        applyWhatIfChanges();
+      } else {
+        // Data not loaded yet, store pending tags to apply later
+        pendingWhatIfTags = tags;
+      }
     }
   }
 }
@@ -1007,6 +1017,11 @@ async function handleResult(data) {
   currentData = data;
   window.currentRedirectChain = data.redirectChain || null;
   saveToRecents(data);
+
+  // Apply pending What If tags from hash state if data was just loaded
+  if (pendingWhatIfTags) {
+    applyPendingWhatIfTags();
+  }
 
   // Extract dominant color for OG image placeholder BEFORE rendering
   const ogImageUrl = data.meta.og.image || data.meta.twitter.image;
@@ -7407,6 +7422,38 @@ function applyWhatIfChanges() {
   updateHash();
 
   showToast('Previews updated with What If changes', 2000);
+}
+
+/**
+ * Apply pending What If tags from hash state after data loads
+ * Called when currentData becomes available after restoreHashState stored pending tags
+ */
+function applyPendingWhatIfTags() {
+  if (!pendingWhatIfTags || !currentData) return;
+
+  // Enable What If mode and disable the specified tags
+  whatIfMode = true;
+  const btn = document.getElementById('whatIfToggleBtn');
+  if (btn) {
+    btn.classList.add('active');
+    btn.textContent = '✓ What If On';
+  }
+  showWhatIfPanel();
+
+  // Uncheck the specified tags
+  pendingWhatIfTags.forEach(tag => {
+    disabledTags.add(tag);
+    const cb = document.querySelector(`#whatIfPanel .what-if-toggle input[data-tag="${tag}"]`);
+    if (cb) {
+      cb.checked = false;
+    }
+  });
+
+  // Auto-apply the changes
+  applyWhatIfChanges();
+
+  // Clear pending tags
+  pendingWhatIfTags = null;
 }
 
 function showMissingTagWarnings(meta) {

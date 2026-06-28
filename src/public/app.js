@@ -5996,6 +5996,15 @@ function generateCodeSnippet() {
     case 'sveltekit':
       code = generateSvelteKitSnippet(meta);
       break;
+    case 'gatsby':
+      code = generateGatsbySnippet(meta);
+      break;
+    case 'hugo':
+      code = generateHugoSnippet(meta);
+      break;
+    case 'jekyll':
+      code = generateJekyllSnippet(meta);
+      break;
   }
 
   codeEl.querySelector('code').textContent = code;
@@ -6161,6 +6170,139 @@ function generateSvelteKitSnippet(meta) {
   <meta name="twitter:description" content={meta.ogDescription} />
   <meta name="twitter:image" content={meta.ogImage} />
 </svelte:head>
+}
+
+function generateGatsbySnippet(meta) {
+  return `import React from 'react';
+import { Helmet } from 'react-helmet';
+
+const SEO = ({ location }) => {
+  const canonicalUrl = location?.href || '${escHtml(currentData?.finalUrl || currentData?.url || '')}';
+
+  return (
+    <Helmet>
+      {/* Primary Meta Tags */}
+      <title>${escHtml(meta.title || '')}</title>
+      <meta name="description" content="${escHtml(meta.description || '')}" />
+      <link rel="canonical" href={canonicalUrl} />
+
+      {/* Open Graph / Facebook */}
+      <meta property="og:type" content="${escHtml(meta['og.type'] || 'website')}" />
+      <meta property="og:url" content={canonicalUrl} />
+      <meta property="og:title" content="${escHtml(meta['og.title'] || meta.title || '')}" />
+      <meta property="og:description" content="${escHtml(meta['og.description'] || meta.description || '')}" />
+      <meta property="og:image" content="${escHtml(meta['og.image'] || '')}" />
+
+      {/* Twitter */}
+      <meta name="twitter:card" content="${escHtml(meta['twitter.card'] || 'summary_large_image')}" />
+      <meta name="twitter:url" content={canonicalUrl} />
+      <meta name="twitter:title" content="${escHtml(meta['og.title'] || meta.title || '')}" />
+      <meta name="twitter:description" content="${escHtml(meta['og.description'] || meta.description || '')}" />
+      <meta name="twitter:image" content="${escHtml(meta['og.image'] || '')}" />
+    </Helmet>
+  );
+};
+
+export default SEO;`;
+}
+
+function generateHugoSnippet(meta) {
+  return `{{/*
+  VISTA SEO Meta Tags
+
+  Add to your site's front matter or configure in config.toml:
+
+  [params]
+    title = "${escHtml(meta.title || '')}"
+    description = "${escHtml(meta.description || '')}"
+    images = ["${escHtml(meta['og.image'] || '')}"]
+
+  [params.opengraph]
+    title = "${escHtml(meta['og.title'] || meta.title || '')}"
+    description = "${escHtml(meta['og.description'] || meta.description || '')}"
+    type = "${escHtml(meta['og.type'] || 'website')}"
+    image = "${escHtml(meta['og.image'] || '')}"
+
+  [params.twitter]
+    card = "${escHtml(meta['twitter.card'] || 'summary_large_image')}"
+    title = "${escHtml(meta['og.title'] || meta.title || '')}"
+    description = "${escHtml(meta['og.description'] || meta.description || '')}"
+    image = "${escHtml(meta['og.image'] || '')}"
+*/}}
+
+{{/* or use via partial: {{ partial "head" . }} */}}
+
+{{/* Direct template example */}}
+<title>{{ .Site.Params.title | default .Title }}</title>
+<meta name="description" content="{{ .Site.Params.description }}" />
+
+{{/* Open Graph */}}
+<meta property="og:type" content="{{ .Site.Params.opengraph.type | default "website" }}" />
+<meta property="og:url" content="{{ .Permalink }}" />
+<meta property="og:title" content="{{ .Site.Params.opengraph.title | default .Title }}" />
+<meta property="og:description" content="{{ .Site.Params.opengraph.description }}" />
+<meta property="og:image" content="{{ .Site.Params.opengraph.image | absURL }}" />
+
+{{/* Twitter */}}
+<meta name="twitter:card" content="{{ .Site.Params.twitter.card | default "summary_large_image" }}" />
+<meta name="twitter:url" content="{{ .Permalink }}" />
+<meta name="twitter:title" content="{{ .Site.Params.twitter.title | default .Title }}" />
+<meta name="twitter:description" content="{{ .Site.Params.twitter.description }}" />
+<meta name="twitter:image" content="{{ .Site.Params.twitter.image | absURL }}" />`;
+}
+
+function generateJekyllSnippet(meta) {
+  return `---
+# VISTA SEO Meta Tags
+#
+# Place this front matter in your page or post.
+# For site-wide defaults, add to _config.yml:
+#
+# seo:
+#   title: "${escHtml(meta.title || '')}"
+#   description: "${escHtml(meta.description || '')}"
+#   image: "${escHtml(meta['og.image'] || '')}"
+#   twitter:
+#     card: "${escHtml(meta['twitter.card'] || 'summary_large_image')}"
+#
+# Then use the jekyll-seo-plugin tag: {% seo %}
+
+title: "${escHtml(meta.title || '')}"
+description: "${escHtml(meta.description || '')}"
+# Serve for Open Graph, Twitter Cards, Facebook, Pinterest
+image: "${escHtml(meta['og.image'] || '')}"
+# Override site defaults or add platform-specific:
+og:
+  title: "${escHtml(meta['og.title'] || meta.title || '')}"
+  type: "${escHtml(meta['og.type'] || 'website')}"
+  description: "${escHtml(meta['og.description'] || meta.description || '')}"
+twitter:
+  card: "${escHtml(meta['twitter.card'] || 'summary_large_image')}"
+  title: "${escHtml(meta['og.title'] || meta.title || '')}"
+  description: "${escHtml(meta['og.description'] || meta.description || '')}"
+
+---
+
+{{/* If using jekyll-seo-plugin, just add: {% seo %} */}}
+{{/* Otherwise, manual tags: */}}
+
+<title>{{ page.title | default: site.title }}</title>
+<meta name="description" content="{{ page.description | default: site.description }}" />
+
+{{/* Open Graph */}}
+<meta property="og:type" content="{{ page.og.type | default: 'website' }}" />
+<meta property="og:url" content="{{ page.url | absolute_url }}" />
+<meta property="og:title" content="{{ page.og.title | default: page.title | default: site.title }}" />
+<meta property="og:description" content="{{ page.og.description | default: page.description | default: site.description }}" />
+<meta property="og:image" content="{{ page.image | default: site.image | absolute_url }}" />
+
+{{/* Twitter */}}
+<meta name="twitter:card" content="{{ page.twitter.card | default: site.twitter.card | default: 'summary_large_image' }}" />
+<meta name="twitter:url" content="{{ page.url | absolute_url }}" />
+<meta name="twitter:title" content="{{ page.twitter.title | default: page.og.title | default: page.title | default: site.title }}" />
+<meta name="twitter:description" content="{{ page.twitter.description | default: page.og.description | default: page.description | default: site.description }}" />
+<meta name="twitter:image" content="{{ page.image | default: site.image | absolute_url }}" />`;
+}
 
 <slot />`;
 }

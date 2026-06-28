@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Code Generation Test</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+    .test-result {
+      margin: 10px 0;
+      padding: 10px;
+      border-left: 4px solid #ccc;
+    }
+    .pass { border-left-color: #4CAF50; background: #f8fff8; }
+    .fail { border-left-color: #f44336; background: #fff8f8; }
+    .qr-preview {
+      margin: 20px 0;
+      padding: 10px;
+      background: #f5f5f5;
+      text-align: center;
+    }
+    .qr-preview img {
+      margin: 10px;
+      border: 1px solid #ddd;
+    }
+    h1 { color: #333; }
+    h2 { color: #666; margin-top: 30px; }
+  </style>
+</head>
+<body>
+  <h1>QR Code Generation Test Suite</h1>
+  <div id="results"></div>
+
+  <h2>QR Code Previews</h2>
+  <div id="previews" class="qr-preview"></div>
+
+  <script src="src/public/app.js"></script>
+  <script>
+    // Test results display
+    function displayResult(testName, passed, message) {
+      const resultsDiv = document.getElementById('results');
+      const resultDiv = document.createElement('div');
+      resultDiv.className = 'test-result ' + (passed ? 'pass' : 'fail');
+      resultDiv.innerHTML = `<strong>${passed ? '✓' : '✗'} ${testName}</strong><br>${message}`;
+      resultsDiv.appendChild(resultDiv);
+    }
+
+    // Display QR code preview
+    function displayQRPreview(dataUrl, label) {
+      const previewsDiv = document.getElementById('previews');
+      const img = document.createElement('img');
+      img.src = dataUrl;
+      img.alt = label;
+      img.width = 100;
+      const caption = document.createElement('p');
+      caption.textContent = label;
+      previewsDiv.appendChild(caption);
+      previewsDiv.appendChild(img);
+    }
+
+    // Run tests
+    async function runTests() {
+      document.getElementById('results').innerHTML = '<h2>Running tests...</h2>';
+
+      let passCount = 0;
+      let failCount = 0;
+
+      // Test 1: Valid URL
+      try {
+        const dataUrl = await generateQRCode('https://example.com/test');
+        if (dataUrl && dataUrl.startsWith('data:image/png;base64,')) {
+          displayResult('Test 1: Valid URL', true, 'Returns valid data URL');
+          displayQRPreview(dataUrl, 'Valid URL QR code');
+          passCount++;
+        } else {
+          displayResult('Test 1: Valid URL', false, 'Invalid data URL format');
+          failCount++;
+        }
+      } catch (e) {
+        displayResult('Test 1: Valid URL', false, 'Exception: ' + e.message);
+        failCount++;
+      }
+
+      // Test 2: Empty URL
+      try {
+        const dataUrl = await generateQRCode('');
+        if (dataUrl === null) {
+          displayResult('Test 2: Empty URL', true, 'Returns null for empty URL');
+          passCount++;
+        } else {
+          displayResult('Test 2: Empty URL', false, 'Should return null');
+          failCount++;
+        }
+      } catch (e) {
+        displayResult('Test 2: Empty URL', false, 'Exception: ' + e.message);
+        failCount++;
+      }
+
+      // Test 3: Invalid URL
+      try {
+        const dataUrl = await generateQRCode('not-a-valid-url');
+        if (dataUrl === null) {
+          displayResult('Test 3: Invalid URL', true, 'Returns null for invalid URL');
+          passCount++;
+        } else {
+          displayResult('Test 3: Invalid URL', false, 'Should return null');
+          failCount++;
+        }
+      } catch (e) {
+        displayResult('Test 3: Invalid URL', false, 'Exception: ' + e.message);
+        failCount++;
+      }
+
+      // Test 4: Null input
+      try {
+        const dataUrl = await generateQRCode(null);
+        if (dataUrl === null) {
+          displayResult('Test 4: Null input', true, 'Returns null for null input');
+          passCount++;
+        } else {
+          displayResult('Test 4: Null input', false, 'Should return null');
+          failCount++;
+        }
+      } catch (e) {
+        displayResult('Test 4: Null input', false, 'Exception: ' + e.message);
+        failCount++;
+      }
+
+      // Test 5: URL with query parameters (like share URLs)
+      try {
+        const shareUrl = 'https://example.com/?url=https://example.com/page';
+        const dataUrl = await generateQRCode(shareUrl);
+        if (dataUrl && dataUrl.startsWith('data:image/png;base64,')) {
+          displayResult('Test 5: URL with query params', true, 'Handles share URLs correctly');
+          displayQRPreview(dataUrl, 'Share URL QR code');
+          passCount++;
+        } else {
+          displayResult('Test 5: URL with query params', false, 'Invalid data URL');
+          failCount++;
+        }
+      } catch (e) {
+        displayResult('Test 5: URL with query params', false, 'Exception: ' + e.message);
+        failCount++;
+      }
+
+      // Test 6: Custom options
+      try {
+        const dataUrl = await generateQRCode('https://example.com', {
+          width: 150,
+          height: 150,
+          colorDark: '#FF0000',
+          colorLight: '#FFFF00'
+        });
+        if (dataUrl && dataUrl.startsWith('data:image/png;base64,')) {
+          displayResult('Test 6: Custom options', true, 'Accepts custom size and colors');
+          displayQRPreview(dataUrl, 'Custom QR code (red/yellow)');
+          passCount++;
+        } else {
+          displayResult('Test 6: Custom options', false, 'Invalid data URL');
+          failCount++;
+        }
+      } catch (e) {
+        displayResult('Test 6: Custom options', false, 'Exception: ' + e.message);
+        failCount++;
+      }
+
+      // Summary
+      const summaryDiv = document.createElement('div');
+      summaryDiv.innerHTML = `<h2>Test Summary: ${passCount} passed, ${failCount} failed</h2>`;
+      document.getElementById('results').appendChild(summaryDiv);
+    }
+
+    // Run tests when page loads
+    window.addEventListener('DOMContentLoaded', runTests);
+  </script>
+</body>
+</html>

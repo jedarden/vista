@@ -4365,6 +4365,95 @@ function shareResults() {
   showToast('Share link copied!', 2000);
 }
 
+/**
+ * Generate QR code from URL
+ * @param {string} url - The URL to encode in the QR code
+ * @param {Object} options - Optional configuration
+ * @param {number} options.width - QR code width in pixels (default: 200)
+ * @param {number} options.height - QR code height in pixels (default: 200)
+ * @param {string} options.colorDark - Dark color hex (default: '#000000')
+ * @param {string} options.colorLight - Light color hex (default: '#ffffff')
+ * @param {string} options.correctLevel - Error correction level 'L|M|Q|H' (default: 'H')
+ * @returns {Promise<string|null>} Data URL of the generated QR code, or null on error
+ */
+function generateQRCode(url, options = {}) {
+  return new Promise((resolve) => {
+    // Validate URL
+    if (!url || typeof url !== 'string' || url.trim() === '') {
+      console.warn('generateQRCode: Invalid or empty URL provided');
+      resolve(null);
+      return;
+    }
+
+    // Trim whitespace
+    url = url.trim();
+
+    // Basic URL validation
+    try {
+      new URL(url);
+    } catch (e) {
+      console.warn('generateQRCode: Invalid URL format:', url, e);
+      resolve(null);
+      return;
+    }
+
+    // Set default options
+    const opts = {
+      width: options.width || 200,
+      height: options.height || 200,
+      colorDark: options.colorDark || '#000000',
+      colorLight: options.colorLight || '#ffffff',
+      correctLevel: options.correctLevel || QRCode.CorrectLevel.H
+    };
+
+    // Create a temporary container for QR code generation
+    const tempContainer = document.createElement('div');
+    tempContainer.style.position = 'absolute';
+    tempContainer.style.left = '-9999px';
+    document.body.appendChild(tempContainer);
+
+    try {
+      // Generate QR code using qrcodejs library
+      const qrCode = new QRCode(tempContainer, {
+        text: url,
+        width: opts.width,
+        height: opts.height,
+        colorDark: opts.colorDark,
+        colorLight: opts.colorLight,
+        correctLevel: opts.correctLevel
+      });
+
+      // Wait for the QR code to be generated (qrcodejs uses img with data URL)
+      // Use a small timeout to ensure generation is complete
+      setTimeout(() => {
+        const img = tempContainer.querySelector('img');
+        if (img && img.src) {
+          const dataUrl = img.src;
+          // Clean up temporary container
+          document.body.removeChild(tempContainer);
+          resolve(dataUrl);
+        } else {
+          // Fallback: check for canvas element
+          const canvas = tempContainer.querySelector('canvas');
+          if (canvas) {
+            const dataUrl = canvas.toDataURL('image/png');
+            document.body.removeChild(tempContainer);
+            resolve(dataUrl);
+          } else {
+            console.warn('generateQRCode: Failed to generate QR code for:', url);
+            document.body.removeChild(tempContainer);
+            resolve(null);
+          }
+        }
+      }, 100);
+    } catch (e) {
+      console.error('generateQRCode: Error generating QR code:', e);
+      document.body.removeChild(tempContainer);
+      resolve(null);
+    }
+  });
+}
+
 // ── Badge Modal ──
 let _badgeModalLastFocus = null;
 

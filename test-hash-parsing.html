@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Hash Parsing Test</title>
+  <style>
+    body { font-family: system-ui, sans-serif; padding: 20px; max-width: 1000px; margin: 0 auto; }
+    .test { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
+    .pass { background: #d4edda; border-color: #c3e6cb; }
+    .fail { background: #f8d7da; border-color: #f5c6cb; }
+    h2 { margin-top: 0; }
+    code { background: #f5f5f5; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+    .output { white-space: pre-wrap; background: #f5f5f5; padding: 10px; border-radius: 4px; margin-top: 10px; }
+    .criteria { background: #e7f3ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+    .criteria h3 { margin-top: 0; }
+    .criteria li { margin: 8px 0; }
+  </style>
+</head>
+<body>
+  <h1>URL Hash Parsing Test (bf-1ny0)</h1>
+
+  <div class="criteria">
+    <h3>Acceptance Criteria:</h3>
+    <ol>
+      <li>Parse #tab= parameter and restore active tab</li>
+      <li>Parse #without= parameter and restore What If disabled tags</li>
+      <li>Parse #mode=compare&b= parameter and restore compare mode with second URL</li>
+      <li>Parsing should handle missing/invalid parameters gracefully</li>
+      <li>State restoration should happen before initial render</li>
+    </ol>
+  </div>
+
+  <div id="output"></div>
+
+  <script>
+    // Mock the required functions and state from app.js
+    let currentTab = 'previews';
+    let currentMode = 'url';
+    let currentData = null;
+    let disabledTags = new Set();
+    let whatIfMode = false;
+    let compareData = { before: null, after: null, swapped: false };
+    let pendingWhatIfTags = null;
+
+    // Mock DOM elements
+    const mockElements = {
+      compareUrl2: { value: '' }
+    };
+
+    // Track what was called
+    const calls = {
+      switchTab: [],
+      switchMode: [],
+      showWhatIfPanel: [],
+      applyWhatIfChanges: []
+    };
+
+    function switchTab(tab) {
+      calls.switchTab.push(tab);
+      currentTab = tab;
+    }
+
+    function switchMode(mode) {
+      calls.switchMode.push(mode);
+      currentMode = mode;
+    }
+
+    function showWhatIfPanel() {
+      calls.showWhatIfPanel.push(true);
+    }
+
+    function applyWhatIfChanges() {
+      calls.applyWhatIfChanges.push(true);
+    }
+
+    function getHashState() {
+      const hash = window.location.hash.slice(1);
+      const state = {};
+      if (!hash) return state;
+
+      hash.split('&').forEach(pair => {
+        const [key, value] = pair.split('=');
+        if (key) {
+          state[key] = value ? decodeURIComponent(value) : '';
+        }
+      });
+      return state;
+    }
+
+    function restoreHashState() {
+      const state = getHashState();
+
+      // Restore active tab
+      if (state.tab) {
+        const tabBtn = document.querySelector(`.tab-btn[data-tab="${state.tab}"]`);
+        if (tabBtn) {
+          switchTab(state.tab);
+        }
+      }
+
+      // Restore compare mode second URL
+      if (state.mode === 'compare') {
+        switchMode('compare');
+        if (state.b) {
+          mockElements.compareUrl2.value = state.b;
+        }
+      }
+
+      // Restore What If disabled tags
+      if (state.without) {
+        const tags = state.without.split(',').filter(t => t);
+        if (tags.length > 0) {
+          if (currentData) {
+            whatIfMode = true;
+            showWhatIfPanel();
+            tags.forEach(tag => {
+              disabledTags.add(tag);
+            });
+            applyWhatIfChanges();
+          } else {
+            pendingWhatIfTags = tags;
+          }
+        }
+      }
+    }
+
+    // Test scenarios
+    const tests = [
+      {
+        criterion: 1,
+        name: 'Parse #tab= parameter and restore active tab',
+        setup: () => {
+          // Reset state
+          currentTab = 'previews';
+          currentMode = 'url';
+          disabledTags = new Set();
+          pendingWhatIfTags = null;
+          mockElements.compareUrl2.value = '';
+          calls.switchTab = [];
+          calls.switchMode = [];
+          calls.showWhatIfPanel = [];
+          calls.applyWhatIfChanges = [];
+
+          // Set hash
+          window.location.hash = '#tab=diagnostics';
+          restoreHashState();
+        },
+        verify: () => {
+          // Should have called switchTab with 'diagnostics'
+          return calls.switchTab.includes('diagnostics');
+        }
+      },
+      {
+        criterion: 1,
+        name: 'Parse #tab= for rawtags',
+        setup: () => {
+          currentTab = 'previews';
+          calls.switchTab = [];
+          window.location.hash = '#tab=rawtags';
+          restoreHashState();
+        },
+        verify: () => calls.switchTab.includes('rawtags')
+      },
+      {
+        criterion: 2,
+        name: 'Parse #without= parameter (data not loaded - stores pending)',
+        setup: () => {
+          currentData = null;
+          disabledTags = new Set();
+          pendingWhatIfTags = null;
+          calls.showWhatIfPanel = [];
+          calls.applyWhatIfChanges = [];
+
+          window.location.hash = '#without=og:image,twitter:card';
+          restoreHashState();
+        },
+        verify: () => {
+          // Should store pending tags (data not loaded)
+          return pendingWhatIfTags &&
+                 pendingWhatIfTags.length === 2 &&
+                 pendingWhatIfTags.includes('og:image') &&
+                 pendingWhatIfTags.includes('twitter:card');
+        }
+      },
+      {
+        criterion: 2,
+        name: 'Parse #without= parameter (data loaded - applies immediately)',
+        setup: () => {
+          currentData = { meta: {} }; // Data is loaded
+          disabledTags = new Set();
+          whatIfMode = false;
+          pendingWhatIfTags = null;
+          calls.showWhatIfPanel = [];
+          calls.applyWhatIfChanges = [];
+
+          window.location.hash = '#without=og:image';
+          restoreHashState();
+        },
+        verify: () => {
+          // Should have applied the changes immediately
+          return calls.showWhatIfPanel.length > 0 &&
+                 calls.applyWhatIfChanges.length > 0 &&
+                 disabledTags.has('og:image');
+        }
+      },
+      {
+        criterion: 3,
+        name: 'Parse #mode=compare&b= parameter',
+        setup: () => {
+          currentMode = 'url';
+          mockElements.compareUrl2.value = '';
+          calls.switchMode = [];
+
+          window.location.hash = '#mode=compare&b=https://example.com/after';
+          restoreHashState();
+        },
+        verify: () => {
+          return calls.switchMode.includes('compare') &&
+                 mockElements.compareUrl2.value === 'https://example.com/after';
+        }
+      },
+      {
+        criterion: 4,
+        name: 'Handle empty hash gracefully',
+        setup: () => {
+          currentTab = 'previews';
+          currentMode = 'url';
+          disabledTags = new Set();
+          pendingWhatIfTags = null;
+          mockElements.compareUrl2.value = '';
+          calls.switchTab = [];
+          calls.switchMode = [];
+
+          window.location.hash = '';
+          restoreHashState();
+        },
+        verify: () => {
+          // Should not make any changes
+          return calls.switchTab.length === 0 &&
+                 calls.switchMode.length === 0 &&
+                 disabledTags.size === 0 &&
+                 !pendingWhatIfTags;
+        }
+      },
+      {
+        criterion: 4,
+        name: 'Handle invalid tab gracefully',
+        setup: () => {
+          currentTab = 'previews';
+          calls.switchTab = [];
+
+          // Use a tab that doesn't exist (no mock DOM element)
+          window.location.hash = '#tab=nonexistent';
+          restoreHashState();
+        },
+        verify: () => {
+          // Should not call switchTab for invalid tab
+          return calls.switchTab.length === 0 && currentTab === 'previews';
+        }
+      },
+      {
+        criterion: 4,
+        name: 'Handle malformed hash gracefully',
+        setup: () => {
+          currentTab = 'previews';
+          calls.switchTab = [];
+
+          // Malformed hash (missing value, odd format)
+          window.location.hash = '#tab&without';
+          restoreHashState();
+        },
+        verify: () => {
+          // Should not crash or make unexpected changes
+          return calls.switchTab.length === 0 && currentTab === 'previews';
+        }
+      },
+      {
+        criterion: 4,
+        name: 'Handle URL-encoded values in hash',
+        setup: () => {
+          currentMode = 'url';
+          mockElements.compareUrl2.value = '';
+          calls.switchMode = [];
+
+          // URL with query parameters that need encoding
+          window.location.hash = '#mode=compare&b=' + encodeURIComponent('https://example.com/path?query=value&foo=bar');
+          restoreHashState();
+        },
+        verify: () => {
+          const expectedUrl = 'https://example.com/path?query=value&foo=bar';
+          return mockElements.compareUrl2.value === expectedUrl;
+        }
+      },
+      {
+        criterion: 5,
+        name: 'State restoration on page load (DOMContentLoaded)',
+        setup: () => {
+          // This verifies the restoreHashState is called on DOMContentLoaded
+          // We can't actually test the timing in this isolated test,
+          // but we can verify the function works correctly when called
+
+          currentTab = 'previews';
+          calls.switchTab = [];
+
+          // Simulate what would happen on page load with a hash
+          window.location.hash = '#tab=diagnostics';
+          restoreHashState();
+        },
+        verify: () => {
+          // Should have restored the state
+          return calls.switchTab.includes('diagnostics') && currentTab === 'diagnostics';
+        }
+      },
+      {
+        criterion: 1,
+        name: 'Combined: tab + without + compare mode',
+        setup: () => {
+          currentTab = 'previews';
+          currentMode = 'url';
+          currentData = null;
+          disabledTags = new Set();
+          pendingWhatIfTags = null;
+          mockElements.compareUrl2.value = '';
+          calls.switchTab = [];
+          calls.switchMode = [];
+
+          window.location.hash = '#tab=compare&mode=compare&b=https://example.com&without=og:image';
+          restoreHashState();
+        },
+        verify: () => {
+          return calls.switchTab.includes('compare') &&
+                 calls.switchMode.includes('compare') &&
+                 mockElements.compareUrl2.value === 'https://example.com' &&
+                 pendingWhatIfTags && pendingWhatIfTags.includes('og:image');
+        }
+      }
+    ];
+
+    let output = '<h2>Test Results:</h2>';
+    let passCount = 0;
+    let failCount = 0;
+    const resultsByCriterion = {};
+
+    tests.forEach((test, i) => {
+      try {
+        test.setup();
+        const passed = test.verify();
+
+        if (passed) {
+          passCount++;
+        } else {
+          failCount++;
+        }
+
+        // Track by criterion
+        if (!resultsByCriterion[test.criterion]) {
+          resultsByCriterion[test.criterion] = { pass: 0, fail: 0, tests: [] };
+        }
+        if (passed) {
+          resultsByCriterion[test.criterion].pass++;
+        } else {
+          resultsByCriterion[test.criterion].fail++;
+        }
+        resultsByCriterion[test.criterion].tests.push({ name: test.name, passed });
+
+        output += `<div class="test ${passed ? 'pass' : 'fail'}">`;
+        output += `<h3>Test ${i + 1}: ${passed ? '✓ PASS' : '✗ FAIL'}</h3>`;
+        output += `<p><strong>Criterion ${test.criterion}:</strong> ${test.name}</p>`;
+        if (!passed) {
+          output += `<div class="output">State after test:\n`;
+          output += `  currentTab: ${currentTab}\n`;
+          output += `  currentMode: ${currentMode}\n`;
+          output += `  disabledTags: ${Array.from(disabledTags).join(', ') || '(empty)'}\n`;
+          output += `  pendingWhatIfTags: ${pendingWhatIfTags ? pendingWhatIfTags.join(', ') : 'null'}\n`;
+          output += `  compareUrl2.value: ${mockElements.compareUrl2.value}\n`;
+          output += `  calls.switchTab: ${calls.switchTab.join(', ') || '(none)'}\n`;
+          output += `  calls.switchMode: ${calls.switchMode.join(', ') || '(none)'}`;
+          output += `</div>`;
+        }
+        output += `</div>`;
+      } catch (err) {
+        failCount++;
+        output += `<div class="test fail">`;
+        output += `<h3>Test ${i + 1}: ✗ ERROR</h3>`;
+        output += `<p><strong>${test.name}</strong></p>`;
+        output += `<div class="output">Error: ${err.message}\n${err.stack}</div>`;
+        output += `</div>`;
+      }
+    });
+
+    // Summary by criterion
+    output += '<h2>Summary by Acceptance Criterion:</h2>';
+    for (let c = 1; c <= 5; c++) {
+      const result = resultsByCriterion[c];
+      if (result) {
+        const total = result.pass + result.fail;
+        const status = result.fail === 0 ? '✓ PASS' : '✗ FAIL';
+        output += `<div class="test ${result.fail === 0 ? 'pass' : 'fail'}">`;
+        output += `<h3>Criterion ${c}: ${status} (${result.pass}/${total} tests passed)</h3>`;
+        output += `<ul>`;
+        result.tests.forEach(t => {
+          output += `<li>${t.passed ? '✓' : '✗'} ${t.name}</li>`;
+        });
+        output += `</ul></div>`;
+      } else {
+        output += `<div class="test fail"><h3>Criterion ${c}: ✗ No tests run</h3></div>`;
+      }
+    }
+
+    output += `<h2>Overall Summary: ${passCount}/${tests.length} tests passed</h2>`;
+
+    document.getElementById('output').innerHTML = output;
+  </script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+{
+  "id": "blog",
+  "icon": "📝",
+  "title": "Blog Post",
+  "desc": "Optimized for articles and blog content",
+  "tags": ["article", "blog"],
+  "values": {
+    "og.type": "article",
+    "og.title": "Your Article Title Here - Blog Name",
+    "og.description": "A compelling 2-3 sentence summary of your article that entices readers to click through.",
+    "og.image": "https://example.com/blog-hero-image.jpg",
+    "og.site_name": "Your Blog Name",
+    "twitter.card": "summary_large_image",
+    "article:author": "Author Name",
+    "article:published_time": "2024-01-15T10:00:00Z",
+    "article:section": "Technology",
+    "schema.type": "Article",
+    "schema.data": {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "Your Article Title Here",
+      "author": {
+        "@type": "Person",
+        "name": "Author Name"
+      },
+      "datePublished": "2024-01-15",
+      "dateModified": "2024-01-15",
+      "description": "A compelling 2-3 sentence summary of your article.",
+      "image": "https://example.com/blog-hero-image.jpg",
+      "publisher": {
+        "@type": "Organization",
+        "name": "Your Blog Name",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://example.com/logo.png"
+        }
+      }
+    }
+  },
+  "notes": "Blog posts benefit from summary_large_image cards. Include author info and publish date for SEO. Use 1200x630px images for optimal display. Add article:section for categorization."
+}

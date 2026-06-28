@@ -1,0 +1,28 @@
+{
+  "id": "docs",
+  "icon": "📚",
+  "title": "Documentation",
+  "desc": "Technical docs and knowledge base",
+  "tags": ["docs", "reference"],
+  "values": {
+    "og.type": "website",
+    "og.title": "Documentation - Feature Name | Product",
+    "og.description": "Clear description of what this documentation covers and who it is for.",
+    "og.image": "https://example.com/docs-preview.jpg",
+    "og.site_name": "Product Docs",
+    "twitter.card": "summary",
+    "twitter:label1": "Read Time",
+    "twitter:data1": "5 min read",
+    "schema.type": "TechArticle",
+    "schema.data": {
+      "@context": "https://schema.org",
+      "@type": "TechArticle",
+      "headline": "Documentation - Feature Name",
+      "description": "Clear description of what this documentation covers.",
+      "proficiencyLevel": "Beginner",
+      "dependencies": "Previous knowledge of basic concepts",
+      "image": "https://example.com/docs-preview.jpg"
+    }
+  },
+  "notes": "Documentation pages should use summary card (not summary_large_image). Include read time estimates. Link to related docs in dependencies. Ensure URLs are clean and hierarchical."
+}

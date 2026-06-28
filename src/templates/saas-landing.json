@@ -1,0 +1,36 @@
+{
+  "id": "saas",
+  "icon": "💼",
+  "title": "SaaS Landing",
+  "desc": "Perfect for software product pages",
+  "tags": ["product", "saas"],
+  "values": {
+    "og.type": "website",
+    "og.title": "Product Name - Tagline that explains value",
+    "og.description": "Brief description of your SaaS product highlighting key benefits and target audience.",
+    "og.image": "https://example.com/product-screenshot.jpg",
+    "og.site_name": "Product Name",
+    "twitter.card": "summary_large_image",
+    "twitter:label1": "Pricing",
+    "twitter:data1": "From $29/month",
+    "schema.type": "SoftwareApplication",
+    "schema.data": {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Product Name",
+      "description": "Brief description of your SaaS product.",
+      "applicationCategory": "BusinessApplication",
+      "offers": {
+        "@type": "Offer",
+        "price": "29.00",
+        "priceCurrency": "USD"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "ratingCount": "1250"
+      }
+    }
+  },
+  "notes": "SaaS landing pages should emphasize value proposition. Use pricing in twitter:data1 for Slack unfurls. Include aggregateRating if available. 1200x630px recommended for hero images."
+}

@@ -1,0 +1,32 @@
+{
+  "id": "portfolio",
+  "icon": "🎨",
+  "title": "Portfolio",
+  "desc": "Personal portfolio and showcase",
+  "tags": ["website", "personal"],
+  "values": {
+    "og.type": "website",
+    "og.title": "Your Name - Portfolio / Job Title",
+    "og.description": "Professional bio: Your expertise, experience, and what you create.",
+    "og.image": "https://example.com/portfolio-preview.jpg",
+    "og.site_name": "yourname.com",
+    "twitter.card": "summary_large_image",
+    "schema.type": "Person",
+    "schema.data": {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Your Name",
+      "jobTitle": "Job Title",
+      "description": "Professional bio: Your expertise and what you create.",
+      "url": "https://yourname.com",
+      "image": "https://example.com/portfolio-preview.jpg",
+      "sameAs": [
+        "https://linkedin.com/in/yourprofile",
+        "https://github.com/yourusername",
+        "https://twitter.com/yourusername"
+      ],
+      "knowsAbout": ["Design", "Development", "UI/UX"]
+    }
+  },
+  "notes": "Portfolio pages should showcase your best work. Link to social profiles in sameAs for authorship. Use professional headshots or portfolio highlights for og.image."
+}

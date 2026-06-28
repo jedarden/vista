@@ -1,0 +1,41 @@
+{
+  "id": "ecommerce",
+  "icon": "🛒",
+  "title": "E-commerce",
+  "desc": "Product and shopping pages",
+  "tags": ["product", "shop"],
+  "values": {
+    "og.type": "product",
+    "og.title": "Product Name - Product Category",
+    "og.description": "Product description highlighting key features, materials, and benefits.",
+    "og.image": "https://example.com/product-photo.jpg",
+    "og.site_name": "Store Name",
+    "og.product:availability": "in stock",
+    "og.product:condition": "new",
+    "og.product:price:amount": "99.99",
+    "og.product:price:currency": "USD",
+    "twitter.card": "summary_large_image",
+    "twitter:label1": "Price",
+    "twitter:data1": "$99.99",
+    "schema.type": "Product",
+    "schema.data": {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      "name": "Product Name",
+      "description": "Product description highlighting key features.",
+      "image": "https://example.com/product-photo.jpg",
+      "brand": {
+        "@type": "Brand",
+        "name": "Brand Name"
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": "99.99",
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock",
+        "itemCondition": "https://schema.org/NewCondition"
+      }
+    }
+  },
+  "notes": "Product pages require price and availability for rich results. Use high-quality product images (square 1:1 ratio for Pinterest). Include brand information for Google Shopping."
+}

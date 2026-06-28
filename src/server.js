@@ -2,6 +2,7 @@
 
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 const { fetchUrl, parseMetaTags, probeImage } = require('./fetcher');
 const { detectMistakes } = require('./diagnostics');
 const { scoreAll, PLATFORMS } = require('./scorer');
@@ -9,6 +10,7 @@ const { generateScreenshot, checkRateLimit, isValidPlatform } = require('./scree
 const { analyzeResponseHeaders } = require('./header-analyzer');
 const cheerio = require('cheerio');
 const { ZipArchive } = require('archiver');
+const { generateSnippet, getSupportedFormats } = require('./snippet-gen');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -1133,6 +1135,154 @@ app.post('/api/purge', async (req, res) => {
   }
 
   res.json(results);
+});
+
+/**
+ * GET /api/snippet?format=nextjs&url=https://...
+ * Generate framework code snippet for meta tags
+ */
+app.get('/api/snippet', async (req, res) => {
+  const { format, url } = req.query;
+
+  // Validate format parameter
+  if (!format) {
+    return res.status(400).json({
+      error: 'Missing format parameter',
+      message: `Provide ?format= with one of: ${getSupportedFormats().join(', ')}`
+    });
+  }
+
+  // Validate format is supported
+  const supportedFormats = getSupportedFormats();
+  if (!supportedFormats.includes(format)) {
+    return res.status(400).json({
+      error: 'Invalid format',
+      message: `Format must be one of: ${supportedFormats.join(', ')}`
+    });
+  }
+
+  let meta;
+
+  // If URL is provided, fetch and parse meta tags
+  if (url) {
+    try {
+      const parsedUrl = new URL(url);
+      if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+        return res.status(400).json({ error: 'Only http and https URLs are supported' });
+      }
+
+      const { html, finalUrl } = await fetchUrl(url);
+      meta = parseMetaTags(html, finalUrl);
+    } catch (err) {
+      console.error('Fetch error:', err.message);
+      return res.status(502).json({ error: `Failed to fetch URL: ${err.message}` });
+    }
+  } else {
+    // No URL provided, return empty template
+    meta = {
+      title: '',
+      description: '',
+      og: { title: '', description: '', image: '', type: 'website' },
+      twitter: { card: 'summary_large_image', title: '', description: '', image: '' }
+    };
+  }
+
+  try {
+    // Generate code snippet
+    const snippet = generateSnippet(format, meta, url || '');
+
+    res.json({
+      format,
+      url: url || null,
+      meta,
+      snippet
+    });
+  } catch (err) {
+    console.error('Snippet generation error:', err.message);
+    res.status(500).json({ error: `Failed to generate snippet: ${err.message}` });
+  }
+});
+
+/**
+ * GET /api/templates
+ * List all available meta tag templates
+ */
+app.get('/api/templates', (req, res) => {
+  const templatesDir = path.join(__dirname, 'templates');
+
+  // Read all JSON files from templates directory
+  let templateFiles;
+  try {
+    templateFiles = fs.readdirSync(templatesDir)
+      .filter(file => file.endsWith('.json'))
+      .sort();
+  } catch (err) {
+    console.error('Failed to read templates directory:', err.message);
+    return res.status(500).json({ error: 'Failed to read templates directory' });
+  }
+
+  // Load each template
+  const templates = [];
+  for (const file of templateFiles) {
+    try {
+      const filePath = path.join(templatesDir, file);
+      const content = fs.readFileSync(filePath, 'utf-8');
+      const template = JSON.parse(content);
+
+      // Return only essential fields for listing
+      templates.push({
+        id: template.id,
+        icon: template.icon,
+        title: template.title,
+        desc: template.desc,
+        tags: template.tags || []
+      });
+    } catch (err) {
+      console.error(`Failed to load template ${file}:`, err.message);
+      // Skip failed templates, don't fail entire request
+    }
+  }
+
+  res.json({
+    count: templates.length,
+    templates
+  });
+});
+
+/**
+ * GET /api/templates/:name
+ * Get a specific template by name (without .json extension)
+ */
+app.get('/api/templates/:name', (req, res) => {
+  const { name } = req.params;
+
+  // Security check: prevent path traversal
+  if (name.includes('..') || name.includes('/') || name.includes('\\')) {
+    return res.status(400).json({ error: 'Invalid template name' });
+  }
+
+  const templatePath = path.join(__dirname, 'templates', `${name}.json`);
+
+  // Check if file exists
+  if (!fs.existsSync(templatePath)) {
+    return res.status(404).json({
+      error: 'Template not found',
+      message: `Template "${name}" does not exist`,
+      availableTemplates: fs.readdirSync(path.join(__dirname, 'templates'))
+        .filter(file => file.endsWith('.json'))
+        .map(file => file.replace('.json', ''))
+    });
+  }
+
+  try {
+    const content = fs.readFileSync(templatePath, 'utf-8');
+    const template = JSON.parse(content);
+
+    res.json(template);
+  } catch (err) {
+    console.error(`Failed to load template ${name}:`, err.message);
+    res.status(500).json({ error: `Failed to load template: ${err.message}` });
+  }
 });
 
 /**

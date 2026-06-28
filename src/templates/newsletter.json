@@ -1,0 +1,37 @@
+{
+  "id": "newsletter",
+  "icon": "📧",
+  "title": "Newsletter",
+  "desc": "Email subscriptions and archives",
+  "tags": ["email", "content"],
+  "values": {
+    "og.type": "website",
+    "og.title": "Newsletter Name - Issue #123: Main Topic",
+    "og.description": "Brief summary of this issue: featured articles, key insights, and what readers will learn.",
+    "og.image": "https://example.com/newsletter-header.jpg",
+    "og.site_name": "Newsletter Name",
+    "twitter.card": "summary_large_image",
+    "article:author": "Editor Name",
+    "article:published_time": "2024-01-15T10:00:00Z",
+    "twitter:label1": "Subscribers",
+    "twitter:data1": "10K+",
+    "schema.type": "Article",
+    "schema.data": {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "Newsletter Issue #123: Main Topic",
+      "description": "Brief summary of this issue and what readers will learn.",
+      "author": {
+        "@type": "Person",
+        "name": "Editor Name"
+      },
+      "datePublished": "2024-01-15",
+      "publisher": {
+        "@type": "Organization",
+        "name": "Newsletter Name"
+      },
+      "image": "https://example.com/newsletter-header.jpg"
+    }
+  },
+  "notes": "Newsletter archives should include issue numbers and publication dates. Show subscriber count to build credibility. Use branded header images for consistency across issues."
+}

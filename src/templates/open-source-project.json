@@ -1,0 +1,37 @@
+{
+  "id": "oss",
+  "icon": "🐙",
+  "title": "Open Source",
+  "desc": "GitHub projects and OSS pages",
+  "tags": ["github", "code"],
+  "values": {
+    "og.type": "website",
+    "og.title": "Repository Name - Short description",
+    "og.description": "What this project does, who it is for, and why it is useful.",
+    "og.image": "https://example.com/repo-social-preview.jpg",
+    "og.site_name": "GitHub - username/repo",
+    "twitter.card": "summary_large_image",
+    "twitter:label1": "Language",
+    "twitter:data1": "TypeScript",
+    "schema.type": "SoftwareSourceCode",
+    "schema.data": {
+      "@context": "https://schema.org",
+      "@type": "SoftwareSourceCode",
+      "name": "Repository Name",
+      "description": "What this project does and why it is useful.",
+      "codeRepository": "https://github.com/username/repo",
+      "programmingLanguage": "TypeScript",
+      "license": "MIT",
+      "runtimePlatform": "Node.js",
+      "author": {
+        "@type": "Person",
+        "name": "Author Name"
+      },
+      "contributor": [
+        {"@type": "Person", "name": "Contributor 1"},
+        {"@type": "Person", "name": "Contributor 2"}
+      ]
+    }
+  },
+  "notes": "OSS projects should show GitHub stars/forks in preview. Include programming language and license in structured data. Use repo social preview images (1200x630px) for professional look."
+}

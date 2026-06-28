@@ -1,0 +1,48 @@
+{
+  "id": "event",
+  "icon": "📅",
+  "title": "Event",
+  "desc": "Conferences, meetups, and events",
+  "tags": ["event", "calendar"],
+  "values": {
+    "og.type": "website",
+    "og.title": "Event Name - Date | Location",
+    "og.description": "Event description: what, who should attend, key speakers, and why it matters.",
+    "og.image": "https://example.com/event-banner.jpg",
+    "og.site_name": "Event Name",
+    "twitter.card": "summary_large_image",
+    "schema.type": "Event",
+    "schema.data": {
+      "@context": "https://schema.org",
+      "@type": "Event",
+      "name": "Event Name",
+      "description": "Event description: what, who should attend, and key speakers.",
+      "startDate": "2024-03-15T09:00:00",
+      "endDate": "2024-03-15T17:00:00",
+      "location": {
+        "@type": "Place",
+        "name": "Venue Name",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "123 Main St",
+          "addressLocality": "City",
+          "postalCode": "12345",
+          "addressCountry": "US"
+        }
+      },
+      "image": "https://example.com/event-banner.jpg",
+      "organizer": {
+        "@type": "Organization",
+        "name": "Organizer Name"
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": "199.00",
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock",
+        "url": "https://example.com/registration"
+      }
+    }
+  },
+  "notes": "Event pages need location and dates for calendar integration. Include pricing and registration link in offers. Use event posters or venue photos for images. Ensure dates are in ISO 8601 format."
+}

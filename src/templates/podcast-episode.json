@@ -1,0 +1,41 @@
+{
+  "id": "podcast",
+  "icon": "🎙️",
+  "title": "Podcast",
+  "desc": "Audio content and episodes",
+  "tags": ["audio", "podcast"],
+  "values": {
+    "og.type": "website",
+    "og.title": "Episode #123: Episode Title - Podcast Name",
+    "og.description": "Episode summary: topics discussed, guests, and key takeaways.",
+    "og.image": "https://example.com/podcast-cover-art.jpg",
+    "og.site_name": "Podcast Name",
+    "og.audio": "https://example.com/episode.mp3",
+    "twitter.card": "summary_large_image",
+    "twitter:label1": "Episode",
+    "twitter:data1": "#123",
+    "schema.type": "PodcastEpisode",
+    "schema.data": {
+      "@context": "https://schema.org",
+      "@type": "PodcastEpisode",
+      "name": "Episode #123: Episode Title",
+      "description": "Episode summary: topics discussed and key takeaways.",
+      "datePublished": "2024-01-15",
+      "partOfSeries": {
+        "@type": "PodcastSeries",
+        "name": "Podcast Name"
+      },
+      "image": "https://example.com/podcast-cover-art.jpg",
+      "enclosure": {
+        "@type": "MediaObject",
+        "contentUrl": "https://example.com/episode.mp3"
+      },
+      "associatedMedia": {
+        "@type": "MediaObject",
+        "contentUrl": "https://example.com/episode.mp3",
+        "encodingFormat": "audio/mpeg"
+      }
+    }
+  },
+  "notes": "Podcast episodes should include episode number and duration. Use square cover art (1:1) for best display. Link to audio file in og.audio for embeddable players."
+}

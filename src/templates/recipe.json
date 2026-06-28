@@ -1,0 +1,53 @@
+{
+  "id": "recipe",
+  "icon": "🍳",
+  "title": "Recipe",
+  "desc": "Food blog and recipe pages",
+  "tags": ["article", "food"],
+  "values": {
+    "og.type": "article",
+    "og.title": "Recipe Name - Cooking Time | Difficulty",
+    "og.description": "Tempting description of the dish with key ingredients and why it is delicious.",
+    "og.image": "https://example.com/recipe-photo.jpg",
+    "og.site_name": "Food Blog Name",
+    "twitter.card": "summary_large_image",
+    "article:author": "Chef Name",
+    "article:published_time": "2024-01-15T10:00:00Z",
+    "article:section": "Recipes",
+    "schema.type": "Recipe",
+    "schema.data": {
+      "@context": "https://schema.org",
+      "@type": "Recipe",
+      "name": "Recipe Name",
+      "description": "Tempting description of the dish.",
+      "image": "https://example.com/recipe-photo.jpg",
+      "author": {
+        "@type": "Person",
+        "name": "Chef Name"
+      },
+      "datePublished": "2024-01-15",
+      "prepTime": "PT15M",
+      "cookTime": "PT30M",
+      "totalTime": "PT45M",
+      "recipeYield": "4 servings",
+      "recipeCategory": "Dinner",
+      "nutrition": {
+        "@type": "NutritionInformation",
+        "calories": "350 kcal",
+        "proteinContent": "25g"
+      },
+      "recipeIngredient": [
+        "1 lb chicken breast",
+        "2 cups broccoli",
+        "1/4 cup soy sauce"
+      ],
+      "recipeInstructions": [
+        {
+          "@type": "HowToStep",
+          "text": "Prepare ingredients..."
+        }
+      ]
+    }
+  },
+  "notes": "Recipe pages need cooking time, servings, and ingredients for rich cards. Use high-quality food photos (4:3 aspect ratio). Nutrition information helps with health-related searches."
+}

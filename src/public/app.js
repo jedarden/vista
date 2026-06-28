@@ -7,6 +7,7 @@ let currentMode = 'url'; // 'url' | 'paste' | 'compare'
 let cardContextState = {}; // Track context mode per platform: { pid: { context: boolean, theme: 'dark'|'light' } }
 let compareData = { before: null, after: null, swapped: false }; // Comparison state
 let hasCelebratedPerfectScore = false; // Track one-time celebration per session
+let currentTab = 'previews'; // Active tab state for hash encoding
 
 // ── Debug Flags ──
 /**
@@ -349,6 +350,106 @@ document.querySelectorAll('.chip').forEach(chip => {
   });
 });
 
+// ── URL Hash State Management ──
+/**
+ * Get current hash state as an object
+ * @returns {Object} Hash state with keys: tab, mode, without, b (compare URL)
+ */
+function getHashState() {
+  const hash = window.location.hash.slice(1); // Remove leading #
+  const state = {};
+  if (!hash) return state;
+
+  hash.split('&').forEach(pair => {
+    const [key, value] = pair.split('=');
+    if (key) {
+      state[key] = value ? decodeURIComponent(value) : '';
+    }
+  });
+  return state;
+}
+
+/**
+ * Update URL hash based on current state
+ * @param {Object} options - Optional overrides: { tab, mode, without, b }
+ */
+function updateHash(options = {}) {
+  const parts = [];
+
+  // Tab state
+  const tab = options.tab !== undefined ? options.tab : currentTab;
+  if (tab && tab !== 'previews') {
+    parts.push(`tab=${tab}`);
+  }
+
+  // Compare mode with second URL
+  if (currentMode === 'compare' && compareData.after) {
+    parts.push(`mode=compare`);
+    const b = options.b !== undefined ? options.b : compareData.after.url;
+    if (b) {
+      parts.push(`b=${encodeURIComponent(b)}`);
+    }
+  }
+
+  // What If disabled tags
+  const without = options.without !== undefined ? options.without : Array.from(disabledTags).join(',');
+  if (without) {
+    parts.push(`without=${without}`);
+  }
+
+  const hash = parts.length > 0 ? `#${parts.join('&')}` : '';
+  history.replaceState(null, null, hash);
+}
+
+/**
+ * Parse hash on page load and restore state
+ */
+function restoreHashState() {
+  const state = getHashState();
+
+  // Restore active tab
+  if (state.tab) {
+    const tabBtn = document.querySelector(`.tab-btn[data-tab="${state.tab}"]`);
+    if (tabBtn) {
+      switchTab(state.tab);
+    }
+  }
+
+  // Restore compare mode second URL
+  if (state.mode === 'compare' && state.b) {
+    compareUrl2.value = state.b;
+    // Note: We don't auto-trigger compare here, just populate the field
+    // User needs to click Compare to run the comparison
+  }
+
+  // Restore What If disabled tags
+  if (state.without) {
+    const tags = state.without.split(',').filter(t => t);
+    if (tags.length > 0 && currentData) {
+      // Enable What If mode and disable the specified tags
+      whatIfMode = true;
+      const btn = document.getElementById('whatIfToggleBtn');
+      if (btn) {
+        btn.classList.add('active');
+        btn.textContent = '✓ What If On';
+      }
+      showWhatIfPanel();
+
+      // Uncheck the specified tags
+      tags.forEach(tag => {
+        disabledTags.add(tag);
+        const cb = document.querySelector(`#whatIfPanel .what-if-toggle input[data-tag="${tag}"]`);
+        if (cb) {
+          cb.checked = false;
+        }
+      });
+
+      // Auto-apply the changes
+      applyWhatIfChanges();
+    }
+  }
+}
+
 // Auto-load from URL param on page load
 window.addEventListener('DOMContentLoaded', () => {
   initTheme();
@@ -363,6 +464,9 @@ window.addEventListener('DOMContentLoaded', () => {
   if (params.has('feedback')) {
     initFeedbackWidget();
   }
+
+  // Restore hash state after initial load
+  restoreHashState();
 });
 
 // Global theme toggle listener
@@ -4309,6 +4413,7 @@ function renderFixes(fixes) {
 
 // ── Tab switching ──
 function switchTab(tabId) {
+  currentTab = tabId; // Store current tab for hash encoding
   document.querySelectorAll('.tab-btn').forEach(btn => {
     const isActive = btn.dataset.tab === tabId;
     btn.classList.toggle('active', isActive);
@@ -4320,6 +4425,8 @@ function switchTab(tabId) {
     const id = pane.id.replace('tab', '').toLowerCase();
     pane.classList.toggle('hidden', id !== tabId);
   });
+  // Update hash to reflect new tab
+  updateHash({ tab: tabId });
 }
 
 // ── Recent inspections ──
@@ -5180,6 +5287,9 @@ async function handleCompareSubmit() {
     // Show compare tab
     tabCompareBtn?.classList.remove('hidden');
     switchTab('compare');
+
+    // Update hash with compare state
+    updateHash({ b: normalizedUrl2 });
 
     // Announce comparison results to screen readers
     const gradeBefore = data.a.scoring?.overall?.grade || '?';
@@ -7170,7 +7280,13 @@ function toggleWhatIfMode() {
   if (whatIfMode) {
     showWhatIfPanel();
   } else {
+    // Clear What If state
     disabledTags.clear();
+    updateHash({ without: '' }); // Clear from hash
+    const panel = document.getElementById('whatIfPanel');
+    if (panel) {
+      panel.remove();
+    }
     if (currentData) {
       renderPreviews(currentData);
     }
@@ -7226,6 +7342,8 @@ function showWhatIfPanel() {
       } else {
         disabledTags.delete(cb.dataset.tag);
       }
+      // Update hash to reflect disabled tags
+      updateHash();
     });
   });
 
@@ -7239,12 +7357,9 @@ function closeWhatIfPanel() {
   if (panel) {
     panel.remove();
   }
-  whatIfMode = false;
-  const btn = document.getElementById('whatIfToggleBtn');
-  if (btn) {
-    btn.classList.remove('active');
-    btn.textContent = '🔍 What If';
-  }
+  // Note: Don't clear whatIfMode, disabledTags, or hash here
+  // Panel is just hidden, state is preserved for next open
+  // Only clear when user explicitly turns off What If via toggle button
 }
 
 function resetWhatIfToggles() {
@@ -7252,6 +7367,7 @@ function resetWhatIfToggles() {
     cb.checked = true;
   });
   disabledTags.clear();
+  updateHash({ without: '' }); // Clear disabled tags from hash
 }
 
 function applyWhatIfChanges() {
@@ -7286,6 +7402,10 @@ function applyWhatIfChanges() {
   showMissingTagWarnings(modifiedMeta);
 
   closeWhatIfPanel();
+
+  // Update hash with current disabled tags before clearing them
+  updateHash();
+
   showToast('Previews updated with What If changes', 2000);
 }
 

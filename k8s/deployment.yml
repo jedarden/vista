@@ -22,8 +22,8 @@ spec:
     spec:
       containers:
       - name: vista
-        image: ronaldraygun/vista:latest
-        imagePullPolicy: Always
+        image: ronaldraygun/vista:1.0.5
+        imagePullPolicy: IfNotPresent
         ports:
         - name: http
           containerPort: 3000

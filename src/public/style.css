@@ -1140,6 +1140,17 @@ html[data-theme='light'] .github-domain { color: #57606a; }
 .badge-direct-url { padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg2); color: var(--text); font-size: 14px; }
 .badge-embed-section .action-btn, .badge-url-section .action-btn { align-self: flex-start; }
 
+/* QR Code Modal */
+.modal-qr { max-width: 380px; }
+.modal-body-qr { align-items: center; }
+.qr-preview { display: flex; align-items: center; justify-content: center; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; min-height: 200px; }
+.qr-preview #qrCode { display: flex; align-items: center; justify-content: center; }
+.qr-preview #qrCode img, .qr-preview #qrCode canvas { display: block; max-width: 100%; }
+.qr-url-section { width: 100%; display: flex; flex-direction: column; gap: 8px; }
+.qr-url-section label { font-size: 13px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; }
+.qr-share-url { padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg2); color: var(--text); font-size: 14px; }
+.qr-url-section .action-btn { align-self: flex-start; }
+
 /* Footer */
 .site-footer { text-align: center; padding: 20px; font-size: 13px; color: var(--text3); border-top: 1px solid var(--border); margin-top: auto; }
 body.has-results { padding-bottom: 48px; }

@@ -210,6 +210,7 @@
           <div class="summary-url" id="summaryUrl"></div>
           <div class="summary-actions">
             <button class="action-btn primary" id="shareBtn">&#128279; Share</button>
+            <button class="action-btn" id="qrBtn">&#129440; QR Code</button>
             <button class="action-btn" id="badgeBtn">&#127919; Get Badge</button>
             <button class="action-btn" id="newInspectBtn">New Inspect</button>
           </div>
@@ -775,6 +776,26 @@
           <label for="badgeDirectUrl">Direct URL:</label>
           <input type="text" id="badgeDirectUrl" class="badge-direct-url" readonly aria-label="Badge direct URL (read-only)" />
           <button class="action-btn" id="badgeUrlCopyBtn">&#128203; Copy URL</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QR Code modal -->
+  <div class="modal-overlay hidden" id="qrModal" role="dialog" aria-modal="true" aria-labelledby="qrModalTitle">
+    <div class="modal modal-qr">
+      <div class="modal-header">
+        <h3 id="qrModalTitle">Share QR Code</h3>
+        <button class="modal-close" id="qrModalClose" aria-label="Close QR code modal">&times;</button>
+      </div>
+      <div class="modal-body modal-body-qr">
+        <div class="qr-preview" id="qrPreview">
+          <div id="qrCode"></div>
+        </div>
+        <div class="qr-url-section">
+          <label for="qrShareUrl">Share URL:</label>
+          <input type="text" id="qrShareUrl" class="qr-share-url" readonly aria-label="Share URL (read-only)" />
+          <button class="action-btn" id="qrUrlCopyBtn">&#128203; Copy URL</button>
         </div>
       </div>
     </div>

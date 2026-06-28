@@ -147,6 +147,15 @@ const badgeCopyBtn = $('#badgeCopyBtn');
 const badgeDirectUrl = $('#badgeDirectUrl');
 const badgeUrlCopyBtn = $('#badgeUrlCopyBtn');
 
+// QR modal DOM refs
+const qrBtn = $('#qrBtn');
+const qrModal = $('#qrModal');
+const qrModalClose = $('#qrModalClose');
+const qrPreview = $('#qrPreview');
+const qrCode = $('#qrCode');
+const qrShareUrl = $('#qrShareUrl');
+const qrUrlCopyBtn = $('#qrUrlCopyBtn');
+
 // OG Generator DOM refs
 const oggenCanvas = $('#oggenCanvas');
 const oggenBgType = $('#oggenBgType');
@@ -248,6 +257,17 @@ $('#newInspectBtn').addEventListener('click', resetToHero);
 // Badge modal event listeners
 badgeBtn?.addEventListener('click', openBadgeModal);
 badgeModalClose?.addEventListener('click', closeBadgeModal);
+
+// QR modal event listeners
+qrBtn?.addEventListener('click', openQrModal);
+qrModalClose?.addEventListener('click', closeQrModal);
+qrUrlCopyBtn?.addEventListener('click', () => {
+  const url = qrShareUrl.value;
+  if (url) {
+    copyText(url);
+    showToast('URL copied!', 1500);
+  }
+});
 badgeStyleSelect?.addEventListener('change', updateBadgePreview);
 badgeCopyBtn?.addEventListener('click', copyBadgeEmbedCode);
 badgeUrlCopyBtn?.addEventListener('click', copyBadgeUrl);
@@ -4422,6 +4442,72 @@ function copyBadgeUrl() {
   if (!badgeDirectUrl.value) return;
   copyText(badgeDirectUrl.value);
   showToast('Badge URL copied!', 2000);
+}
+
+// ── QR Code Modal ──
+let _qrModalLastFocus = null;
+
+function _qrModalFocusTrap(e) {
+  if (e.key === 'Escape') {
+    closeQrModal();
+    return;
+  }
+  if (e.key !== 'Tab') return;
+  const focusable = [...qrModal.querySelectorAll(
+    'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  )];
+  if (!focusable.length) return;
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  if (e.shiftKey) {
+    if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+  } else {
+    if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+}
+
+function openQrModal() {
+  if (!currentData) return;
+
+  // Generate QR code for the current share URL
+  const shareUrl = window.location.href;
+
+  // Clear any existing QR code
+  qrCode.innerHTML = '';
+
+  // Generate new QR code using qrcodejs library
+  // Respect prefers-reduced-motion by disabling animations
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  new QRCode(qrCode, {
+    text: shareUrl,
+    width: 200,
+    height: 200,
+    colorDark: '#000000',
+    colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.H
+  });
+
+  // Update the share URL input
+  qrShareUrl.value = shareUrl;
+
+  // Show modal
+  _qrModalLastFocus = document.activeElement;
+  qrModal.classList.remove('hidden');
+
+  // Focus the first focusable element in the modal
+  const firstFocusable = qrModal.querySelector(
+    'button:not([disabled]), input:not([disabled]), select:not([disabled])'
+  );
+  firstFocusable?.focus();
+  document.addEventListener('keydown', _qrModalFocusTrap);
+}
+
+function closeQrModal() {
+  qrModal.classList.add('hidden');
+  document.removeEventListener('keydown', _qrModalFocusTrap);
+  // Restore focus to the element that opened the modal
+  _qrModalLastFocus?.focus();
+  _qrModalLastFocus = null;
 }
 
 // ── Reset ──

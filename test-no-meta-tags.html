@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test No Meta Tags Detection</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .test-section {
+      background: white;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h2 {
+      margin-top: 0;
+      color: #333;
+    }
+    .result {
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 4px;
+    }
+    .result.pass {
+      background: #d4edda;
+      color: #155724;
+    }
+    .result.fail {
+      background: #f8d7da;
+      color: #721c24;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    .code {
+      background: #f8f9fa;
+      padding: 10px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 12px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>Test No Meta Tags Detection</h1>
+  <p>This page tests the feature that detects pages with no meta tags and suggests opening the template picker.</p>
+
+  <div class="test-section">
+    <h2>Test 1: Page with no meta tags at all</h2>
+    <p>A basic HTML page with only title, no Open Graph or Twitter Card tags.</p>
+    <div class="code">
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+  &lt;title&gt;Test Page&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Hello&lt;/h1&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+    </div>
+    <br>
+    <button onclick="testNoMetaTags()">Test with POST /api/preview/meta</button>
+    <div id="result1"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>Test 2: Page with only empty meta tags</h2>
+    <p>A page with OG/Twitter meta tags present but with empty values (should NOT show suggestion).</p>
+    <div class="code">
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+  &lt;meta property="og:title" content=""&gt;
+  &lt;meta property="og:description" content=""&gt;
+  &lt;meta name="twitter:card" content=""&gt;
+  &lt;title&gt;Test Page&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Hello&lt;/h1&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+    </div>
+    <br>
+    <button onclick="testEmptyMetaTags()">Test with POST /api/preview/meta</button>
+    <div id="result2"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>Test 3: Page with partial meta tags (og:title only)</h2>
+    <p>A page with only one OG tag (should NOT show suggestion).</p>
+    <div class="code">
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+  &lt;meta property="og:title" content="My Page"&gt;
+  &lt;title&gt;Test Page&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Hello&lt;/h1&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+    </div>
+    <br>
+    <button onclick="testPartialMetaTags()">Test with POST /api/preview/meta</button>
+    <div id="result3"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>Test 4: Page with full meta tags</h2>
+    <p>A complete page with all OG and Twitter tags (should NOT show suggestion).</p>
+    <div class="code">
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+  &lt;meta property="og:title" content="My Page"&gt;
+  &lt;meta property="og:description" content="A description"&gt;
+  &lt;meta property="og:image" content="https://example.com/image.jpg"&gt;
+  &lt;meta name="twitter:card" content="summary_large_image"&gt;
+  &lt;meta name="twitter:title" content="My Page"&gt;
+  &lt;meta name="twitter:description" content="A description"&gt;
+  &lt;meta name="twitter:image" content="https://example.com/image.jpg"&gt;
+  &lt;title&gt;Test Page&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Hello&lt;/h1&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+    </div>
+    <br>
+    <button onclick="testFullMetaTags()">Test with POST /api/preview/meta</button>
+    <div id="result4"></div>
+  </div>
+
+  <script>
+    async function testApi(html, resultId, expectedNoMeta) {
+      const resultDiv = document.getElementById(resultId);
+      resultDiv.innerHTML = '<div class="result">Testing...</div>';
+
+      try {
+        const response = await fetch('/api/preview/meta?base=https://example.com', {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/html' },
+          body: html
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+
+        // Check for no meta tags condition
+        const meta = data.meta || {};
+        const hasOgTags = !!(meta.og && (meta.og.title || meta.og.description || meta.og.image));
+        const hasTwitterTags = !!(meta.twitter && (meta.twitter.title || meta.twitter.description || meta.twitter.image || meta.twitter.card));
+        const hasBasicTags = !!(meta.title || meta.description);
+        const shouldShowSuggestion = !hasOgTags && !hasTwitterTags && !hasBasicTags;
+
+        const passed = shouldShowSuggestion === expectedNoMeta;
+
+        resultDiv.innerHTML = `
+          <div class="result ${passed ? 'pass' : 'fail'}">
+            <strong>${passed ? 'PASS' : 'FAIL'}</strong><br>
+            Expected to show suggestion: ${expectedNoMeta}<br>
+            Actually would show suggestion: ${shouldShowSuggestion}<br>
+            hasOgTags: ${hasOgTags}<br>
+            hasTwitterTags: ${hasTwitterTags}<br>
+            hasBasicTags: ${hasBasicTags}<br>
+            <small>meta.title: "${meta.title || ''}"</small><br>
+            <small>meta.description: "${meta.description || ''}"</small><br>
+            <small>meta.og.title: "${meta.og?.title || ''}"</small><br>
+            <small>meta.og.description: "${meta.og?.description || ''}"</small><br>
+            <small>meta.og.image: "${meta.og?.image || ''}"</small><br>
+            <small>meta.twitter.card: "${meta.twitter?.card || ''}"</small>
+          </div>
+        `;
+      } catch (error) {
+        resultDiv.innerHTML = `<div class="result fail"><strong>ERROR</strong>: ${error.message}</div>`;
+      }
+    }
+
+    function testNoMetaTags() {
+      const html = `<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Page</title>
+</head>
+<body>
+  <h1>Hello</h1>
+</body>
+</html>`;
+      testApi(html, 'result1', true);
+    }
+
+    function testEmptyMetaTags() {
+      const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta property="og:title" content="">
+  <meta property="og:description" content="">
+  <meta name="twitter:card" content="">
+  <title>Test Page</title>
+</head>
+<body>
+  <h1>Hello</h1>
+</body>
+</html>`;
+      testApi(html, 'result2', false);
+    }
+
+    function testPartialMetaTags() {
+      const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta property="og:title" content="My Page">
+  <title>Test Page</title>
+</head>
+<body>
+  <h1>Hello</h1>
+</body>
+</html>`;
+      testApi(html, 'result3', false);
+    }
+
+    function testFullMetaTags() {
+      const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta property="og:title" content="My Page">
+  <meta property="og:description" content="A description">
+  <meta property="og:image" content="https://example.com/image.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="My Page">
+  <meta name="twitter:description" content="A description">
+  <meta name="twitter:image" content="https://example.com/image.jpg">
+  <title>Test Page</title>
+</head>
+<body>
+  <h1>Hello</h1>
+</body>
+</html>`;
+      testApi(html, 'result4', false);
+    }
+  </script>
+</body>
+</html>

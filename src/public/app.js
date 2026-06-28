@@ -4503,10 +4503,9 @@ function checkForNoMetaTags(metaData) {
     (meta.og.title || meta.og.description || meta.og.image));
   const hasTwitterTags = !!(meta.twitter &&
     (meta.twitter.title || meta.twitter.description || meta.twitter.image || meta.twitter.card));
-  const hasBasicTags = !!(meta.title || meta.description);
 
-  // Only show suggestion if truly no relevant meta tags
-  if (!hasOgTags && !hasTwitterTags && !hasBasicTags) {
+  // Only show suggestion if page has no OG or Twitter Card tags
+  if (!hasOgTags && !hasTwitterTags) {
     // Clear any existing suggestion chips first
     clearSuggestionChips();
 

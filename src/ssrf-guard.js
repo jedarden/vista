@@ -118,7 +118,7 @@ function isPrivateIP(ip) {
 /**
  * Validate a URL for SSRF vulnerabilities
  * @param {string} urlString - The URL to validate
- * @returns {Promise<{valid: boolean, error?: string}>}
+ * @returns {Promise<{allowed: boolean, reason: string}>}
  */
 async function validateUrl(urlString) {
   try {
@@ -127,8 +127,8 @@ async function validateUrl(urlString) {
     // Only allow http/https protocols
     if (!['http:', 'https:'].includes(url.protocol)) {
       return {
-        valid: false,
-        error: `URL protocol "${url.protocol}" is not supported (only http/https allowed)`
+        allowed: false,
+        reason: `URL protocol "${url.protocol}" is not supported (only http/https allowed)`
       };
     }
 
@@ -137,16 +137,16 @@ async function validateUrl(urlString) {
     // Reject literal "localhost"
     if (hostname.toLowerCase() === 'localhost') {
       return {
-        valid: false,
-        error: 'URL hostname "localhost" is not allowed (resolves to loopback address)'
+        allowed: false,
+        reason: 'URL hostname "localhost" is not allowed (resolves to loopback address)'
       };
     }
 
     // Reject if hostname is already an IP address
     if (isPrivateIP(hostname)) {
       return {
-        valid: false,
-        error: `URL hostname "${hostname}" is a private/internal address and cannot be fetched`
+        allowed: false,
+        reason: `URL hostname "${hostname}" is a private/internal address and cannot be fetched`
       };
     }
 
@@ -155,14 +155,14 @@ async function validateUrl(urlString) {
       const ipv6 = hostname.slice(1, -1);
       if (isIPv6Loopback(ipv6)) {
         return {
-          valid: false,
-          error: `URL hostname "${ipv6}" is a loopback address and cannot be fetched`
+          allowed: false,
+          reason: `URL hostname "${ipv6}" is a loopback address and cannot be fetched`
         };
       }
       if (isIPv6LinkLocal(ipv6)) {
         return {
-          valid: false,
-          error: `URL hostname "${ipv6}" is a link-local address and cannot be fetched`
+          allowed: false,
+          reason: `URL hostname "${ipv6}" is a link-local address and cannot be fetched`
         };
       }
     }
@@ -175,8 +175,8 @@ async function validateUrl(urlString) {
       // If DNS resolution fails, we should still block - the address might be
       // resolvable in the target environment (e.g., cluster-internal DNS)
       return {
-        valid: false,
-        error: `Failed to resolve hostname "${hostname}": ${dnsErr.message}`
+        allowed: false,
+        reason: `Failed to resolve hostname "${hostname}": ${dnsErr.message}`
       };
     }
 
@@ -185,17 +185,17 @@ async function validateUrl(urlString) {
     // Check if resolved IP is private
     if (isPrivateIP(resolvedIP)) {
       return {
-        valid: false,
-        error: `URL hostname "${hostname}" resolves to private/internal address "${resolvedIP}" and cannot be fetched`
+        allowed: false,
+        reason: `URL hostname "${hostname}" resolves to private/internal address "${resolvedIP}" and cannot be fetched`
       };
     }
 
-    return { valid: true };
+    return { allowed: true, reason: 'OK' };
 
   } catch (urlErr) {
     return {
-      valid: false,
-      error: `Invalid URL: ${urlErr.message}`
+      allowed: false,
+      reason: `Invalid URL: ${urlErr.message}`
     };
   }
 }
@@ -207,8 +207,8 @@ async function validateUrl(urlString) {
  */
 async function validateUrlOrThrow(urlString) {
   const result = await validateUrl(urlString);
-  if (!result.valid) {
-    throw new Error(result.error);
+  if (!result.allowed) {
+    throw new Error(result.reason);
   }
   return result;
 }

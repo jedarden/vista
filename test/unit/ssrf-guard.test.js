@@ -177,55 +177,55 @@ function runTests() {
   (async () => {
     await testAsync('validateUrl: rejects literal "localhost"', async () => {
       const result = await validateUrl('http://localhost:8080/test');
-      if (result.valid) {
+      if (result.allowed) {
         throw new Error('Expected validation to fail for localhost');
       }
-      if (!result.error.includes('localhost')) {
-        throw new Error('Expected error to mention localhost');
+      if (!result.reason.includes('localhost')) {
+        throw new Error('Expected reason to mention localhost');
       }
     });
 
     await testAsync('validateUrl: rejects loopback IP 127.0.0.1', async () => {
       const result = await validateUrl('http://127.0.0.1:8080/test');
-      if (result.valid) {
+      if (result.allowed) {
         throw new Error('Expected validation to fail for 127.0.0.1');
       }
-      if (!result.error.includes('private/internal')) {
-        throw new Error('Expected error to mention private/internal address');
+      if (!result.reason.includes('private/internal')) {
+        throw new Error('Expected reason to mention private/internal address');
       }
     });
 
     await testAsync('validateUrl: rejects metadata IP 169.254.169.254', async () => {
       const result = await validateUrl('http://169.254.169.254/latest/meta-data/');
-      if (result.valid) {
+      if (result.allowed) {
         throw new Error('Expected validation to fail for metadata IP');
       }
-      if (!result.error.includes('169.254.169.254')) {
-        throw new Error('Expected error to mention the IP address');
+      if (!result.reason.includes('169.254.169.254')) {
+        throw new Error('Expected reason to mention the IP address');
       }
     });
 
     await testAsync('validateUrl: rejects private IP 10.0.0.1', async () => {
       const result = await validateUrl('http://10.0.0.1:3000/api');
-      if (result.valid) {
+      if (result.allowed) {
         throw new Error('Expected validation to fail for 10.0.0.1');
       }
     });
 
     await testAsync('validateUrl: rejects private IP 192.168.1.1', async () => {
       const result = await validateUrl('http://192.168.1.1/test');
-      if (result.valid) {
+      if (result.allowed) {
         throw new Error('Expected validation to fail for 192.168.1.1');
       }
     });
 
     await testAsync('validateUrl: rejects file:// protocol', async () => {
       const result = await validateUrl('file:///etc/passwd');
-      if (result.valid) {
+      if (result.allowed) {
         throw new Error('Expected validation to fail for file:// protocol');
       }
-      if (!result.error.includes('protocol')) {
-        throw new Error('Expected error to mention protocol');
+      if (!result.reason.includes('protocol')) {
+        throw new Error('Expected reason to mention protocol');
       }
     });
 
@@ -238,21 +238,21 @@ function runTests() {
 
     await testAsync('validateUrl: accepts https://example.com', async () => {
       const result = await validateUrl('https://example.com/');
-      if (!result.valid) {
+      if (!result.allowed) {
         throw new Error('Expected validation to succeed for example.com');
       }
     });
 
     await testAsync('validateUrl: accepts https://www.google.com', async () => {
       const result = await validateUrl('https://www.google.com/search?q=test');
-      if (!result.valid) {
+      if (!result.allowed) {
         throw new Error('Expected validation to succeed for google.com');
       }
     });
 
     await testAsync('validateUrl: accepts http://example.com', async () => {
       const result = await validateUrl('http://example.com/');
-      if (!result.valid) {
+      if (!result.allowed) {
         throw new Error('Expected validation to succeed for http://example.com');
       }
     });
@@ -276,7 +276,7 @@ function runTests() {
     await testAsync('validateUrlOrThrow: succeeds on valid URL', async () => {
       try {
         const result = await validateUrlOrThrow('https://example.com/');
-        if (!result.valid) {
+        if (!result.allowed) {
           throw new Error('Expected validation to succeed');
         }
       } catch (err) {

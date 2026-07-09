@@ -2,6 +2,7 @@
 
 const fetch = require('node-fetch');
 const cheerio = require('cheerio');
+const { validateUrlOrThrow } = require('./ssrf-guard');
 
 const USER_AGENT =
   'Mozilla/5.0 (compatible; VISTA/1.0; +https://github.com/vista-tool)';
@@ -47,6 +48,9 @@ const MAX_BODY_BYTES = 1024 * 1024; // 1 MB read limit for HTML
  * - calculateMetaDiff() compares with previous hop
  */
 async function fetchUrl(url) {
+  // SSRF protection: validate the initial URL
+  await validateUrlOrThrow(url);
+
   const redirectChain = [];
   let currentUrl = url;
   let hops = 0;
@@ -140,6 +144,18 @@ async function fetchUrl(url) {
       }
       // Resolve relative redirects
       const nextUrl = new URL(location, currentUrl).toString();
+
+      // SSRF protection: validate the redirect URL before following
+      try {
+        await validateUrlOrThrow(nextUrl);
+      } catch (ssrfErr) {
+        // Add a special error to the redirect chain and stop
+        hop.warning = `Redirect blocked by SSRF protection: ${ssrfErr.message}`;
+        hop.html = hopHtml;
+        redirectChain.push(hop);
+        throw new Error(`Redirect to ${nextUrl} blocked by SSRF protection: ${ssrfErr.message}`);
+      }
+
       hop.redirectsTo = nextUrl;
 
       // Warn on HTTP → HTTPS upgrade

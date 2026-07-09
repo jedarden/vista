@@ -19,6 +19,33 @@ const PORT = process.env.PORT || 3000;
 const badgeCache = new Map();
 const BADGE_CACHE_TTL = 60 * 60 * 1000; // 1 hour in milliseconds
 
+/**
+ * Check if an error is an SSRF-related error
+ * SSRF errors should return 400, not 502
+ */
+function isSsrfError(err) {
+  const msg = err.message || '';
+  return msg.includes('SSRF protection') ||
+         msg.includes('private/internal address') ||
+         msg.includes('loopback address') ||
+         msg.includes('link-local address') ||
+         msg.includes('localhost') ||
+         msg.includes('not allowed') ||
+         msg.includes('protocol') && msg.includes('not supported');
+}
+
+/**
+ * Handle fetch errors and return appropriate response
+ */
+function handleFetchError(res, err, context = 'Failed to fetch URL') {
+  console.error('Fetch error:', err.message);
+  if (isSsrfError(err)) {
+    res.status(400).json({ error: err.message });
+  } else {
+    res.status(502).json({ error: `${context}: ${err.message}` });
+  }
+}
+
 app.use(express.json({ limit: '5mb' }));
 app.use(express.text({ type: 'text/html', limit: '5mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -66,8 +93,7 @@ app.get('/api/preview', async (req, res) => {
 
     res.json(result);
   } catch (err) {
-    console.error('Fetch error:', err.message);
-    res.status(502).json({ error: `Failed to fetch URL: ${err.message}` });
+    return handleFetchError(res, err, 'Failed to fetch URL');
   }
 });
 
@@ -142,8 +168,7 @@ app.get('/api/preview/meta', async (req, res) => {
 
     res.json(result);
   } catch (err) {
-    console.error('Fetch error:', err.message);
-    res.status(502).json({ error: `Failed to fetch URL: ${err.message}` });
+    return handleFetchError(res, err, 'Failed to fetch URL');
   }
 });
 
@@ -212,8 +237,7 @@ app.get('/api/preview/headers', async (req, res) => {
 
     res.json(result);
   } catch (err) {
-    console.error('Fetch error:', err.message);
-    res.status(502).json({ error: `Failed to fetch URL: ${err.message}` });
+    return handleFetchError(res, err, 'Failed to fetch URL');
   }
 });
 
@@ -282,8 +306,7 @@ app.get('/api/preview/images', async (req, res) => {
 
     res.json(result);
   } catch (err) {
-    console.error('Fetch error:', err.message);
-    res.status(502).json({ error: `Failed to fetch URL: ${err.message}` });
+    return handleFetchError(res, err, 'Failed to fetch URL');
   }
 });
 
@@ -576,8 +599,7 @@ app.get('/api/screenshot', async (req, res) => {
       res.send(screenshot.svg);
     }
   } catch (err) {
-    console.error('Screenshot generation error:', err.message);
-    res.status(502).json({ error: `Failed to generate screenshot: ${err.message}` });
+    return handleFetchError(res, err, 'Failed to generate screenshot');
   }
 });
 
@@ -775,7 +797,11 @@ app.get('/api/screenshots', async (req, res) => {
   } catch (err) {
     console.error('Bulk screenshot generation error:', err.message);
     if (!res.headersSent) {
-      res.status(502).json({ error: `Failed to generate screenshots: ${err.message}` });
+      if (isSsrfError(err)) {
+        res.status(400).json({ error: err.message });
+      } else {
+        res.status(502).json({ error: `Failed to generate screenshots: ${err.message}` });
+      }
     }
   }
 });
@@ -850,7 +876,7 @@ app.post('/api/screenshot', async (req, res) => {
         }
       }
     } catch (err) {
-      return res.status(502).json({ error: `Failed to fetch URL: ${err.message}` });
+      return handleFetchError(res, err, 'Failed to fetch URL');
     }
   }
 
@@ -956,7 +982,7 @@ app.get('/api/badge', async (req, res) => {
         }
       } catch (err) {
         console.error('Badge fetch error:', err.message);
-        return res.status(502).json({ error: `Failed to fetch URL: ${err.message}` });
+        return handleFetchError(res, err, 'Failed to fetch URL');
       }
     }
   } else {
@@ -1343,8 +1369,7 @@ app.get('/api/badge/preview', async (req, res) => {
       embedCode: generateEmbedCode(url, score, platformCount, baseUrl),
     });
   } catch (err) {
-    console.error('Badge preview error:', err.message);
-    res.status(502).json({ error: `Failed to fetch URL: ${err.message}` });
+    return handleFetchError(res, err, 'Failed to fetch URL');
   }
 });
 

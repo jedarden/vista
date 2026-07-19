@@ -932,57 +932,25 @@ async function verifyClientSideTags(html, serverMeta) {
     // Wait a bit for JavaScript to execute (max 2 seconds)
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    // Extract meta tags from the rendered DOM
-    const clientMetas = new Map();
-    const metaTags = iframeDoc.querySelectorAll('meta[property], meta[name]');
+    // Extract meta tags from the rendered DOM (after JS execution). These are
+    // real DOM elements — normalizeMetaTag() in client-side-diff.js handles
+    // them via getAttribute(), and handles rawTags objects via .property/.name.
+    const clientTags = Array.from(
+      iframeDoc.querySelectorAll('meta[property], meta[name]')
+    );
 
-    metaTags.forEach(tag => {
-      const property = tag.getAttribute('property');
-      const name = tag.getAttribute('name');
-      const content = tag.getAttribute('content');
-      const key = property || name;
+    // Server-side raw tags come straight from parseMetaTags() — the HTML a
+    // crawler sees, before any JavaScript runs.
+    const serverTags = (serverMeta && serverMeta.rawTags) || [];
 
-      if (key && content) {
-        const lowerKey = key.toLowerCase();
-        // Focus on og:* and twitter:* tags
-        if (lowerKey.startsWith('og:') || lowerKey.startsWith('twitter:')) {
-          clientMetas.set(lowerKey, content);
-        }
-      }
-    });
+    // Counted-multiset diff (duplicate- and order-aware). Tags present only
+    // after JS, or in extra copies post-JS, are exactly what a non-JS crawler
+    // will miss. The previous Map-keyed-on-tag-name approach collapsed
+    // duplicates, so a JS-injected second og:image silently passed undetected.
+    const { clientOnlyTags, differingTags } = diffClientSideTags(serverTags, clientTags);
 
-    // Build set of server-side meta tags (from raw HTML, no JS execution)
-    const serverMetas = new Map();
-    if (serverMeta.rawTags) {
-      serverMeta.rawTags.forEach(tag => {
-        const key = tag.property || tag.name;
-        if (key && tag.content) {
-          const lowerKey = key.toLowerCase();
-          if (lowerKey.startsWith('og:') || lowerKey.startsWith('twitter:')) {
-            serverMetas.set(lowerKey, tag.content);
-          }
-        }
-      });
-    }
-
-    // Find tags that only exist client-side (injected by JS)
-    const clientOnlyTags = [];
-    for (const [key, value] of clientMetas) {
-      if (!serverMetas.has(key)) {
-        clientOnlyTags.push({ key, value });
-      }
-    }
-
-    // Find tags with different values between server and client
-    const differingTags = [];
-    for (const [key, clientValue] of clientMetas) {
-      const serverValue = serverMetas.get(key);
-      if (serverValue && serverValue !== clientValue) {
-        differingTags.push({ key, serverValue, clientValue });
-      }
-    }
-
-    // Create diagnostic findings
+    // Tags injected entirely by JavaScript — the key is absent from the raw
+    // HTML, so a non-JS crawler never sees them at all.
     if (clientOnlyTags.length > 0) {
       const tagList = clientOnlyTags.slice(0, 5).map(t => t.key).join(', ');
       const more = clientOnlyTags.length > 5 ? ` (+${clientOnlyTags.length - 5} more)` : '';
@@ -990,19 +958,22 @@ async function verifyClientSideTags(html, serverMeta) {
         severity: 'error',
         code: 'js-injected-tags',
         message: `Meta tags only appear after JavaScript executes: ${tagList}${more} — social crawlers that don't execute JS will not see these tags`,
-        fix: 'Move critical meta tags to static HTML in <head>, or use Server-Side Rendering (SSR) to ensure tags exist in the initial HTML response',
-        platforms: 'Facebook, LinkedIn, Twitter, WhatsApp, and most other crawlers',
+        fix: 'Move critical meta tags into the static HTML in <head>, or use Server-Side Rendering (SSR) / prerendering so the tags exist in the initial HTML response',
+        platforms: 'Facebook, LinkedIn, X, WhatsApp, and most other crawlers',
+        requiresAsyncVerification: true,
       });
     }
 
+    // Tags whose value (or copy count) changed after JS execution.
     if (differingTags.length > 0) {
       const tagList = differingTags.slice(0, 3).map(t => t.key).join(', ');
       findings.push({
         severity: 'warning',
         code: 'js-modified-tags',
-        message: `Meta tags have different values after JavaScript execution: ${tagList} — crawlers may see different values than browsers`,
-        fix: 'Ensure meta tags have correct values in the initial HTML, or use SSR to render the correct values server-side',
+        message: `Meta tags have different values (or extra copies) after JavaScript execution: ${tagList} — crawlers may see different values than browsers`,
+        fix: 'Ensure meta tags have the correct values in the initial HTML, or use SSR / prerendering to render the correct values server-side',
         platforms: 'Multiple platforms (crawler-dependent)',
+        requiresAsyncVerification: true,
       });
     }
   } catch (e) {

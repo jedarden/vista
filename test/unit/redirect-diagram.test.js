@@ -16,6 +16,7 @@
 
 const {
   buildRedirectChainDiagram,
+  renderMetaDiffBadges,
   statusBadgeClass,
   truncateUrl,
   escHtml,
@@ -328,6 +329,127 @@ function runTests() {
   test('escHtml returns empty string for null/undefined', () => {
     assertEqual(escHtml(null), '');
     assertEqual(escHtml(undefined), '');
+  });
+
+  // === renderMetaDiffBadges (bf-13re: meta-tag diff between hops) ===
+  console.log('\n=== renderMetaDiffBadges (meta-tag diff badges) ===');
+
+  test('null/undefined diff renders no badges', () => {
+    assertEqual(renderMetaDiffBadges(null), '');
+    assertEqual(renderMetaDiffBadges(undefined), '');
+  });
+
+  test('an empty diff (no changes) renders no badges', () => {
+    assertEqual(renderMetaDiffBadges({ changed: [], added: [], removed: [] }), '');
+    assertEqual(renderMetaDiffBadges({}), '');
+  });
+
+  test('stripped diff renders the "Meta tags stripped" warning badge', () => {
+    const html = renderMetaDiffBadges({ stripped: true });
+    assertContains(html, 'hop-meta-badge', 'should render a badge');
+    assertContains(html, 'stripped', 'badge should carry the stripped class');
+    assertContains(html, 'Meta tags stripped', 'should surface the headline text');
+  });
+
+  test('noindex-removed diff renders the noindex badge', () => {
+    const html = renderMetaDiffBadges({ noindexRemoved: true });
+    assertContains(html, 'hop-meta-badge');
+    assertContains(html, 'noindex', 'badge should carry the noindex class');
+    assertContains(html, 'noindex removed', 'should surface the noindex-removed text');
+  });
+
+  test('a changed/added/removed summary renders the changed badge', () => {
+    const html = renderMetaDiffBadges({
+      changed: [{ field: 'title', from: 'A', to: 'B' }],
+      added: [{ field: 'og:image', value: 'https://x/y.png' }],
+      removed: [],
+    });
+    assertContains(html, 'hop-meta-badge');
+    assertContains(html, 'changed', 'badge should carry the changed class');
+    assertContains(html, 'Meta diff:', 'should prefix the summary');
+    assertContains(html, '1 changed', 'should count changed fields');
+    assertContains(html, '1 added', 'should count added fields');
+    // Removed count is omitted when zero.
+    assertNotContains(html, 'removed');
+  });
+
+  test('the summary counts all three categories when present', () => {
+    const html = renderMetaDiffBadges({
+      changed: [{ field: 'a', from: '1', to: '2' }],
+      added: [{ field: 'b', value: 'x' }],
+      removed: [{ field: 'c', value: 'y' }],
+    });
+    assertContains(html, '1 changed');
+    assertContains(html, '1 added');
+    assertContains(html, '1 removed');
+  });
+
+  test('stripped suppresses the redundant changed/added/removed summary', () => {
+    // When all tags are lost the headline "stripped" badge already tells the
+    // story; the field-by-field summary should not also be rendered.
+    const html = renderMetaDiffBadges({
+      stripped: true,
+      removed: [
+        { field: 'title', value: 'Gone' },
+        { field: 'description', value: 'Gone too' },
+      ],
+    });
+    assertContains(html, 'Meta tags stripped');
+    assertNotContains(html, 'Meta diff:', 'summary should be suppressed when stripped');
+  });
+
+  test('multiple badges stack together (stripped + noindex-removed)', () => {
+    // Both flags can co-occur; both badges should render.
+    const html = renderMetaDiffBadges({ stripped: true, noindexRemoved: true });
+    assertContains(html, 'Meta tags stripped');
+    assertContains(html, 'noindex removed');
+  });
+
+  // === diagram integration: badges appear on the right hop ===
+  console.log('\n=== Diagram integration: meta-diff badges per hop ===');
+
+  test('a hop with metaDiff renders its diff badges inside the diagram', () => {
+    const chain = [
+      hop('http://a.example/', 301, {
+        redirectsTo: 'http://b.example/',
+        metaDiff: { noindexRemoved: true },
+      }),
+      hop('http://b.example/', 200, {
+        isFinal: true,
+        metaDiff: {
+          changed: [{ field: 'title', from: 'A', to: 'B' }],
+          added: [],
+          removed: [],
+        },
+      }),
+    ];
+    const html = buildRedirectChainDiagram(chain);
+    assertContains(html, 'hop-meta-badges', 'badge container should be present');
+    assertContains(html, 'noindex removed');
+    assertContains(html, 'Meta diff:');
+  });
+
+  test('the stripped badge appears on the exact hop that lost its tags', () => {
+    const chain = [
+      hop('http://a.example/', 301, { redirectsTo: 'http://b.example/' }),
+      hop('http://b.example/', 301, {
+        redirectsTo: 'http://c.example/',
+        metaDiff: { stripped: true },
+      }),
+      hop('http://c.example/', 200, { isFinal: true }),
+    ];
+    const html = buildRedirectChainDiagram(chain);
+    assertEqual(countOf(html, 'Meta tags stripped'), 1, 'exactly one stripped badge');
+  });
+
+  test('hops with no metaDiff render no badge container', () => {
+    const chain = [
+      hop('http://a.example/', 301, { redirectsTo: 'http://b.example/' }),
+      hop('http://b.example/', 200, { isFinal: true }),
+    ];
+    const html = buildRedirectChainDiagram(chain);
+    assertNotContains(html, 'hop-meta-badges', 'no badge container when no diff');
+    assertNotContains(html, 'hop-meta-badge');
   });
 
   // --- summary ---

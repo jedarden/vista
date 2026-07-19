@@ -12,11 +12,17 @@
 //   { url, statusCode, headers, redirectsTo?, isFinal?, html?, meta?,
 //     metaDiff?, metaError?, warning? }
 //
+// metaDiff shape (from src/fetcher.js calculateMetaDiff):
+//   { changed: [{field, from, to}], added: [{field, value}],
+//     removed: [{field, value}], hasImageChange?, stripped?, noindexRemoved? }
+//
 // Diagram features:
 //   - Numbered hop badges (1, 2, 3, ...) with a "Final" tag on the last hop
 //   - Down-arrow connectors between hops
 //   - Color-coded HTTP status badges (301=blue, 302=yellow, 307=teal, ...)
 //   - Truncated URLs for long paths
+//   - Meta-tag diff badges per hop: "meta tags stripped", "noindex removed",
+//     and a changed/added/removed summary (bf-13re)
 // =============================================================================
 
 /**
@@ -75,6 +81,57 @@ function statusBadgeClass(sc) {
 }
 
 /**
+ * Build the meta-tag diff badges for a hop as an HTML string (empty if there
+ * is no diff or nothing to flag).
+ *
+ * Badges, in priority order:
+ *   - "meta tags stripped"  — all meaningful meta tags were lost at this hop
+ *   - "noindex removed"     — a robots noindex directive disappeared (page
+ *                             became indexable); a high-signal SEO change
+ *   - changed/added/removed — a compact summary when individual tags differ
+ *
+ * @param {object} [diff] - hop.metaDiff (may be null/undefined).
+ * @returns {string} HTML markup ("" when nothing to flag).
+ */
+function renderMetaDiffBadges(diff) {
+  if (!diff) return '';
+
+  const badges = [];
+
+  if (diff.stripped) {
+    badges.push(
+      '<span class="hop-meta-badge stripped">&#9888; Meta tags stripped — all tags lost at this hop</span>'
+    );
+  }
+
+  if (diff.noindexRemoved) {
+    badges.push(
+      '<span class="hop-meta-badge noindex">noindex removed — page became indexable</span>'
+    );
+  }
+
+  const changed = (diff.changed && diff.changed.length) || 0;
+  const added = (diff.added && diff.added.length) || 0;
+  const removed = (diff.removed && diff.removed.length) || 0;
+  const total = changed + added + removed;
+
+  // When all tags were stripped we already surface the headline badge; the
+  // field-by-field summary is redundant there. Otherwise summarize the diffs.
+  if (total > 0 && !diff.stripped) {
+    const parts = [];
+    if (changed) parts.push(`${changed} changed`);
+    if (added) parts.push(`${added} added`);
+    if (removed) parts.push(`${removed} removed`);
+    badges.push(
+      `<span class="hop-meta-badge changed">Meta diff: ${escHtml(parts.join(', '))} at this hop</span>`
+    );
+  }
+
+  if (!badges.length) return '';
+  return `<div class="hop-meta-badges">${badges.join('')}</div>`;
+}
+
+/**
  * Build the visual redirect-chain diagram as an HTML string.
  *
  * @param {Array} chain - redirectChain array (may be null/empty).
@@ -121,6 +178,11 @@ function buildRedirectChainDiagram(chain, opts) {
     if (hop.warning) {
       html += `<div class="hop-warning">&#9888; ${escHtml(hop.warning)}</div>`;
     }
+
+    // Meta-tag diff badges (stripped / noindex removed / changed summary).
+    const diffBadges = renderMetaDiffBadges(hop.metaDiff);
+    if (diffBadges) html += diffBadges;
+
     if (hop.redirectsTo) {
       html += `<div class="hop-redirect"><span class="hop-arrow-inline" aria-hidden="true">&#8594;</span> ${escHtml(truncateUrl(hop.redirectsTo))}</div>`;
     }
@@ -144,6 +206,7 @@ function buildRedirectChainDiagram(chain, opts) {
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     buildRedirectChainDiagram,
+    renderMetaDiffBadges,
     statusBadgeClass,
     truncateUrl,
     escHtml,

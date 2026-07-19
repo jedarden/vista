@@ -1075,6 +1075,13 @@ html[data-theme='light'] .github-domain { color: #57606a; }
 .hop-status.sunk { background: rgba(123,130,168,0.16); color: var(--text3); }
 .hop-warning { font-size: 12px; color: var(--yellow); margin-top: 4px; }
 
+/* Per-hop meta-tag diff badges (bf-13re): stripped / noindex-removed / changed summary. */
+.hop-meta-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 5px; }
+.hop-meta-badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; line-height: 1.5; }
+.hop-meta-badge.stripped { background: rgba(239,68,68,0.14); color: var(--red); border: 1px solid rgba(239,68,68,0.4); }
+.hop-meta-badge.noindex { background: rgba(249,115,22,0.14); color: var(--orange); border: 1px solid rgba(249,115,22,0.4); }
+.hop-meta-badge.changed { background: rgba(234,179,8,0.12); color: var(--yellow); border: 1px solid rgba(234,179,8,0.35); }
+
 /* Hop Meta Tags */
 .hop-meta { margin-top: 10px; padding: 10px 12px; background: var(--bg3); border-radius: 6px; border: 1px solid var(--border); font-size: 12px; }
 .hop-meta-row { display: flex; align-items: flex-start; gap: 8px; padding: 4px 0; line-height: 1.4; }

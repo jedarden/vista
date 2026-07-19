@@ -3957,31 +3957,13 @@ function renderRedirects(chain, headers, headerAnalysis = null) {
   </div>`;
 
   if (chain && chain.length > 0) {
-    html += `<h2 class="section-heading">Redirect Chain</h2><div class="redirect-chain">`;
-    chain.forEach((hop, i) => {
-      const isFinal = hop.isFinal;
-      const sc = hop.statusCode || 0;
-      let sCls = 's2xx';
-      if (sc >= 300 && sc < 400) sCls = 's3xx';
-      else if (sc >= 400) sCls = 's4xx';
-
-      html += `<div class="redirect-hop" data-hop-index="${i}">
-        <div class="hop-connector">
-          <div class="hop-dot${isFinal ? ' final' : ''}"></div>
-          ${i < chain.length - 1 ? '<div class="hop-line"></div>' : ''}
-        </div>
-        <div class="hop-info">
-          <div class="hop-url"><span class="hop-status ${sCls}">${sc}</span>${escHtml(truncateUrl(hop.url))}</div>
-          ${hop.warning ? `<div class="hop-warning">&#9888; ${escHtml(hop.warning)}</div>` : ''}
-          ${hop.redirectsTo ? `<div class="hop-redirect">&#8594; ${escHtml(truncateUrl(hop.redirectsTo))}</div>` : ''}
-
-          ${hop.meta ? renderHopMeta(hop.meta, hop.metaDiff) : ''}
-
-          ${hop.metaError ? `<div class="hop-meta-error">Meta tags unavailable: ${escHtml(hop.metaError)}</div>` : ''}
-        </div>
-      </div>`;
+    html += `<h2 class="section-heading">Redirect Chain</h2>`;
+    // Delegate the visual diagram (numbered hops, arrows, status badges) to the
+    // pure redirect-diagram module so it is unit-testable. Meta-tag detail is
+    // rendered via the existing renderHopMeta helper, passed in as a callback.
+    html += buildRedirectChainDiagram(chain, {
+      renderMeta: (hop) => (hop.meta ? renderHopMeta(hop.meta, hop.metaDiff) : ''),
     });
-    html += '</div>';
 
     // Add meta tag diff legend
     html += `<div class="diff-legend">

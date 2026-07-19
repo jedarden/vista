@@ -1049,18 +1049,30 @@ html[data-theme='light'] .github-domain { color: #57606a; }
 .section-heading { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 14px; }
 .redirect-actions { display: flex; justify-content: flex-end; margin-bottom: 12px; }
 .redirect-chain { display: flex; flex-direction: column; gap: 0; margin-bottom: 28px; }
+.redirect-empty { color: var(--text2); margin-bottom: 24px; }
 .redirect-hop { display: flex; gap: 14px; align-items: flex-start; padding: 8px 0; }
-.hop-connector { display: flex; flex-direction: column; align-items: center; width: 20px; flex-shrink: 0; padding-top: 4px; }
-.hop-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--accent); background: var(--bg2); }
-.hop-dot.final { background: var(--green); border-color: var(--green); }
-.hop-line { width: 2px; flex: 1; background: var(--border); min-height: 24px; }
+.hop-connector { display: flex; flex-direction: column; align-items: center; width: 24px; flex-shrink: 0; padding-top: 2px; }
+/* Numbered hop badge (1, 2, 3, ...) in the connector column; final hop is filled green. */
+.hop-number { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--accent); background: var(--bg2); color: var(--text); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.hop-number.final { background: var(--green); border-color: var(--green); color: #fff; }
+/* Down-arrow connector between hops (omitted after the last hop). */
+.hop-arrow { color: var(--text3); font-size: 14px; line-height: 1; margin: 2px 0; text-align: center; }
 .hop-info { flex: 1; padding-bottom: 8px; }
 .hop-url { font-size: 13px; font-family: var(--font-mono); color: var(--text); word-break: break-all; margin-bottom: 4px; }
+.hop-final-tag { display: inline-block; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; margin-right: 6px; background: rgba(34,197,94,0.15); color: var(--green); vertical-align: middle; }
 .hop-redirect { font-size: 12px; color: var(--text3); margin-top: 3px; }
+.hop-arrow-inline { color: var(--accent); font-weight: 700; margin-right: 2px; }
 .hop-status { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-right: 6px; }
-.hop-status.s2xx { background: rgba(34,197,94,0.15); color: var(--green); }
-.hop-status.s3xx { background: rgba(234,179,8,0.12); color: var(--yellow); }
+/* 2xx success */
+.hop-status.s200, .hop-status.s2xx { background: rgba(34,197,94,0.15); color: var(--green); }
+/* 3xx redirects: 301/308 permanent = blue, 302/303 temporary = yellow, 307 = teal, 304 = muted */
+.hop-status.s301, .hop-status.s308 { background: rgba(91,141,238,0.16); color: var(--accent); }
+.hop-status.s302, .hop-status.s303, .hop-status.s3xx { background: rgba(234,179,8,0.14); color: var(--yellow); }
+.hop-status.s307 { background: rgba(45,212,191,0.14); color: #2dd4bf; }
+.hop-status.s304 { background: rgba(123,130,168,0.16); color: var(--text3); }
+/* client / server errors + unknown */
 .hop-status.s4xx, .hop-status.s5xx { background: rgba(239,68,68,0.12); color: var(--red); }
+.hop-status.sunk { background: rgba(123,130,168,0.16); color: var(--text3); }
 .hop-warning { font-size: 12px; color: var(--yellow); margin-top: 4px; }
 
 /* Hop Meta Tags */

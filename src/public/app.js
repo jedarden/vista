@@ -3958,11 +3958,18 @@ function renderRedirects(chain, headers, headerAnalysis = null) {
 
   if (chain && chain.length > 0) {
     html += `<h2 class="section-heading">Redirect Chain</h2>`;
+
+    // Platform-behavior banner (hop-count + 301-vs-302 caching warnings). Lives
+    // above the diagram so the most actionable platform caveats are seen first.
+    html += renderPlatformRedirectBanner(chain);
+
     // Delegate the visual diagram (numbered hops, arrows, status badges) to the
     // pure redirect-diagram module so it is unit-testable. Meta-tag detail is
     // rendered via the existing renderHopMeta helper, passed in as a callback.
+    // renderHopNote injects the in-diagram "common give-up point" marker.
     html += buildRedirectChainDiagram(chain, {
       renderMeta: (hop) => (hop.meta ? renderHopMeta(hop.meta, hop.metaDiff) : ''),
+      renderHopNote: (hop, i, c) => renderHopGiveupNote(hop, i, c),
     });
 
     // Add meta tag diff legend
@@ -3972,6 +3979,9 @@ function renderRedirects(chain, headers, headerAnalysis = null) {
       <span class="legend-item"><span class="legend-dot removed"></span> Removed</span>
       <span class="legend-item"><span class="legend-dot critical"></span> Critical (og:image, twitter:image)</span>
     </div>`;
+
+    // Platform view: which hop each social crawler lands on + the meta it sees.
+    html += renderPlatformView(chain);
   } else {
     html += `<p style="color:var(--text2);margin-bottom:24px">No redirects — direct response.</p>`;
   }

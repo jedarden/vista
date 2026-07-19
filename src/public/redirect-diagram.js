@@ -138,11 +138,15 @@ function renderMetaDiffBadges(diff) {
  * @param {object} [opts]
  * @param {function} [opts.renderMeta] - optional (hop) => HTML string to render
  *        per-hop meta-tag detail (e.g. app.js renderHopMeta). Omit to skip.
+ * @param {function} [opts.renderHopNote] - optional (hop, index, chain) => HTML
+ *        string rendered inline on a hop, used to surface platform-behavior
+ *        callouts (e.g. the common give-up marker). Omit to skip.
  * @returns {string} HTML markup for the diagram (without the section heading).
  */
 function buildRedirectChainDiagram(chain, opts) {
   opts = opts || {};
   const renderMeta = opts.renderMeta || null;
+  const renderHopNote = opts.renderHopNote || null;
 
   if (!chain || chain.length === 0) {
     return '<p class="redirect-empty">No redirects — direct response.</p>';
@@ -177,6 +181,13 @@ function buildRedirectChainDiagram(chain, opts) {
 
     if (hop.warning) {
       html += `<div class="hop-warning">&#9888; ${escHtml(hop.warning)}</div>`;
+    }
+
+    // Optional inline platform-behavior callout for this hop (e.g. the common
+    // give-up marker). Supplied by app.js via renderHopGiveupNote.
+    if (renderHopNote) {
+      const noteHtml = renderHopNote(hop, i, chain);
+      if (noteHtml) html += noteHtml;
     }
 
     // Meta-tag diff badges (stripped / noindex removed / changed summary).

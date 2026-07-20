@@ -1243,6 +1243,12 @@ body.has-results { padding-bottom: 48px; }
 
 .cropper-main { display: flex; gap: 20px; }
 .cropper-viewport { flex: 1; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; position: relative; min-height: 400px; display: flex; align-items: center; justify-content: center; }
+/* Shrink-wrap wrapper sized to the <img>'s rendered box. The SVG overlay fills
+   THIS stage (not the whole viewport), so its viewBox ("0 0 imgW imgH", meet-fit)
+   lands exactly on the image pixels. Without it the SVG filled the viewport
+   while the image was capped at max-height:600 — two different fit boxes that
+   drifted apart for square/portrait images (overlay sat off the image). (bf-4dd3) */
+.cropper-stage { position: relative; display: inline-block; max-width: 100%; line-height: 0; }
 .cropper-image { max-width: 100%; max-height: 600px; object-fit: contain; display: block; }
 .cropper-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
 .cropper-overlay rect { vector-effect: non-scaling-stroke; }

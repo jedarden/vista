@@ -3473,9 +3473,6 @@ function updateCropperOverlay() {
   const crops = [];
   const enabledPids = Array.from(cropperState.enabledPlatforms);
 
-  // Find intersection (safe zone)
-  let safeZone = { x: 0, y: 0, w: imgW, h: imgH };
-
   enabledPids.forEach(pid => {
     const crop = PLATFORM_CROPS[pid];
     if (!crop) return;
@@ -3483,14 +3480,15 @@ function updateCropperOverlay() {
     const rect = calculateCropRect(crop, imgW, imgH);
     if (rect) {
       crops.push({ pid, rect, color: CATEGORY_COLORS[crop.category] });
-
-      // Intersect with safe zone
-      safeZone.x = Math.max(safeZone.x, rect.x);
-      safeZone.y = Math.max(safeZone.y, rect.y);
-      safeZone.w = Math.min(safeZone.w, rect.x + rect.w) - safeZone.x;
-      safeZone.h = Math.min(safeZone.h, rect.y + rect.h) - safeZone.y;
     }
   });
+
+  // Find the safe zone (intersection of all enabled crop rects).
+  const safeZone = calculateSafeZone(
+    enabledPids.map(pid => PLATFORM_CROPS[pid]).filter(Boolean),
+    imgW,
+    imgH
+  );
 
   // Draw all platform crops (semi-transparent)
   crops.forEach(({ rect, color }) => {
@@ -3536,37 +3534,9 @@ function updateCropperOverlay() {
   cropperBadge.textContent = enabledPids.length;
 }
 
-function calculateCropRect(crop, imgW, imgH) {
-  const imgAR = imgW / imgH;
-  const cropAR = crop.aspect.max || crop.aspect.min;
-
-  if (crop.cropMode === 'contain') {
-    // Full image is visible
-    return { x: 0, y: 0, w: imgW, h: imgH };
-  }
-
-  if (crop.cropMode === 'cover') {
-    let cropW, cropH;
-
-    if (imgAR > cropAR) {
-      // Image is wider - crop sides
-      cropW = imgH * cropAR;
-      cropH = imgH;
-    } else {
-      // Image is taller - crop top/bottom
-      cropW = imgW;
-      cropH = imgW / cropAR;
-    }
-
-    // Center the crop
-    const x = (imgW - cropW) / 2;
-    const y = (imgH - cropH) / 2;
-
-    return { x, y, w: cropW, h: cropH };
-  }
-
-  return null;
-}
+// calculateCropRect() and calculateSafeZone() are provided by safe-zone.js
+// (loaded before app.js). Keeping the geometry there makes it unit-testable
+// under Node and fixes a coordinate-mixing bug in the old inline intersection.
 
 async function exportCropperOverlay() {
   const canvas = document.createElement('canvas');
@@ -3598,19 +3568,17 @@ async function exportCropperOverlay() {
     }
   });
 
-  // Draw safe zone
-  let safeZone = { x: 0, y: 0, w: canvas.width, h: canvas.height };
-  enabledPids.forEach(pid => {
-    const crop = PLATFORM_CROPS[pid];
-    if (!crop) return;
-    const rect = calculateCropRect(crop, canvas.width, canvas.height);
-    if (rect) {
-      safeZone.x = Math.max(safeZone.x, rect.x);
-      safeZone.y = Math.max(safeZone.y, rect.y);
-      safeZone.w = Math.min(safeZone.w, rect.x + rect.w) - safeZone.x;
-      safeZone.h = Math.min(safeZone.h, rect.y + rect.h) - safeZone.y;
-    }
-  });
+  // Draw safe zone (intersection of all enabled crop rects). Reuse the shared,
+  // unit-tested calculateSafeZone() — the same call updateCropperOverlay()
+  // makes — so the exported PNG overlay matches the on-screen one exactly.
+  // The previous inline loop here mixed a running width/height with edge
+  // coordinates (Math.min(width, x+w) - x) and under-reported the safe zone
+  // whenever the accumulated left/top offset was non-zero.
+  const safeZone = calculateSafeZone(
+    enabledPids.map(pid => PLATFORM_CROPS[pid]).filter(Boolean),
+    canvas.width,
+    canvas.height
+  );
 
   if (enabledPids.length > 0 && safeZone.w > 0 && safeZone.h > 0) {
     ctx.strokeStyle = '#ffffff';

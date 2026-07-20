@@ -293,33 +293,44 @@ function initCardContextMenu() {
   const menu = document.createElement('div');
   menu.className = 'card-context-menu hidden';
   menu.id = 'cardContextMenu';
+  menu.setAttribute('role', 'menu');
   menu.innerHTML = `
-    <div class="context-menu-item" data-action="screenshot">
-      <span class="context-menu-icon">&#128190;</span>
+    <div class="context-menu-item" role="menuitem" tabindex="-1" data-action="screenshot">
+      <span class="context-menu-icon" aria-hidden="true">&#128190;</span>
       <span class="context-menu-label">Download Screenshot</span>
       <span class="context-menu-shortcut">Click screenshot button</span>
     </div>
-    <div class="context-menu-item" data-action="edit">
-      <span class="context-menu-icon">&#9998;</span>
+    <div class="context-menu-item" role="menuitem" tabindex="-1" data-action="edit">
+      <span class="context-menu-icon" aria-hidden="true">&#9998;</span>
       <span class="context-menu-label">Edit in Editor</span>
       <span class="context-menu-shortcut">E</span>
     </div>
-    <div class="context-menu-item" data-action="rawtags">
-      <span class="context-menu-icon">&#128196;</span>
+    <div class="context-menu-item" role="menuitem" tabindex="-1" data-action="rawtags">
+      <span class="context-menu-icon" aria-hidden="true">&#128196;</span>
       <span class="context-menu-label">View Raw Tags</span>
       <span class="context-menu-shortcut">3</span>
     </div>
-    <div class="context-menu-divider"></div>
-    <div class="context-menu-item" data-action="favorite">
-      <span class="context-menu-icon">&#9733;</span>
+    <div class="context-menu-divider" role="separator"></div>
+    <div class="context-menu-item" role="menuitem" tabindex="-1" data-action="favorite">
+      <span class="context-menu-icon" aria-hidden="true">&#9733;</span>
       <span class="context-menu-label">Add to Favorites</span>
     </div>
-    <div class="context-menu-item" data-action="hide">
-      <span class="context-menu-icon">&#128065;</span>
+    <div class="context-menu-item" role="menuitem" tabindex="-1" data-action="hide">
+      <span class="context-menu-icon" aria-hidden="true">&#128065;</span>
       <span class="context-menu-label">Hide Platform</span>
     </div>
   `;
   document.body.appendChild(menu);
+
+  const getMenuItems = () => Array.from(menu.querySelectorAll('.context-menu-item'));
+  const focusMenuItem = (item) => {
+    if (item) { item.focus(); item.classList.add('focused'); }
+  };
+  const closeMenu = () => {
+    menu.classList.add('hidden');
+    contextMenuTarget = null;
+    getMenuItems().forEach(i => i.classList.remove('focused'));
+  };
 
   // Add context menu listeners to preview grid
   const previewGrid = getPreviewGrid();
@@ -339,6 +350,9 @@ function initCardContextMenu() {
     menu.style.top = y + 'px';
     menu.classList.remove('hidden');
 
+    // Move focus to first item for keyboard users (ARIA menu pattern)
+    focusMenuItem(getMenuItems()[0]);
+
     // Update favorite label based on state
     const prefs = getPlatformPrefs();
     const favoriteItem = menu.querySelector('[data-action="favorite"]');
@@ -355,8 +369,40 @@ function initCardContextMenu() {
   // Close menu on click outside
   document.addEventListener('click', (e) => {
     if (!menu.contains(e.target)) {
-      menu.classList.add('hidden');
-      contextMenuTarget = null;
+      closeMenu();
+    }
+  });
+
+  // Close menu on Escape and restore focus to the triggering card
+  menu.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      closeMenu();
+      const card = getPreviewGrid()?.querySelector(`.platform-card[data-pid="${contextMenuTarget}"]`);
+      card?.focus();
+      return;
+    }
+
+    const items = getMenuItems();
+    const currentIndex = items.indexOf(document.activeElement);
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      focusMenuItem(items[(currentIndex + 1) % items.length]);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      focusMenuItem(items[(currentIndex - 1 + items.length) % items.length]);
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      focusMenuItem(items[0]);
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      focusMenuItem(items[items.length - 1]);
+    } else if ((e.key === 'Enter' || e.key === ' ') && currentIndex >= 0) {
+      e.preventDefault();
+      const item = items[currentIndex];
+      handleContextMenuAction(item.dataset.action, contextMenuTarget);
+      closeMenu();
     }
   });
 
@@ -369,8 +415,7 @@ function initCardContextMenu() {
     if (!contextMenuTarget) return;
 
     handleContextMenuAction(action, contextMenuTarget);
-    menu.classList.add('hidden');
-    contextMenuTarget = null;
+    closeMenu();
   });
 }
 
@@ -493,11 +538,14 @@ function showQRCodeModal() {
     modal = document.createElement('div');
     modal.className = 'modal-overlay hidden';
     modal.id = 'qrModal';
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Share via QR Code');
     modal.innerHTML = `
       <div class="modal">
         <div class="modal-header">
           <h3>Share via QR Code</h3>
-          <button class="modal-close" id="qrModalClose">&times;</button>
+          <button class="modal-close" id="qrModalClose" aria-label="Close QR code modal">&times;</button>
         </div>
         <div class="modal-body qr-modal-body">
           <div id="qrCodeContainer"></div>

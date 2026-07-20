@@ -2369,6 +2369,7 @@ body.has-results { padding-bottom: 48px; }
 .codesnippet-header h3 { font-size: 20px; font-weight: 600; color: var(--text); }
 .codesnippet-actions { display: flex; gap: 10px; align-items: center; }
 .codesnippet-select { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 12px; font-size: 14px; color: var(--text); outline: none; }
+.codesnippet-select:focus { border-color: var(--accent); }
 .codesnippet-body { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
 .codesnippet-code { margin: 0; padding: 16px; overflow-x: auto; font-family: var(--font-mono); font-size: 13px; line-height: 1.6; color: #e6edf3; background: #0d1117; }
 .codesnippet-code code { color: inherit; }
@@ -2442,6 +2443,7 @@ body.has-results { padding-bottom: 48px; }
 .command-palette-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 1000; display: flex; align-items: flex-start; justify-content: center; padding-top: 15vh; }
 .command-palette { width: 90%; max-width: 550px; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow); overflow: hidden; }
 .command-palette-input { width: 100%; padding: 16px 20px; font-size: 16px; background: var(--bg2); border: none; border-bottom: 1px solid var(--border); color: var(--text); outline: none; }
+.command-palette-input:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .command-palette-input::placeholder { color: var(--text3); }
 .command-palette-results { max-height: 300px; overflow-y: auto; }
 .command-palette-category { padding: 8px 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text3); }
@@ -2664,6 +2666,15 @@ body.has-results { padding-bottom: 48px; }
 }
 .context-menu-item.favorited {
   color: var(--green);
+}
+/* Keyboard-focused menu item (JS-managed fallback so the focus ring is always
+   visible, even when the menu was opened with the pointer and :focus-visible
+   does not match). The element also receives the global :focus-visible outline. */
+.context-menu-item.focused,
+.context-menu-item:focus-visible {
+  background: var(--bg3);
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
 }
 .context-menu-item.favorited:hover {
   background: var(--green);
@@ -3094,4 +3105,41 @@ body.has-results { padding-bottom: 48px; }
   --frame-divider: #e0e0e0;
   --frame-input-bg: #ffffff;
   --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* ── Keyboard focus ring for form controls (bf-56pp) ──
+   Several inputs/selects/textareas set `outline: none` on their base rule and
+   signal focus with a border-color change. That base `outline: none` has equal
+   specificity (0,1,0) to the global `:focus-visible` rule above, and because it
+   appears later in source order it wins — silently removing the keyboard focus
+   ring. Re-declare the outline here at (0,2,0) so keyboard users always see a
+   clear focus affordance. Placed last so it also wins the source-order tie
+   against the `.editable-*:focus { outline: none }` rules. The border-color
+   change still applies on top, so pointer focus keeps its subtle highlight
+   while keyboard focus gets a high-contrast ring. */
+#urlInput:focus-visible,
+#htmlInput:focus-visible,
+#baseUrlInput:focus-visible,
+.paste-meta input:focus-visible,
+.metadata-filter input:focus-visible,
+.compare-form input:focus-visible,
+.sitemap-form input:focus-visible,
+.oggen-select:focus-visible,
+.oggen-select-small:focus-visible,
+.oggen-text-input:focus-visible,
+.oggen-number-input:focus-visible,
+.oggen-color-input:focus-visible,
+.oggen-file-input:focus-visible,
+.editor-input:focus-visible,
+.editor-textarea:focus-visible,
+.editor-select:focus-visible,
+.codesnippet-select:focus-visible,
+.cachehub-input:focus-visible,
+.badge-style-select:focus-visible,
+.heatmap-select:focus-visible,
+.feedback-select:focus-visible,
+.editable-title:focus-visible,
+.editable-desc:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }

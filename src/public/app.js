@@ -1491,6 +1491,25 @@ function getSkeletonHtml(pid) {
 }
 
 // Render skeleton cards for all platforms
+/**
+ * Make a platform-group header an accessible disclosure toggle.
+ * Adds role="button" + tabindex (keyboard activation is handled by the
+ * global [role="button"] Enter/Space listener) and keeps aria-expanded in
+ * sync with the group's `collapsed` class. Idempotent: re-renders refresh
+ * role/aria-expanded without stacking duplicate click listeners.
+ */
+function setupGroupHeader(header, groupEl) {
+  header.setAttribute('role', 'button');
+  header.tabIndex = 0;
+  header.setAttribute('aria-expanded', String(!groupEl.classList.contains('collapsed')));
+  if (header.dataset.a11yBound === '1') return;
+  header.dataset.a11yBound = '1';
+  header.addEventListener('click', () => {
+    groupEl.classList.toggle('collapsed');
+    header.setAttribute('aria-expanded', String(!groupEl.classList.contains('collapsed')));
+  });
+}
+
 function renderSkeletons() {
   previewGrid.innerHTML = '';
   let globalIndex = 0;
@@ -1508,9 +1527,7 @@ function renderSkeletons() {
       <span class="group-title">${escHtml(group.title)}</span>
       <span class="group-subtitle">Loading...</span>
     `;
-    header.addEventListener('click', () => {
-      groupEl.classList.toggle('collapsed');
-    });
+    setupGroupHeader(header, groupEl);
     groupEl.appendChild(header);
 
     const row = document.createElement('div');
@@ -1574,9 +1591,7 @@ function renderPreviews(data) {
       <span class="group-title">${escHtml(group.title)}</span>
       <span class="group-subtitle">${gPassing} &#10003; ${gWarn > 0 ? gWarn + ' &#9888; ' : ''}${gFail > 0 ? gFail + ' &#10007;' : ''}</span>
     `;
-    header.addEventListener('click', () => {
-      groupEl.classList.toggle('collapsed');
-    });
+    setupGroupHeader(header, groupEl);
     groupEl.appendChild(header);
 
     const row = document.createElement('div');
@@ -1643,9 +1658,7 @@ function renderTextPreviewsOnly(data) {
         <span class="group-title">${escHtml(group.title)}</span>
         <span class="group-subtitle">${gPassing} &#10003; ${gWarn > 0 ? gWarn + ' &#9888; ' : ''}${gFail > 0 ? gFail + ' &#10007;' : ''}</span>
       `;
-      header.addEventListener('click', () => {
-        groupEl.classList.toggle('collapsed');
-      });
+      setupGroupHeader(header, groupEl);
     } else {
       // Fallback: create new group structure (shouldn't happen with proper skeleton flow)
       groupEl = document.createElement('div');
@@ -1666,9 +1679,7 @@ function renderTextPreviewsOnly(data) {
         <span class="group-title">${escHtml(group.title)}</span>
         <span class="group-subtitle">${gPassing} &#10003; ${gWarn > 0 ? gWarn + ' &#9888; ' : ''}${gFail > 0 ? gFail + ' &#10007;' : ''}</span>
       `;
-      header.addEventListener('click', () => {
-        groupEl.classList.toggle('collapsed');
-      });
+      setupGroupHeader(header, groupEl);
       groupEl.appendChild(header);
 
       row = document.createElement('div');
@@ -1742,6 +1753,11 @@ function buildTextOnlyCard(pid, scoreData, data, animDelay, groupId) {
   card.dataset.loadingImages = 'true';
   card.tabIndex = -1;
   card.draggable = true;
+  // Custom focusable widget (roving tabindex + arrow/Enter keys). role="group"
+  // labels the container without forbidding its nested buttons the way
+  // role="button" would.
+  card.setAttribute('role', 'group');
+  card.setAttribute('aria-label', `${PLATFORM_NAMES[pid] || pid} preview card`);
 
   // Initialize context state
   if (!cardContextState[pid]) {
@@ -1758,14 +1774,14 @@ function buildTextOnlyCard(pid, scoreData, data, animDelay, groupId) {
     <span class="card-platform-name">${escHtml(PLATFORM_NAMES[pid] || pid)}</span>
     <div class="card-header-controls">
       ${supportsTheme ? `
-        <button class="card-theme-toggle" data-pid="${pid}" title="Toggle theme" disabled>
+        <button class="card-theme-toggle" data-pid="${pid}" title="Toggle theme" aria-label="Toggle light/dark theme" disabled>
           <span class="theme-icon">${cardContextState[pid].theme === 'dark' ? '🌙' : '☀️'}</span>
         </button>
       ` : ''}
-      <button class="card-screenshot-btn" data-pid="${pid}" title="Download screenshot" disabled>
+      <button class="card-screenshot-btn" data-pid="${pid}" title="Download screenshot" aria-label="Download screenshot" disabled>
         <span>&#128190;</span>
       </button>
-      <button class="card-context-toggle" data-pid="${pid}" title="Toggle context view" disabled>
+      <button class="card-context-toggle" data-pid="${pid}" title="Toggle context view" aria-label="Toggle context view" disabled>
         <span class="context-icon">🃏</span>
         <span class="context-label">Loading...</span>
       </button>
@@ -1905,6 +1921,11 @@ function buildCard(pid, scoreData, data, animDelay, groupId) {
   card.dataset.groupId = groupId;
   card.tabIndex = -1; // Make focusable but not tab-focused by default
   card.draggable = true; // Enable drag and drop
+  // Custom focusable widget (roving tabindex + arrow/Enter keys). role="group"
+  // labels the container without forbidding its nested buttons the way
+  // role="button" would.
+  card.setAttribute('role', 'group');
+  card.setAttribute('aria-label', `${PLATFORM_NAMES[pid] || pid} preview card`);
 
   // Initialize context state for this card
   if (!cardContextState[pid]) {
@@ -1921,14 +1942,14 @@ function buildCard(pid, scoreData, data, animDelay, groupId) {
     <span class="card-platform-name">${escHtml(PLATFORM_NAMES[pid] || pid)}</span>
     <div class="card-header-controls">
       ${supportsTheme ? `
-        <button class="card-theme-toggle" data-pid="${pid}" title="Toggle theme">
+        <button class="card-theme-toggle" data-pid="${pid}" title="Toggle theme" aria-label="Toggle light/dark theme">
           <span class="theme-icon">${cardContextState[pid].theme === 'dark' ? '🌙' : '☀️'}</span>
         </button>
       ` : ''}
-      <button class="card-screenshot-btn" data-pid="${pid}" title="Download screenshot">
+      <button class="card-screenshot-btn" data-pid="${pid}" title="Download screenshot" aria-label="Download screenshot">
         <span>&#128190;</span>
       </button>
-      <button class="card-context-toggle" data-pid="${pid}" title="Toggle context view">
+      <button class="card-context-toggle" data-pid="${pid}" title="Toggle context view" aria-label="Toggle context view">
         <span class="context-icon">${cardContextState[pid].context ? '🖼️' : '🃏'}</span>
         <span class="context-label">${cardContextState[pid].context ? 'In context' : 'Card only'}</span>
       </button>
@@ -3345,7 +3366,7 @@ function renderCropperControls() {
     const color = CATEGORY_COLORS[group.id];
     html += `<div class="cropper-group" style="--group-color:${color}">`;
     html += `<div class="cropper-group-header">`;
-    html += `<input type="checkbox" class="cropper-group-toggle" data-group="${group.id}" checked />`;
+    html += `<input type="checkbox" class="cropper-group-toggle" data-group="${group.id}" aria-label="Toggle ${escHtml(group.label)} group" checked />`;
     html += `<span class="cropper-group-title">${escHtml(group.label)}</span>`;
     html += `<span class="cropper-group-count">${group.platforms.length}</span>`;
     html += '</div>';
@@ -3872,7 +3893,7 @@ function renderMetadataRow(row, idx) {
     <td class="col-value">${valueDisplay}</td>
     <td class="col-source"><span class="source-badge ${sourceClass}">${sourceLabel}</span></td>
     <td class="col-copy">
-      ${hasValue ? `<button class="copy-btn" onclick="copyMetadataValue('${escHtml(String(row.value)).replace(/'/g, "\\'")}')" title="Copy value">&#128203;</button>` : ''}
+      ${hasValue ? `<button class="copy-btn" onclick="copyMetadataValue('${escHtml(String(row.value)).replace(/'/g, "\\'")}')" title="Copy value" aria-label="Copy value to clipboard">&#128203;</button>` : ''}
     </td>
   </tr>`;
 }
@@ -6006,7 +6027,7 @@ function renderCharGauges(fieldId, text, fieldType) {
   let html = `<div class="char-gauges">`;
 
   // Summary line (always visible, clickable to expand/collapse all)
-  html += `<div class="char-gauge-summary" onclick="toggleAllCharGauges('${fieldId}')" data-field="${fieldId}">`;
+  html += `<div class="char-gauge-summary" role="button" tabindex="0" aria-expanded="true" aria-label="Toggle all character gauge groups" onclick="toggleAllCharGauges('${fieldId}')" data-field="${fieldId}">`;
   const statusEmoji = overCount > 0 ? '🔴' : warnCount > 0 ? '🟡' : '🟢';
   html += `<span class="summary-status">${statusEmoji}</span>`;
   html += `<span class="summary-text">${fieldType === 'title' ? 'Title' : 'Description'}: OK on ${okCount}/${totalCount} platforms</span>`;
@@ -6019,7 +6040,7 @@ function renderCharGauges(fieldId, text, fieldType) {
 
   PLATFORM_GROUPS.forEach(group => {
     html += `<div class="char-gauge-group ${group.collapsed ? 'collapsed' : ''}" data-group="${group.id}">`;
-    html += `<div class="char-gauge-group-header" onclick="toggleCharGaugeGroup('${group.id}')">`;
+    html += `<div class="char-gauge-group-header" role="button" tabindex="0" aria-expanded="${group.collapsed ? 'false' : 'true'}" aria-label="Toggle ${escHtml(group.title)} gauge group" onclick="toggleCharGaugeGroup('${group.id}')">`;
     html += `<span class="group-chevron">${group.collapsed ? '&#9654;' : '&#9660;'}</span>`;
     html += `<span class="group-title">${group.title}</span>`;
 
@@ -6084,10 +6105,13 @@ function toggleCharGaugeGroup(groupId) {
   const groupEl = document.querySelector(`.char-gauge-group[data-group="${groupId}"]`);
   if (groupEl) {
     groupEl.classList.toggle('collapsed');
+    const collapsed = groupEl.classList.contains('collapsed');
     const chevron = groupEl.querySelector('.group-chevron');
     if (chevron) {
-      chevron.innerHTML = groupEl.classList.contains('collapsed') ? '&#9654;' : '&#9660;';
+      chevron.innerHTML = collapsed ? '&#9654;' : '&#9660;';
     }
+    const header = groupEl.querySelector('.char-gauge-group-header');
+    if (header) header.setAttribute('aria-expanded', String(!collapsed));
   }
 }
 
@@ -6114,11 +6138,28 @@ function toggleAllCharGauges(fieldId) {
       const chevron = group.querySelector('.group-chevron');
       if (chevron) chevron.innerHTML = '&#9654;';
     }
+    const header = group.querySelector('.char-gauge-group-header');
+    if (header) header.setAttribute('aria-expanded', String(allCollapsed));
   });
+
+  const summary = container.querySelector('.char-gauge-summary');
+  if (summary) summary.setAttribute('aria-expanded', String(allCollapsed));
 }
 
 // Make toggleAllCharGauges globally accessible
 window.toggleAllCharGauges = toggleAllCharGauges;
+
+// Keyboard activation for role="button" elements built from <div>/<span>
+// (e.g. char-gauge toggles). Native <button>/<a> handle their own keys.
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const el = e.target.closest('[role="button"]');
+  if (!el) return;
+  const tag = el.tagName;
+  if (tag === 'BUTTON' || tag === 'A' || tag === 'INPUT' || tag === 'TEXTAREA') return;
+  e.preventDefault();
+  el.click();
+});
 
 function handleEditorInput(e) {
   const el = e.target;
@@ -7025,8 +7066,9 @@ function initTemplates() {
   if (!grid) return;
 
   grid.innerHTML = TEMPLATES.map(tpl => `
-    <div class="template-card" data-template="${tpl.id}">
-      <div class="template-icon">${tpl.icon}</div>
+    <div class="template-card" data-template="${tpl.id}" role="button" tabindex="0"
+         aria-label="Apply ${escHtml(tpl.title)} template">
+      <div class="template-icon" aria-hidden="true">${tpl.icon}</div>
       <div class="template-title">${escHtml(tpl.title)}</div>
       <div class="template-desc">${escHtml(tpl.desc)}</div>
       <div class="template-tags">
@@ -7157,7 +7199,9 @@ function setColumnLayout(count) {
 
 function updateColumnLayoutUI() {
   document.querySelectorAll('.layout-btn').forEach(btn => {
-    btn.classList.toggle('active', parseInt(btn.dataset.columns) === platformPrefs.columnCount);
+    const isActive = parseInt(btn.dataset.columns) === platformPrefs.columnCount;
+    btn.classList.toggle('active', isActive);
+    btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
   });
 }
 
@@ -7195,7 +7239,7 @@ function updateFavoritesList() {
     <div class="platform-item">
       <span class="platform-item-icon">${PLATFORM_ICONS[pid] || '🌐'}</span>
       <span class="platform-item-name">${escHtml(PLATFORM_NAMES[pid] || pid)}</span>
-      <button class="platform-item-remove" data-pid="${pid}">&times;</button>
+      <button class="platform-item-remove" data-pid="${pid}" aria-label="Remove ${escHtml(PLATFORM_NAMES[pid] || pid)}">&times;</button>
     </div>
   `).join('');
 
@@ -7217,7 +7261,7 @@ function updateHiddenList() {
     <div class="platform-item">
       <span class="platform-item-icon">${PLATFORM_ICONS[pid] || '🌐'}</span>
       <span class="platform-item-name">${escHtml(PLATFORM_NAMES[pid] || pid)}</span>
-      <button class="platform-item-remove" data-pid="${pid}">&times;</button>
+      <button class="platform-item-remove" data-pid="${pid}" aria-label="Remove ${escHtml(PLATFORM_NAMES[pid] || pid)}">&times;</button>
     </div>
   `).join('');
 
@@ -7318,7 +7362,7 @@ function showWhatIfPanel() {
     <div class="what-if-header">
       <h4>What If Mode</h4>
       <p class="what-if-subtitle">Toggle tags off to see fallback behavior</p>
-      <button class="what-if-close" id="whatIfClose">&times;</button>
+      <button class="what-if-close" id="whatIfClose" aria-label="Close What If mode">&times;</button>
     </div>
     <div class="what-if-body">
       <div class="what-if-section">
@@ -7914,9 +7958,13 @@ function initCommandPalette() {
   overlay.className = 'command-palette-overlay hidden';
   overlay.id = 'commandPalette';
   overlay.innerHTML = `
-    <div class="command-palette">
-      <input type="text" class="command-palette-input" id="commandInput" placeholder="Type a command or search..." autocomplete="off" />
-      <div class="command-palette-results" id="commandResults"></div>
+    <div class="command-palette" role="dialog" aria-modal="true" aria-label="Command palette">
+      <input type="text" class="command-palette-input" id="commandInput"
+        role="combobox" aria-expanded="true" aria-autocomplete="list"
+        aria-controls="commandResults" aria-activedescendant=""
+        aria-label="Search commands"
+        placeholder="Type a command or search..." autocomplete="off" />
+      <div class="command-palette-results" id="commandResults" role="listbox" aria-label="Commands"></div>
     </div>
   `;
   document.body.appendChild(overlay);
@@ -7982,9 +8030,12 @@ function renderCommands(commands) {
     html += `<div class="command-palette-category">${escHtml(category)}</div>`;
     cmds.forEach(cmd => {
       const isRecent = recentCommands.includes(cmd.id);
+      const selected = index === commandPaletteSelectedIndex;
       html += `
-        <div class="command-palette-item ${index === commandPaletteSelectedIndex ? 'selected' : ''} ${isRecent ? 'recent' : ''}" data-cmd="${cmd.id}">
-          <span class="command-palette-item-icon">${cmd.icon}</span>
+        <div class="command-palette-item ${selected ? 'selected' : ''} ${isRecent ? 'recent' : ''}"
+          role="option" id="cmd-opt-${index}" aria-selected="${selected ? 'true' : 'false'}"
+          data-cmd="${cmd.id}">
+          <span class="command-palette-item-icon" aria-hidden="true">${cmd.icon}</span>
           <span class="command-palette-item-label">${escHtml(cmd.label)}</span>
           ${cmd.shortcut ? `<span class="command-palette-item-shortcut">${cmd.shortcut}</span>` : ''}
         </div>
@@ -7999,6 +8050,17 @@ function renderCommands(commands) {
   results.querySelectorAll('.command-palette-item').forEach(item => {
     item.addEventListener('click', () => executeCommand(item.dataset.cmd));
   });
+
+  // Point the combobox's aria-activedescendant at the highlighted option so
+  // screen readers announce it as the user arrows through the list.
+  updateCommandActiveDescendant();
+}
+
+function updateCommandActiveDescendant() {
+  const input = document.getElementById('commandInput');
+  if (!input) return;
+  const opt = document.getElementById(`cmd-opt-${commandPaletteSelectedIndex}`);
+  input.setAttribute('aria-activedescendant', opt ? opt.id : '');
 }
 
 function filterCommands(e) {
@@ -8037,8 +8099,11 @@ function handleCommandKeydown(e) {
   }
 
   items.forEach((item, i) => {
-    item.classList.toggle('selected', i === commandPaletteSelectedIndex);
+    const isSel = i === commandPaletteSelectedIndex;
+    item.classList.toggle('selected', isSel);
+    item.setAttribute('aria-selected', isSel ? 'true' : 'false');
   });
+  updateCommandActiveDescendant();
 }
 
 function executeCommand(id) {
@@ -8448,26 +8513,28 @@ function initContextMenu() {
     contextMenu = document.createElement('div');
     contextMenu.id = 'cardContextMenu';
     contextMenu.className = 'card-context-menu hidden';
+    contextMenu.setAttribute('role', 'menu');
+    contextMenu.setAttribute('aria-label', 'Platform card actions');
     contextMenu.innerHTML = `
-      <div class="context-menu-item" data-action="copy-screenshot">
-        <span class="context-menu-icon">&#128190;</span>
+      <div class="context-menu-item" role="menuitem" tabindex="-1" data-action="copy-screenshot">
+        <span class="context-menu-icon" aria-hidden="true">&#128190;</span>
         <span>Copy screenshot</span>
       </div>
-      <div class="context-menu-item" data-action="open-editor">
-        <span class="context-menu-icon">&#9998;</span>
+      <div class="context-menu-item" role="menuitem" tabindex="-1" data-action="open-editor">
+        <span class="context-menu-icon" aria-hidden="true">&#9998;</span>
         <span>Open in editor</span>
       </div>
-      <div class="context-menu-item" data-action="view-raw">
-        <span class="context-menu-icon">&#128196;</span>
+      <div class="context-menu-item" role="menuitem" tabindex="-1" data-action="view-raw">
+        <span class="context-menu-icon" aria-hidden="true">&#128196;</span>
         <span>View raw tags</span>
       </div>
-      <div class="context-menu-divider"></div>
-      <div class="context-menu-item" data-action="toggle-hidden">
-        <span class="context-menu-icon">&#128065;</span>
+      <div class="context-menu-divider" role="separator"></div>
+      <div class="context-menu-item" role="menuitem" tabindex="-1" data-action="toggle-hidden">
+        <span class="context-menu-icon" aria-hidden="true">&#128065;</span>
         <span>Hide this platform</span>
       </div>
-      <div class="context-menu-item" data-action="toggle-favorite">
-        <span class="context-menu-icon">&#11088;</span>
+      <div class="context-menu-item" role="menuitem" tabindex="-1" data-action="toggle-favorite">
+        <span class="context-menu-icon" aria-hidden="true">&#11088;</span>
         <span>Star / unstar</span>
       </div>
     `;

@@ -6472,6 +6472,8 @@ function generateSvelteKitSnippet(meta) {
   <meta name="twitter:description" content={meta.ogDescription} />
   <meta name="twitter:image" content={meta.ogImage} />
 </svelte:head>
+
+<slot />`;
 }
 
 function generateGatsbySnippet(meta) {
@@ -6604,9 +6606,6 @@ twitter:
 <meta name="twitter:title" content="{{ page.twitter.title | default: page.og.title | default: page.title | default: site.title }}" />
 <meta name="twitter:description" content="{{ page.twitter.description | default: page.og.description | default: page.description | default: site.description }}" />
 <meta name="twitter:image" content="{{ page.image | default: site.image | absolute_url }}" />`;
-}
-
-<slot />`;
 }
 
 function copyCodeSnippet() {

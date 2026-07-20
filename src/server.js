@@ -1708,28 +1708,35 @@ async function buildMetaPreviewResult({ html, baseUrl, redirectChain, responseHe
       },
       favicon: meta.favicon || null,
       themeColor: meta.themeColor || null,
+      // rawTags (the tags a crawler sees in the raw HTML, pre-JS) are needed by
+      // verifyClientSideTags() in app.js to diff against the post-JS DOM. The
+      // full /api/preview endpoint carries these; the progressive /meta endpoint
+      // must too, or the client-side-only tag detector never has server-side
+      // data to compare against and silently no-ops. (bf-4p8p)
+      rawTags: meta.rawTags || [],
     },
     // Scoring (without image dimension data)
     scoring: {
       overall: scoring.overall,
       summary: scoring.summary,
       gradeCounts: scoring.gradeCounts,
-      // Include individual platform scores for quick inspection
-      platformScores: Object.fromEntries(
-        Object.entries(scoring.scores).map(([id, result]) => [
-          id,
-          {
-            grade: result.grade,
-            score: result.score,
-            issues: result.issues,
-            fixes: result.fixes,
-          },
-        ])
-      ),
+      // Per-platform scores keyed as `scores` — the shape scoreAll() returns
+      // and the full /api/preview endpoint emits. The client reads
+      // data.scoring.scores[pid] in a dozen places (renderTextPreviewsOnly,
+      // renderPreviews, applySmartOrdering, …); an earlier `platformScores` key
+      // was never read by anything, so every read returned undefined and threw
+      // inside renderTextPreviewsOnly — aborting progressiveLoad before
+      // verifyClientSideTags() could run and leaving the JS-injection detector
+      // unreachable. (bf-4p8p)
+      scores: scoring.scores,
     },
     // Text-based card previews
     previews,
     redirectChain,
+    // Raw HTML (capped, same as /api/preview) so verifyClientSideTags() can
+    // render it in a hidden iframe, execute the page's JS, and diff the
+    // resulting DOM meta tags against rawTags above. (bf-4p8p)
+    html: html.slice(0, 500 * 1024),
   };
 }
 

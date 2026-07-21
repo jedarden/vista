@@ -1,5 +1,24 @@
 # Bead bf-4bw: Verify vista deployment on apexalgo-iad
 
+**Date (attempt 5):** 2026-07-21  ·  **Result: ⚠️ STILL PARTIAL — 3/5 pass; 2 fail, blockers UNCHANGED across attempts 1–4. Bead left open.**
+
+Re-verified live. No operator remediation has landed. Same verdict, same two root causes. Two new environment data points (neither changes the access posture — still read-only to both clusters where the blockers live):
+
+- **`declarative-config` is now cloned locally** (`/home/coding/declarative-config`, origin `github.com/jedarden/declarative-config`, branch `main`). Confirmed the GitOps source-of-truth pin directly: `k8s/apexalgo-iad/vista/deployment.yml:25 → image: ronaldraygun/vista:1.0.5` — the manifest itself points at an image that 404s on DockerHub. A pushable repo exists, but repointing it is (a) a production GitOps change needing operator sign-off and (b) insufficient alone — ArgoCD cannot sync it while blocker 1 holds.
+- **`iad-acb.kubeconfig` is now present** in `~/.kube/`. It is **another read-only kubectl-proxy** (`server=http://traefik-iad-acb:8001`, empty user — same `devpod-observer` pattern, undocumented in CLAUDE.md). It is *not* a write path to apexalgo-iad or ardenone-manager. With `ardenone-manager.kubeconfig` still absent, there remains **no write access to either cluster where the blockers live.**
+
+| # | Criterion | Verdict | Fresh evidence (attempt 5) |
+|---|-----------|---------|----------------------------|
+| 1 | ArgoCD `vista` Synced | ❌ FAIL | App CR `sync=Unknown`, `health=Healthy`, `op=Failed`. ComparisonError/UnknownError: `x509: certificate signed by unknown authority` reaching `hcp-99476ebb-…spot.rackspace.com/version?timeout=32s`. Controller cannot reach apexalgo-iad. |
+| 2 | Deployment pods Running | ❌ FAIL | `vista-5d5f9dc954-mrksg` 0/1 `ImagePullBackOff` (wants `ronaldraygun/vista:latest`, age 13h); `vista-7d87bd66df-g6tvh` 1/1 Running (`ghcr.io/jedarden/vista:1.0.0`, age 9h). Deploy 1/2 ready; `Progressing=False` (timed out). Live template image = `ronaldraygun/vista:latest`. |
+| 3 | Service via cluster-internal DNS | ✅ PASS | `svc/vista` ClusterIP `10.21.64.133:3000` (`vista.vista.svc.cluster.local`); backed by Running pod `10.20.92.160:3000`. |
+| 4 | IngressRoute working | ✅ PASS | `vista` IngressRoute (2026-06-03) → `svc/vista:3000`; stale dup `vista-ingressroute` (2026-03-15) still present. |
+| 5 | vista.jedarden.com responds | ✅ PASS | `GET https://vista.jedarden.com/` → **HTTP 200**, 36274 B, `<title>VISTA — Visual Inspector of Social Tags &amp; Attributes</title>`, markers Inspect/Paste/Compare/Sitemap present. |
+
+**Bottom line:** byte-for-byte identical to attempts 1–4. Both failing criteria need operator/infra action (restore ArgoCD→apexalgo-iad trust/CA in the cluster registration on ardenone-manager; repoint the image to a pullable registry — GHCR carries `1.0.0`…`1.0.5`,`latest`) that read-only verification cannot perform. **Bead left open.**
+
+---
+
 **Date (attempt 4):** 2026-07-21  ·  **Result: ⚠️ STILL PARTIAL — 3/5 criteria pass; 2 fail, blockers UNCHANGED since attempts 1–3. Bead left open.**
 
 ## Attempt-4 verification snapshot (2026-07-21 — UNCHANGED)

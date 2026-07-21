@@ -110,3 +110,73 @@ The repeated finding across those attempts is fully captured above. Notable prog
   corrected here.
 - The x509 cluster-connectivity blocker has been byte-for-byte identical across every attempt;
   no operator remediation landed between attempts 1 and 49.
+
+---
+
+## Attempt 50 (fresh re-verification + new surgical findings)
+
+Re-verified live state on 2026-07-21 — **unchanged**, still PARTIAL **3/5**:
+
+- `vista-5d5f9dc954-mrksg` 0/1 `ImagePullBackOff` (17h), `vista-7d87bd66df-g6tvh` 1/1 Running (13h, legacy RS).
+- Deployment `.spec.template` still wants `ronaldraygun/vista:latest`; `Progressing=False`. `b3144ab` (GHCR fix) still never synced down.
+- vista.jedarden.com still serves HTTP 200 with correct VISTA content (criteria 3–5 hold).
+
+This attempt hunted specifically for a **self-service fix path that prior attempts hadn't ruled out**, and
+produced three genuinely new findings that make the operator handoff surgical:
+
+### NEW 1 — The apexalgo-iad cluster registration is NOT GitOps-managed (no repo self-service fix)
+
+Searched `jedarden/declarative-config` for ArgoCD cluster-registration Secrets
+(`argocd.argoproj.io/secret-type: cluster`). The only GitOps-managed cluster secrets are:
+
+```
+k8s/rs-manager/argocd/ord-devimprint-cluster-externalsecret.yml
+k8s/rs-manager/argocd/iad-kalshi-cluster-externalsecret.yml
+```
+
+**There is NO `cluster-apexalgo-iad-*` manifest anywhere in the repo.** The apexalgo-iad registration was
+created manually in-cluster (via `argocd cluster add`) and lives only as a live Secret. So even though I
+can push to declarative-config, there is **no manifest change I can make that would fix the CA/trust
+bundle** — the fix must touch the live in-cluster Secret directly. This definitively closes the "could a
+repo push fix it?" question that prior attempts had left open.
+
+### NEW 2 — Exact target Secret for the operator (the one apps actually target)
+
+The apexalgo-iad ApplicationSet targets `destination.server: https://hcp-99476ebb-4133-4a21-ac6a-6e2bdf6794c0.spot.rackspace.com`.
+Two cluster-registration Secrets exist in ns `argocd` on ardenone-manager (read via RO proxy, names only):
+
+```
+cluster-apexalgo-iad                                                            (113d, by-name registration)
+cluster-hcp-99476ebb-4133-4a21-ac6a-6e2bdf6794c0.spot.rackspace.com-3689407595   (110d, by-server-URL — the one the appset matches)
+```
+
+The HCP-named Secret is the one ArgoCD resolves for the vista appset. The by-name `cluster-apexalgo-iad`
+is a **duplicate** (3 days older) and the pair should be reconciled. Reading the Secret *data* is Forbidden
+to `devpod-observer` (`cannot get resource "secrets"`), so I could not inspect whether `insecureSkipVerify`
+is set or whether a CA bundle is present/mismatched — but the symptom (x509: unknown authority) means the
+config lacks a trusted CA for the current HCP cert.
+
+### NEW 3 — Documented ArgoCD RO proxy hostname no longer resolves
+
+`argocd-ro-ardenone-manager-ts.ardenone.com` (documented in CLAUDE.md) returns DNS `no resolution` and
+`curl` HTTP `000` across retries. `traefik-ardenone-manager.tail1b1987.ts.net` still resolves (100.101.205.34),
+so the cluster RO kubectl path works — only the ArgoCD read-only API proxy endpoint appears to have moved/
+been removed. Minor, but the CLAUDE.md pointer is now stale.
+
+### Updated operator remediation (copy-pasteable)
+
+On ardenone-manager (needs the missing `/home/coding/.kube/ardenone-manager.kubeconfig`, or `argocd` CLI
+login), in ns `argocd`:
+
+1. Fix the x509 trust on the HCP-named cluster Secret (pick one):
+   - `argocd cluster set cluster-hcp-99476ebb-4133-4a21-ac6a-6e2bdf6794c0.spot.rackspace.com-3689407595 --insecure-skip-server-verification` (quickest unblock), **or**
+   - patch the Secret's `config` to embed the correct Rackspace HCP CA bundle under `tlsClientConfig.caData`.
+2. Reconcile the duplicate: remove whichever of `cluster-apexalgo-iad` vs the HCP-named Secret is stale (keep one registration per endpoint).
+3. `argocd app sync vista-ns-apexalgo-iad` — no manifest change needed; `b3144ab` already pins verified-pullable `ghcr.io/jedarden/vista:1.0.5`. This clears criteria 1 + 2.
+
+### Verdict
+
+Verification is **complete and accurate**; the underlying deployment is **not** healthy. Criteria 1 + 2
+remain blocked on operator write access to the `argocd` ns on ardenone-manager, which this box does not
+have (no ardenone-manager kubeconfig on disk; secret reads Forbidden; cluster registration not in GitOps).
+**Bead left open.**

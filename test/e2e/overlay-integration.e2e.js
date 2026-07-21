@@ -506,6 +506,115 @@ async function main() {
     approx(single.safeAttr.w, fbExp.w, 1e-2) && approx(single.safeAttr.h, fbExp.h, 1e-2),
     `svg=(${single.safeAttr.x.toFixed(2)},${single.safeAttr.y.toFixed(2)} ${single.safeAttr.w.toFixed(2)}×${single.safeAttr.h.toFixed(2)}) expected=(${fbExp.x.toFixed(2)},${fbExp.y.toFixed(2)} ${fbExp.w.toFixed(2)}×${fbExp.h.toFixed(2)})`);
 
+  // ── Per-platform toggle UI (bf-2hi) ──────────────────────────────────────
+  // Prior assertions set cropperState.enabledPlatforms MANUALLY; this section
+  // drives the real checkboxes that renderCropperControls() builds into
+  // #cropperControls and confirms that toggling one shows/hides its overlay
+  // rect and that each group header stays in sync with its children
+  // (checked / indeterminate / unchecked).
+  console.log('\nPer-platform toggle UI (cropperControls checkboxes):');
+  await page.evaluate((imgUrl) => {
+    initCropper({ meta: { og: { image: imgUrl } }, imageProbe: null });
+  }, `http://localhost:${PORT}/fixtures/og-1200x630.png`);
+  // Wait for onload → renderCropperControls + updateCropperOverlay.
+  await page.waitForFunction(() => {
+    return document.querySelectorAll('.cropper-platform-toggle input').length === 31 &&
+           document.getElementById('cropperOverlay').querySelector('.safe-zone-rect');
+  }, { timeout: 4000 });
+
+  const SOCIAL = ['google','facebook','twitter','linkedin','reddit','mastodon','bluesky','threads','tumblr','pinterest'];
+
+  const toggleInit = await page.evaluate(() => {
+    const svg = document.getElementById('cropperOverlay');
+    return {
+      cropRects: svg.querySelectorAll('rect:not(.safe-zone-rect)').length,
+      platformCbs: document.querySelectorAll('.cropper-platform-toggle input').length,
+      groupCbs: document.querySelectorAll('.cropper-group-toggle').length,
+    };
+  });
+  check('toggle UI renders 31 platform checkboxes grouped under 6 headers',
+    toggleInit.platformCbs === 31 && toggleInit.groupCbs === 6,
+    `${toggleInit.platformCbs} platforms, ${toggleInit.groupCbs} groups`);
+  check('all 31 platforms checked by default → 31 overlay rects drawn',
+    toggleInit.cropRects === 31, `${toggleInit.cropRects} rects`);
+
+  // (a) Uncheck one platform via its real checkbox → its rect disappears and
+  //     its group header flips to indeterminate.
+  await page.evaluate(() => document.querySelector('input[data-platform="facebook"]').click());
+  const afterUncheck = await page.evaluate(() => {
+    const svg = document.getElementById('cropperOverlay');
+    const g = document.querySelector('.cropper-group-toggle[data-group="social"]');
+    return {
+      cropRects: svg.querySelectorAll('rect:not(.safe-zone-rect)').length,
+      fbChecked: document.querySelector('input[data-platform="facebook"]').checked,
+      socialIndeterminate: g.indeterminate,
+      socialChecked: g.checked,
+    };
+  });
+  check('unchecking Facebook removes its overlay rect (31 → 30)',
+    afterUncheck.cropRects === 30 && afterUncheck.fbChecked === false,
+    `${afterUncheck.cropRects} rects, fbChecked=${afterUncheck.fbChecked}`);
+  check('unchecking one platform makes its group header indeterminate',
+    afterUncheck.socialIndeterminate === true,
+    `indeterminate=${afterUncheck.socialIndeterminate}, checked=${afterUncheck.socialChecked}`);
+
+  // (b) Re-check it → rect returns and the header is fully checked again.
+  await page.evaluate(() => document.querySelector('input[data-platform="facebook"]').click());
+  const afterRecheck = await page.evaluate(() => {
+    const svg = document.getElementById('cropperOverlay');
+    const g = document.querySelector('.cropper-group-toggle[data-group="social"]');
+    return {
+      cropRects: svg.querySelectorAll('rect:not(.safe-zone-rect)').length,
+      socialIndeterminate: g.indeterminate,
+      socialChecked: g.checked,
+    };
+  });
+  check('re-checking Facebook restores its overlay rect (30 → 31)',
+    afterRecheck.cropRects === 31, `${afterRecheck.cropRects} rects`);
+  check('re-checking the last-off platform clears indeterminate (all on)',
+    afterRecheck.socialIndeterminate === false && afterRecheck.socialChecked === true,
+    `indeterminate=${afterRecheck.socialIndeterminate}, checked=${afterRecheck.socialChecked}`);
+
+  // (c) Group header click → unchecks every platform in that group at once.
+  await page.evaluate(() => document.querySelector('.cropper-group-toggle[data-group="social"]').click());
+  const afterGroupUncheck = await page.evaluate((social) => {
+    const svg = document.getElementById('cropperOverlay');
+    const g = document.querySelector('.cropper-group-toggle[data-group="social"]');
+    const cbs = social.map(pid => document.querySelector(`input[data-platform="${pid}"]`)).filter(Boolean);
+    return {
+      cropRects: svg.querySelectorAll('rect:not(.safe-zone-rect)').length,
+      socialChecked: g.checked,
+      socialIndeterminate: g.indeterminate,
+      socialOn: cbs.filter(cb => cb.checked).length,
+      socialTotal: cbs.length,
+    };
+  }, SOCIAL);
+  check('clicking the Social group header unchecks all 10 social platforms',
+    afterGroupUncheck.socialOn === 0 && afterGroupUncheck.socialTotal === 10,
+    `${afterGroupUncheck.socialOn}/${afterGroupUncheck.socialTotal} on`);
+  check('unchecking the whole group drops 10 overlay rects (31 → 21)',
+    afterGroupUncheck.cropRects === 21, `${afterGroupUncheck.cropRects} rects`);
+  check('fully-unchecked group header is unchecked, not indeterminate',
+    afterGroupUncheck.socialChecked === false && afterGroupUncheck.socialIndeterminate === false,
+    `checked=${afterGroupUncheck.socialChecked}, indeterminate=${afterGroupUncheck.socialIndeterminate}`);
+
+  // (d) Group header click again → re-checks every platform, header back to checked.
+  await page.evaluate(() => document.querySelector('.cropper-group-toggle[data-group="social"]').click());
+  const afterGroupRecheck = await page.evaluate(() => {
+    const svg = document.getElementById('cropperOverlay');
+    const g = document.querySelector('.cropper-group-toggle[data-group="social"]');
+    return {
+      cropRects: svg.querySelectorAll('rect:not(.safe-zone-rect)').length,
+      socialChecked: g.checked,
+      socialIndeterminate: g.indeterminate,
+    };
+  });
+  check('clicking the Social group header again re-checks all 10 (21 → 31)',
+    afterGroupRecheck.cropRects === 31, `${afterGroupRecheck.cropRects} rects`);
+  check('fully-rechecked group header is checked, not indeterminate',
+    afterGroupRecheck.socialChecked === true && afterGroupRecheck.socialIndeterminate === false,
+    `checked=${afterGroupRecheck.socialChecked}, indeterminate=${afterGroupRecheck.socialIndeterminate}`);
+
   // ── Known limitation: on-screen vs export opacity differ (documented) ────
   console.log('\nKnown limitation (documented, not a defect):');
   const opacities = await page.evaluate(() => {

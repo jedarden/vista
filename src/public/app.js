@@ -3418,38 +3418,76 @@ function renderCropperControls() {
   cropperControls.innerHTML = html;
 
   // Add event listeners
-  document.querySelectorAll('.cropper-group-toggle').forEach(cb => {
-    cb.addEventListener('change', (e) => {
+  // Group header toggle → check/uncheck every platform in that group, then
+  // re-sync the header (a click clears any indeterminate flag from prior edits).
+  document.querySelectorAll('.cropper-group-toggle').forEach(groupCb => {
+    groupCb.addEventListener('change', (e) => {
       const group = e.target.dataset.group;
       const platforms = groups.find(g => g.id === group)?.platforms || [];
       platforms.forEach(pid => {
-        const cb = document.querySelector(`input[data-platform="${pid}"]`);
-        if (cb) cb.checked = e.target.checked;
+        const platformCb = document.querySelector(`input[data-platform="${pid}"]`);
+        if (platformCb) platformCb.checked = e.target.checked;
       });
       updateEnabledPlatforms();
       updateCropperOverlay();
+      syncGroupToggles(groups);
     });
   });
 
+  // Individual platform toggle → redraw overlays, then re-sync every group
+  // header so a header always reflects its children (all on / all off / mixed).
   document.querySelectorAll('.cropper-platform-toggle input').forEach(cb => {
     cb.addEventListener('change', () => {
       updateEnabledPlatforms();
       updateCropperOverlay();
+      syncGroupToggles(groups);
     });
   });
 
   document.getElementById('selectAllPlatforms')?.addEventListener('click', () => {
     document.querySelectorAll('.cropper-platform-toggle input').forEach(cb => cb.checked = true);
-    document.querySelectorAll('.cropper-group-toggle').forEach(cb => cb.checked = true);
+    syncGroupToggles(groups);
     updateEnabledPlatforms();
     updateCropperOverlay();
   });
 
   document.getElementById('clearAllPlatforms')?.addEventListener('click', () => {
     document.querySelectorAll('.cropper-platform-toggle input').forEach(cb => cb.checked = false);
-    document.querySelectorAll('.cropper-group-toggle').forEach(cb => cb.checked = false);
+    syncGroupToggles(groups);
     updateEnabledPlatforms();
     updateCropperOverlay();
+  });
+
+  // State always matches the freshly-rendered checkboxes: rebuild the enabled
+  // set from them so a re-init (new image) doesn't carry over a stale selection
+  // while the checkboxes render all-checked.
+  updateEnabledPlatforms();
+  // Initialize group header state to match the default all-checked platforms.
+  syncGroupToggles(groups);
+}
+
+// Reflect each group header checkbox against its child platform toggles:
+// checked when every child is on, unchecked when every child is off, and
+// indeterminate when mixed. Without this, unchecking every platform in a group
+// by hand leaves the header visually "checked" — mislabeling the group state.
+function syncGroupToggles(groups) {
+  groups.forEach(group => {
+    const groupCb = document.querySelector(`.cropper-group-toggle[data-group="${group.id}"]`);
+    if (!groupCb) return;
+    const children = group.platforms
+      .map(pid => document.querySelector(`input[data-platform="${pid}"]`))
+      .filter(Boolean);
+    if (!children.length) return;
+    const checkedCount = children.filter(cb => cb.checked).length;
+    if (checkedCount === 0) {
+      groupCb.checked = false;
+      groupCb.indeterminate = false;
+    } else if (checkedCount === children.length) {
+      groupCb.checked = true;
+      groupCb.indeterminate = false;
+    } else {
+      groupCb.indeterminate = true;
+    }
   });
 }
 

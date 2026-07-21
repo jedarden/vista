@@ -1,5 +1,21 @@
 # bf-4bw — Verify vista deployment on apexalgo-iad
 
+**Attempt 67 · 2026-07-21 · Result: STILL PARTIAL — 3/5 pass (3,4,5); 2 fail (1,2). Freshly re-verified; vista-specific state byte-for-byte identical to attempts 49–66. Bead left open (operator action required).**
+
+Single focused re-confirmation per the recorded learning (`[[apexalgo-iad-argocd-sync-broken]]` — "do NOT spend many attempts"). No operator remediation has landed since attempt 66. All five criteria freshly verified from the read-only proxies (`traefik-ardenone-manager:8001` for the ArgoCD Application CRD; `traefik-apexalgo-iad:8001` for live pods/svc/ingress) + a `curl` of the public endpoint:
+
+| # | Criterion | Verdict | Fresh evidence (2026-07-21) |
+|---|-----------|---------|-----------------------------|
+| 1 | ArgoCD app `vista` Synced | ❌ FAIL | `vista-ns-apexalgo-iad` (ns `argocd`) `sync=Unknown`, `health=Healthy` (read via ardenone-manager RO proxy). Still the cluster-wide x509 break against the apexalgo-iad HCP endpoint `hcp-99476ebb-…spot.rackspace.com` (≈63 of 252 apps on that server URL report `Unknown`, per attempts 64–66 — not vista-specific) and not inspectable or repairable from this read-only box. |
+| 2 | Deploy pods Running | ❌ FAIL | `vista-5d5f9dc954-mrksg` 0/1 `ImagePullBackOff` (18h, current RS, wants `docker.io/ronaldraygun/vista:latest`); `vista-7d87bd66df-g6tvh` 1/1 Running (14h, legacy RS, IP `10.20.92.160`, serves traffic). Deploy `replicas=1 ready=1`, live image still `ronaldraygun/vista:latest`. GitOps fix `b3144ab` (`ghcr.io/jedarden/vista:1.0.5`) still never synced down. |
+| 3 | Service via cluster DNS | ✅ PASS | `svc/vista` ClusterIP `10.21.64.133:3000` (127d); 1 healthy endpoint `10.20.92.160:3000` (legacy pod). |
+| 4 | IngressRoute working | ✅ PASS | `vista` (48d) + `vista-ingressroute` (127d) → `svc/vista:3000`. |
+| 5 | vista.jedarden.com responds | ✅ PASS | `GET https://vista.jedarden.com/` → HTTP 200, 36 274 bytes, `<title>VISTA — Visual Inspector of Social Tags &amp; Attributes</title>`. |
+
+Write paths all still closed from this box (established across attempts 43–66): apexalgo-iad is read-only-proxy-only (`auth can-i update/patch deployments -n vista` → `no`); only `iad-acb.kubeconfig` + `iad-ci.kubeconfig` on disk (no `ardenone-manager.kubeconfig`); no `argocd` CLI. **Conclusion unchanged** — the sole unblock is the operator repair on ardenone-manager (de-duplicate the two `cluster-*` Secrets for the HCP endpoint, refresh `caData` or set `tlsClientConfig.insecure=true` on the surviving registration Secret), then `argocd app sync vista-ns-apexalgo-iad` (no manifest change needed; `b3144ab` is already correct in `declarative-config`). Not fixable from this read-only verification box. **Bead left open.**
+
+---
+
 **Attempt 66 · 2026-07-21 · Result: STILL PARTIAL — 3/5 pass (3,4,5); 2 fail (1,2). Freshly re-verified; vista-specific state byte-for-byte identical to attempts 49–65. Bead left open (operator action required).**
 
 Single focused re-confirmation per the recorded learning (`[[apexalgo-iad-argocd-sync-broken]]` — "do NOT spend many attempts"). No operator remediation has landed since attempt 65. All five criteria freshly verified from the read-only proxies (`traefik-ardenone-manager:8001` for the ArgoCD Application CRD; `traefik-apexalgo-iad:8001` for live pods/svc/ingress) + a `curl` of the public endpoint:

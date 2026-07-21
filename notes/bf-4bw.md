@@ -1,5 +1,32 @@
 # bf-4bw — Verify vista deployment on apexalgo-iad
 
+## Attempt 161 (2026-07-21 23:14Z — RESOLVES the 159↔160 GHCR-privacy contradiction: package is definitively PUBLIC; runbook collapses to ONE operator action; score unchanged 3/5)
+
+**Attempt 161 · 2026-07-21 · Result: STILL PARTIAL — 3/5 pass (C3, C4, C5); C1/C2 FAIL.** Live state byte-for-byte identical to 160 (serving pod `vista-7d87bd66df-z5n59` 1/1 Running 72m on node-cached `ghcr.io/jedarden/vista:1.0.0`; sibling `vista-5d5f9dc954-xbzql` 0/1 `ImagePullBackOff` 3h28m on `ronaldraygun/vista:latest`; deploy READY 1/1 surge-hold, two RSes, NOT converged; ArgoCD `Unknown`). **This round's only value-add: I killed the flip-flop over whether `ghcr.io/jedarden/vista` is pullable** — attempts 153/155/159 said PRIVATE (404), 154/156/160 said PUBLIC (200). They were both "right" by their own (broken) method; the contradiction is an **Accept-header artifact**, now resolved with a control.
+
+**Definitive test (anon bearer token + full OCI Accept set):**
+- `/token?scope=repository:jedarden/vista:pull` (anonymous) → valid bearer.
+- `GET /v2/jedarden/vista/manifests/{1.0.0,1.0.5,latest}` with `Accept: application/vnd.oci.image.index.v1+json, application/vnd.docker.distribution.manifest.list.v2+json, …` → **all HTTP 200**; `1.0.5` body is a real multi-arch OCI index (`amd64 sha256:11ffddc3…`, `arm64 sha256:b04d7486…`, +2 attestation entries, schemaVersion 2).
+- `GET /v2/jedarden/vista/tags/list` (anon) → **200**, `{"name":"jedarden/vista","tags":["1.0.0","latest","1.0.1","1.0.2","1.0.3","1.0.4","1.0.5"]}`.
+- **CONTROL (proves the method):** same dance against `jedarden/does-not-exist-xyz-987` → **HTTP 403**. So 200 ≠ "anything returns 200"; vista's 200 genuinely means public.
+
+**Why the 404s were false:** this image is a multi-arch **OCI image index**. GHCR returns **404** for a manifest GET whose `Accept` header omits `application/vnd.oci.image.index.v1+json` — even for a fully public package — because it cannot serve the index as another media type. Attempts 153/155/159 omitted that type → false 404 → misread as "private." With the type included, 200. ⇒ **`ghcr.io/jedarden/vista` is PUBLIC and anonymously pullable, including the GitOps-pinned `1.0.5` and the legacy `1.0.0`.**
+
+**Consequence — the operator runbook is now ONE action, not two (this supersedes the two-action runbook in attempt 159, which was built on the false 404):**
+- **(A) Restore ArgoCD→apexalgo-iad trust (clears C1 AND C2 together):** on ardenone-manager ns `argocd`, reconcile the two apexalgo-iad cluster-registration Secrets (`cluster-apexalgo-iad` + `cluster-hcp-99476ebb-…spot.rackspace.com-3689407595`, both `Opaque` keys `config/name/server`) — refresh `caData`, or set `tlsClientConfig.insecureSkipVerify: true` as a stopgap — to clear the `x509: certificate signed by unknown authority` against `https://hcp-99476ebb-…spot.rackspace.com`. Then `argocd app sync vista-ns-apexalgo-iad`. selfHeal reverts the live image to the **now-proven-anon-pullable** `ghcr.io/jedarden/vista:1.0.5`; the new RS pulls cleanly → Running; the legacy RS scales down. No image-publication, no `imagePullSecret`, no Docker-Hub repoint needed.
+- Cluster-wide scope (fresh histogram this round): all three HCP/spot-managed registrations are 100% `Unknown` — apexalgo-iad **63/63**, `hcp-de5bec10…` **15/15**, ardenone-hub **9/9** — so (A) likely needs applying to all three HCP registrations, not just vista's. (ArgoCD itself is healthy: `k3s-server-a` shows 121 apps with only 3 Unknown.)
+
+**Per-task verdicts (fresh):**
+- **C1 FAIL** — `vista-ns-apexalgo-iad` `sync=Unknown / health=Healthy / rev=HEAD` (reconciled `23:09:14Z`, actively retrying); 2× `ComparisonError` + `UnknownError`, all `…x509: certificate signed by unknown authority` vs the HCP endpoint. Not vista-specific.
+- **C2 FAIL** — deploy NOT converged (surge-hold; current RS `ronaldraygun/vista:latest` `ImagePullBackOff`; only legacy RS `1.0.0` serving). A pod *is* running, but the rollout is not healthy/converged to its declared image — fails the criterion. (Both `ronaldraygun/vista` on Docker Hub = 404/absent, and the live image never updated to the pullable GHCR `1.0.5` because of C1.)
+- **C3 PASS** — svc/vista ClusterIP `10.21.64.133:3000`, ready endpoint `10.20.92.159`.
+- **C4 PASS** — IngressRoutes `vista` + `vista-ingressroute` serving (proven by C5).
+- **C5 PASS** — `https://vista.jedarden.com/` HTTP 200, 36 274 B, correct `<title>`; `/health` → `{"ok":true}`.
+
+**Access — unchanged, all self-service paths closed:** `~/.kube/` = `iad-acb` + `iad-ci` ONLY (no `ardenone-manager.kubeconfig` → cannot reach `argocd` ns to do (A); `[[kubeconfigs-on-disk-vs-claudemd]]`); apexalgo-iad proxy read-only (`auth can-i update deploy / create secret -n vista` → `no`); `argocd`/`gh` ABSENT; `GH_TOKEN`/`GITHUB_TOKEN` unset. `vista-build` Argo Workflow is reachable via iad-ci but publishes to `ronaldraygun/vista` (the 404 Docker-Hub repo) — would converge the deploy to the *wrong* out-of-band image and churn against selfHeal once (A) lands; outward-facing and unclean, not pursued without operator sign-off.
+
+**Decision:** bead **left OPEN PARTIAL 3/5**. C1/C2 genuinely fail today and the single remaining fix is operator-only; per task instructions ("If you cannot complete the task … Do NOT close the bead"), closing would misrepresent the verification. This is attempt 161 of a degenerate auto-retry loop whose blocker is entirely outside this read-only box; the genuinely new artifact this round is the **resolved, control-proven GHCR-public finding** that collapses the runbook to one action. See `[[apexalgo-iad-argocd-sync-broken]]`, `[[vista-image-fix-in-gitops]]`, `[[kubeconfigs-on-disk-vs-claudemd]]`.
+
 ## Attempt 159 (2026-07-21 22:58Z — CORRECTS the operator runbook: a C1-fix-alone sync will NOT clear C2; re-proves GHCR is PRIVATE)
 
 **Attempt 159 · 2026-07-21 · Result: STILL PARTIAL — 3/5 pass (C3, C4, C5); C1/C2 FAIL. State byte-for-byte unchanged from 155–158** (serving pod `vista-7d87bd66df-z5n59` 1/1 Running on node-cached `ghcr.io/jedarden/vista:1.0.0`; sibling `vista-5d5f9dc954-xbzql` 0/1 `ImagePullBackOff` on `ronaldraygun/vista:latest`; deploy READY 1/1 but two-RS surge-hold, NOT converged).

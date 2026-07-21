@@ -1,5 +1,39 @@
 # Bead bf-4bw: Verify vista deployment on apexalgo-iad
 
+## Attempt 19 — 2026-07-21 (re-verified live; STILL PARTIAL 3/5, bead left open)
+
+Fresh live re-verification of all five criteria. **Verdict identical to attempts 1–18** — the
+cluster-wide ArgoCD→apexalgo-iad CA break has NOT been remediated by an operator. Per memory
+[[apexalgo-iad-argocd-sync-broken]], this check is now a single decisive lookup (cluster-wide
+`Unknown`), kept brief intentionally.
+
+**Decisive finding (criterion 1, read fresh from the App CR via the ardenone-manager RO proxy):**
+`vista-ns-apexalgo-iad` → `sync=Unknown`, `health=Healthy`, `op=Failed`. Conditions unchanged:
+`x509: certificate signed by unknown authority` reaching
+`hcp-99476ebb-4133-4a21-ac6a-6e2bdf6794c0.spot.rackspace.com/version?timeout=32s`.
+**Cluster-wide: 63/63 apexalgo-iad apps `Unknown`** (of 252 total apps: 97 Unknown, 107 Synced).
+vista is one of the 63 — not vista-specific. The GitOps fix `b3144ab` (`ghcr.io/jedarden/vista:1.0.5`,
+replicas 3) remains **unenforced** because ArgoCD cannot sync.
+
+| # | Criterion | Verdict | Fresh evidence (attempt 19) |
+|---|-----------|---------|-----------------------------|
+| 1 | ArgoCD `vista` Synced | ❌ FAIL | App CR `sync=Unknown`/`op=Failed`; x509 to `hcp-99476ebb-…spot.rackspace.com`; 63/63 apexalgo-iad apps Unknown. |
+| 2 | Deployment pods Running | ❌ FAIL | `vista-5d5f9dc954-mrksg` 0/1 `ImagePullBackOff` (15h, current RS, `ronaldraygun/vista:latest`); `vista-7d87bd66df-g6tvh` 1/1 Running (10h, legacy `ghcr.io/jedarden/vista:1.0.0`). Deploy template still `ronaldraygun/vista:latest`; `b3144ab` unenforced. |
+| 3 | Service via cluster-internal DNS | ✅ PASS | `svc/vista` ClusterIP `10.21.64.133:3000`, selector `app=vista` (127d). |
+| 4 | IngressRoute working | ✅ PASS | `vista` IngressRoute (48d) → `svc/vista:3000`; stale dup `vista-ingressroute` (127d) still present. |
+| 5 | vista.jedarden.com responds | ✅ PASS | `GET https://vista.jedarden.com/` → HTTP 200, 36274 B, `<title>VISTA — Visual Inspector of Social Tags &amp; Attributes</title>`. |
+
+**Conclusion unchanged.** User-facing service is live and correct (criteria 3–5, HTTP 200). The
+sole remaining blocker is the cluster-wide ArgoCD→apexalgo-iad CA break (Blocker 1): on
+ardenone-manager `argocd` ns, repair the URL-based cluster-registration Secret
+`cluster-hcp-99476ebb-…spot.rackspace.com-3689407595` (refresh `caData` / set
+`tlsClientConfig.insecure=true` / re-register). One sync then lands `b3144ab` and criteria 1 & 2
+pass for all 63 apps. Operator/infra work outside read-only verification scope, not reachable via
+GitOps or any kubeconfig on this host. **2 of 5 acceptance criteria cannot be satisfied without
+operator write access → bead left open** per the close-gating rule.
+
+---
+
 ## Attempt 18 — 2026-07-21 (re-verified live; STILL PARTIAL 3/5, bead left open)
 
 Independent re-verification from a clean slate. **Verdict identical to attempts 1–17.** No

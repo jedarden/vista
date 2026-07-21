@@ -1,5 +1,33 @@
 # bf-4bw — Verify vista deployment on apexalgo-iad
 
+## Attempt 155 (2026-07-21 22:38Z — definitive pullability tests confirm both target images PRIVATE; same 3/5, no self-service path)
+
+**Attempt 155 · 2026-07-21 · Result: STILL PARTIAL — 3/5 pass (C3, C4, C5); C1/C2 FAIL.** State byte-for-byte unchanged from 151–154 (serving pod `z5n59`, ImagePullBackOff sibling `xbzql`, two RSes, `Unknown` ArgoCD). I spent this round *disproving* prior assumptions rather than re-logging them, and confirmed every self-service path is genuinely closed. The one real value-add: I **definitively resolved the attempt-150-vs-151 contradiction** about whether `ghcr.io/jedarden/vista:1.0.0` is pullable — it is NOT.
+
+- **C1 FAIL (fresh, cluster-wide):** `vista-ns-apexalgo-iad` (ns `argocd`, via `traefik-ardenone-manager:8001` CRD) `sync=Unknown / health=Healthy / rev=HEAD`, `server=https://hcp-99476ebb-4133-4a21-ac6a-6e2bdf6794c0.spot.rackspace.com`. Conditions: 2× `ComparisonError` (live + target) + 1× `UnknownError`, all `…tls: failed to verify certificate: x509: certificate signed by unknown authority`. Last sync op `phase=Failed`, started `2026-07-18T15:08:57Z`; reconciledAt `2026-07-21T22:37:23Z` (actively retrying). **Now 63/63 apexalgo-iad-dest apps `Unknown`** (was 78 in earlier rounds — apps pruned, still 100% Unknown → **cluster-wide, not vista-specific**). The ArgoCD RO REST proxy (`argocd-ro-ardenone-manager-ts.ardenone.com:8444`) still returns empty/0 bytes (instrument regression since ~142; CRD-over-proxy is the working read path).
+
+- **C2 FAIL (image privacy now definitively tested, not inferred):**
+  - **Live Deployment** (`vista` ns) desired image = `ronaldraygun/vista:latest` (Docker Hub), `imagePullSecrets=[]`, `READY 1/1 UP-TO-DATE 1 AVAILABLE 1` but surge-hold (two RSes each DESIRED=1).
+  - Current RS `vista-5d5f9dc954` (wants `ronaldraygun/vista:latest`, READY=0) → `vista-5d5f9dc954-xbzql` `0/1 ImagePullBackOff`. Legacy RS `vista-7d87bd66df` (`ghcr.io/jedarden/vista:1.0.0`, READY=1) → `vista-7d87bd66df-z5n59` `1/1 Running` (imageID `ghcr.io/jedarden/vista@sha256:a73a488e…`) serves all traffic. Deployment NOT converged: target image unpullable.
+  - **NEW — anonymous manifest pulls (this attempt, definitive):**
+    - `ghcr.io/jedarden/vista` `{1.0.0, 1.0.5, latest}` → **HTTP 404** with a valid anon bearer token → package is **PRIVATE**. This confirms attempt-150's "node-cache hit" and **refutes attempt-151's claim that 1.0.0 "pulls cleanly (117ms)"** — that 117 ms was a local-disk cache hit on a node that had previously run 1.0.0, not an internet pull. A fresh node could NOT start it.
+    - `ronaldraygun/vista:{latest,1.0.0}` on Docker Hub → **HTTP 401** *with* a valid anon bearer token → repo is **private/nonexistent** (matches the pod's `pull access denied, repository does not exist or may require authorization`).
+  - **NEW — GitOps-vs-live divergence confirmed:** `declarative-config@HEAD` wants `ghcr.io/jedarden/vista:1.0.5` (`k8s/apexalgo-iad/vista/deployment.yml:25`; commit `b3144ab` is present), but the **live** deploy template still wants `ronaldraygun/vista:latest` → b3144ab has **never synced** (blocked by C1). So neither the live target image nor the GitOps target image is pullable today.
+
+- **C3 PASS:** svc/vista ClusterIP `10.21.64.133:3000` (selector `app=vista`); Endpoints `10.20.92.159:3000` (serving pod `z5n59`) → reachable via `vista.vista.svc.cluster.local:3000` (proven by C5).
+- **C4 PASS:** IngressRoutes `vista` (`Host(\`vista.jedarden.com\`)`) + `vista-ingressroute` (`Host(\`vista.ardenone.com\`)`) present and serving (proven by C5).
+- **C5 PASS:** `GET https://vista.jedarden.com/` → HTTP 200, 36 274 B (0.52 s), `<title>VISTA — Visual Inspector of Social Tags &amp; Attributes</title>`; `GET /health` → `{"ok":true}` HTTP 200.
+
+**Self-service paths — all confirmed closed (this attempt, re-tested):**
+- No `ardenone-manager.kubeconfig` on disk (only `iad-acb` + `iad-ci` — `[[kubeconfigs-on-disk-vs-claudemd]]`) → cannot repair the ArgoCD cluster-registration x509 on ardenone-manager `argocd` ns.
+- apexalgo-iad proxy is read-only; apexalgo-iad has no direct kubeconfig at all → cannot patch `deploy/vista`.
+- No `argocd` CLI, no `gh` CLI, `GH_TOKEN`/`GITHUB_TOKEN` unset → cannot toggle `ghcr.io/jedarden/vista` visibility, cannot trigger `argocd app sync`.
+- A Docker Hub auth entry exists in `~/.docker/config.json` (`index.docker.io/v1/`), so pushing `ronaldraygun/vista:latest` is *technically* possible — but deliberately **not done**: it is an unauthorized outward-facing publish to the shared `ronaldraygun/` namespace, it works *against* the operator's deliberate GHCR repoint (`b3144ab`), and the canonical publish path is the `vista-build` Argo Workflow template, not a manual `docker push`.
+
+**Verdict / decision:** C1 and C2 are hard FAILs blocked on operator-only infrastructure actions (ArgoCD cluster-registration x509 trust; GHCR package visibility). Per task instructions ("If you cannot complete the task … Do NOT close the bead"), the bead is **left OPEN PARTIAL 3/5** — closing would misrepresent C1/C2 as passing. Remediation (unchanged, the only path): (a) repair apexalgo-iad cluster-registration x509 trust on ardenone-manager `argocd` ns (de-duplicate the two `cluster-*` Secrets for the HCP endpoint, refresh `caData` or set `tlsClientConfig.insecure=true`); (b) make the target image pullable — set `ghcr.io/jedarden/vista` to public OR wire an `imagePullSecret` into the vista deploy template in `declarative-config`; then `argocd app sync vista-ns-apexalgo-iad` and confirm the new RS reaches Running and the legacy RS scales down. See `[[apexalgo-iad-argocd-sync-broken]]`, `[[vista-image-fix-in-gitops]]`, `[[kubeconfigs-on-disk-vs-claudemd]]`.
+
+---
+
 ## Attempt 151 (2026-07-21 22:20Z — REAL DELTA: legacy serving pod rescheduled onto a healthy node; score still 3/5)
 
 **Attempt 151 · 2026-07-21 · Result: STILL PARTIAL — 3/5 pass (C3, C4, C5); 2 fail (C1, C2).** Unlike the byte-for-byte-identical attempts 148–150, the live pod topology changed: the NotReady node that has hosted the long-running legacy serving pod since attempt 146 finally evicted it, and the legacy RS rescheduled a *fresh* serving pod onto a healthy node — so the site is now served by a different pod than in every prior attempt. One consolidated query batch per `[[apexalgo-iad-argocd-sync-broken]]` — all 5 criteria freshly queried via the read-only proxies (`traefik-ardenone-manager:8001` for the ArgoCD Application CRD; `traefik-apexalgo-iad:8001` for live cluster state) + a public curl.

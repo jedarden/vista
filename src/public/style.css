@@ -1252,6 +1252,12 @@ body.has-results { padding-bottom: 48px; }
 .cropper-image { max-width: 100%; max-height: 600px; object-fit: contain; display: block; }
 .cropper-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
 .cropper-overlay rect { vector-effect: non-scaling-stroke; }
+/* Safe-zone intersection rect: a distinct cyan dashed stroke (no platform
+   category uses cyan) with a dark drop-shadow halo so the line stays visible on
+   both light and dark OG images. The halo is a CSS filter, not a second <rect>,
+   so the overlay still has exactly one safe-zone rect (the rect-count e2e
+   checks key off the .safe-zone-rect class). */
+.safe-zone-rect { filter: drop-shadow(0 0 2px rgba(0,0,0,0.75)); }
 
 .cropper-sidebar { width: 240px; flex-shrink: 0; display: flex; flex-direction: column; gap: 16px; }
 .cropper-actions { display: flex; flex-direction: column; gap: 8px; }

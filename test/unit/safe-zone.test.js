@@ -28,6 +28,7 @@
 const {
   calculateCropRect,
   calculateSafeZone,
+  calculateVisiblePercentage,
 } = require('../../src/public/safe-zone');
 
 // --- tiny assertion helpers -------------------------------------------------
@@ -311,6 +312,92 @@ test('safe zone stays within image bounds for every common OG size', () => {
     assert(sz.x + sz.w <= w + 1e-6, `overflows right at ${w}x${h}`);
     assert(sz.y + sz.h <= h + 1e-6, `overflows bottom at ${w}x${h}`);
   }
+});
+
+// ---------------------------------------------------------------------------
+// calculateVisiblePercentage (bf-3sd)
+// ---------------------------------------------------------------------------
+//
+// The per-platform "% visible" figure shown beside each toggle. It MUST agree
+// with the rectangle calculateCropRect() draws: visible fraction = crop area /
+// image area. So every assertion below is cross-checked against calculateCropRect
+// rather than re-deriving the arithmetic independently.
+
+console.log('\nsafe-zone / calculateVisiblePercentage (bf-3sd)\n');
+
+test('contain keeps the whole image → 100%', () => {
+  assertEqual(calculateVisiblePercentage(contain(), 1200, 630), 100);
+  assertEqual(calculateVisiblePercentage(contain(), 2000, 600), 100);
+});
+
+test('cover on a WIDER image: visible% = cropW / imgW', () => {
+  // 2000x600 vs 1.91: cropW = 1146, so 1146/2000 = 0.573 → 57%.
+  const pct = calculateVisiblePercentage(cover(1.91), 2000, 600);
+  assertEqual(pct, 57);
+});
+
+test('cover on a TALLER image: visible% = cropH / imgH', () => {
+  // 1000x1000 vs 1.91: cropH ≈ 523.56, so 523.56/1000 = 0.5236 → 52%.
+  const pct = calculateVisiblePercentage(cover(1.91), 1000, 1000);
+  assertEqual(pct, 52);
+});
+
+test('cover where image AR EQUALS crop AR → 100% (nothing cropped)', () => {
+  assertEqual(calculateVisiblePercentage(cover(2), 1200, 600), 100);
+});
+
+test('vertical crop (pinterest 0.67) on a standard 1200x630', () => {
+  // cropW = 630 * 0.67 = 422.1, visible% = 422.1/1200 = 0.35175 → 35%.
+  assertEqual(calculateVisiblePercentage(cover(0.67), 1200, 630), 35);
+});
+
+test('agree EXACTLY with calculateCropRect area ratio (no drift)', () => {
+  // The whole point of deriving % from the crop rect: the number beside the
+  // toggle can never disagree with the rectangle drawn on screen.
+  const cases = [
+    [cover(1.91), 2000, 600],
+    [cover(1.91), 1000, 1000],
+    [cover(0.67), 1200, 630],
+    [cover(1.0), 600, 1200],
+    [coverMinOnly(1.5), 1200, 600],
+  ];
+  for (const [crop, w, h] of cases) {
+    const rect = calculateCropRect(crop, w, h);
+    const expected = Math.round(((rect.w * rect.h) / (w * h)) * 100);
+    assertEqual(calculateVisiblePercentage(crop, w, h), expected);
+  }
+});
+
+test('retina 2x image yields the same % as 1x (resolution-invariant)', () => {
+  assertEqual(
+    calculateVisiblePercentage(cover(0.67), 1200, 630),
+    calculateVisiblePercentage(cover(0.67), 2400, 1260)
+  );
+});
+
+test('result is always an integer in [0, 100]', () => {
+  const cases = [
+    [contain(), 1200, 630],
+    [cover(1.91), 2000, 600],
+    [cover(0.67), 1200, 630],
+    [cover(1.0), 600, 1200],
+  ];
+  for (const [crop, w, h] of cases) {
+    const pct = calculateVisiblePercentage(crop, w, h);
+    assert(Number.isInteger(pct), `% not an integer: ${pct}`);
+    assert(pct >= 0 && pct <= 100, `% out of [0,100]: ${pct}`);
+  }
+});
+
+test('returns 100 for null crop or zero-dimension image (nothing to crop)', () => {
+  assertEqual(calculateVisiblePercentage(null, 1200, 630), 100);
+  assertEqual(calculateVisiblePercentage(cover(1.91), 0, 630), 100);
+  assertEqual(calculateVisiblePercentage(cover(1.91), 1200, 0), 100);
+  // Unknown cropMode → calculateCropRect returns null → 100.
+  assertEqual(
+    calculateVisiblePercentage({ aspect: { min: 1, max: 1 }, cropMode: 'wibble' }, 100, 100),
+    100
+  );
 });
 
 // ---------------------------------------------------------------------------

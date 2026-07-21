@@ -1362,6 +1362,13 @@ const CATEGORY_LABELS = {
   rss: 'RSS / Readers',
 };
 
+// Distinct color for the safe-zone (intersection) overlay. Cyan is deliberately
+// unused by any platform category (see CATEGORY_COLORS above), so the
+// intersection rectangle can never be mistaken for a single platform's crop.
+// The overlay is drawn with a dark halo behind this color so it stays visible
+// on both light and dark OG images.
+const SAFE_ZONE_COLOR = '#22d3ee';
+
 // Platform character limits (title and description truncation points)
 const PLATFORM_CHAR_LIMITS = {
   // Social & Microblogging
@@ -3405,7 +3412,7 @@ function renderCropperControls() {
     group.platforms.forEach(pid => {
       const crop = PLATFORM_CROPS[pid];
       if (!crop) return;
-      const pct = calculateVisiblePercentage(crop);
+      const pct = calculateVisiblePercentage(crop, cropperState.imageNaturalWidth, cropperState.imageNaturalHeight);
       html += `<label class="cropper-platform-toggle">`;
       html += `<input type="checkbox" data-platform="${pid}" checked />`;
       html += `<span class="platform-checkbox" style="border-color:${color}"></span>`;
@@ -3537,33 +3544,10 @@ function renderCategoryLegend() {
   cropperCategoryLegend.innerHTML = html;
 }
 
-function calculateVisiblePercentage(crop) {
-  const imgW = cropperState.imageNaturalWidth;
-  const imgH = cropperState.imageNaturalHeight;
-  if (!imgW || !imgH) return 100;
-
-  const imgAR = imgW / imgH;
-  const cropAR = crop.aspect.max || crop.aspect.min;
-
-  let visiblePct = 100;
-
-  if (crop.cropMode === 'contain') {
-    // Full image visible
-    visiblePct = 100;
-  } else if (crop.cropMode === 'cover') {
-    // Calculate how much of the source image is visible
-    if (imgAR > cropAR) {
-      // Image is wider than crop - sides are cropped
-      visiblePct = Math.round((cropAR / imgAR) * 100);
-    } else if (imgAR < cropAR) {
-      // Image is taller than crop - top/bottom are cropped
-      visiblePct = Math.round((imgAR / cropAR) * 100);
-    }
-    visiblePct = Math.max(0, Math.min(100, visiblePct));
-  }
-
-  return visiblePct;
-}
+// calculateVisiblePercentage() is provided by safe-zone.js (loaded before
+// app.js), alongside calculateCropRect() / calculateSafeZone(). It is derived
+// from calculateCropRect(), so the "% visible" shown beside each platform
+// toggle can never disagree with the rectangle drawn on screen.
 
 function updateCropperOverlay() {
   const imgW = cropperState.imageNaturalWidth;
@@ -3610,7 +3594,11 @@ function updateCropperOverlay() {
     svg.appendChild(rectEl);
   });
 
-  // Draw safe zone (intersection of all)
+  // Draw safe zone (intersection of all) as a single distinct accent rect. The
+  // color is cyan (SAFE_ZONE_COLOR) — unused by any platform category — so the
+  // intersection can't be mistaken for one platform's crop. A dark drop-shadow
+  // halo (set via the .safe-zone-rect CSS rule) keeps the dashed line visible on
+  // both light and dark OG images without adding a second <rect>.
   if (enabledPids.length > 0 && safeZone.w > 0 && safeZone.h > 0) {
     const safeRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
     safeRect.setAttribute('x', safeZone.x);
@@ -3618,14 +3606,14 @@ function updateCropperOverlay() {
     safeRect.setAttribute('width', safeZone.w);
     safeRect.setAttribute('height', safeZone.h);
     safeRect.setAttribute('fill', 'none');
-    safeRect.setAttribute('stroke', '#ffffff');
+    safeRect.setAttribute('stroke', SAFE_ZONE_COLOR);
     safeRect.setAttribute('stroke-width', '4');
     safeRect.setAttribute('stroke-dasharray', '12,6');
     safeRect.classList.add('safe-zone-rect');
     svg.appendChild(safeRect);
 
     // Safe zone label
-    const safePct = ((safeZone.w * safeZone.h) / (imgW * imgH) * 100).toFixed(1);
+    const safePct = (safeZone.coverage * 100).toFixed(1);
     safeZoneInfo.innerHTML = `
       <div class="info-row"><span class="info-label">Safe Zone:</span> <span class="info-value">${Math.round(safeZone.w)} × ${Math.round(safeZone.h)} px</span></div>
       <div class="info-row"><span class="info-label">Coverage:</span> <span class="info-value">${safePct}% of image</span></div>
@@ -3686,10 +3674,20 @@ async function exportCropperOverlay() {
   );
 
   if (enabledPids.length > 0 && safeZone.w > 0 && safeZone.h > 0) {
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 6;
+    // Mirror the on-screen overlay's distinct accent + halo: a dark backing
+    // stroke (the halo) under a bright dashed accent stroke, so the exported
+    // PNG reads identically and stays visible on any image background. No fill
+    // wash — strokes run along the border only, leaving the interior crop-fill
+    // alpha (measured by the export tests) untouched.
+    ctx.strokeStyle = 'rgba(10,10,10,0.55)';
+    ctx.lineWidth = 8;
+    ctx.setLineDash([]);
+    ctx.strokeRect(safeZone.x, safeZone.y, safeZone.w, safeZone.h);
+    ctx.strokeStyle = SAFE_ZONE_COLOR;
+    ctx.lineWidth = 4;
     ctx.setLineDash([24, 12]);
     ctx.strokeRect(safeZone.x, safeZone.y, safeZone.w, safeZone.h);
+    ctx.setLineDash([]);
   }
 
   // Export

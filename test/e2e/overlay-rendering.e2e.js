@@ -10,7 +10,7 @@
  *
  *   updateCropperOverlay()   → the on-screen SVG overlay
  *     (svg viewBox = "0 0 imgW imgH"; platform crop <rect>s at fill-opacity 0.15;
- *      safe-zone <rect class="safe-zone-rect"> as a white dashed stroke)
+ *      safe-zone <rect class="safe-zone-rect"> as a cyan dashed stroke)
  *   exportCropperOverlay()   → the downloaded PNG (canvas 2D)
  *     (ctx.fillRect with hex+'40' ≈ 25% alpha fills; ctx.strokeRect safe zone)
  *
@@ -396,8 +396,8 @@ async function main() {
     check(`${s.name}: safe-zone DIMENSIONS match calculateSafeZone() (Node)`,
       approx(result.safe.w, exp.w) && approx(result.safe.h, exp.h),
       `svg=${result.safe.w.toFixed(1)}×${result.safe.h.toFixed(1)} expected=${exp.w.toFixed(1)}×${exp.h.toFixed(1)}`);
-    check(`${s.name}: safe zone is white dashed stroke (fill none)`,
-      result.safe.fill === 'none' && result.safe.stroke === '#ffffff' && !!result.safe.dash,
+    check(`${s.name}: safe zone is cyan dashed stroke (fill none)`,
+      result.safe.fill === 'none' && result.safe.stroke === '#22d3ee' && !!result.safe.dash,
       `fill=${result.safe.fill} stroke=${result.safe.stroke} dash=${result.safe.dash}`);
     check(`${s.name}: platform crop rect is semi-transparent (fill-opacity 0.15)`,
       result.sampleCrop && result.sampleCrop.fillOpacity === '0.15',

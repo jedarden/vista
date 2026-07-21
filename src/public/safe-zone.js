@@ -6,9 +6,10 @@
 // Pure, dependency-free geometry for the cropper overlay. Given an OG image's
 // natural pixel dimensions and a set of platform crop specs (PLATFORM_CROPS),
 // compute:
-//   - calculateCropRect():  the source-image rectangle a single platform keeps
-//   - calculateSafeZone():  the intersection of many platforms' crop rectangles
-//                           (the region guaranteed visible across ALL of them)
+//   - calculateCropRect():          the source-image rectangle a single platform keeps
+//   - calculateSafeZone():          the intersection of many platforms' crop rectangles
+//                                   (the region guaranteed visible across ALL of them)
+//   - calculateVisiblePercentage(): the % of the source image one platform keeps visible
 //
 // Mirrors the dual-export convention used by scoring-simulator.js and
 // client-side-diff.js: top-level functions are globals in the browser (loaded
@@ -129,7 +130,28 @@ function calculateSafeZone(crops, imgW, imgH) {
   return { x: x0, y: y0, w, h, coverage };
 }
 
+/**
+ * Percentage of the source image a single platform keeps visible (0–100),
+ * rounded to a whole number.
+ *
+ * This is the per-platform "X% visible" figure shown beside each platform
+ * toggle. It is derived from the same crop rectangle calculateCropRect()
+ * produces — visible fraction = (crop area) / (image area) — so the number
+ * can never disagree with the rectangle actually drawn on screen:
+ *   • 'contain' → full image kept → 100%.
+ *   • 'cover'   → centered crop → (cropW * cropH) / (imgW * imgH).
+ *
+ * Returns 100 for unknown cropModes or zero-dimension images (nothing to crop).
+ */
+function calculateVisiblePercentage(crop, imgW, imgH) {
+  if (!imgW || !imgH) return 100;
+  const rect = calculateCropRect(crop, imgW, imgH);
+  if (!rect) return 100;
+  const fraction = (rect.w * rect.h) / (imgW * imgH);
+  return Math.max(0, Math.min(100, Math.round(fraction * 100)));
+}
+
 // Export for use in app.js (browser globals) + Node unit tests.
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { calculateCropRect, calculateSafeZone };
+  module.exports = { calculateCropRect, calculateSafeZone, calculateVisiblePercentage };
 }

@@ -1,5 +1,19 @@
 # bf-4bw — Verify vista deployment on apexalgo-iad
 
+**Attempt 82 · 2026-07-21 · Result: STILL PARTIAL — 3/5 pass (3,4,5); 2 fail (1,2). Freshly re-verified; vista-specific state byte-for-byte identical to attempts 49–81 (pod ages unchanged: 19h, 15h; deploy still `replicas=2 ready=1` surge hold). Bead left open (operator action required).**
+
+Single focused re-confirmation per `[[apexalgo-iad-argocd-sync-broken]]` ("do NOT spend many attempts"). No operator remediation has landed since attempt 81. All five criteria freshly verified from the read-only proxies (`traefik-ardenone-manager:8001` for the ArgoCD Application CRD; `traefik-apexalgo-iad:8001` for live pods/rs/svc/endpointslice/ingressroute) + a `curl` of the public endpoint:
+
+- **C1 (FAIL):** ArgoCD app `vista-ns-apexalgo-iad` (ns `argocd`, read via ardenone-manager RO proxy) still `sync=Unknown`, `health=Healthy`, `targetRev=HEAD`, `server=https://hcp-99476ebb-4133-4a21-ac6a-6e2bdf6794c0.spot.rackspace.com`. ComparisonError (live + target) + UnknownError: `tls: failed to verify certificate: x509: certificate signed by unknown authority` vs `https://hcp-…spot.rackspace.com/version?timeout=32s`; operationState `phase=Failed`, `retried 2 times`; every sync resource (Deployment/Service/Namespace/2×IngressRoute/Certificate) `SyncFailed` with the same x509. Cluster-wide, not vista-specific. Not repairable from this read-only box.
+- **C2 (FAIL):** `vista-5d5f9dc954-mrksg` still 0/1 `ImagePullBackOff` (19h, current RS `vista-5d5f9dc954` READY=0, IP `10.20.92.166`, wants `ronaldraygun/vista:latest`); legacy `vista-7d87bd66df-g6tvh` 1/1 Running (15h, RS `vista-7d87bd66df` READY=1, IP `10.20.92.160`) serves all traffic. Deploy live image still `ronaldraygun/vista:latest`, `replicas=2 ready=1 updated=1 avail=1` (surge hold), `Progressing=False (ProgressDeadlineExceeded)`. GitOps fix `b3144ab` (`ghcr.io/jedarden/vista:1.0.5`) still never synced down. apexalgo-iad access is read-only-proxy-only.
+- **C3 (PASS):** `svc/vista` ClusterIP `10.21.64.133:3000`; EndpointSlice `vista-jk6kw` → healthy endpoint `10.20.92.160:3000` (legacy pod); `10.20.92.166` ready=false/serving=false = the ImagePullBackOff pod.
+- **C4 (PASS):** IngressRoutes `vista` (`Host(vista.jedarden.com)`) + `vista-ingressroute` (`Host(vista.ardenone.com)`) → `svc/vista:3000` intact.
+- **C5 (PASS):** `GET https://vista.jedarden.com/` → HTTP 200, 36 274 bytes (0.33 s), `<title>VISTA — Visual Inspector of Social Tags &amp; Attributes</title>`.
+
+**Conclusion unchanged.** The sole unblock is the operator repair on ardenone-manager `argocd` ns (de-duplicate the two `cluster-*` Secrets for the HCP endpoint, refresh `caData` or set `tlsClientConfig.insecure=true` on the surviving registration Secret), then `argocd app sync vista-ns-apexalgo-iad` — no manifest change needed; `b3144ab` is already correct in `declarative-config`. No self-service path exists from this read-only verification box. **Bead left open.**
+
+---
+
 **Attempt 81 · 2026-07-21 · Result: STILL PARTIAL — 3/5 pass (3,4,5); 2 fail (1,2). Freshly re-verified; vista-specific state byte-for-byte identical to attempts 49–80 (pod ages unchanged: 19h, 15h; only the deploy `ready` reading shifted `1/1`→`1/2` — a transient surge hold, not a vista-specific change). Bead left open (operator action required).**
 
 Single focused re-confirmation per `[[apexalgo-iad-argocd-sync-broken]]` ("do NOT spend many attempts"). No operator remediation has landed since attempt 80. All five criteria freshly verified from the read-only proxies (`traefik-ardenone-manager:8001` for the ArgoCD Application CRD; `traefik-apexalgo-iad:8001` for live pods/rs/svc/endpointslice/ingressroute) + a `curl` of the public endpoint:

@@ -1,5 +1,43 @@
 # Bead bf-4bw: Verify vista deployment on apexalgo-iad
 
+## Attempt 34 — 2026-07-21 (STILL PARTIAL 3/5; blocker NARROWED to single root cause; bead left open)
+
+Fresh live re-verification. **Verdict identical to attempts 1–33: 3 of 5.** Live state
+byte-for-byte unchanged; no operator repair has landed. **One meaningful refinement:** the GitOps
+manifest is now fixed, so the blocker has narrowed from two to one.
+
+| # | Criterion | Verdict | Fresh evidence (attempt 34) |
+|---|-----------|---------|-----------------------------|
+| 1 | ArgoCD `vista` Synced | ❌ FAIL | App CR `sync=Unknown/Healthy`, `op.phase=Failed`. Controller x509-fails reaching `hcp-99476ebb-…spot.rackspace.com`. |
+| 2 | Deployment pods Running | ❌ FAIL | `vista-5d5f9dc954-mrksg` 0/1 `ImagePullBackOff` (`ronaldraygun/vista:latest`, DockerHub 404); `vista-7d87bd66df-g6tvh` 1/1 Running (`ghcr.io/jedarden/vista:1.0.0`). Deploy `Progressing=False`. Live template image still `ronaldraygun/vista:latest`. |
+| 3 | Service via cluster DNS | ✅ PASS | `svc/vista` ClusterIP `10.21.64.133:3000`; healthy endpoint = the Running pod. |
+| 4 | IngressRoute working | ✅ PASS | `vista` IngressRoute: `Host(\`vista.jedarden.com\`)`→`svc/vista:3000`, entryPoint `websecure`, tls `letsencrypt`, argocd-managed. |
+| 5 | vista.jedarden.com responds | ✅ PASS | `GET https://vista.jedarden.com/` → **HTTP 200**, 36274 B, `<title>VISTA — Visual Inspector of Social Tags &amp; Attributes</title>`. |
+
+**Refinement vs early attempts — blocker narrowed to ONE root cause:**
+
+- The image fix is **already done in GitOps**: `declarative-config/k8s/apexalgo-iad/vista/deployment.yml`
+  pins `ghcr.io/jedarden/vista:1.0.5` (commit `b3144ab`, confirmed live in the checked-out repo). The
+  live deploy still shows the unpullable `ronaldraygun/vista:latest` *only* because ArgoCD can't sync
+  `b3144ab` down. So Blocker 2 collapses into Blocker 1.
+- **Single remaining blocker:** ArgoCD→apexalgo-iad cluster-registration x509 break (ardenone-manager,
+  `argocd` ns — duplicate `cluster-*` Secrets for the same server URL, both missing `caData`).
+
+**Cannot self-remediate (re-confirmed canonically):** `kubectl --server=traefik-ardenone-manager:8001
+auth can-i patch secret -n argocd` → **`no`**. The only write kubeconfigs present in `~/.kube/` are
+`iad-ci` and `iad-acb`; `ardenone-manager.kubeconfig` (cluster-admin) is absent. The proxy is
+read-only. Blocker dependency `bf-e00` is already `closed`, so nothing else is gating this bead.
+
+**Operator remediation (the only thing that unblocks 1 & 2):** on ardenone-manager `argocd` ns,
+de-duplicate the two `cluster-*` Secrets for `hcp-99476ebb-…spot.rackspace.com`, then refresh `caData`
+(or set `tlsClientConfig.insecure=true`) on the survivor. ArgoCD then syncs `b3144ab`, the GHCR image
+pulls, and criteria 1 & 2 pass automatically.
+
+A `br comments add` summarizing the above was posted to the bead (comment 1). **Bead left open —
+criteria 1 & 2 genuinely fail and require operator/infra action outside read-only scope.**
+
+---
+
 ## Attempt 33 — 2026-07-21 (write-access proven *canonically* via `auth can-i`; STILL PARTIAL 3/5, bead left open)
 
 Fresh live re-verification per memory [[apexalgo-iad-argocd-sync-broken]]. **Verdict identical to

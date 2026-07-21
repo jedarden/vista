@@ -1,5 +1,35 @@
 # Bead bf-4bw: Verify vista deployment on apexalgo-iad
 
+## Attempt 24 — 2026-07-21 (re-verified live; STILL PARTIAL 3/5, bead left open)
+
+Single-decision re-verification per memory [[apexalgo-iad-argocd-sync-broken]]. **Verdict identical to
+attempts 1–23: 3/5.** No operator remediation has landed; no new write path exists on this host
+(`~/.kube` still only `iad-acb.kubeconfig` + `iad-ci.kubeconfig` — `ardenone-manager.kubeconfig`
+absent). Cluster-wide break is stable, not healing: **63/63 apexalgo-iad apps `Unknown`** (97 Unknown
+/ 108 Synced / 47 OutOfSync of 252 total — same figures as attempts 19–23). vista is one of the 63 —
+not vista-specific. Both blockers remain operator/infra work, outside read-only verification scope.
+
+| # | Criterion | Verdict | Fresh evidence (attempt 24) |
+|---|-----------|---------|-----------------------------|
+| 1 | ArgoCD `vista` Synced | ❌ FAIL | App CR `vista-ns-apexalgo-iad`: `sync=Unknown`/`health=Healthy`/`op=Failed`. **63/63 apexalgo-iad apps `Unknown`** (cluster-wide `x509: certificate signed by unknown authority` vs `hcp-99476ebb-…spot.rackspace.com`). |
+| 2 | Deployment pods Running | ❌ FAIL | `vista-5d5f9dc954-mrksg` 0/1 `ImagePullBackOff` (15h, current RS, wants `ronaldraygun/vista:latest`); `vista-7d87bd66df-g6tvh` 1/1 Running (11h, legacy `ghcr.io/jedarden/vista:1.0.0`). Live deploy template image = `ronaldraygun/vista:latest` (stale vs GitOps `b3144ab`). RS `vista-5d5f9dc954` READY=0/1; deploy READY=1/1 AVAILABLE=1, stuck mid-rollout. |
+| 3 | Service via cluster DNS | ✅ PASS | `svc/vista` ClusterIP `10.21.64.133:3000` (127d); EndpointSlice `vista-jk6kw`: `10.20.92.160` ready=True (legacy pod), `10.20.92.166` ready=False (failing pod). |
+| 4 | IngressRoute working | ✅ PASS | `vista` IngressRoute (48d) → `svc/vista:3000`; stale dup `vista-ingressroute` (127d) still present. |
+| 5 | vista.jedarden.com responds | ✅ PASS | `GET https://vista.jedarden.com/` → **HTTP 200**, 36274 B, 0.12s, `<title>VISTA — Visual Inspector of Social Tags &amp; Attributes</title>`, markers Inspect(10)/Paste(4)/Compare(7)/Sitemap(11) present. |
+
+**Conclusion unchanged.** User-facing service is live and correct (criteria 3–5, HTTP 200). Blocker 2
+(image) is already remediated in source-of-truth (`declarative-config` `b3144ab` pins
+`ghcr.io/jedarden/vista:1.0.5`, replicas 3 — verified pullable in attempt 23) and is gated only on
+Blocker 1. The single operator action that unblocks everything: on ardenone-manager `argocd` ns,
+de-duplicate the two Secrets registering `hcp-99476ebb-…spot.rackspace.com` and refresh `caData` /
+set `tlsClientConfig.insecure=true` on the surviving Secret (or re-register). One sync then lands
+`b3144ab` and criteria 1 & 2 pass for vista and ~62 sibling apps. This is operator/infra work outside
+read-only verification scope, not reachable via GitOps or any kubeconfig on this host. **2 of 5
+acceptance criteria cannot be satisfied without operator write access → bead left open** per the
+close-gating rule.
+
+---
+
 ## Attempt 23 — 2026-07-21 (STILL PARTIAL 3/5; closed the last open question — GHCR image verified pullable, bead left open)
 
 One-decision re-verification per memory [[apexalgo-iad-argocd-sync-broken]]. **Verdict identical to

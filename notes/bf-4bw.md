@@ -208,3 +208,38 @@ Fresh evidence gathered this attempt:
 **Conclusion unchanged.** Criteria 1 + 2 are operator-blocked (ardenone-manager write access to repair
 the ArgoCD cluster-registration x509 trust, then sync `b3144ab`). Not fixable from this read-only
 verification box. **Bead left open.**
+
+---
+
+## Attempt 52 (fresh re-verification — unchanged)
+
+Re-verified live state on 2026-07-21. **Still PARTIAL 3/5, byte-for-byte identical to attempts 50–51.**
+No operator remediation has landed. Per the recorded learning
+(`[[apexalgo-iad-argocd-sync-broken]]` — "do NOT spend many attempts"), this was a focused
+re-confirmation of the same closed write-paths rather than a new hunt.
+
+Fresh evidence gathered this attempt:
+
+- **C1 (FAIL):** ArgoCD unreachable from this box — `argocd-ro-ardenone-manager-ts.ardenone.com` and
+  `argocd-rs-manager.tail1b1987.ts.net:8080` both **fail DNS resolution / return HTTP 000**. No `argocd`
+  CLI installed (`which argocd` → none). No ardenone-manager kubeconfig on disk (only `iad-acb` +
+  `iad-ci`). So the app's `sync=Unknown` (x509 against the HCP Rackspace endpoint) cannot be inspected
+  or repaired from here.
+- **C2 (FAIL):** Exact pull failure now captured — `vista-5d5f9dc954-mrksg` 0/1 `ImagePullBackOff`
+  (207 pulls over 17h): `docker.io/ronaldraygun/vista:latest` → `insufficient_scope: authorization
+  failed` / "repository does not exist or may require authorization". The Docker Hub repo/tag stopped
+  serving anonymously. Live Deployment `.spec.template` still wants `ronaldraygun/vista:latest`;
+  `.spec.replicas=1`, `ready=1` (served by legacy RS `vista-7d87bd66df-g6tvh`, 1/1 Running).
+  `declarative-config` correctly pins `ghcr.io/jedarden/vista:1.0.5` (`k8s/apexalgo-iad/vista/deployment.yml:25`,
+  = `b3144ab`) but it has never synced down. **Confirmed apexalgo-iad is read-only:** `auth can-i
+  update/patch deployments -n vista` → `no` for both, so I cannot patch the live image.
+- **C3 (PASS):** `svc/vista` serving via the legacy pod's endpoint.
+- **C4 (PASS):** IngressRoute `vista` → `svc/vista:3000` intact.
+- **C5 (PASS):** `GET https://vista.jedarden.com/` → HTTP 200, correct
+  `<title>VISTA — Visual Inspector of Social Tags &amp; Attributes</title>`.
+
+**Conclusion unchanged.** The single fix that would clear C1+C2 is the same operator action recorded in
+attempts 50–51: repair the ArgoCD cluster-registration x509 trust on ardenone-manager, then sync
+`b3144ab` (no manifest change needed). No self-service path exists from this read-only box (proxy
+read-only, no ardenone-manager kubeconfig, no argocd CLI, RO endpoints unreachable, cluster
+registration not GitOps-managed). **Bead left open.**

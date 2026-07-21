@@ -875,3 +875,44 @@ ArgoCD cluster-registration x509 trust on ardenone-manager (de-duplicate the two
 for the HCP endpoint, refresh `caData` or set `tlsClientConfig.insecure=true`), then
 `argocd app sync vista-ns-apexalgo-iad` — no manifest change needed, `b3144ab` is already correct.
 No self-service path exists from this read-only box. **Bead left open.**
+
+---
+
+## Attempt 90 (focused re-verification — unchanged)
+
+Re-verified live state on 2026-07-21. **Still PARTIAL 3/5, byte-for-byte identical to attempts 50–89.**
+No operator remediation has landed. Per the recorded learning
+(`[[apexalgo-iad-argocd-sync-broken]]` — "do NOT spend many attempts"), this was a single focused
+re-confirmation; every write-path candidate to apexalgo-iad / ardenone-manager was already closed in
+attempts 43–52.
+
+Config-layer unchanged: only `iad-acb.kubeconfig` + `iad-ci.kubeconfig` on disk (no
+ardenone-manager / apexalgo-iad write path); no `gh` CLI, no `argocd` CLI;
+`declarative-config/k8s/apexalgo-iad/vista/deployment.yml:25` still pins
+`ghcr.io/jedarden/vista:1.0.5` (`b3144ab`).
+
+Fresh evidence gathered this attempt:
+
+- **C1 (FAIL):** ArgoCD app `vista-ns-apexalgo-iad` (read via ardenone-manager RO proxy
+  `traefik-ardenone-manager:8001`) still `sync=Unknown`, `health=Healthy` — the controller still
+  cannot reconcile against apexalgo-iad's HCP endpoint. Cannot be inspected or repaired from this
+  read-only box (no ardenone-manager kubeconfig on disk; RO proxy cannot patch).
+- **C2 (FAIL):** `vista-5d5f9dc954-mrksg` still 0/1 `ImagePullBackOff` (20h, current RS; live Deploy
+  image still `ronaldraygun/vista:latest`, `.spec.replicas=1`, `ready=1`). Legacy
+  `vista-7d87bd66df-g6tvh` 1/1 Running (15h, IP `10.20.92.160`) serves all traffic.
+  GHCR still PRIVATE — anon manifest GET returns HTTP 404 for BOTH `1.0.5` and the known-real legacy
+  `1.0.0` (signature = private package, not missing). `declarative-config` still correctly pins
+  `ghcr.io/jedarden/vista:1.0.5` (`b3144ab`) but it has never synced down; vista Deploy has no
+  imagePullSecret. apexalgo-iad access is read-only-proxy-only, so neither the live image nor the
+  secret can be patched.
+- **C3 (PASS):** `svc/vista` ClusterIP `10.21.64.133:3000`; endpoint `10.20.92.160:3000`.
+- **C4 (PASS):** IngressRoute `vista` (48d) + `vista-ingressroute` (127d) → `svc/vista:3000` intact.
+- **C5 (PASS):** `GET https://vista.jedarden.com/` → HTTP 200,
+  `<title>VISTA — Visual Inspector of Social Tags &amp; Attributes</title>`.
+
+**Conclusion unchanged.** The single operator action that would clear C1+C2 is still: repair the
+ArgoCD cluster-registration x509 trust on ardenone-manager (de-duplicate the two `cluster-*` Secrets
+for the HCP endpoint, refresh `caData` or set `tlsClientConfig.insecure=true`), then
+`argocd app sync vista-ns-apexalgo-iad` — AND make `ghcr.io/jedarden/vista` public (or wire an
+imagePullSecret), else a sync to `b3144ab` re-triggers `ImagePullBackOff` on the private `1.0.5`.
+No self-service path exists from this read-only box. **Bead left open PARTIAL 3/5.**

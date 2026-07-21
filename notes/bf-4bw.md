@@ -1050,3 +1050,26 @@ requires operator action: (a) repair the ArgoCD cluster-registration x509 trust 
 (de-duplicate the two `cluster-*` Secrets for the HCP endpoint, refresh `caData` or set
 `tlsClientConfig.insecure=true`); (b) make `ghcr.io/jedarden/vista` public or wire an `imagePullSecret`
 into the vista Deployment manifest; then `argocd app sync vista-ns-apexalgo-iad`. **Bead left open PARTIAL 3/5.**
+
+## Attempt 94 (focused re-verification — NOT byte-for-byte identical this round)
+
+**Attempt 94 · 2026-07-21 · Result: STILL PARTIAL — 3/5 pass (3,4,5); 1 fail (2); 1 unverifiable this round (1). Single focused re-verification per `[[apexalgo-iad-argocd-sync-broken]]` ("do NOT spend many attempts"). Bead left open (operator action required).**
+
+Two genuine deltas from attempts 49–93 (otherwise the vista-specific live state is unchanged — pod ages still 20h/16h, deploy image `ronaldraygun/vista:latest`, `replicas=1`, legacy RS READY 1/1, current RS READY 0):
+
+- **C1 could not be re-queried this attempt.** The ardenone-manager ArgoCD read-only proxy endpoint `argocd-ro-ardenone-manager-ts.ardenone.com:8444` is **DNS-unresolvable** from this host right now (`getent hosts` → no resolution; `curl` → HTTP 000 on 3 consecutive tries). The underlying cluster-registration x509 break is unchanged (per `[[apexalgo-iad-argocd-sync-broken]]` and traces; app historically `sync=Unknown`, ComparisonError x509 vs the HCP endpoint). C1 therefore recorded as still-blocked, not freshly re-confirmed. (NB: ADB phone failover does not help here — that's a Tailscale-only hostname the phone can't resolve either.)
+- **Sharper image-pullability test (proper registry token flow, not a raw anonymous GET).** Prior attempts' raw anon manifest GET conflated "private" with "GHCR requires a token even for public packages." Redone correctly:
+  - Docker Hub `ronaldraygun/vista:latest` (the **live desired** image) → anon-token manifest GET = **HTTP 401** (private / auth-required). This is the image the current RS is failing on.
+  - GHCR `ghcr.io/jedarden/vista:1.0.0` (legacy running pod's image) → anon-token manifest GET = **HTTP 404**.
+  - GHCR `ghcr.io/jedarden/vista:1.0.5` (GitOps target per `b3144ab`) → anon-token manifest GET = **HTTP 404**.
+  - Conclusion stands and is now firmer: **both candidate images are anonymously unpullable**, so the legacy `vista-7d87bd66df-g6tvh` (1/1 Running, 0 restarts) survives only on a **node-cached** GHCR `1.0.0`; if it is evicted/restarted it will also go `ImagePullBackOff`.
+
+Verified this attempt from the apexalgo-iad RO proxy (`traefik-apexalgo-iad:8001`) + a `curl` of the public endpoint:
+
+- **C1 (FAIL / unverifiable this round):** ArgoCD app `vista-ns-apexalgo-iad` — RO proxy DNS-unresolvable this attempt; historically `sync=Unknown` (x509 cluster-registration break, cluster-wide, not vista-specific). Not repairable from this read-only box.
+- **C2 (FAIL):** `deploy/vista` live `.spec.template` image = `ronaldraygun/vista:latest`, `replicas=1`, `RollingUpdate`; `status` Available+Progressing, `updated=1 ready=1 available=1`. Current RS `vista-5d5f9dc954` (wants `ronaldraygun/vista:latest`) DESIRED=1 READY=0 → `vista-5d5f9dc954-mrksg` 0/1 `ImagePullBackOff` (20h, IP `10.20.92.166`, event "Back-off pulling image ronaldraygun/vista:latest"). Legacy RS `vista-7d87bd66df` (wants `ghcr.io/jedarden/vista:1.0.0`) DESIRED=1 READY=1 → `vista-7d87bd66df-g6tvh` 1/1 Running (16h, IP `10.20.92.160`) serves all traffic on a node-cached image. GitOps `b3144ab` (GHCR `1.0.5`) still never synced down.
+- **C3 (PASS):** `svc/vista` ClusterIP `10.21.64.133:3000` (127d).
+- **C4 (PASS):** IngressRoutes `vista` (48d) + `vista-ingressroute` (127d) → `svc/vista:3000` intact.
+- **C5 (PASS):** `GET https://vista.jedarden.com/` → HTTP 200, 36 274 bytes (1.87 s), `<title>VISTA — Visual Inspector of Social Tags &amp; Attributes</title>`.
+
+**No self-service write path (freshly re-confirmed):** `kubectl auth can-i update/patch/create/delete deployments -n vista` via apexalgo-iad proxy → `no` for all four; only `iad-acb` + `iad-ci` kubeconfigs on disk (no `ardenone-manager`); no `argocd`/`gh` CLI. Remediation still operator-only: (a) restore the ArgoCD↔apexalgo-iad cluster-registration x509 trust on ardenone-manager (and restore the RO proxy DNS); (b) make the **live desired** image pullable — either make Docker Hub `ronaldraygun/vista` public, or get ArgoCD to sync the GHCR-pointed manifest (`b3144ab`) AND make `ghcr.io/jedarden/vista` public / wire an `imagePullSecret`; then `argocd app sync vista-ns-apexalgo-iad` and confirm the new RS reaches Running and the legacy RS scales down. **Bead left open PARTIAL 3/5.**

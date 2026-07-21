@@ -1,5 +1,38 @@
 # Bead bf-4bw: Verify vista deployment on apexalgo-iad
 
+**Date (attempt 4):** 2026-07-21  ·  **Result: ⚠️ STILL PARTIAL — 3/5 criteria pass; 2 fail, blockers UNCHANGED since attempts 1–3. Bead left open.**
+
+## Attempt-4 verification snapshot (2026-07-21 — UNCHANGED)
+
+Re-verified live. Two access-path improvements over prior attempts:
+
+- **ArgoCD App CR read first-hand via the ardenone-manager read-only kubectl-proxy**
+  (`kubectl --server=http://traefik-ardenone-manager:8001 get application vista-ns-apexalgo-iad -n argocd`),
+  which works reliably — unlike the ArgoCD RO HTTP API (`argocd-ro-ardenone-manager-ts.ardenone.com`),
+  which is again **unresolvable from this host** (`Could not resolve host`). Prior attempts used
+  either that (broken) API or the direct `ardenone-manager.kubeconfig`, which is **no longer present**
+  on this box (only `iad-acb.kubeconfig` and `iad-ci.kubeconfig` exist in `~/.kube/` — CLAUDE.md is stale).
+  The proxy path is the durable one for future verification runs.
+- **Full GHCR tag list** for `ghcr.io/jedarden/vista`: `1.0.0, 1.0.1, 1.0.2, 1.0.3, 1.0.4, 1.0.5, latest`.
+  So the working registry already carries `1.0.5` *and* `latest` — the criterion-2 fix is a one-line
+  manifest repoint to `ghcr.io/jedarden/vista`, pending only criterion-1 being unblocked.
+
+| # | Criterion | Verdict | Fresh evidence (attempt 4) |
+|---|-----------|---------|----------------------------|
+| 1 | ArgoCD `vista` Synced | ❌ FAIL | App CR: `sync=Unknown`, `health=Healthy`, `op.phase=Failed` ("one or more synchronization tasks are not valid (retried 2 times)"). Conditions: ComparisonError/UnknownError — controller **cannot reach** apexalgo-iad API server `hcp-99476ebb-…spot.rackspace.com` (`Get "…/version?timeout=32s": tls: failed…`). `resources tracked: 0`. Source confirmed correct (`github.com/jedarden/declarative-config` @ `k8s/apexalgo-iad/vista`). |
+| 2 | Deployment pods Running | ❌ FAIL | `vista-5d5f9dc954-mrksg` 0/1 `ImagePullBackOff` wanting `ronaldraygun/vista:latest` ("repository does not exist or may require authorization"; DockerHub → **404** for latest/1.0.0/1.0.5/1.0.21). `vista-7d87bd66df-g6tvh` 1/1 Running on `ghcr.io/jedarden/vista:1.0.0`. Deploy `Progressing=False` ("ReplicaSet vista-5d5f9dc954 has timed out progressing"); `Available=True`. |
+| 3 | Service via cluster-internal DNS | ✅ PASS | `svc/vista` ClusterIP `10.21.64.133:3000` (FQDN `vista.vista.svc.cluster.local`); EndpointSlice `vista-jk6kw` has healthy endpoint `10.20.92.160:3000`. |
+| 4 | IngressRoute working | ✅ PASS | IngressRoute `vista`: `Host(\`vista.jedarden.com\`)` → `svc/vista:3000`, entryPoint `websecure`, tls `letsencrypt`. (Stale dup `vista-ingressroute`, 127d, still present.) |
+| 5 | vista.jedarden.com responds | ✅ PASS | `GET https://vista.jedarden.com/` → **HTTP 200**, 36274 B, `<title>VISTA — Visual Inspector of Social Tags &amp; Attributes</title>`, body markers Inspect/Paste/Compare/Sitemap present; DNS → CF anycast `2606:4700:3037::ac43:acda`. |
+
+Both blockers are byte-for-byte the same root causes as attempts 1–3; no operator remediation has
+landed between attempts. Both fixes are operator/infra work outside read-only verification scope
+(apexalgo-iad is read-only via kubectl-proxy; the x509 trust fix lives in ArgoCD's cluster-registration
+on ardenone-manager, and the image fix needs a manifest repoint to GHCR + an ArgoCD sync that can't
+run while #1 is down). **Bead left open.**
+
+---
+
 **Date (attempt 3):** 2026-07-21  ·  **Result: ⚠️ STILL PARTIAL — 3/5 criteria pass; 2 fail, blockers UNCHANGED since attempts 1 & 2. Bead left open.**
 
 ## Attempt-3 verification snapshot (2026-07-21 — UNCHANGED)

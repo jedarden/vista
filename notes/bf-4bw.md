@@ -1,5 +1,52 @@
 # Bead bf-4bw: Verify vista deployment on apexalgo-iad
 
+## Attempt 25 — 2026-07-21 (re-verified live + independently re-verified access model; STILL PARTIAL 3/5, bead left open)
+
+**Verdict identical to attempts 1–24: 3 of 5.** This attempt's distinctive work was to **challenge
+rather than inherit** the access-model claim that has gated every prior attempt, then confirm the
+live cluster state is unchanged.
+
+**Access model — independently re-verified (not assumed from attempt 24):**
+- `~/.kube` holds exactly two kubeconfigs: `iad-acb.kubeconfig` + `iad-ci.kubeconfig`. The
+  `ardenone-manager.kubeconfig` that CLAUDE.md documents as the cluster-admin / ArgoCD-CR write path
+  is **genuinely absent** — searched `~/.kube`, the vista repo, and `declarative-config`. Attempt 24
+  was correct; this is now confirmed by direct enumeration, not inherited.
+- `iad-acb.kubeconfig` (the undocumented one) was investigated: it targets
+  `http://traefik-iad-acb:8001` — an **unrelated** read-only proxy for a separate `iad-acb` cluster,
+  currently `dial tcp ... i/o timeout`. It is not a write path to ardenone-manager or apexalgo-iad.
+- Conclusion: no write path to ardenone-manager's `argocd` ns exists on this host, so Blocker 1
+  (cluster-registration Secret / stale CA) cannot be remediated here.
+
+**Live state — confirmed via the working apexalgo-iad read-only proxy, unchanged:**
+- `vista-5d5f9dc954-mrksg` 0/1 `ImagePullBackOff` (15h, current RS, wants unpullable
+  `ronaldraygun/vista:latest`); `vista-7d87bd66df-g6tvh` 1/1 Running (legacy
+  `ghcr.io/jedarden/vista:1.0.0`). deploy READY=1/1 UP-TO-DATE=1 AVAILABLE=1, stuck mid-rollout.
+  The live template still references the stale DockerHub image → **ArgoCD is provably not syncing**
+  (a synced state would have corrected it to the GitOps `b3144ab` GHCR image). This is independent
+  confirmation of the `Unknown` sync status without needing the (currently unresolvable) argocd ro
+  proxy.
+- `GET https://vista.jedarden.com/` → **HTTP 200**, 36274 B, 0.72s,
+  `<title>VISTA — Visual Inspector of Social Tags &amp; Attributes</title>`, markers present.
+- **New vs prior attempts:** survivor pod `g6tvh` is now 11h old (was 127d) — it restarted ~11h ago
+  and **survived**, so the single-pod fragility has not yet caused an outage. The service stays up
+  only because the legacy RS pod rescheduled cleanly; the current RS still cannot pull.
+
+| # | Criterion | Verdict | Fresh evidence (attempt 25) |
+|---|-----------|---------|-----------------------------|
+| 1 | ArgoCD `vista` Synced | ❌ FAIL | Live deploy template still stale (unpullable image) ⇒ ArgoCD not enforcing; consistent with `Unknown`/`x509` cluster-wide break (63/63 apexalgo-iad apps). |
+| 2 | Deployment pods Running | ❌ FAIL | `mrksg` 0/1 `ImagePullBackOff` (15h); `g6tvh` 1/1 Running (legacy GHCR). Mid-rollout, no change. |
+| 3 | Service via cluster DNS | ✅ PASS | `svc/vista` ClusterIP `10.21.64.133:3000`; ready endpoint serving. |
+| 4 | IngressRoute working | ✅ PASS | `vista` IngressRoute → `svc/vista:3000` (websecure). |
+| 5 | vista.jedarden.com responds | ✅ PASS | HTTP 200, correct VISTA title + markers. |
+
+**Conclusion unchanged.** Criteria 3–5 pass; 1–2 fail on the same operator-only blockers. The
+GitOps source-of-truth is already correct (`b3144ab` → `ghcr.io/jedarden/vista:1.0.5`); one
+successful ArgoCD sync after the operator repairs the cluster-registration CA would land it and
+resolve criteria 1 & 2 for vista and its ~62 sibling apps. No such access exists on this host.
+Bead left open (PARTIAL) per the close-gating rule; auto-released for operator retry.
+
+---
+
 ## Attempt 24 — 2026-07-21 (re-verified live; STILL PARTIAL 3/5, bead left open)
 
 Single-decision re-verification per memory [[apexalgo-iad-argocd-sync-broken]]. **Verdict identical to

@@ -1,5 +1,48 @@
 # Bead bf-4bw: Verify vista deployment on apexalgo-iad
 
+## Attempt 44 — 2026-07-21 (STILL PARTIAL 3/5, bead left open)
+
+Single-decision re-verification per memory [[apexalgo-iad-argocd-sync-broken]]. **Verdict identical
+to attempts 1–43: 3 of 5.** No operator repair has landed; live state byte-for-byte unchanged.
+Fresh decisive confirmation of the three load-bearing facts this turn:
+
+1. **All four write paths closed (fresh `auth can-i`, not assumed):** apexalgo-iad
+   `patch deployment/vista` → `no`, `delete pod` → `no`; ardenone-manager `patch secret -n argocd`
+   → `no`, `create secret -n argocd` → `no`.
+2. **apexalgo-iad ArgoCD cluster-registration is NOT GitOps-managed.** Grep of local
+   `declarative-config` for `hcp-99476ebb`/`spot.rackspace`/`cluster-apexalgo-iad` finds only
+   Application manifests (destination refs) and ExternalSecretStore `cluster-secret-store.yml`
+   files — no ArgoCD cluster-registration Secret. The only registration-related files are the two
+   `.disabled` stubs (`cluster-apexalgo-hub-sealedsecret.yml.disabled`,
+   `cluster-iad-ci-externalsecret.yml.disabled`) — and **none** for apexalgo-iad. So the broken
+   registration is a manual `argocd cluster add` artifact in the `argocd` ns, unreachable from here
+   on any path. Closes the last declarative-config write-path candidate definitively.
+3. **Cluster-wide x509 break still active:** 252 apps total → 107 Synced / 48 OutOfSync /
+   **97 Unknown**; of the Unknowns, **78** carry `spot.rackspace.com` in their comparison error.
+   Identical to attempt 39's 78/78.
+
+| # | Criterion | Verdict | Fresh evidence (attempt 44) |
+|---|-----------|---------|-----------------------------|
+| 1 | ArgoCD `vista` Synced | ❌ FAIL | App CR `vista-ns-apexalgo-iad` via ardenone-manager kubectl-proxy: `sync=Unknown` / `health=Healthy(stale)` / `opPhase=`(empty). ComparisonError (verbatim, unchanged): `failed to get cluster info for "https://hcp-99476ebb-4133-4a21-ac6a-6e2bdf6794c0.spot.rackspace.com" … failed to get server version: Get "https://hcp-99476ebb-…spot.rackspace.com/version?timeout=32s": tls: failed to verify certificate: x509: certificate signed by unknown authority`. Source correctly pointed: `github.com/jedarden/declarative-config@HEAD:k8s/apexalgo-iad/vista`. x509 is in ArgoCD's cluster-registration CA trust, **not** the manifest. |
+| 2 | Deployment pods Running | ❌ FAIL | `vista-5d5f9dc954-mrksg` 0/1 `ImagePullBackOff` (17h, **current** RS, wants `ronaldraygun/vista:latest` — DockerHub 404); `vista-7d87bd66df-g6tvh` 1/1 Running (13h, legacy `ghcr.io/jedarden/vista:1.0.0`). Deploy template `ronaldraygun/vista:latest`, `replicas=1`; deploy `READY 1/1 AVAILABLE 1` — surviving solely on the single legacy pod. RSes: `vista-5d5f9dc954` (1/0 ready, 48d, current) + `vista-7d87bd66df` (1/1 ready, 127d, legacy). GitOps fix `b3144ab` (`ghcr.io/jedarden/vista:1.0.5`, replicas 3) still unenforced. |
+| 3 | Service via cluster DNS | ✅ PASS | `svc/vista` ClusterIP `10.21.64.133:3000` (127d); Endpoints → `10.20.92.160:3000` (the Running pod) → serves traffic. |
+| 4 | IngressRoute working | ✅ PASS | `vista` IngressRoute (48d) → `svc/vista`, entryPoint websecure; stale dup `vista-ingressroute` (127d) still present. |
+| 5 | vista.jedarden.com responds | ✅ PASS | `GET https://vista.jedarden.com/` → **HTTP 200** (0.09s, 36274 B), `<title>VISTA — Visual Inspector of Social Tags &amp; Attributes</title>`. |
+
+**Single required operator step (unchanged):** on ardenone-manager `argocd` ns, repair the
+cluster-registration for `hcp-99476ebb-…spot.rackspace.com` — de-duplicate the two `cluster-*`
+Secrets, then add the signing CA to `caData` (or set `tlsClientConfig.insecure=true`) on the
+survivor, then force a sync. ArgoCD converges the GHCR rollout (`b3144ab`), the stuck RS prunes,
+and criteria 1 & 2 pass automatically for vista + ~77 sibling apps.
+
+**Conclusion unchanged.** User-facing service is live and correct (criteria 3–5, HTTP 200). The
+image problem is solved in source and on `origin/main` (`b3144ab`). 2 of 5 criteria cannot be
+satisfied without operator write access (all four write `can-i`=no; registration not GitOps-managed)
+→ **bead left open PARTIAL** per the close-gating rule; auto-released for operator retry. See memory
+[[apexalgo-iad-argocd-sync-broken]].
+
+---
+
 ## Attempt 43 — 2026-07-21 (STILL PARTIAL 3/5, bead left open)
 
 Verdict identical to attempts 1–42: **3 of 5.** No operator repair has landed; the live state is

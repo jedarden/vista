@@ -1,5 +1,26 @@
 # Bead bf-4bw: Verify vista deployment on apexalgo-iad
 
+**Date (attempt 15):** 2026-07-21 13:10Z  ·  **Result: ⚠️ STILL PARTIAL (3/5 pass) — identical to attempts 1–14. Bead left open. Re-verified live with a fresh reconciliation (App CR reconciled 2026-07-21T13:09:21Z, ~1 min before this check); access model re-confirmed: no write path to ardenone-manager. No new action available — kept this entry intentionally concise (see attempt 14 below for full detail).**
+
+| # | Criterion | Verdict | Fresh evidence (13:10Z) |
+|---|-----------|---------|-------------------------|
+| 1 | ArgoCD `vista` Synced | ❌ FAIL | App `vista-ns-apexalgo-iad`: `sync=Unknown`, `health=Healthy`, `op=Failed`, reconciled `2026-07-21T13:09:21Z`. Conditions: `x509: certificate signed by unknown authority` reaching `hcp-99476ebb-…spot.rackspace.com/version`. ArgoCD controller still cannot reach apexalgo-iad. |
+| 2 | Deployment pods Running | ❌ FAIL | `vista-5d5f9dc954-mrksg` 0/1 `ImagePullBackOff` (14h, wants `ronaldraygun/vista:latest`); `vista-7d87bd66df-g6tvh` 1/1 Running (10h, legacy `ghcr.io/jedarden/vista:1.0.0`). Deploy `Progressing=False` (timed out), `Available=True`, replicas 1. Source fix `b3144ab` not yet enforced — blocked by #1. |
+| 3 | Service via cluster-internal DNS | ✅ PASS | `svc/vista` ClusterIP `10.21.64.133:3000`. |
+| 4 | IngressRoute working | ✅ PASS | `vista` IngressRoute (48d) → `svc/vista:3000`; stale dup `vista-ingressroute` (127d) still present. |
+| 5 | vista.jedarden.com responds | ✅ PASS | `GET https://vista.jedarden.com/` → HTTP 200, 36274 B, `<title>VISTA — Visual Inspector of Social Tags &amp; Attributes</title>`. |
+
+**Single operator action unblocks both failing criteria:** on ardenone-manager, `argocd` ns — delete the duplicate/broken cluster-registration Secret `cluster-apexalgo-iad` (or attach a `tlsClientConfig.caData` bundle with the Rackspace HCP CA) so ArgoCD resolves the apexalgo-iad server URL to the registration carrying a CA. ArgoCD then reaches apexalgo-iad, syncs the already-correct, live-ready `b3144ab` manifest (`ghcr.io/jedarden/vista:1.0.5`, replicas 3 — tag confirmed pullable on GHCR), and the rollout proceeds → criteria 1 & 2 pass.
+
+**Why this can't be done from the verification role (re-confirmed fresh):**
+- `ardenone-manager.kubeconfig` is **ABSENT** from `~/.kube/` (only `iad-acb.kubeconfig` + `iad-ci.kubeconfig` exist — CLAUDE.md's documented write path is stale). Proxy access is read-only: `auth can-i '*' '*'`→`no`, `patch secret -n argocd`→`no`, `delete secret -n argocd`→`no`.
+- apexalgo-iad is read-only (`traefik-apexalgo-iad:8001`); cannot patch the Deployment/image.
+- GitOps path closed (attempt 14): the broken cluster-registration Secret is NOT in `declarative-config`, so even the sanctioned reversible-push path cannot repair it.
+
+**Conclusion:** user-facing service is live and correct (criteria 3–5, HTTP 200). Criteria 1–2 require operator write access to ardenone-manager that does not exist on this box and is unreachable via GitOps. 2 of 5 acceptance criteria cannot be satisfied → **bead left open** per the close-gating rule; will flip to PASS once the operator repairs the ArgoCD→apexalgo-iad registration.
+
+---
+
 **Date (attempt 14):** 2026-07-21  ·  **Result: ⚠️ STILL PARTIAL (3/5 pass) — byte-for-byte identical to attempts 1–13. Bead left open. NEW this attempt: closed the last unexplored resolution path — confirmed the broken ArgoCD→apexalgo-iad cluster registration is NOT GitOps-managed, so even the sanctioned declarative-config write path cannot fix blocker 1.**
 
 Re-verified live across all five criteria, the access model, the GitOps source-of-truth, AND (new) whether blocker 1 is reachable via GitOps. Nothing has changed since attempt 13. Blocker 1 (ArgoCD→apexalgo-iad x509) is still NOT remediated by an operator; blocker 2's source-of-truth fix (`b3144ab`) still cannot propagate live.

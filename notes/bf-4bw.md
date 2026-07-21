@@ -1,5 +1,29 @@
 # Bead bf-4bw: Verify vista deployment on apexalgo-iad
 
+**Date (attempt 8):** 2026-07-21  ·  **Result: ⚠️ STILL PARTIAL — 3/5 pass; 2 fail. Bead left open. NEW: blocker 1 root-caused to a precise one-line operator fix (duplicate cluster registration, one missing its CA bundle).**
+
+Re-verified live. Cluster state byte-for-byte identical to attempts 1–7 (pods `mrksg` ImagePullBackOff + `g6tvh` Running; deploy 1/1; svc 10.21.64.133:3000; IngressRoute `vista`; vista.jedarden.com HTTP 200). Access model unchanged: **no write path** to either cluster (`ardenone-manager.kubeconfig` still ABSENT from `~/.kube/` — only `iad-acb` + `iad-ci` exist, so CLAUDE.md's documented write path is stale; apexalgo-iad `auth can-i '*' '*'` → `no`; ardenone-manager reachable only via the read-only `traefik-ardenone-manager:8001` proxy).
+
+**What changed this attempt:** deepened blocker 1 from "ArgoCD can't reach apexalgo-iad (x509)" to the exact misconfiguration and fix, by reading the ArgoCD cluster-registration Secrets (the observer SA permits a labeled `list`/read of these). Findings an operator can act on in one shot:
+
+- **Two cluster Secrets register the identical apexalgo-iad server URL** (`https://hcp-99476ebb-4133-4a21-ac6a-6e2bdf6794c0.spot.rackspace.com`, which is the vista app's `spec.destination.server`):
+  - `cluster-apexalgo-iad` → `config` has **only `bearerToken`**, **NO `tlsClientConfig`/`caData`** → controller validates the Rackspace API cert against its pod's system CA trust store → `x509: certificate signed by unknown authority`. **This is the broken registration.** It was last patched **2026-07-17T21:41:50Z** (`kubectl-patch`) — a recent operator attempt that omitted the CA bundle.
+  - `cluster-hcp-99476ebb-…spot.rackspace.com-3689407595` → same server URL, `config` has `bearerToken` + `tlsClientConfig.caData` (len 1500) → **would connect fine.**
+- **Fix for blocker 1 (operator, on ardenone-manager, argocd ns):** delete the duplicate/broken Secret `cluster-apexalgo-iad` (or add a `tlsClientConfig.caData` bundle to it) so ArgoCD resolves the server URL to the registration that carries a CA. Then ArgoCD sync will reach apexalgo-iad.
+- **Fix for blocker 2 (declarative-config):** `k8s/apexalgo-iad/vista/deployment.yml:25` pins `ronaldraygun/vista:1.0.5` (DockerHub → **404**, confirmed again). Repoint to the working public registry `ghcr.io/jedarden/vista` (anon-pullable; tags `1.0.0…1.0.5, latest`). Moot until blocker 1 is cleared (ArgoCD can't apply anything), but it is the correct source-of-truth fix. (Not applied here — out of scope for a verification bead, and unobservable while blocker 1 holds.)
+
+| # | Criterion | Verdict | Fresh evidence (attempt 8) |
+|---|-----------|---------|----------------------------|
+| 1 | ArgoCD `vista` Synced | ❌ FAIL | App CR `sync=Unknown`, `health=Healthy`, `op=Failed`. Conditions: `x509: certificate signed by unknown authority` reaching `hcp-99476ebb-….spot.rackspace.com/version`. Root cause now pinned: duplicate cluster reg, `cluster-apexalgo-iad` Secret has no `caData` (patched 2026-07-17 without CA). |
+| 2 | Deployment pods Running | ❌ FAIL | RS `vista-5d5f9dc954` wants `ronaldraygun/vista:latest` → pod `mrksg` 0/1 `ImagePullBackOff` (13h); DockerHub repo **404**. RS `vista-7d87bd66df` runs `ghcr.io/jedarden/vista:1.0.0`, pod `g6tvh` 1/1 Running. Deploy READY 1/1, AVAILABLE 1; stuck mid-rollout. |
+| 3 | Service via cluster-internal DNS | ✅ PASS | `svc/vista` ClusterIP `10.21.64.133:3000` (`vista.vista.svc.cluster.local`). |
+| 4 | IngressRoute working | ✅ PASS | `vista` IngressRoute (48d) → `svc/vista:3000`; stale dup `vista-ingressroute` (127d) still present. |
+| 5 | vista.jedarden.com responds | ✅ PASS | `GET https://vista.jedarden.com/` → **HTTP 200**, 36274 B, `<title>VISTA — Visual Inspector of Social Tags &amp; Attributes</title>`. |
+
+**Bottom line:** identical cluster state to attempts 1–7. Both failing criteria still need operator/infra action outside read-only scope, but blocker 1 is now narrowed to a concrete fix (remove/repair the duplicate `cluster-apexalgo-iad` registration on ardenone-manager). Blocker 2 is a one-line declarative-config repoint to `ghcr.io/jedarden/vista`, landing only after blocker 1. **Bead left open** — 2 of 5 acceptance criteria cannot be satisfied without write access that does not exist on this box.
+
+---
+
 **Date (attempt 7):** 2026-07-21  ·  **Result: ⚠️ STILL PARTIAL — 3/5 pass; 2 fail, blockers UNCHANGED across attempts 1–6. Bead left open.**
 
 Re-verified live against apexalgo-iad (kubectl-proxy) and the ArgoCD Application CR (via the durable

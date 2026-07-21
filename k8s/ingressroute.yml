@@ -7,6 +7,13 @@ metadata:
     app.kubernetes.io/name: vista
     app.kubernetes.io/component: ingress
     app.kubernetes.io/managed-by: argocd
+  annotations:
+    # external-dns (apexalgo-iad, domain-filter jedarden.com, --cloudflare-proxied)
+    # creates the vista.jedarden.com CNAME → apexalgo-iad's Cloudflare tunnel,
+    # which fronts the cluster's traefik ingress (see traefik/cloudflared-configmap.yml).
+    external-dns.alpha.kubernetes.io/hostname: vista.jedarden.com
+    external-dns.alpha.kubernetes.io/target: cef7d924-cd61-43dc-89ad-1df7de2699bf.cfargotunnel.com
+    external-dns.alpha.kubernetes.io/ttl: "300"
 spec:
   entryPoints:
     - websecure

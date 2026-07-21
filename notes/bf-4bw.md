@@ -1,5 +1,26 @@
 # Bead bf-4bw: Verify vista deployment on apexalgo-iad
 
+**Date (attempt 9):** 2026-07-21  ·  **Result: ⚠️ STILL PARTIAL — 3/5 pass; 2 fail, blockers UNCHANGED across attempts 1–8. Bead left open. NEW: write-access model proven freshly via direct `auth can-i` (prior attempts asserted it; this attempt ran it) — no write path to either cluster exists.**
+
+Re-verified live. Cluster state byte-for-byte identical to attempts 1–8: pods `mrksg` (`ImagePullBackOff`, wants `ronaldraygun/vista:latest`, 14h) + `g6tvh` (`Running`, `ghcr.io/jedarden/vista:1.0.0`, 9h); deploy READY 1/1 / AVAILABLE 1, stuck mid-rollout; svc `10.21.64.133:3000`; IngressRoutes `vista` (48d) + stale `vista-ingressroute` (127d); ArgoCD app `vista-ns-apexalgo-iad` `sync=Unknown / health=Healthy / op=Failed`; vista.jedarden.com HTTP 200 (36274 B, correct title + Inspect/Paste/Compare/Sitemap).
+
+**New this attempt — the access model, proven (not just asserted):** ran `kubectl auth can-i` directly against both clusters. Result is unambiguous: **no write path exists.**
+- `ardenone-manager` (where blocker 1 lives): `can-i '*' '*'`/`patch secret -n argocd`/`create secret -n argocd`/`delete secret -n argocd`/`patch application -n argocd` → all **`no`**. `ardenone-manager.kubeconfig` (the cluster-admin path CLAUDE.md documents) is **still ABSENT** from `~/.kube/` — only `iad-acb.kubeconfig` + `iad-ci.kubeconfig` exist. Ardenone-manager is reachable only via the read-only `traefik-ardenone-manager:8001` proxy.
+- `apexalgo-iad` (where blocker 2 lives): `can-i '*' '*'`/`patch deployment` → both **`no`**. Read-only `devpod-observer` via kubectl-proxy.
+- Duplicate cluster registration re-confirmed via a fresh secret *list*: `cluster-apexalgo-iad` (113d, the broken one — bearerToken only, no `caData`) and `cluster-hcp-99476ebb-…spot.rackspace.com-3689407595` (110d, the working one with `tlsClientConfig.caData`). Both register the identical server URL that is the vista app's `spec.destination.server`.
+
+| # | Criterion | Verdict | Fresh evidence (attempt 9) |
+|---|-----------|---------|----------------------------|
+| 1 | ArgoCD `vista` Synced | ❌ FAIL | App CR `sync=Unknown`, `health=Healthy`, `op=Failed`. Conditions: ComparisonError/UnknownError — `tls: failed` reaching `hcp-99476ebb-…spot.rackspace.com/version?timeout=32s`. Controller cannot reach apexalgo-iad. |
+| 2 | Deployment pods Running | ❌ FAIL | RS `vista-5d5f9dc954` wants `ronaldraygun/vista:latest` → pod `mrksg` 0/1 `ImagePullBackOff` (14h). RS `vista-7d87bd66df` runs `ghcr.io/jedarden/vista:1.0.0`, pod `g6tvh` 1/1 Running (9h). Deploy READY 1/1, AVAILABLE 1; stuck mid-rollout (desired image unpullable). |
+| 3 | Service via cluster-internal DNS | ✅ PASS | `svc/vista` ClusterIP `10.21.64.133:3000` (`vista.vista.svc.cluster.local`); EndpointSlice `vista-jk6kw` backs it. |
+| 4 | IngressRoute working | ✅ PASS | `vista` IngressRoute (48d) → `svc/vista:3000`; stale dup `vista-ingressroute` (127d) still present. |
+| 5 | vista.jedarden.com responds | ✅ PASS | `GET https://vista.jedarden.com/` → **HTTP 200**, 36274 B, `<title>VISTA — Visual Inspector of Social Tags &amp; Attributes</title>`, markers Inspect/Paste/Compare/Sitemap present. |
+
+**Bottom line:** identical cluster state to attempts 1–8; no operator remediation has landed. Both failing criteria need operator/infra write access that does not exist on this box (proven via `auth can-i`): blocker 1 = repair/remove the duplicate `cluster-apexalgo-iad` registration (missing CA bundle) on ardenone-manager; blocker 2 = repoint `declarative-config/k8s/apexalgo-iad/vista/deployment.yml` image to the pullable `ghcr.io/jedarden/vista` (moot until blocker 1 clears, and a production GitOps change needing operator sign-off given unresolved version drift 1.0.0↔1.0.5). **Bead left open** — 2 of 5 acceptance criteria cannot be satisfied without write access.
+
+---
+
 **Date (attempt 8):** 2026-07-21  ·  **Result: ⚠️ STILL PARTIAL — 3/5 pass; 2 fail. Bead left open. NEW: blocker 1 root-caused to a precise one-line operator fix (duplicate cluster registration, one missing its CA bundle).**
 
 Re-verified live. Cluster state byte-for-byte identical to attempts 1–7 (pods `mrksg` ImagePullBackOff + `g6tvh` Running; deploy 1/1; svc 10.21.64.133:3000; IngressRoute `vista`; vista.jedarden.com HTTP 200). Access model unchanged: **no write path** to either cluster (`ardenone-manager.kubeconfig` still ABSENT from `~/.kube/` — only `iad-acb` + `iad-ci` exist, so CLAUDE.md's documented write path is stale; apexalgo-iad `auth can-i '*' '*'` → `no`; ardenone-manager reachable only via the read-only `traefik-ardenone-manager:8001` proxy).

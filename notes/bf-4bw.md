@@ -1,5 +1,58 @@
 # Bead bf-4bw: Verify vista deployment on apexalgo-iad
 
+## Attempt 48 — 2026-07-21 (STILL PARTIAL 3/5, bead left open)
+
+Fresh end-to-end re-verification of all 5 criteria (no indirect evidence this turn — every value
+read live). **Verdict unchanged: 3 of 5 pass.** No operator remediation has landed. This turn
+narrows the blocker to a **single root cause** and closes the last open question about write
+access — so future attempts need not re-derive it.
+
+| # | Criterion | Verdict | Fresh evidence (attempt 48) |
+|---|-----------|---------|-----------------------------|
+| 1 | ArgoCD `vista` Synced | ❌ FAIL | App CR `vista-ns-apexalgo-iad`: `sync=Unknown`, `health=Healthy`. Conditions still `ComparisonError`/`UnknownError` — controller cannot reach apexalgo-iad: `tls: failed to verify certificate: x509: certificate signed by unknown authority` on `hcp-99476ebb-…spot.rackspace.com/version`. Identical to attempts 1–47. |
+| 2 | Deployment pods Running | ❌ FAIL | `vista-5d5f9dc954-mrksg` 0/1 `ImagePullBackOff` (17h, wants `ronaldraygun/vista:latest`, DockerHub 404); `vista-7d87bd66df-g6tvh` 1/1 Running on `ghcr.io/jedarden/vista:1.0.0`. Deploy `READY 1/1 UP-TO-DATE 1 AVAILABLE 1` (held up only by the legacy pod). |
+| 3 | Service via cluster-internal DNS | ✅ PASS | `svc/vista` ClusterIP `10.21.64.133:3000`; 1 healthy endpoint (`10.20.92.160:3000`). |
+| 4 | IngressRoute working | ✅ PASS | `vista` (48d, GitOps) + stale `vista-ingressroute` (127d); `Host(vista.jedarden.com)`→`svc/vista:3000`, entryPoint `websecure`. |
+| 5 | vista.jedarden.com responds | ✅ PASS | `GET https://vista.jedarden.com/` → **HTTP 200**, 36274 B, `<title>VISTA — Visual Inspector of Social Tags &amp; Attributes</title>`. |
+
+### Decisive: there is exactly ONE root cause, and criterion 2 is downstream of it
+
+The GitOps image fix is already landed — `declarative-config` repoints apexalgo-iad/vista to GHCR
+(commit `b3144ab`, confirmed on origin in attempts 38/47). The live Deployment still references
+`ronaldraygun/vista:latest` **only because ArgoCD has not synced since the x509 break began.**
+So if criterion 1 (controller↔cluster TLS trust) is restored, the next successful sync applies
+the GHCR image and criterion 2 resolves with it. **There is no separate image fix to do** —
+neither DockerHub publish nor a live patch — that isn't blocked behind criterion 1.
+
+### Exact remediation target (new, more precise than prior attempts)
+
+The x509 trust lives in the ArgoCD cluster-registration **Secret `cluster-apexalgo-iad`** in
+namespace `argocd` on **ardenone-manager** (keys: `config`/`name`/`server`; `server` =
+`https://hcp-99476ebb-4133-4a21-ac6a-6e2bdf6794c0.spot.rackspace.com`). A **duplicate**
+registration `cluster-hcp-99476ebb-…spot.rackspace.com-3689407595` points at the same endpoint
+(110d old) — worth pruning to avoid ambiguity. The fix is to patch `config` to either add the
+Rackspace HCP CA to `tlsClientConfig.caBundle` or set `tlsClientConfig.insecure: true`, then
+restart `argocd-application-controller` (or force a cache invalidate) and trigger a vista sync.
+
+### Access model — definitively closed this turn
+
+The fix requires **write access to ardenone-manager's `argocd` namespace.** This turn confirms
+there is **no such path** from this verification role:
+
+- **apexalgo-iad**: read-only (`kubectl-proxy` / `devpod-observer` SA) — cannot patch the Deployment.
+- **ardenone-manager**: the documented direct write kubeconfig
+  `/home/coding/.kube/ardenone-manager.kubeconfig` **does not exist on disk** (only the read-only
+  `http://traefik-ardenone-manager:8001` proxy is reachable). The only files in `~/.kube/` are
+  `iad-acb.kubeconfig` and `iad-ci.kubeconfig`.
+  - `iad-acb` resolves to a *different* proxied cluster (`traefik-iad-acb:8001`, ns `ai-code-battle`)
+    and is currently **unreachable** (i/o timeout) — not an ardenone-manager write path.
+  - `iad-ci` is the Argo-Workflows CI cluster — write-capable, but a different cluster entirely.
+
+Both failing criteria therefore require operator/infra action outside read-only verification
+scope. **Bead left open.**
+
+---
+
 ## Attempt 47 — 2026-07-21 (STILL PARTIAL 3/5, bead left open)
 
 Re-verification per memory [[apexalgo-iad-argocd-sync-broken]] / [[vista-image-fix-in-gitops]]. **Verdict

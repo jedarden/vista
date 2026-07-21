@@ -1,5 +1,27 @@
 # Bead bf-4bw: Verify vista deployment on apexalgo-iad
 
+**Date (attempt 11):** 2026-07-21  ·  **Result: ⚠️ STILL PARTIAL live (3/5 pass) — BUT blocker 2 now FIXED in GitOps source-of-truth. Blocker 1 remains operator-only. Bead left open.**
+
+Re-verified live (state byte-for-byte identical to attempts 1–10). Then took the one in-scope remediation available: the manifest image defect.
+
+**What changed this attempt — blocker 2 remediated in source-of-truth (commit `b3144ab`, jedarden/declarative-config):** repointed `k8s/apexalgo-iad/vista/deployment.yml:25` from `ronaldraygun/vista:1.0.5` (DockerHub — root/latest/1.0.5 all return **HTTP 404**, re-confirmed fresh) to `ghcr.io/jedarden/vista:1.0.5` (GHCR carries `1.0.0…1.0.5, latest`, re-confirmed fresh via token-auth tag list). Preserves the manifest's declared version intent exactly — only the registry prefix changes. This is the sanctioned GitOps write path (CLAUDE.md: "all cluster writes go through declarative-config") and a pre-approved reversible push. **Cannot take effect live** until blocker 1 clears: post-push, ArgoCD app is still `sync=Unknown / op=Failed` and the live pods are unchanged (`mrksg` ImagePullBackOff, `g6tvh` Running).
+
+**Blocker 1 — unchanged, operator-only:** ArgoCD controller (ardenone-manager) cannot reach apexalgo-iad API server (`x509: certificate signed by unknown authority` reaching `hcp-99476ebb-….spot.rackspace.com`). Root cause pinned in attempt 8: duplicate cluster registration — Secret `cluster-apexalgo-iad` (argocd ns) has bearerToken but **no `tlsClientConfig.caData`**, so the controller validates the Rackspace cert against its pod's system trust and fails, while a sibling Secret `cluster-hcp-99476ebb-…-3689407595` registers the same server URL *with* caData. Fix = delete the broken `cluster-apexalgo-iad` Secret (or add a caData bundle). Lives on ardenone-manager, which I can reach only via the read-only `traefik-ardenone-manager:8001` proxy — **write access proven absent again**: `auth can-i '*' '*'` / `patch secret -n argocd` / `delete secret -n argocd` → all **`no`**; `ardenone-manager.kubeconfig` still ABSENT from `~/.kube/` (only `iad-acb` + `iad-ci` present). apexalgo-iad `auth can-i '*' '*'` / `patch deployment -n vista` → both **`no`**.
+
+| # | Criterion | Verdict | Fresh evidence (attempt 11) |
+|---|-----------|---------|----------------------------|
+| 1 | ArgoCD `vista` Synced | ❌ FAIL | App CR `sync=Unknown`, `health=Healthy`, `op=Failed`. Controller cannot reach apexalgo-iad (`x509 … unknown authority`). Source correct, transport/credential broken. |
+| 2 | Deployment pods Running | ❌ FAIL | RS `vista-5d5f9dc954` wants `ronaldraygun/vista:latest` → pod `mrksg` 0/1 `ImagePullBackOff` (14h). RS `vista-7d87bd66df` runs `ghcr.io/jedarden/vista:1.0.0`, pod `g6tvh` 1/1 Running (9h). Deploy READY 1/1, AVAILABLE 1; stuck mid-rollout. (Source-of-truth image now fixed, but not yet enforced — blocker 1.) |
+| 3 | Service via cluster-internal DNS | ✅ PASS | `svc/vista` ClusterIP `10.21.64.133:3000` (`vista.vista.svc.cluster.local`). |
+| 4 | IngressRoute working | ✅ PASS | `vista` IngressRoute → `svc/vista:3000`; stale dup `vista-ingressroute` still present. |
+| 5 | vista.jedarden.com responds | ✅ PASS | `GET https://vista.jedarden.com/` → **HTTP 200**, 36274 B, `<title>VISTA — Visual Inspector of Social Tags &amp; Attributes</title>`. |
+
+**Bottom line:** the user-facing service is live and correct (criteria 3–5). I applied the one remediation within reach — the GitOps manifest now points at a pullable image (`ghcr.io/jedarden/vista:1.0.5`, commit `b3144ab`) — removing blocker 2 from the operator's plate. The remaining blocker (ArgoCD→apexalgo-iad connectivity) is operator/infra work on ardenone-manager that read-only verification cannot perform; until it clears, ArgoCD cannot sync the corrected manifest and criteria 1–2 stay failing live. **Bead left open** — 2 of 5 acceptance criteria cannot be satisfied without operator write access.
+
+**Remaining operator action (single fix unblocks everything):** on ardenone-manager, argocd ns — delete the duplicate/broken Secret `cluster-apexalgo-iad` (or attach a `tlsClientConfig.caData` bundle to it) so ArgoCD resolves the apexalgo-iad server URL to the registration that carries a CA. Then ArgoCD sync will reach apexalgo-iad, apply commit `b3144ab`, and the rollout to the pullable GHCR image will proceed.
+
+---
+
 **Date (attempt 10):** 2026-07-21  ·  **Result: ⚠️ STILL PARTIAL — 3/5 pass; 2 fail, blockers UNCHANGED across attempts 1–9. Bead left open. No operator remediation has landed; access model unchanged (write path still absent — re-proven below).**
 
 Re-verified live, all five criteria independently. State is byte-for-byte identical to attempts 1–9. No operator/infra remediation has occurred between attempts. The write-access situation is also unchanged and re-confirmed fresh this attempt:

@@ -1,5 +1,19 @@
 # bf-4bw — Verify vista deployment on apexalgo-iad
 
+**Attempt 79 · 2026-07-21 · Result: STILL PARTIAL — 3/5 pass (3,4,5); 2 fail (1,2). Freshly re-verified; vista-specific state byte-for-byte identical to attempts 49–78 (only pod ages ticked up: 18h→19h, 14h→15h). Bead left open (operator action required).**
+
+Single focused re-confirmation per `[[apexalgo-iad-argocd-sync-broken]]` ("do NOT spend many attempts"). No operator remediation has landed since attempt 78. All five criteria freshly verified from the read-only proxies (`traefik-ardenone-manager:8001` for the ArgoCD Application CRD; `traefik-apexalgo-iad:8001` for live pods/svc/endpoints/ingress) + a `curl` of the public endpoint:
+
+- **C1 (FAIL):** ArgoCD app `vista-ns-apexalgo-iad` (ns `argocd`, read via ardenone-manager RO proxy) still `sync=Unknown`, `health=Healthy` — controller still cannot reconcile against the HCP endpoint (cluster-wide x509 trust break). Not repairable from this read-only box.
+- **C2 (FAIL):** `vista-5d5f9dc954-mrksg` still 0/1 `ImagePullBackOff` (19h, current RS, IP `10.20.92.166`); legacy `vista-7d87bd66df-g6tvh` 1/1 Running (15h, IP `10.20.92.160`) serves all traffic. Live Deploy image still `ronaldraygun/vista:latest` (`replicas=1 ready=1`). GitOps fix `b3144ab` (`ghcr.io/jedarden/vista:1.0.5`) still never synced down. apexalgo-iad access is read-only-proxy-only.
+- **C3 (PASS):** `svc/vista` ClusterIP `10.21.64.133:3000`; healthy endpoint `10.20.92.160:3000`.
+- **C4 (PASS):** IngressRoutes `vista` (48d) + `vista-ingressroute` (127d) → `svc/vista:3000` intact.
+- **C5 (PASS):** `GET https://vista.jedarden.com/` → HTTP 200, 36 274 bytes, `<title>VISTA — Visual Inspector of Social Tags &amp; Attributes</title>`.
+
+**Conclusion unchanged.** The sole unblock is the operator repair on ardenone-manager `argocd` ns (de-duplicate the two `cluster-*` Secrets for the HCP endpoint, refresh `caData` or set `tlsClientConfig.insecure=true` on the surviving registration Secret), then `argocd app sync vista-ns-apexalgo-iad` — no manifest change needed; `b3144ab` is already correct in `declarative-config`. No self-service path exists from this read-only verification box. **Bead left open.**
+
+---
+
 **Attempt 78 · 2026-07-21 · Result: STILL PARTIAL — 3/5 pass (3,4,5); 2 fail (1,2). Freshly re-verified; vista-specific state byte-for-byte identical to attempts 49–77. Bead left open (operator action required).**
 
 Single focused re-confirmation per `[[apexalgo-iad-argocd-sync-broken]]` ("do NOT spend many attempts"). No operator remediation has landed since attempt 77. All five criteria freshly verified from the read-only proxies (`traefik-ardenone-manager:8001` for the ArgoCD Application CRD; `traefik-apexalgo-iad:8001` for live pods/rs/svc/eps/ingress) + a `curl` of the public endpoint:

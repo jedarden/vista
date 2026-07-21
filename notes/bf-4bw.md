@@ -1567,3 +1567,15 @@ Live state re-queried fresh via `traefik-ardenone-manager:8001` (ArgoCD Applicat
 - **C5 PASS:** `https://vista.jedarden.com/` → HTTP 200 / 36274 bytes / 0.12 s.
 
 **Access unchanged/closed:** `auth can-i patch deploy -n vista` → `no`; kubeconfigs = `iad-acb` + `iad-ci` only; no `argocd`/`gh` CLI. **No self-service path.** Bead **left OPEN** (not closed) per task instructions — C1/C2 require operator action: (a) repair apexalgo-iad cluster-registration x509 trust on ardenone-manager `argocd` ns; (b) make the target image pullable (public `ronaldraygun/vista` on Docker Hub, OR make `ghcr.io/jedarden/vista` public / wire an `imagePullSecret` then sync `b3144ab`); then `argocd app sync vista-ns-apexalgo-iad`. This bead cannot complete from this host until then. See `[[apexalgo-iad-argocd-sync-broken]]`, `[[vista-image-fix-in-gitops]]`.
+
+## Attempt 128 (single consolidated re-verification — byte-for-byte identical, no delta)
+
+**Attempt 128 · 2026-07-21 · Result: STILL PARTIAL — 3/5 pass (C3, C4, C5); 2 fail (C1, C2). No delta from 127 prior attempts.** One consolidated query batch per `[[apexalgo-iad-argocd-sync-broken]]` ("do NOT spend many attempts").
+
+- **C1 FAIL:** `vista-ns-apexalgo-iad` `sync=Unknown / health=Healthy`, `server=https://hcp-99476ebb-4133-4a21-ac6a-6e2bdf6794c0.spot.rackspace.com` — two `ComparisonError` + one `UnknownError`, all `tls: failed to verify certificate: x509: certificate signed by unknown authority`. Cluster-registration x509 trust break, unchanged.
+- **C2 FAIL:** deploy `ronaldraygun/vista:latest`, replicas=1, `imagePullSecrets=[]`, ready=1/2; `vista-5d5f9dc954-xbzql` 0/1 `ImagePullBackOff` (76m, IP `10.20.92.133`, Docker Hub pull denied); legacy `vista-7d87bd66df-p5hn5` 1/1 Running (76m, IP `10.20.98.5`, node-cached `ghcr.io/jedarden/vista:1.0.0`). Same pod names/IPs as attempt 127.
+- **C3 PASS:** svc `10.21.64.133:3000`, endpointslice `vista-jk6kw` (one ready endpoint `10.20.98.5`).
+- **C4 PASS:** IngressRoutes `vista` (48d) + `vista-ingressroute` (127d) → svc vista:3000.
+- **C5 PASS:** `https://vista.jedarden.com/` → HTTP 200 / 36274 bytes / 0.73 s / `<title>VISTA — Visual Inspector of Social Tags &amp; Attributes</title>`.
+
+**Access unchanged/closed:** `auth can-i patch/update deployments -n vista` → both `no`; kubeconfigs = `iad-acb` + `iad-ci` only (no `ardenone-manager.kubeconfig`); no `argocd`/`gh` CLI; `GH_TOKEN`/`GITHUB_TOKEN` unset. **No self-service path.** Bead **left OPEN** (not closed) per task instructions — C1/C2 require operator action: (a) repair apexalgo-iad cluster-registration x509 trust on ardenone-manager `argocd` ns (de-dup the two `cluster-*` Secrets, refresh `caData` / set `tlsClientConfig.insecure=true`); (b) make the target image pullable (public `ronaldraygun/vista` on Docker Hub, OR make `ghcr.io/jedarden/vista` public / wire an `imagePullSecret` then sync `b3144ab`); then `argocd app sync vista-ns-apexalgo-iad`. See `[[apexalgo-iad-argocd-sync-broken]]`, `[[vista-image-fix-in-gitops]]`.

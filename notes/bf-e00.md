@@ -1,13 +1,28 @@
 # Bead bf-e00: Add Cloudflare DNS CNAME for vista.jedarden.com
 
-## Result: STILL BLOCKED — bead left OPEN. Re-verified on attempt 6 (2026-07-21).
+## Result: STILL BLOCKED — bead left OPEN. Re-verified on attempt 7 (2026-07-21).
+
+> **Attempt 7 narrowed the root cause to ONE blocker (not three).** A second, **healthy**
+> external-dns instance (`externaldns-ardenone-com`, `1/1 Running`, AGE 8h) was discovered
+> this attempt — it manages **jedarden.com** (plus ardenone.com, hardyrekshin.com), watches
+> `ingress/service/traefik-proxy/crd` sources, policy `sync`, `--cloudflare-proxied`, and
+> uses a working `cloudflare-externaldns-secret`. Prior attempts only saw the **broken**
+> `external-dns-apexalgo-iad` pod (`CreateContainerConfigError`) and concluded external-dns
+> was dead — that was incomplete. The already-committed vista IngressRoute annotation
+> (vista-repo `03a0c90` / declarative-config `54ed3cf`) would be picked up by this healthy
+> pod **the moment it lands in the cluster**. The **sole remaining blocker is the
+> ArgoCD → apexalgo-iad x509 trust outage** — ArgoCD cannot apply any change to apexalgo-iad,
+> so the annotation never reaches the live IngressRoute (still `generation: 1`, unannotated).
+> Fixing ArgoCD cluster trust (re-add apexalgo-iad with a fresh CA bundle) is now the
+> **single** unblocking action. The DNSEndpoint-CR path and the Terraform path were both
+> evaluated and ruled out this attempt (see "Attempt 7" below). Git server recovered;
+> branch reconciled onto `origin/main` (attempt 6 had a duplicate concurrent-agent commit,
+> now deduped).
 
 The vista CNAME was **not** created. `vista.jedarden.com` resolves **NXDOMAIN** (no DNS
-record of any type) on this attempt as well. Three independent platform-level outages on
-apexalgo-iad — all still active, all outside this agent's access (read-only cluster proxy,
-no Cloudflare credentials) — prevent the CNAME from ever being created. The vista-side
-GitOps change (the external-dns annotation) remains correct and committed; it simply cannot
-reach the cluster, and even if it did the DNS controller is crash-stopped.
+record of any type) on this attempt as well. The vista-side GitOps change (the external-dns
+annotation) remains correct and committed; it simply cannot reach the cluster because
+ArgoCD's TLS trust to apexalgo-iad is broken cluster-wide.
 
 > Per dispatch instructions, a bead whose acceptance criteria are unmet must NOT be closed.
 > This note is updated each retry so the next attempt / a human with the right access can
@@ -17,6 +32,42 @@ reach the cluster, and even if it did the DNS controller is crash-stopped.
 > New wrinkle this attempt: the git server (`git.ardenone.com`) is returning HTTP 502,
 > blocking `git fetch`/`git push` — committed locally; push will be retried when the server
 > recovers.**
+
+### Attempt-7 re-verification snapshot (2026-07-21 — root cause NARROWED to one blocker)
+Re-ran the verification commands and, for the first time, enumerated **all** external-dns
+instances on apexalgo-iad and evaluated two additional write paths (DNSEndpoint CR, Terraform).
+| Check | Value observed | Verdict |
+|---|---|---|
+| `vista.jedarden.com` A / CNAME (Cloudflare DoH) | Status 3 NXDOMAIN | ❌ unchanged |
+| `gait.jedarden.com` A (reference) | Status 0 → 104.21.40.5, 172.67.172.218 | ✅ pattern works |
+| `external-dns-apexalgo-iad-…k9nmx` pod | `0/1 CreateContainerConfigError`, AGE 3d17h | ❌ unchanged (but see next row) |
+| **`externaldns-ardenone-com-…2q7mr` pod** | **`1/1 Running`, AGE 8h** — manages jedarden.com, watches `traefik-proxy`+`crd`, policy sync, `--cloudflare-proxied`, secret `cloudflare-externaldns-secret` | 🆕 **HEALTHY — can create the vista CNAME** |
+| ArgoCD app `externaldns-ardenone-com` | **sync=Unknown** (x509, same as vista) — healthy pod runs off an *earlier* sync; no new config can apply | ❌ confirms x509 is cluster-wide |
+| ArgoCD app `vista-ns-apexalgo-iad` | sync=Unknown op=Failed; ComparisonError `x509: certificate signed by unknown authority` for `hcp-99476ebb-…spot.rackspace.com` | ❌ unchanged |
+| ~all `*-apexalgo-iad` / `*-ns-apexalgo-iad` apps | sync=Unknown (spot-checked 40+; only `applications-apexalgo-iad` root app = Synced) | ❌ cluster-wide outage |
+| live vista IngressRoute | `generation: 1`, **no external-dns annotation** (stale since 2026-06-03) | ❌ unchanged — ArgoCD never applied it |
+| vista source `k8s/ingressroute.yml` + declarative-config twin (`54ed3cf`) | annotation intact (hostname/target/ttl) | ✅ source-of-truth correct |
+| ArgoCD RO API proxy (`…ardenone-manager-ts:8444`) | HTTP 000 — unreachable | ❌ unchanged |
+| `openbao` ClusterSecretStore | Ready=False reason=InvalidProviderConfig | ❌ unchanged |
+| CF credential on host | none (env empty, no `~/.cloudflared`, no CLI; `~/.kube` only iad-acb+iad-ci) | ❌ unchanged |
+| writable cluster access | only `iad-acb` + `iad-ci` kubeconfigs present — **no** ardenone-manager/rs-manager (so cannot fix ArgoCD cluster trust either) | ❌ unchanged |
+
+**New paths evaluated and ruled out (attempt 7):**
+- **DNSEndpoint CR** (the `commitgraph-corpus` / `apexalgo-hub` pattern): a `vista` DNSEndpoint
+  committed to `declarative-config/k8s/apexalgo-iad/utilities/` would be reconciled by the
+  healthy `externaldns-ardenone-com` pod — **but only after ArgoCD syncs it to apexalgo-iad**,
+  which is blocked by the same x509 outage. No win over the already-committed IngressRoute
+  annotation; same blocker.
+- **Terraform** (`declarative-config/terraform/cloudflare/dns.tf`): the file explicitly states
+  external-dns-managed subdomains must NOT be added there ("they will conflict"), and it
+  requires a `cloudflare_api_token` (`terraform.tfvars`, gitignored) that is not present on
+  this host. Ruled out.
+
+**Bottom line:** remediation collapsed from three actions to **one** — fix ArgoCD's TLS trust
+to apexalgo-iad (re-add the cluster with a fresh CA bundle, from ardenone-manager cluster-admin).
+The already-committed vista IngressRoute annotation will then sync, the healthy
+`externaldns-ardenone-com` pod will create `vista.jedarden.com` →
+`cef7d924-…cfargotunnel.com` (proxied, ttl 300), and DNS will resolve like `gait`.
 
 ### Attempt-5 re-verification snapshot (2026-07-21, all still BLOCKED — identical to attempts 3–4)
 | Check | Value observed | Verdict |

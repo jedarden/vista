@@ -1,5 +1,24 @@
 # Bead bf-4bw: Verify vista deployment on apexalgo-iad
 
+**Date (attempt 10):** 2026-07-21  ·  **Result: ⚠️ STILL PARTIAL — 3/5 pass; 2 fail, blockers UNCHANGED across attempts 1–9. Bead left open. No operator remediation has landed; access model unchanged (write path still absent — re-proven below).**
+
+Re-verified live, all five criteria independently. State is byte-for-byte identical to attempts 1–9. No operator/infra remediation has occurred between attempts. The write-access situation is also unchanged and re-confirmed fresh this attempt:
+
+- `ardenone-manager.kubeconfig` still **ABSENT** from `~/.kube/` (only `iad-acb.kubeconfig` + `iad-ci.kubeconfig` exist — CLAUDE.md's documented write path remains stale). ardenone-manager reachable only via read-only `traefik-ardenone-manager:8001`.
+- apexalgo-iad write access re-proven absent: `kubectl --server=http://traefik-apexalgo-iad:8001 auth can-i '*' '*'` → **`no`**; `auth can-i patch deployment -n vista` → **`no`**.
+
+| # | Criterion | Verdict | Fresh evidence (attempt 10) |
+|---|-----------|---------|----------------------------|
+| 1 | ArgoCD `vista` Synced | ❌ FAIL | App CR `sync=Unknown`, `health=Healthy`, `op=Failed`. Conditions ComparisonError/UnknownError: `x509: certificate signed by unknown authority` reaching `hcp-99476ebb-…spot.rackspace.com/version?timeout=32s`. Controller cannot reach apexalgo-iad. (Root cause pinned in attempt 8: duplicate cluster reg `cluster-apexalgo-iad` Secret missing `caData`, on ardenone-manager argocd ns.) |
+| 2 | Deployment pods Running | ❌ FAIL | RS `vista-5d5f9dc954` wants `ronaldraygun/vista:latest` → pod `mrksg` 0/1 `ImagePullBackOff` (14h). RS `vista-7d87bd66df` runs `ghcr.io/jedarden/vista:1.0.0`, pod `g6tvh` 1/1 Running (9h). Deploy READY 1/1, AVAILABLE 1; `Progressing=False` (ProgressDeadlineExceeded). Stuck mid-rollout (desired image unpullable). |
+| 3 | Service via cluster-internal DNS | ✅ PASS | `svc/vista` ClusterIP `10.21.64.133:3000` (`vista.vista.svc.cluster.local`); EndpointSlice `vista-jk6kw` backs it (healthy endpoint `10.20.92.160:3000`). |
+| 4 | IngressRoute working | ✅ PASS | `vista` IngressRoute (48d) → `svc/vista:3000`; stale dup `vista-ingressroute` (127d) still present. |
+| 5 | vista.jedarden.com responds | ✅ PASS | `GET https://vista.jedarden.com/` → **HTTP 200**, 36274 B, 0.09s, `<title>VISTA — Visual Inspector of Social Tags &amp; Attributes</title>`, markers Inspect/Paste/Compare/Sitemap present. |
+
+**Bottom line:** identical to attempts 1–9. The two failing criteria need write access that does not exist on this box (re-proven via `auth can-i`): blocker 1 = repair/remove the duplicate `cluster-apexalgo-iad` cluster registration on ardenone-manager (it carries no CA bundle — see attempt 8 for the one-line fix); blocker 2 = repoint `declarative-config/k8s/apexalgo-iad/vista/deployment.yml` image from `ronaldraygun/vista` (DockerHub 404) to the pullable `ghcr.io/jedarden/vista` (carries `1.0.0…1.0.5, latest`). Both are operator/infra changes outside read-only verification scope, and blocker 2 is moot until blocker 1 clears. **Bead left open** — 2 of 5 acceptance criteria cannot be satisfied without write access.
+
+---
+
 **Date (attempt 9):** 2026-07-21  ·  **Result: ⚠️ STILL PARTIAL — 3/5 pass; 2 fail, blockers UNCHANGED across attempts 1–8. Bead left open. NEW: write-access model proven freshly via direct `auth can-i` (prior attempts asserted it; this attempt ran it) — no write path to either cluster exists.**
 
 Re-verified live. Cluster state byte-for-byte identical to attempts 1–8: pods `mrksg` (`ImagePullBackOff`, wants `ronaldraygun/vista:latest`, 14h) + `g6tvh` (`Running`, `ghcr.io/jedarden/vista:1.0.0`, 9h); deploy READY 1/1 / AVAILABLE 1, stuck mid-rollout; svc `10.21.64.133:3000`; IngressRoutes `vista` (48d) + stale `vista-ingressroute` (127d); ArgoCD app `vista-ns-apexalgo-iad` `sync=Unknown / health=Healthy / op=Failed`; vista.jedarden.com HTTP 200 (36274 B, correct title + Inspect/Paste/Compare/Sitemap).

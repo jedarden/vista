@@ -1,5 +1,39 @@
 # Bead bf-4bw: Verify vista deployment on apexalgo-iad
 
+## Attempt 32 — 2026-07-21 (criterion 1 re-confirmed via *second* read path; STILL PARTIAL 3/5, bead left open)
+
+Decisive re-verification per memory [[apexalgo-iad-argocd-sync-broken]]. **Verdict identical to
+attempts 1–31: 3 of 5.** No operator remediation has landed; no new write path exists on this host.
+
+**This attempt's distinctive signal:** the ArgoCD RO *HTTP* endpoint
+(`argocd-ro-ardenone-manager-ts.ardenone.com:8444`) is currently **failing DNS resolution**
+(HTTP 000, `getent hosts` → NXDOMAIN), so criterion 1 was re-confirmed through the **independent
+kubectl-proxy read path** on ardenone-manager (`traefik-ardenone-manager:8001`, which still
+resolves + is reachable) — reading the `Application` CR directly. That second route yields the
+identical verdict, so the (transient) DNS break of the first read path does not change anything.
+Live criteria 2–5 re-read fresh and byte-for-byte unchanged.
+
+| # | Criterion | Verdict | Fresh evidence (attempt 32) |
+|---|-----------|---------|-----------------------------|
+| 1 | ArgoCD `vista` Synced | ❌ FAIL | `kubectl --server=http://traefik-ardenone-manager:8001 get app vista-ns-apexalgo-iad` → `sync=Unknown`/`health=Healthy`/`op=Failed`. Conditions: `x509: certificate signed by unknown authority` vs `https://hcp-99476ebb-4133-4a21-ac6a-6e2bdf6794c0.spot.rackspace.com/version`. **63/63 apexalgo-iad apps Unknown** (cluster-wide 252: 107 Synced, 48 OutOfSync, 97 Unknown). |
+| 2 | Deployment pods Running | ❌ FAIL | `vista-5d5f9dc954-mrksg` 0/1 `ImagePullBackOff` (16h, current RS, wants `ronaldraygun/vista:latest`); `vista-7d87bd66df-g6tvh` 1/1 Running (11h, legacy `ghcr.io/jedarden/vista:1.0.0`). Deploy template still `ronaldraygun/vista:latest`/replicas=1 vs GitOps `b3144ab` (`ghcr.io/jedarden/vista:1.0.5`, replicas 3). |
+| 3 | Service via cluster DNS | ✅ PASS | `svc/vista` ClusterIP `10.21.64.133:3000` (127d). |
+| 4 | IngressRoute working | ✅ PASS | `vista` IngressRoute (48d) → `svc/vista:3000`; stale dup `vista-ingressroute` (127d) still present. |
+| 5 | vista.jedarden.com responds | ✅ PASS | `GET /` → HTTP 200, 36274 B, 0.12s, `<title>VISTA — Visual Inspector of Social Tags &amp; Attributes</title>`. |
+
+**Access model re-confirmed (unchanged):** `~/.kube` = `iad-acb.kubeconfig` + `iad-ci.kubeconfig`
+only; the CLAUDE.md-documented `ardenone-manager.kubeconfig` is **ABSENT**. ardenone-manager reachable
+only via the read-only proxy (`traefik-ardenone-manager:8001`) — `get/list` on Application CRs only,
+writes to the `argocd` ns Forbidden. apexalgo-iad read-only (`devpod-observer` SA via
+`traefik-apexalgo-iad:8001`). The DNS failure of the `argocd-ro-*-ts.ardenone.com` HTTP endpoint is a
+transient read-path issue, not a new unblock; the real blocker remains the operator-only write to the
+stale-CA cluster-registration Secret (de-duplicate the two Secrets for the HCP server URL, refresh
+`caData` or set `tlsClientConfig.insecure=true`, on ardenone-manager `argocd` ns).
+
+**Conclusion unchanged.** 3/5 pass; 1–2 fail on the same operator-only blockers. Bead intentionally left
+**open** per the task's own rule ("If you cannot complete the task… Do NOT close the bead") and the
+memory guidance to leave apexalgo-iad ArgoCD-sync beads PARTIAL.
+
 ## Attempt 31 — 2026-07-21 (single decisive lookup per memory; STILL PARTIAL 3/5, bead left open)
 
 Decisive re-verification per memory [[apexalgo-iad-argocd-sync-broken]]. **Verdict identical to

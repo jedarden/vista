@@ -1,5 +1,49 @@
 # Bead bf-4bw: Verify vista deployment on apexalgo-iad
 
+## Attempt 29 — 2026-07-21 (29th identical PARTIAL 3/5; decisive re-confirm; bead left open)
+
+Single decisive re-verification per memory [[apexalgo-iad-argocd-sync-broken]]. **Verdict identical to
+attempts 1–28: 3 of 5.** Intentionally NOT re-dumping the full criteria table — it is byte-for-byte
+unchanged from attempt 28 (below); only deltas + decisive re-confirmations recorded here.
+
+**Root cause re-confirmed live and active (not healing):** read the Application CR directly via the
+ardenone-manager RO proxy — `vista-ns-apexalgo-iad` still `sync=Unknown` / `health=Healthy` / `op=Failed`,
+exact condition:
+`Get "https://hcp-99476ebb-4133-4a21-ac6a-6e2bdf6794c0.spot.rackspace.com/version?timeout=32s": tls:
+failed to verify certificate: x509: certificate signed by unknown authority` — `lastTransitionTime
+2026-07-21T14:35:16Z` (today). Stale `caData` in the URL-based cluster-registration Secret on
+ardenone-manager's `argocd` ns is the **single blocker** behind criteria 1 & 2.
+
+**Two decisive re-confirmations this attempt:**
+1. **GitOps image fix is landed AND target image pullable.** `~/declarative-config` HEAD = `b3144ab`
+   (`image: ghcr.io/jedarden/vista:1.0.5`, `replicas: 3`). GHCR tag list confirms `1.0.5` exists; the
+   cluster pulls GHCR fine (legacy pod `ghcr.io/jedarden/vista:1.0.0`, 11h, Running). → A successful
+   sync would roll out cleanly; the image blocker is solved in source.
+   - Gotcha re-confirmed: TWO local declarative-config checkouts. `~/declarative-config` is authoritative
+     (on `b3144ab`, correct image); a stale nested `~/jedarden/declarative-config` still shows
+     `ronaldraygun/vista:latest` and misled some early notes.
+2. **No write path (re-confirmed).** `~/.kube` = `iad-acb.kubeconfig` + `iad-ci.kubeconfig` only;
+   `ardenone-manager.kubeconfig` still ABSENT. ardenone-manager reachable only via read-only proxy
+   (`traefik-ardenone-manager:8001`) — Forbidden on `get/patch secrets -n argocd`. apexalgo-iad read-only.
+   (Transient: the ArgoCD RO HTTP API `argocd-ro-ardenone-manager-ts.ardenone.com:8444` returned HTTP 000
+   this attempt — down — but the kubectl-proxy path to the App CR still works, so criterion 1 is read
+   authoritatively regardless.)
+
+**Live state unchanged:** `vista-5d5f9dc954-mrksg` 0/1 `ImagePullBackOff` (current RS,
+`ronaldraygun/vista:latest`); `vista-7d87bd66df-g6tvh` 1/1 Running (legacy `ghcr.io/jedarden/vista:1.0.0`,
+11h); deploy `Progressing=False`. vista.jedarden.com → HTTP 200, 36274 B, correct VISTA title.
+
+**Single operator action unblocks criteria 1 & 2 for vista + ~62 sibling apps:** on ardenone-manager,
+`argocd` ns — repair the URL-based cluster-registration Secret
+`cluster-hcp-99476ebb-…spot.rackspace.com-3689407595` (refresh `caData` with the current Rackspace HCP
+CA, or set `tlsClientConfig.insecure=true`, or re-register) and de-duplicate vs `cluster-apexalgo-iad`.
+One sync then lands `b3144ab` and the GHCR rollout proceeds. **Not reachable via GitOps or any kubeconfig
+on this host → 2 of 5 criteria cannot be satisfied from the verification role → bead left open**,
+auto-released for operator retry. Per memory, this is a single decisive lookup — no further value in
+re-running until the operator repair lands.
+
+---
+
 ## Attempt 28 — 2026-07-21 (decisive re-verification; STILL PARTIAL 3/5, bead left open)
 
 Single decisive re-verification per memory [[apexalgo-iad-argocd-sync-broken]]. **Verdict identical to

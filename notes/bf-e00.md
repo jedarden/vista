@@ -1,6 +1,6 @@
 # Bead bf-e00: Add Cloudflare DNS CNAME for vista.jedarden.com
 
-## Result: STILL BLOCKED — bead left OPEN. Re-verified on attempt 5 (2026-07-21).
+## Result: STILL BLOCKED — bead left OPEN. Re-verified on attempt 6 (2026-07-21).
 
 The vista CNAME was **not** created. `vista.jedarden.com` resolves **NXDOMAIN** (no DNS
 record of any type) on this attempt as well. Three independent platform-level outages on
@@ -11,10 +11,12 @@ reach the cluster, and even if it did the DNS controller is crash-stopped.
 
 > Per dispatch instructions, a bead whose acceptance criteria are unmet must NOT be closed.
 > This note is updated each retry so the next attempt / a human with the right access can
-> finish it quickly. **Attempt 5 (2026-07-21) re-confirmed all three blockers byte-for-byte
-> unchanged — no drift; the platform has not been remediated. One new degradation was noted
-> (see Blocker 1): the ArgoCD read-only API proxy itself is now unreachable (HTTP 000),
-> which was serving data in attempts 1–4.**
+> finish it quickly. **Attempt 6 (2026-07-21) re-confirmed all three blockers byte-for-byte
+> unchanged — no drift; the platform has not been remediated. The ArgoCD RO API proxy
+> remains unreachable (HTTP 000, same as attempt 5); no new degradation beyond attempt 5.
+> New wrinkle this attempt: the git server (`git.ardenone.com`) is returning HTTP 502,
+> blocking `git fetch`/`git push` — committed locally; push will be retried when the server
+> recovers.**
 
 ### Attempt-5 re-verification snapshot (2026-07-21, all still BLOCKED — identical to attempts 3–4)
 | Check | Value observed | Verdict |
@@ -42,6 +44,26 @@ Nothing remediated between attempts 3, 4, and 5 — and the platform has actuall
 further: the ArgoCD read-only API proxy (`argocd-ro-ardenone-manager-ts.ardenone.com:8444`)
 now returns HTTP 000. The platform remediation in "Remediation required" below has not
 happened. Retrying again with the same (read-only) access will produce the same result.
+
+### Attempt-6 re-verification snapshot (2026-07-21, all still BLOCKED — identical to attempts 3–5)
+Re-ran the exact commands from "Commands to re-verify after the platform is fixed". Every
+apexalgo-iad check is byte-for-byte identical to attempts 3–5 — no drift at all:
+| Check | Value observed | Verdict |
+|---|---|---|
+| `vista.jedarden.com` A / CNAME (Cloudflare DoH) | Status 3 NXDOMAIN | ❌ unchanged |
+| `gait.jedarden.com` A (reference) | NOERROR → 172.67.172.218, 104.21.40.5 | ✅ pattern works |
+| ArgoCD RO API proxy | HTTP 000 — unreachable (same as attempt 5) | ❌ unchanged |
+| ArgoCD `vista-ns-apexalgo-iad` | `sync=Unknown op=Failed` (via traefik proxy) | ❌ unchanged |
+| ArgoCD ComparisonError | `x509: certificate signed by unknown authority` for `hcp-99476ebb-…rackspace.com` | ❌ unchanged |
+| external-dns pod `…k9nmx` | `0/1 CreateContainerConfigError`, AGE 3d17h | ❌ unchanged |
+| `openbao` ClusterSecretStore | `Ready=False reason=InvalidProviderConfig` | ❌ unchanged |
+| live vista IngressRoute | `generation: 1`, **no external-dns annotation** (stale since 2026-06-03) | ❌ unchanged |
+| vista source `k8s/ingressroute.yml` | annotation intact (lines 14–16: hostname/target/ttl) | ✅ correct |
+| CF credential on host | none (env empty, no `~/.cloudflared`, no CLI; `~/.kube` only `iad-acb`+`iad-ci`) | ❌ unchanged |
+
+The git server is a **new** environmental issue this attempt: `git.ardenone.com` returns
+HTTP 502 on `fetch`/`push`, so this note is committed locally and pushed when the server
+recovers. Unrelated to the bf-e00 blockers (which are all apexalgo-iad / Cloudflare side).
 
 ## Acceptance criteria — none met (again)
 

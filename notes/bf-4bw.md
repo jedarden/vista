@@ -1,5 +1,31 @@
 # Bead bf-4bw: Verify vista deployment on apexalgo-iad
 
+## Attempt 36 — 2026-07-21 (decisive re-lookup; STILL PARTIAL 3/5, bead left open)
+
+Single-decision re-verification per memory [[apexalgo-iad-argocd-sync-broken]]. **Verdict identical
+to attempts 1–35: 3 of 5.** Operator has not repaired the cluster-registration CA; three decisive
+lookups run fresh are byte-for-byte identical to attempt 35. x509 break re-fired today
+(`lastTransitionTime 2026-07-21T15:13:41Z`) — actively failing, not healing.
+
+| # | Criterion | Verdict | Fresh evidence (attempt 36) |
+|---|-----------|---------|-----------------------------|
+| 1 | ArgoCD `vista` Synced | ❌ FAIL | App CR `vista-ns-apexalgo-iad` via ardenone-manager RO proxy: `sync=Unknown`/`health=Healthy`/`op=Failed`. `x509: certificate signed by unknown authority` vs `hcp-99476ebb-4133-4a21-ac6a-6e2bdf6794c0.spot.rackspace.com/version` (lastTransitionTime `2026-07-21T15:13:41Z`). Cluster-wide: **97 Unknown / 108 Synced / 47 OutOfSync** of 252 — the 97 Unknown are the apexalgo-iad apps (incl. vista). |
+| 2 | Deployment pods Running | ❌ FAIL | `vista-5d5f9dc954-mrksg` 0/1 `ImagePullBackOff` (16h, current RS, wants `ronaldraygun/vista:latest`); `vista-7d87bd66df-g6tvh` 1/1 Running (12h, legacy `ghcr.io/jedarden/vista:1.0.0`). Deploy `1/1` ready, stuck mid-rollout; GitOps `b3144ab` (`ghcr.io/jedarden/vista:1.0.5`, replicas 3) still unenforced. |
+| 3 | Service via cluster DNS | ✅ PASS | `svc/vista` ClusterIP `10.21.64.133:3000`; EndpointSlice `vista-jk6kw`: `10.20.92.160` ready=true (the Running pod), `10.20.92.166` ready=false (the failing pod). |
+| 4 | IngressRoute working | ✅ PASS | `vista` IngressRoute (48d) → `svc/vista:3000`; stale dup `vista-ingressroute` (127d) still present. |
+| 5 | vista.jedarden.com responds | ✅ PASS | `GET https://vista.jedarden.com/` → **HTTP 200**, 36274 B, 0.32s. |
+
+**Conclusion unchanged.** User-facing service is live and correct (criteria 3–5, HTTP 200). The sole
+remaining blocker is the operator-only ArgoCD→apexalgo-iad CA break: on ardenone-manager `argocd`
+ns — de-duplicate the two `cluster-*` Secrets for `hcp-99476ebb-…spot.rackspace.com`, then refresh
+`caData` (or set `tlsClientConfig.insecure=true`) on the survivor. ArgoCD then syncs `b3144ab`, the
+GHCR image pulls, and criteria 1 & 2 pass automatically for vista + ~96 sibling apps. **2 of 5
+criteria cannot be satisfied without operator write access → bead left open PARTIAL** per the task's
+close-gating rule; auto-released for operator retry. Per memory, this is a single decisive lookup —
+no further value in re-running until the operator repair lands.
+
+---
+
 ## Attempt 35 — 2026-07-21 (decisive re-lookup; STILL PARTIAL 3/5, bead left open)
 
 Single-decision re-verification per memory [[apexalgo-iad-argocd-sync-broken]]. **Verdict identical

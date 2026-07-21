@@ -1,5 +1,21 @@
 # bf-4bw — Verify vista deployment on apexalgo-iad
 
+## Attempt 123 (single focused re-verification — byte-for-byte identical, no delta)
+
+**Attempt 123 · 2026-07-21 · Result: STILL PARTIAL — 3/5 pass (3,4,5); 2 fail (1,2).** Concise re-verification per `[[apexalgo-iad-argocd-sync-broken]]` ("do NOT spend many attempts — immediately confirm the cluster-wide Unknown and leave the bead open PARTIAL"). All five criteria freshly queried from the read-only proxies + a public curl + GHCR/Docker Hub registry checks + declarative-config HEAD. vista-specific state is **byte-for-byte identical to attempts 49–122** (only pod ages ticked to 62m — elapsed time, not remediation). No operator action has landed. Full per-criterion detail unchanged from Attempt 122 below; no deltas.
+
+- **C1 (FAIL, unchanged):** ArgoCD app `vista-ns-apexalgo-iad` (ns `argocd`, ardenone-manager RO proxy) still `sync=Unknown`/`health=Healthy`. Cluster-wide x509 cluster-registration trust break vs `hcp-99476ebb-4133-4a21-ac6a-6e2bdf6794c0.spot.rackspace.com`; not vista-specific; not GitOps-fixable (no `cluster-apexalgo-iad-*` manifest); not patchable from this read-only box.
+- **C2 (FAIL, unchanged):** `deploy/vista` `READY 1/1 AVAIL=1` (surge hold). Current RS `vista-5d5f9dc954` (wants Docker Hub `ronaldraygun/vista:latest`) → pod `vista-5d5f9dc954-xbzql` `0/1 ImagePullBackOff` (62m). Legacy RS `vista-7d87bd66df` (node-cached `ghcr.io/jedarden/vista:1.0.0`) → pod `vista-7d87bd66df-p5hn5` `1/1 Running` (62m, IP `10.20.98.5`) serves all traffic.
+- **C3 (PASS):** `svc/vista` ClusterIP `10.21.64.133:3000` (selector `app=vista`).
+- **C4 (PASS):** IngressRoutes `vista` + `vista-ingressroute` present and serving (proven by C5's 200).
+- **C5 (PASS):** `GET https://vista.jedarden.com/` → HTTP 200, 36 274 bytes (0.12 s), `<title>VISTA — Visual Inspector of Social Tags &amp; Attributes</title>` (served by the stale-but-running legacy pod).
+
+**Image-pull blockers freshly re-confirmed unchanged:** GHCR `jedarden/vista` still PRIVATE (tag list visible anonymously but manifest GET = **HTTP 404** for both `1.0.0` and `1.0.5`); Docker Hub `ronaldraygun/vista:latest` still **HTTP 401**. `declarative-config` HEAD = `2d6bfcf` (cloudflared, unrelated); vista image pin still `b3144ab` → `ghcr.io/jedarden/vista:1.0.5`, never synced down.
+
+**Access (re-confirmed, all closed):** `~/.kube/` = only `cache` + `iad-acb.kubeconfig` + `iad-ci.kubeconfig` (no `ardenone-manager.kubeconfig` — `[[kubeconfigs-on-disk-vs-claudemd]]`); no `argocd`/`gh` CLI (only `docker`+`kubectl`); `GH_TOKEN`/`GITHUB_TOKEN` unset. **No self-service path.** Per task instructions ("If you cannot complete the task … Do NOT close the bead"), bead is **left OPEN PARTIAL 3/5** rather than closed — closing would misrepresent C1/C2 as passing. Remediation is operator-only and unchanged since attempt 84: (a) repair apexalgo-iad cluster-registration x509 trust on ardenone-manager `argocd` ns (de-duplicate the two `cluster-*` Secrets for the HCP endpoint, refresh `caData` / set `tlsClientConfig.insecure=true`); (b) make the desired image pullable (public `ronaldraygun/vista` on Docker Hub, OR sync `b3144ab` AND make `ghcr.io/jedarden/vista` public / wire an `imagePullSecret`); then `argocd app sync vista-ns-apexalgo-iad`. Still in the degenerate auto-retry loop (122 prior attempts, all byte-for-byte identical); remains PARTIAL until an operator performs the two remediations above. See `[[apexalgo-iad-argocd-sync-broken]]` and `[[vista-image-fix-in-gitops]]`.
+
+---
+
 ## Attempt 122 (single focused re-verification — byte-for-byte identical, no delta)
 
 **Attempt 122 · 2026-07-21 · Result: STILL PARTIAL — 3/5 pass (3,4,5); 2 fail (1,2).** One focused fresh re-verification per `[[apexalgo-iad-argocd-sync-broken]]` ("do NOT spend many attempts — immediately confirm the cluster-wide Unknown and leave the bead open PARTIAL"). No self-service write path exists; bead **left OPEN**. All five criteria freshly queried from the read-only proxies (`traefik-ardenone-manager:8001` for the ArgoCD Application CRD — clean this round; `traefik-apexalgo-iad:8001` for live cluster state) + a public `curl`. vista-specific state is **byte-for-byte identical to attempts 49–121** (only pod ages ticked to 60m — elapsed time, not remediation; same two pods, same IPs, same images). No operator action has landed.

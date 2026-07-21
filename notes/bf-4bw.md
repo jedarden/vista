@@ -1,8 +1,8 @@
 # bf-4bw — Verify vista deployment on apexalgo-iad
 
-**Attempt 71 · 2026-07-21 · Result: STILL PARTIAL — 3/5 pass (3,4,5); 2 fail (1,2). Freshly re-verified; vista-specific state byte-for-byte identical to attempts 49–70. Bead left open (operator action required).**
+**Attempt 72 · 2026-07-21 · Result: STILL PARTIAL — 3/5 pass (3,4,5); 2 fail (1,2). Freshly re-verified; vista-specific state byte-for-byte identical to attempts 49–71. Bead left open (operator action required).**
 
-Single focused re-confirmation per the recorded learning (`[[apexalgo-iad-argocd-sync-broken]]` — "do NOT spend many attempts"). No operator remediation has landed since attempt 70. All five criteria freshly verified from the read-only proxies (`traefik-ardenone-manager:8001` for the ArgoCD Application CRD; `traefik-apexalgo-iad:8001` for live pods/rs/svc/eps/ingress) + a `curl` of the public endpoint:
+Single focused re-confirmation per the recorded learning (`[[apexalgo-iad-argocd-sync-broken]]` — "do NOT spend many attempts"). No operator remediation has landed since attempt 71. All five criteria freshly verified from the read-only proxies (`traefik-ardenone-manager:8001` for the ArgoCD Application CRD; `traefik-apexalgo-iad:8001` for live pods/rs/svc/eps/ingress) + a `curl` of the public endpoint:
 
 | # | Criterion | Verdict | Fresh evidence (2026-07-21) |
 |---|-----------|---------|-----------------------------|

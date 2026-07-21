@@ -1,5 +1,54 @@
 # Bead bf-4bw: Verify vista deployment on apexalgo-iad
 
+## Attempt 43 — 2026-07-21 (STILL PARTIAL 3/5, bead left open)
+
+Verdict identical to attempts 1–42: **3 of 5.** No operator repair has landed; the live state is
+essentially unchanged. This attempt closes the **last unexamined write-path candidate** — every
+kubeconfig on this host is now characterized — and records a minor live-state delta.
+
+**Genuinely new this attempt:**
+
+1. **`iad-acb.kubeconfig` characterized and eliminated.** Prior notes (attempts 1–42) kept saying
+   "only `iad-ci.kubeconfig` + `iad-acb.kubeconfig` exist" but never tested what `iad-acb` was. It
+   points to `http://traefik-iad-acb:8001` — a Traefik-routed kubectl-proxy (read-only
+   `devpod-observer` style), **not** a direct cluster-admin kubeconfig — and it is currently
+   **unreachable** (`dial tcp 100.125.171.118:8001: i/o timeout`, 5 retries). So it is definitively
+   NOT a write path to apexalgo-iad or ardenone-manager. The only write kubeconfig on disk remains
+   `iad-ci.kubeconfig` (CI/CD cluster — the wrong cluster). The CLAUDE.md-documented
+   `ardenone-manager.kubeconfig` / `rs-manager.kubeconfig` / `iad-options.kubeconfig` are still
+   **absent**. **Every write-path candidate is now closed.**
+
+2. **Both write operations re-confirmed `no` live** (not assumed): `kubectl --server=
+   traefik-apexalgo-iad:8001 auth can-i patch deployments -n vista` → **`no`**;
+   `kubectl --server=traefik-ardenone-manager:8001 auth can-i patch secret -n argocd` → **`no`**.
+
+3. **Minor live-state delta.** Deploy now reports `READY 1/1` / `UP-TO-DATE 1` / `AVAILABLE 1` at
+   `replicas=1` (prior attempts saw `1/2`). The legacy RS pod (`vista-7d87bd66df-g6tvh`,
+   `ghcr.io/jedarden/vista:1.0.0`) continues to serve; the current RS pod remains
+   `ImagePullBackOff` — so criterion 2 still FAILs (rollout stuck on the unpullable image).
+
+| # | Criterion | Verdict | Fresh evidence (attempt 43) |
+|---|-----------|---------|-----------------------------|
+| 1 | ArgoCD `vista` Synced | ❌ FAIL | App CR `vista-ns-apexalgo-iad` via ardenone-manager kubectl-proxy: `sync=Unknown` / `health=Healthy` (stale) / `opPhase=Failed`. ComparisonError (verbatim): `failed to get cluster info for "https://hcp-99476ebb-4133-4a21-ac6a-6e2bdf6794c0.spot.rackspace.com" … failed to get server version: Get "https://hcp-99476ebb-…spot.rackspace.com/version?timeout=32s": tls: failed to verify certificate: x509: certificate signed by unknown authority`. Source correctly pointed: `github.com/jedarden/declarative-config@HEAD:k8s/apexalgo-iad/vista`. x509 is in ArgoCD's cluster-registration CA trust, **not** the manifest. |
+| 2 | Deployment pods Running | ❌ FAIL | `vista-5d5f9dc954-mrksg` 0/1 `ImagePullBackOff` (17h, **current** RS, wants `ronaldraygun/vista:latest` — DockerHub 404); `vista-7d87bd66df-g6tvh` 1/1 Running (12h, legacy `ghcr.io/jedarden/vista:1.0.0`). Deploy template image `ronaldraygun/vista:latest`, `replicas=1`; deploy `READY 1/1 AVAILABLE 1` — surviving solely on the single legacy pod. RSes: `vista-5d5f9dc954` (1/0 ready, 48d, current) + `vista-7d87bd66df` (1/1 ready, 127d, legacy). GitOps fix `b3144ab` (`ghcr.io/jedarden/vista:1.0.5`, replicas 3) confirmed on `origin/main` — still unenforced. |
+| 3 | Service via cluster DNS | ✅ PASS | `svc/vista` ClusterIP `10.21.64.133:3000` (127d); Endpoints → `10.20.92.160:3000` (the Running pod) → serves traffic. |
+| 4 | IngressRoute working | ✅ PASS | `vista` IngressRoute (48d) → `svc/vista`, entryPoint websecure; stale dup `vista-ingressroute` (127d) still present. |
+| 5 | vista.jedarden.com responds | ✅ PASS | `GET https://vista.jedarden.com/` → **HTTP 200** (0.34s, 36274 B), `<title>VISTA — Visual Inspector of Social Tags &amp; Attributes</title>`. |
+
+**Single required operator step (unchanged):** on ardenone-manager `argocd` ns, refresh the
+cluster-registration for `hcp-99476ebb-…spot.rackspace.com` — add the signing CA to `ca.crt` (or
+set `tlsClientConfig.insecure=true`), de-duplicate the two `cluster-*` Secrets, then force a sync.
+ArgoCD converges the GHCR rollout, the stuck RS prunes, and criteria 1 & 2 pass automatically for
+vista + ~78 sibling apps.
+
+**Conclusion unchanged.** User-facing service is live and correct (criteria 3–5, HTTP 200). The
+image problem is solved in source and on `origin/main` (`b3144ab`, re-confirmed this attempt).
+2 of 5 criteria cannot be satisfied without operator write access → **bead left open PARTIAL** per
+the close-gating rule; auto-released for operator retry. See memory
+[[apexalgo-iad-argocd-sync-broken]].
+
+---
+
 ## Attempt 42 — 2026-07-21 (STILL PARTIAL 3/5, bead left open)
 
 Verdict identical to attempts 1–41: **3 of 5**. No operator repair has landed; the live state is

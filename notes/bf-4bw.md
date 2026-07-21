@@ -1,5 +1,38 @@
 # bf-4bw — Verify vista deployment on apexalgo-iad
 
+**Attempt 55 · 2026-07-21 · Result: STILL PARTIAL — 3/5 pass (3,4,5); 2 fail (1,2). Freshly re-verified; cluster state byte-for-byte identical to attempts 49–54. Bead left open (operator action required).**
+
+Per the recorded learning (`[[apexalgo-iad-argocd-sync-broken]]` — "do NOT spend many attempts"), this
+was a single focused re-confirmation, not a new hunt: every write-path candidate to apexalgo-iad /
+ardenone-manager was already closed in attempts 43–54. Checked whether any operator remediation had
+landed since attempt 54 — **none has.**
+
+Fresh evidence (attempt 55, 2026-07-21):
+
+- **C1 (FAIL):** ArgoCD RO API proxy still **unreachable** from this box —
+  `argocd-ro-ardenone-manager-ts.ardenone.com:8444` → HTTP 000, `argocd-rs-manager.tail1b1987.ts.net:8080`
+  → HTTP 000 (both `curl` fast-fail). No `argocd` CLI on disk. So `vista-ns-apexalgo-iad`'s
+  `sync=Unknown` (x509 against apexalgo-iad's HCP endpoint) still cannot be inspected or repaired here.
+- **C2 (FAIL):** `vista-5d5f9dc954-mrksg` still 0/1 `ImagePullBackOff` (18 h, current RS; live Deploy
+  image still `ronaldraygun/vista:latest`, `.spec.replicas=1`). Legacy `vista-7d87bd66df-g6tvh` 1/1
+  Running (13 h) serves all traffic. `ready=1/updated=1/desired=2`. `declarative-config` still correctly
+  pins `ghcr.io/jedarden/vista:1.0.5` (`b3144ab`, `deployment.yml:25`) but it has never synced down —
+  three-way image mismatch confirming ArgoCD is not enforcing GitOps. apexalgo-iad access confirmed
+  read-only-proxy-only: `auth can-i update/patch deployments -n vista` → **`no` for both**, so the live
+  image cannot be patched from here.
+- **C3 (PASS):** `svc/vista` ClusterIP `10.21.64.133:3000`; 1 healthy endpoint `10.20.92.160:3000`.
+- **C4 (PASS):** IngressRoute `vista` (48 d) + `vista-ingressroute` (127 d) → `svc/vista:3000` intact.
+- **C5 (PASS):** `GET https://vista.jedarden.com/` → HTTP 200, 36 274 bytes,
+  `<title>VISTA — Visual Inspector of Social Tags &amp; Attributes</title>`.
+
+**Conclusion unchanged.** The single operator action that would clear C1+C2 is still: repair the ArgoCD
+cluster-registration x509 trust on ardenone-manager (de-duplicate the two `cluster-*` Secrets for the HCP
+endpoint, refresh `caData` or set `tlsClientConfig.insecure=true`), then
+`argocd app sync vista-ns-apexalgo-iad` — no manifest change needed, `b3144ab` is already correct.
+No self-service path exists from this read-only box. **Bead left open.**
+
+---
+
 **Attempt 54 · 2026-07-21 · Result: STILL PARTIAL — 3/5 pass (3,4,5); 2 fail (1,2). Freshly re-verified; cluster state byte-for-byte identical to attempts 49–53. Bead left open (operator action required).**
 
 > **New symptom this attempt:** the ArgoCD RO API proxy `argocd-ro-ardenone-manager-ts.ardenone.com:8444`

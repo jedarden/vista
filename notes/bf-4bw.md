@@ -1,5 +1,51 @@
 # Bead bf-4bw: Verify vista deployment on apexalgo-iad
 
+## Attempt 42 — 2026-07-21 (STILL PARTIAL 3/5, bead left open)
+
+Verdict identical to attempts 1–41: **3 of 5**. No operator repair has landed; the live state is
+unchanged. This attempt advances the investigation (not just a re-verify) with two new
+load-bearing facts and closes the last open write-path.
+
+| # | Criterion | Verdict | Fresh evidence (attempt 42) |
+|---|-----------|---------|-----------------------------|
+| 1 | ArgoCD `vista` Synced | ❌ FAIL | **Read the Application CR directly via the ardenone-manager read-only proxy** (`kubectl --server=http://traefik-ardenone-manager:8001 -n argocd`) — bypassing the HTTP-000 API proxy that was unreachable in attempts 39–41. Fresh exact error: `sync=Unknown`, `health=Healthy`, `opPhase=Failed — "one or more synchronization tasks are not valid (retried 2 times)"`. ComparisonError (verbatim): `failed to get server version: Get "https://hcp-99476ebb-4133-4a21-ac6a-6e2bdf6794c0.spot.rackspace.com/version?timeout=32s": tls: failed to verify certificate: x509: certificate signed by unknown authority`. Source confirmed correct: `github.com/jedarden/declarative-config@HEAD:k8s/apexalgo-iad/vista`. The x509 is in ArgoCD's cluster-registration CA trust, **not** the manifest. |
+| 2 | Deployment pods Running | ❌ FAIL | Live Deploy template still `ronaldraygun/vista:latest` / replicas 2 (read-only); `vista-5d5f9dc954-mrksg` 0/1 `ImagePullBackOff` (17h, current RS, wants `ronaldraygun/vista:latest`); `vista-7d87bd66df-g6tvh` 1/1 Running (12h, legacy `ghcr.io/jedarden/vista:1.0.0`). Deploy `Progressing=False … ReplicaSet "vista-5d5f9dc954" has timed out progressing`. **NEW:** verified at the registry that the committed GitOps fix image `ghcr.io/jedarden/vista:1.0.5` **is pullable** — GET manifest → HTTP 200, `application/vnd.oci.image.index.v1+json` (multi-arch); tags list includes `1.0.5`. So the image problem is solved in source AND the artifact exists; it is **purely downstream** of criterion 1. |
+| 3 | Service via cluster DNS | ✅ PASS | `svc/vista` ClusterIP `10.21.64.133:3000` (127d); Endpoints → `10.20.92.160:3000` (the Running pod). |
+| 4 | IngressRoute working | ✅ PASS | `vista` IngressRoute (48d): `Host(\`vista.jedarden.com\`) → vista:3000`, entryPoint `websecure`. Stale dup `vista-ingressroute` (127d) still present. |
+| 5 | vista.jedarden.com responds | ✅ PASS | `GET https://vista.jedarden.com/` → **HTTP 200**, 36274 B, `<title>VISTA — Visual Inspector of Social Tags &amp; Attributes</title>`. |
+
+**Two genuinely new findings (vs. attempts 1–41):**
+
+1. **The fix image is proven pullable.** Prior attempts assumed the GitOps image fix (`b3144ab`,
+   `ghcr.io/jedarden/vista:1.0.5`) would work but never verified against the registry. It is a real,
+   multi-arch OCI image index. **Implication:** once criterion 1 (x509) is fixed, the ArgoCD sync
+   will converge the rollout automatically with no further manifest work — the operator's
+   remediation is a **single step**.
+
+2. **Direct CR read confirms x509 is a CA-trust / cluster-registration issue**, not a manifest
+   issue. The Application spec is correctly pointed; ArgoCD simply cannot establish TLS to the
+   apexalgo-iad control-plane endpoint.
+
+**Every write-path to the fix is closed (verified this attempt):**
+- apexalgo-iad: read-only via `kubectl-proxy` (`devpod-observer` SA) — cannot patch Deploy/image.
+- ardenone-manager: read-only via proxy; the CLAUDE.md-documented direct kubeconfig
+  (`ardenone-manager.kubeconfig`) is **absent on disk** — only `iad-ci.kubeconfig` and
+  `iad-acb.kubeconfig` exist. Cannot edit the cluster-registration Secret's `ca.crt`.
+- declarative-config: the apexalgo-iad ArgoCD cluster-registration is **not** managed here (only
+  `.disabled` cluster-secret stubs for hub/iad-ci exist), so a declarative-config push cannot fix
+  the x509 either.
+
+**Single required operator step:** update the ArgoCD cluster-registration Secret for
+`hcp-99476ebb-….spot.rackspace.com` in `argocd` ns on ardenone-manager — add the signing CA to
+`ca.crt` (or set `insecure: "true"`). Then force a sync; the GHCR rollout converges, the stuck RS
+and dup IngressRoute can be pruned.
+
+**Conclusion unchanged.** User-facing service live & correct (criteria 3–5). Criteria 1–2 fail,
+both downstream of the x509 break, which requires write access to ardenone-manager that is not
+provisioned here. **Bead left open.**
+
+---
+
 ## Attempt 41 — 2026-07-21 (STILL PARTIAL 3/5, bead left open)
 
 Single-decision re-verification per memory [[apexalgo-iad-argocd-sync-broken]]. **Verdict identical

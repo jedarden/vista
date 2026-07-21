@@ -1,5 +1,26 @@
 # bf-4bw — Verify vista deployment on apexalgo-iad
 
+**Attempt 54 · 2026-07-21 · Result: STILL PARTIAL — 3/5 pass (3,4,5); 2 fail (1,2). Freshly re-verified; cluster state byte-for-byte identical to attempts 49–53. Bead left open (operator action required).**
+
+> **New symptom this attempt:** the ArgoCD RO API proxy `argocd-ro-ardenone-manager-ts.ardenone.com:8444`
+> (used by all prior attempts to read sync status) **no longer resolves from this verification box**
+> — `socket.gethostbyname_ex` → `Name or service not known`; fails fast (~0.13 s) even against the
+> ardenone-manager node IP directly (`100.80.244.119:8444` → HTTP 000). The node itself is online on the
+> mesh and short names (`traefik-ardenone-manager` → `100.101.205.34`) resolve fine, so this is specific
+> to the `*.ardenone.com` RO record / :8444 path — possibly transient mesh DNS, possibly a record change.
+> It does **not** change the verdict: the live cluster state below independently proves non-convergence
+> for criteria 1–2 without needing the ArgoCD API.
+
+**Fresh evidence (attempt 54, 2026-07-21):** failing pod `vista-5d5f9dc954-mrksg` **Pending**, image
+`ronaldraygun/vista:latest` (unpullable DockerHub, 18 h); legacy pod `vista-7d87bd66df-g6tvh` **Running**,
+image `ghcr.io/jedarden/vista:1.0.0` (13 h). Deploy `Available=True (MinimumReplicasAvailable)` from the
+legacy pod, `Progressing=False (ProgressDeadlineExceeded)`. GitOps source-of-truth still pins the verified-
+pullable `ghcr.io/jedarden/vista:1.0.5` (`declarative-config/k8s/apexalgo-iad/vista/deployment.yml:25`) —
+a three-way image mismatch confirming ArgoCD is not enforcing GitOps state. No path to criteria 1–2 exists
+from this box (no ardenone-manager write kubeconfig on disk; apexalgo-iad is read-only `devpod-observer`).
+
+---
+
 **Attempt 49 · 2026-07-21 · Result: STILL PARTIAL — 3/5 criteria pass; 2 fail, blocked on operator/infra action. Bead left open.**
 
 > This file was rewritten on attempt 49 to **correct a stale claim** that had propagated

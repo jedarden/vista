@@ -139,6 +139,7 @@ const downloadOverlayBtn = $('#downloadOverlayBtn');
 const safeZoneInfo = $('#safeZoneInfo');
 const imageInfo = $('#imageInfo');
 const cropperBadge = $('#cropperBadge');
+const cropperCategoryLegend = $('#cropperCategoryLegend');
 
 // Badge modal DOM refs
 const badgeBtn = $('#badgeBtn');
@@ -3324,6 +3325,7 @@ function showCropperEmpty(message) {
   cropperBadge.textContent = '';
   safeZoneInfo.innerHTML = '';
   imageInfo.innerHTML = '';
+  if (cropperCategoryLegend) cropperCategoryLegend.innerHTML = '';
   cropperControls.innerHTML = '';
   cropperState.imageNaturalWidth = 0;
   cropperState.imageNaturalHeight = 0;
@@ -3496,6 +3498,43 @@ function updateEnabledPlatforms() {
   document.querySelectorAll('.cropper-platform-toggle input:checked').forEach(cb => {
     cropperState.enabledPlatforms.add(cb.dataset.platform);
   });
+  // Refresh the category legend so its active/dimmed state tracks the live
+  // toggle selection. Every toggle path (individual, group, select/clear-all)
+  // and the initial renderCropperControls() call funnels through here, so this
+  // single hook keeps the legend in sync with the overlays on screen.
+  renderCategoryLegend();
+}
+
+// Build the platform-category color key shown in the cropper sidebar. Each
+// category renders as a colored swatch + label; a category is dimmed when none
+// of its platforms are currently enabled, so the key mirrors which colored
+// overlays are actually on screen. This is the visible meaning of the
+// category→color mapping that drives the overlay <rect> fills/strokes.
+function renderCategoryLegend() {
+  if (!cropperCategoryLegend) return;
+
+  // Stable display order; matches the grouped control layout above.
+  const order = ['social', 'messaging', 'collaboration', 'content', 'email', 'rss'];
+
+  // Which categories have ≥1 enabled platform right now?
+  const activeCats = new Set();
+  cropperState.enabledPlatforms.forEach(pid => {
+    const cat = PLATFORM_CROPS[pid] && PLATFORM_CROPS[pid].category;
+    if (cat) activeCats.add(cat);
+  });
+
+  let html = '';
+  order.forEach(cat => {
+    const color = CATEGORY_COLORS[cat];
+    const label = CATEGORY_LABELS[cat] || cat;
+    if (!color) return;
+    const active = activeCats.has(cat);
+    html += `<div class="category-item${active ? '' : ' dim'}" title="${escHtml(label)}">`;
+    html += `<span class="category-swatch" style="background:${color};border-color:${color}"></span>`;
+    html += `<span class="category-label">${escHtml(label)}</span>`;
+    html += `</div>`;
+  });
+  cropperCategoryLegend.innerHTML = html;
 }
 
 function calculateVisiblePercentage(crop) {

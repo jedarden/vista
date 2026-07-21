@@ -165,6 +165,7 @@ const HARNESS_HTML = `<!DOCTYPE html>
   <div id="imageInfo"></div>
   <div id="safeZoneInfo"></div>
   <div id="cropperBadge"></div>
+  <div id="cropperCategoryLegend"></div>
   <button id="downloadOverlayBtn"></button>
   <div id="previewGrid"></div>
   <script src="/app/safe-zone.js"></script>
@@ -537,6 +538,69 @@ async function main() {
     `${toggleInit.platformCbs} platforms, ${toggleInit.groupCbs} groups`);
   check('all 31 platforms checked by default → 31 overlay rects drawn',
     toggleInit.cropRects === 31, `${toggleInit.cropRects} rects`);
+
+  // ── Category color legend (bf-5mt) ────────────────────────────────────────
+  // renderCategoryLegend() builds a swatch+label per category into
+  // #cropperCategoryLegend and dims any category with zero enabled platforms,
+  // so the visible key mirrors which colored overlays are on screen. Driven
+  // through the real toggle UI (same updateEnabledPlatforms() path the user
+  // hits), so this also confirms the category→color mapping that the overlay
+  // <rect> fills/strokes use is surfaced legibly.
+  console.log('\nCategory color legend (renderCategoryLegend):');
+  const legendInit = await page.evaluate(() => {
+    const { CATEGORY_COLORS } = window.__VISTA;
+    const legend = document.getElementById('cropperCategoryLegend');
+    const items = legend ? Array.from(legend.querySelectorAll('.category-item')) : [];
+    return {
+      itemCount: items.length,
+      swatches: items.map(it => {
+        const style = it.querySelector('.category-swatch').getAttribute('style') || '';
+        const m = style.match(/background:(#[0-9a-f]{3,6})/i);
+        return { color: m ? m[1].toLowerCase() : null, dim: it.classList.contains('dim') };
+      }),
+      colors: Object.fromEntries(
+        Object.entries(CATEGORY_COLORS).map(([k, v]) => [k, v.toLowerCase()])
+      ),
+    };
+  });
+  const legendColors = Object.values(legendInit.colors);
+  check('legend renders one item per category (6)', legendInit.itemCount === 6,
+    `${legendInit.itemCount} items`);
+  check('every legend swatch uses a distinct CATEGORY_COLORS value',
+    legendInit.swatches.length === 6 &&
+    legendInit.swatches.every(sw => sw.color && legendColors.includes(sw.color)) &&
+    new Set(legendInit.swatches.map(sw => sw.color)).size === 6,
+    legendInit.swatches.map(sw => sw.color).join(','));
+  check('with all platforms on, no category is dimmed',
+    legendInit.swatches.every(sw => !sw.dim),
+    `${legendInit.swatches.filter(sw => sw.dim).length} dimmed`);
+
+  // Disable the entire Social group → its legend item dims (no social overlays
+  // on screen) while every other category stays lit.
+  await page.evaluate(() => document.querySelector('.cropper-group-toggle[data-group="social"]').click());
+  const legendAfterSocialOff = await page.evaluate(() => {
+    const items = Array.from(document.querySelectorAll('#cropperCategoryLegend .category-item'));
+    // renderCategoryLegend renders in a fixed order with 'social' first.
+    return {
+      socialDim: items[0] ? items[0].classList.contains('dim') : null,
+      othersDim: items.slice(1).map(it => it.classList.contains('dim')),
+    };
+  });
+  check('disabling every Social platform dims the Social legend item',
+    legendAfterSocialOff.socialDim === true, `social dim=${legendAfterSocialOff.socialDim}`);
+  check('disabling Social leaves the other 5 categories lit',
+    legendAfterSocialOff.othersDim.length === 5 && legendAfterSocialOff.othersDim.every(d => d === false),
+    `${legendAfterSocialOff.othersDim.filter(Boolean).length} others dimmed`);
+
+  // Re-enable Social → legend item un-dims, restoring all-31-on for the rest
+  // of the suite (the assertions below assume a fully-checked baseline).
+  await page.evaluate(() => document.querySelector('.cropper-group-toggle[data-group="social"]').click());
+  const legendRestored = await page.evaluate(() => {
+    const items = Array.from(document.querySelectorAll('#cropperCategoryLegend .category-item'));
+    return { socialDim: items[0] ? items[0].classList.contains('dim') : null };
+  });
+  check('re-enabling Social un-dims its legend item',
+    legendRestored.socialDim === false, `social dim=${legendRestored.socialDim}`);
 
   // (a) Uncheck one platform via its real checkbox → its rect disappears and
   //     its group header flips to indeterminate.

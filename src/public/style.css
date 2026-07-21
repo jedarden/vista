@@ -1259,6 +1259,18 @@ body.has-results { padding-bottom: 48px; }
 
 .cropper-info, .cropper-stats { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; }
 .cropper-info h4, .cropper-stats h4 { font-size: 12px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+
+/* Category color key — explains which overlay color belongs to which platform
+   category. Mirrors the active toggle selection: a category whose platforms are
+   all unchecked is dimmed, so the key shows exactly which colored overlays are
+   on screen right now. */
+.cropper-categories { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; }
+.cropper-categories h4 { font-size: 12px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+.category-legend { display: flex; flex-direction: column; gap: 6px; }
+.category-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text); transition: opacity var(--transition); }
+.category-item.dim { opacity: 0.4; }
+.category-swatch { width: 14px; height: 14px; border: 2px solid; border-radius: 4px; flex-shrink: 0; }
+.category-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .info-row { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; }
 .info-label { color: var(--text3); }
 .info-value { color: var(--text); font-weight: 500; }

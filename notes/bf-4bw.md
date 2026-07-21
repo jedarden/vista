@@ -1,5 +1,59 @@
 # Bead bf-4bw: Verify vista deployment on apexalgo-iad
 
+## Attempt 26 — 2026-07-21 (read Application CR directly; image pullability definitively closed; STILL PARTIAL 3/5, bead left open)
+
+**Verdict identical to attempts 1–25: 3 of 5.** This attempt's distinctive work was to (a) read the
+vista Application CR's sync status **directly** from the cluster rather than inferring it, and (b)
+**definitively close** the open image-pullability question that attempt 23 had only partially
+answered. Both confirm the same blockers; neither moved.
+
+**Criterion 1 — now read directly from the Application CR (not inferred).** The ArgoCD HTTP API proxy
+`argocd-ro-ardenone-manager-ts.ardenone.com` did not resolve from this host this session
+(`DNS_PROBE_FINISHED_NXDOMAIN`; it is a Tailscale-only endpoint so the phone failover does not apply).
+That is an orthogonal DNS blip, not a blocker: the **ardenone-manager read-only kubectl proxy**
+(`traefik-ardenone-manager:8001`, same working transport as the apexalgo-iad proxy) reads the
+Application CR directly:
+```
+kubectl … traefik-ardenone-manager:8001 get application vista-ns-apexalgo-iad -n argocd
+  sync=Unknown  health=Healthy
+  ComparisonError: Failed to load live state … failed to get server version:
+    Get "https://hcp-99476ebb-4133-4a21-ac6a-6e2bdf6794c0.spot.rackspace.com/version?timeout=32s":
+    tls: failed to verify certificate: x509: certificate signed by unknown authority
+```
+This is the exact root cause memory [[apexalgo-iad-argocd-sync-broken]] records — stale CA in the
+cluster registration — confirmed authoritatively this attempt, not inferred. Scope re-confirmed:
+**63/63 apexalgo-iad apps `Unknown`, 0 `Synced`** (97 Unknown / 109 Synced of 252 total).
+
+**Image pullability — definitively closed (the question attempt 23 left half-open).** The GitOps
+target `ghcr.io/jedarden/vista:1.0.5` (declarative-config commit `b3144ab`, replicas 3) is real and
+pullable. Prior attempts read manifest "404"s — those were **media-type negotiation artifacts**, not
+absence: with the correct OCI header `application/vnd.oci.image.index.v1+json` the manifest returns
+**HTTP 200**, and the authoritative GHCR **tag list includes `1.0.5`** (and `1.0.0`, the running
+image, which also "404"s under the wrong header). `1.0.21` (the repo `VERSION`) is genuinely absent
+from every probed registry — the version drift remains real but is cosmetic.
+
+**Live-vs-source divergence = independent corroboration of the sync break.** Live Deployment template
+is `ronaldraygun/vista:latest` / replicas **1**; GitOps source is `ghcr.io/jedarden/vista:1.0.5` /
+replicas **3**. A synced ArgoCD would have reconciled these long ago; it has not. So even setting the
+Application CR aside, the divergence alone proves ArgoCD is not enforcing state on apexalgo-iad.
+
+| # | Criterion | Verdict | Fresh evidence (attempt 26) |
+|---|-----------|---------|-----------------------------|
+| 1 | ArgoCD `vista` Synced | ❌ FAIL | Application CR read directly: `sync=Unknown`, `x509: certificate signed by unknown authority` to `hcp-99476ebb-….spot.rackspace.com`. 63/63 apexalgo-iad apps Unknown. |
+| 2 | Deployment pods Running | ❌ FAIL | `mrksg` 0/1 `ImagePullBackOff` (15h, current RS `ronaldraygun/vista:latest`); `g6tvh` 1/1 Running (legacy `ghcr.io/jedarden/vista:1.0.0`). Live replicas=1 vs GitOps replicas=3. |
+| 3 | Service via cluster DNS | ✅ PASS | `svc/vista` ClusterIP `10.21.64.133:3000`; ready endpoint `10.20.92.160:3000`. |
+| 4 | IngressRoute working | ✅ PASS | IngressRoute `vista` (48d, GitOps-managed) → `svc/vista:3000`; stale dup `vista-ingressroute` (127d) still present, pruning is operator work. |
+| 5 | vista.jedarden.com responds | ✅ PASS | `GET /` → HTTP 200, 36274 B, 0.11s, `<title>VISTA — Visual Inspector of Social Tags &amp; Attributes</title>`. |
+
+**Conclusion unchanged.** 3/5 pass; 1–2 fail on the same operator-only blockers (cluster-registration
+CA repair → unblocks ArgoCD sync → unblocks the GHCR image rollout). The GitOps source is correct and
+the target image is verified pullable, so a single successful sync after the operator repair lands the
+fix for vista and its ~62 sibling apps. No write path to ardenone-manager's `argocd` ns exists on this
+host (`ardenone-manager.kubeconfig` absent; `~/.kube` = `iad-acb` + `iad-ci` only). Bead left open
+(PARTIAL) per the close-gating rule; auto-released for operator retry.
+
+---
+
 ## Attempt 25 — 2026-07-21 (re-verified live + independently re-verified access model; STILL PARTIAL 3/5, bead left open)
 
 **Verdict identical to attempts 1–24: 3 of 5.** This attempt's distinctive work was to **challenge

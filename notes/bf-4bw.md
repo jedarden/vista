@@ -444,3 +444,34 @@ ArgoCD cluster-registration x509 trust on ardenone-manager (de-duplicate the two
 for the HCP endpoint, refresh `caData` or set `tlsClientConfig.insecure=true`), then
 `argocd app sync vista-ns-apexalgo-iad` — no manifest change needed, `b3144ab` is already correct.
 No self-service path exists from this read-only box. **Bead left open.**
+
+---
+
+## Attempt 63 (focused re-verification — unchanged)
+
+Re-verified live state on 2026-07-21. **Still PARTIAL 3/5, byte-for-byte identical to attempts 50–62.**
+No operator remediation has landed. Per the recorded learning
+(`[[apexalgo-iad-argocd-sync-broken]]` — "do NOT spend many attempts"), this was a single focused
+re-confirmation; every write-path candidate to apexalgo-iad / ardenone-manager was already closed in
+attempts 43–52.
+
+Fresh evidence gathered this attempt:
+
+- **C1 (FAIL):** ArgoCD app `vista-ns-apexalgo-iad` (read via ardenone-manager RO proxy) still
+  `sync=Unknown`, `health=Healthy` — the controller still cannot reconcile against apexalgo-iad's HCP
+  endpoint. Cannot be inspected or repaired from this read-only box.
+- **C2 (FAIL):** `vista-5d5f9dc954-mrksg` still 0/1 `ImagePullBackOff` (18h, current RS; live Deploy
+  image still `ronaldraygun/vista:latest`, `.spec.replicas=1`). Legacy `vista-7d87bd66df-g6tvh` 1/1
+  Running (14h, IP `10.20.92.160`) serves all traffic. `declarative-config` still correctly pins
+  `ghcr.io/jedarden/vista:1.0.5` (`b3144ab`) but it has never synced down. apexalgo-iad access is
+  read-only-proxy-only, so the live image cannot be patched.
+- **C3 (PASS):** `svc/vista` ClusterIP `10.21.64.133:3000` (127d).
+- **C4 (PASS):** IngressRoute `vista` (48d) + `vista-ingressroute` (127d) → `svc/vista:3000` intact.
+- **C5 (PASS):** `GET https://vista.jedarden.com/` → HTTP 200, 36 274 bytes,
+  `<title>VISTA — Visual Inspector of Social Tags &amp; Attributes</title>`.
+
+**Conclusion unchanged.** The single operator action that would clear C1+C2 is still: repair the
+ArgoCD cluster-registration x509 trust on ardenone-manager (de-duplicate the two `cluster-*` Secrets
+for the HCP endpoint, refresh `caData` or set `tlsClientConfig.insecure=true`), then
+`argocd app sync vista-ns-apexalgo-iad` — no manifest change needed, `b3144ab` is already correct.
+No self-service path exists from this read-only box. **Bead left open.**

@@ -1,5 +1,49 @@
 # Bead bf-4bw: Verify vista deployment on apexalgo-iad
 
+## Attempt 47 — 2026-07-21 (STILL PARTIAL 3/5, bead left open)
+
+Re-verification per memory [[apexalgo-iad-argocd-sync-broken]] / [[vista-image-fix-in-gitops]]. **Verdict
+unchanged: 3 of 5.** Live state byte-for-byte identical to attempts 1–46 — no operator repair landed.
+Two refinements this turn, the second decisive:
+
+1. **ArgoCD read-only API now unreachable even for reads.** `argocd-ro-ardenone-manager-ts.ardenone.com`
+   returns `Could not resolve host` from this box (DNS noresolve). So criterion 1 rests on indirect
+   evidence this turn: the live deploy does NOT match GitOps (see #2), which a successful sync would
+   force — proving the controller never converged, i.e. the x509 break (attempts 1–46) is still active.
+2. **DECISIVE — Blocker 2 (image) is now fully closed at the source layer.** The GitOps manifest
+   (`declarative-config/k8s/apexalgo-iad/vista/deployment.yml`, commit `b3144ab`) declares
+   `ghcr.io/jedarden/vista:1.0.5` / replicas 3, and I confirmed via the GHCR v2 API (anon token)
+   that `ghcr.io/jedarden/vista` tags = `[1.0.0, latest, 1.0.1, 1.0.2, 1.0.3, 1.0.4, 1.0.5]` — **the
+   target tag exists and pulls anonymously.** This collapses the entire remaining remediation to ONE
+   item (the x509 fix): with the manifest correct and the image pullable, criteria 1 & 2 will flip to
+   PASS together the moment ArgoCD can reach apexalgo-iad and a sync runs.
+3. **Write paths still all closed.** `~/.kube` holds only `iad-ci.kubeconfig` (https → iad-ci CI
+   cluster) and `iad-acb.kubeconfig` (http → `traefik-iad-acb:8001`, a read-only proxy — eliminated
+   as a write path in attempt 43). CLAUDE.md-documented `ardenone-manager.kubeconfig` (cluster-admin
+   to the cluster hosting ArgoCD) is **absent**. No path to the argocd ns / cluster-registration Secret.
+   Per memory, did NOT re-run the `auth can-i` probes — `no` across attempts 33/37/39/43/44/45/46.
+
+| # | Criterion | Verdict | Fresh evidence (attempt 47) |
+|---|-----------|---------|-----------------------------|
+| 1 | ArgoCD `vista` Synced | ❌ FAIL | RO API DNS-unresolvable this turn. Indirect: live deploy mismatches GitOps (template `ronaldraygun/vista:latest`/replicas 1 vs manifest `ghcr.io/jedarden/vista:1.0.5`/replicas 3) → a sync since `b3144ab` never converged → x509 break (attempts 1–46) still active. |
+| 2 | Deployment pods Running | ❌ FAIL | `vista-5d5f9dc954-mrksg` 0/1 `ImagePullBackOff` (17h, current RS, wants `ronaldraygun/vista:latest` — DockerHub 404; `BackOff x4514 over 17h`); `vista-7d87bd66df-g6tvh` 1/1 Running (legacy `ghcr.io/jedarden/vista:1.0.0`). Deploy `READY 1/1`, `Progressing=False` (timed out), surviving on the single legacy pod. |
+| 3 | Service via cluster DNS | ✅ PASS | `svc/vista` ClusterIP `10.21.64.133:3000` (127d); 1 healthy endpoint `10.20.92.160:3000` (Running pod) + 1 notReady (failing pod). |
+| 4 | IngressRoute working | ✅ PASS | `vista` IngressRoute (48d) → `svc/vista`, entryPoint websecure; stale dup `vista-ingressroute` (127d) still present. |
+| 5 | vista.jedarden.com responds | ✅ PASS | `GET https://vista.jedarden.com/` → **HTTP 200** (0.12s, 36274 B), `<title>VISTA — Visual Inspector of Social Tags &amp; Attributes</title>`. |
+
+**Single required operator step (now the ONLY remaining blocker):** on ardenone-manager `argocd` ns,
+repair the cluster-registration for `hcp-99476ebb-…spot.rackspace.com` — de-duplicate the two
+`cluster-*` Secrets, add the signing CA to `caData` (or set `tlsClientConfig.insecure=true`), force a
+sync. The image side is done (manifest `b3144ab` + verified-pullable GHCR `1.0.5`), so ArgoCD converges
+the rollout, the stuck RS prunes, and criteria 1 & 2 pass automatically for vista + sibling apps.
+
+**Conclusion.** User-facing service is live and correct (criteria 3–5, HTTP 200). The image problem is
+solved in source (`b3144ab`) AND verified pullable on GHCR — no longer a separate concern. 2 of 5
+criteria fail, both gated entirely by the single ArgoCD→apexalgo-iad x509 transport break, which is
+operator/infra work with no write path available to this read-only verifier. **Bead left open.**
+
+---
+
 ## Attempt 46 — 2026-07-21 (STILL PARTIAL 3/5, bead left open)
 
 Single-decision re-verification per memory [[apexalgo-iad-argocd-sync-broken]]. **Verdict identical

@@ -916,3 +916,52 @@ for the HCP endpoint, refresh `caData` or set `tlsClientConfig.insecure=true`), 
 `argocd app sync vista-ns-apexalgo-iad` — AND make `ghcr.io/jedarden/vista` public (or wire an
 imagePullSecret), else a sync to `b3144ab` re-triggers `ImagePullBackOff` on the private `1.0.5`.
 No self-service path exists from this read-only box. **Bead left open PARTIAL 3/5.**
+
+---
+
+## Attempt 91 (focused re-verification — unchanged)
+
+Re-verified live state on 2026-07-21. **Still PARTIAL 3/5, identical to attempts 50–90.**
+No operator remediation has landed. Per the recorded learning
+(`[[apexalgo-iad-argocd-sync-broken]]` — "do NOT spend many attempts"), this was a single focused
+re-confirmation; every write-path candidate to apexalgo-iad / ardenone-manager was already closed in
+attempts 43–52.
+
+Two deltas from attempt 90 worth recording (neither changes the conclusion):
+
+1. **ArgoCD HTTP API proxy is currently unreachable.** The documented RO API endpoint
+   `https://argocd-ro-ardenone-manager-ts.ardenone.com:8444` now returns HTTP 000 —
+   `getent hosts` / curl report *Could not resolve host*. So this attempt read C1 a different way:
+   directly from the `Application` CR `.status` in ardenone-manager via the kubectl RO proxy
+   (`traefik-ardenone-manager:8001`). That path still works and is actually *more* informative —
+   it surfaces the explicit `ComparisonError` message naming the root cause.
+2. The live Deployment image is `ronaldraygun/vista:latest` (Docker Hub) on the current RS, failing
+   to pull; the legacy RS pod keeps the app alive. `declarative-config` still correctly pins
+   `ghcr.io/jedarden/vista:1.0.5` (`b3144ab`) but it has never synced down.
+
+Fresh evidence gathered this attempt:
+
+- **C1 (FAIL):** `application/vista-ns-apexalgo-iad` (argocd ns, via ardenone-manager kubectl RO
+  proxy) still `sync=Unknown`, `health=Healthy`, `targetRevision=HEAD`. Conditions now show the
+  explicit ComparisonError:
+  *Failed to load live state: failed to get cluster info for
+  "https://hcp-99476ebb-4133-4a21-ac6a-6e2bdf6794c0.spot.rackspace.com": error synchronizing cache
+  state* / *failed to get server version … Get "https://hcp-…spot.rackspace.com …"* — i.e. the
+  controller still cannot reconcile against apexalgo-iad's HCP endpoint (x509/cluster-registration
+  trust break). Cannot be inspected or repaired from this read-only box.
+- **C2 (FAIL):** `vista-5d5f9dc954-mrksg` still 0/1 `ImagePullBackOff` (20h, current RS; live Deploy
+  image still `ronaldraygun/vista:latest`, `.spec.replicas=1`). Legacy `vista-7d87bd66df-g6tvh`
+  1/1 Running (15h, IP `10.20.92.160`) serves all traffic. apexalgo-iad access is
+  read-only-proxy-only, so the live image cannot be patched.
+- **C3 (PASS):** `svc/vista` ClusterIP `10.21.64.133:3000`; endpoint `10.20.92.160:3000`.
+- **C4 (PASS):** IngressRoute `vista` (48d) + `vista-ingressroute` (127d) → `svc/vista:3000` intact.
+- **C5 (PASS):** `GET https://vista.jedarden.com/` → HTTP 200, 36 274 bytes,
+  `<title>VISTA — Visual Inspector of Social Tags &amp; Attributes</title>`.
+
+**Conclusion unchanged.** The two operator actions that would clear C1+C2 are still: (a) repair the
+ArgoCD cluster-registration x509 trust on ardenone-manager (de-duplicate the two `cluster-*` Secrets
+for the HCP endpoint, refresh `caData` or set `tlsClientConfig.insecure=true`) so the controller can
+reach `hcp-…spot.rackspace.com`; (b) make `ghcr.io/jedarden/vista` public (or wire an
+imagePullSecret into the vista Deployment manifest) so a sync to `b3144ab` doesn't re-trigger
+`ImagePullBackOff` on the private `1.0.5` — then `argocd app sync vista-ns-apexalgo-iad`. No
+self-service path exists from this read-only box. **Bead left open PARTIAL 3/5.**

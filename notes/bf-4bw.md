@@ -1,5 +1,26 @@
 # Bead bf-4bw: Verify vista deployment on apexalgo-iad
 
+## Attempt 17 — 2026-07-21 (re-verified live; STILL PARTIAL 3/5, bead left open)
+
+Re-verified all five criteria fresh against apexalgo-iad (kubectl-proxy), the GitOps source-of-truth (`/home/coding/declarative-config`), GHCR, and vista.jedarden.com. **Verdict and live state are identical to attempts 11–16.** No operator remediation has landed; no new self-serve resolution path exists.
+
+**Fresh evidence this attempt:**
+- **Blocker 2 still fully resolved in GitOps.** `declarative-config` `origin/main` **contains `b3144ab`** (`git branch -r --contains b3144ab` → `origin/main`); `k8s/apexalgo-iad/vista/deployment.yml:25` → `image: ghcr.io/jedarden/vista:1.0.5`, `replicas: 3`. GHCR anon-token tag list → `1.0.0, 1.0.1, 1.0.2, 1.0.3, 1.0.4, 1.0.5, latest` → **`1.0.5` is pullable**. So the manifest ArgoCD reads is correct and live-ready.
+- **Blocker 1 still live (the sole remaining blocker).** Live Deployment template on apexalgo-iad still `ronaldraygun/vista:latest` (the b3144ab fix has **not** propagated) → rollout still failed. ArgoCD RO HTTP API (`argocd-ro-ardenone-manager-ts.ardenone.com:8444`) currently **unresolvable/unreachable** from this host (`http_code=000`); the Application CR cannot be re-read without the (absent) manager kubeconfig. Either way the live template proves ArgoCD never synced.
+- **Access model unchanged.** Only `iad-acb.kubeconfig` + `iad-ci.kubeconfig` in `~/.kube/`; the CLAUDE.md-documented `ardenone-manager.kubeconfig` is **ABSENT**. apexalgo-iad is read-only (`kubectl-proxy`, `devpod-observer`).
+
+| # | Criterion | Verdict | Fresh evidence (attempt 17) |
+|---|-----------|---------|-----------------------------|
+| 1 | ArgoCD `vista` Synced | ❌ FAIL | Live deploy template never updated (still `ronaldraygun/vista:latest`) → ArgoCD has not synced; b3144ab unenforced. RO API unreachable (000). |
+| 2 | Deployment pods Running | ❌ FAIL | `vista-5d5f9dc954-mrksg` 0/1 `ImagePullBackOff` (14h, current RS); `vista-7d87bd66df-g6tvh` 1/1 Running (10h, legacy `ghcr.io/jedarden/vista:1.0.0`). Deploy READY 1/2, `Available=True`, `Progressing=False` (ProgressDeadlineExceeded). |
+| 3 | Service via cluster-internal DNS | ✅ PASS | `svc/vista` ClusterIP `10.21.64.133:3000`; live endpoint `10.20.92.160:3000` (the running pod). |
+| 4 | IngressRoute working | ✅ PASS | `vista` IngressRoute (48d) → `svc/vista:3000`; stale dup `vista-ingressroute` (127d) still present. |
+| 5 | vista.jedarden.com responds | ✅ PASS | `GET https://vista.jedarden.com/` → **HTTP 200** (0.53s). |
+
+**Bottom line:** user-facing service is live and correct (criteria 3–5, HTTP 200). Blocker 2 is already remediated in source-of-truth and gated only on blocker 1. The single operator action that unblocks everything is unchanged from attempt 8+: on ardenone-manager, `argocd` ns — repair/delete the broken URL-based cluster-registration Secret (`cluster-hcp-99476ebb-…spot.rackspace.com-3689407595`, stale `caData`) or re-register, so ArgoCD resolves the apexalgo-iad server URL to a registration carrying a valid CA. One sync then lands b3144ab and criteria 1 & 2 pass. This is operator/infra work outside read-only verification scope and is not reachable via GitOps (proven attempt 14). **2 of 5 acceptance criteria cannot be satisfied without operator write access → bead left open** per the close-gating rule.
+
+---
+
 ## Attempt 16 — 2026-07-21 (refined diagnosis; still PARTIAL 3/5, bead left open)
 
 Re-verified live; verdict and live state are byte-identical to attempts 1–15. This attempt

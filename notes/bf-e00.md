@@ -1,6 +1,6 @@
 # Bead bf-e00: Add Cloudflare DNS CNAME for vista.jedarden.com
 
-## Result: STILL BLOCKED — bead left OPEN. Re-verified on attempt 2 (2026-07-21).
+## Result: STILL BLOCKED — bead left OPEN. Re-verified on attempt 3 (2026-07-21).
 
 The vista CNAME was **not** created. `vista.jedarden.com` resolves **NXDOMAIN** (no DNS
 record of any type) on this attempt as well. Three independent platform-level outages on
@@ -11,7 +11,27 @@ reach the cluster, and even if it did the DNS controller is crash-stopped.
 
 > Per dispatch instructions, a bead whose acceptance criteria are unmet must NOT be closed.
 > This note is updated each retry so the next attempt / a human with the right access can
-> finish it quickly. **This is attempt 2; attempt 1's diagnosis is confirmed and refined below.**
+> finish it quickly. **Attempt 3 (2026-07-21) re-confirmed all three blockers unchanged since
+> attempt 2 — no drift in either direction; the platform has not been remediated.**
+
+### Attempt-3 re-verification snapshot (all still BLOCKED, same as attempt 2)
+| Check | Value observed | Verdict |
+|---|---|---|
+| `vista.jedarden.com` A / CNAME | Status 3 NXDOMAIN (Cloudflare DoH `1.1.1.1`) | ❌ unchanged |
+| `gait.jedarden.com` A (reference) | NOERROR → 172.67.172.218, 104.21.40.5 | ✅ pattern still works |
+| ArgoCD `vista-ns-apexalgo-iad` | `sync=Unknown op=Failed health=Healthy` | ❌ unchanged |
+| ArgoCD vista ComparisonError | `x509: certificate signed by unknown authority` for `hcp-99476ebb-…rackspace.com` | ❌ unchanged |
+| apexalgo-iad app sync tally | 78 `Unknown` (apexalgo-iad-scoped), 97 cluster-wide comparisonErrors | ❌ still outage-wide |
+| external-dns pod `…k9nmx` | `0/1 CreateContainerConfigError`, AGE 3d17h | ❌ unchanged |
+| `cloudflare-apexalgo-iad-secret` | still missing (pod still crashing; secret unreadable to observer RBAC) | ❌ unchanged |
+| `openbao` ClusterSecretStore | `Ready=False reason=InvalidProviderConfig` | ❌ unchanged |
+| ExternalSecrets cluster-wide | `No resources found` | ❌ unchanged |
+| live vista IngressRoute | `generation: 1` (stale since 2026-06-03; annotation never applied) | ❌ unchanged |
+| CF credential reachable from host | none (no env, no `~/.cloudflared`, no CLI) | ❌ unchanged |
+
+Nothing changed between attempt 2 and attempt 3 — the platform remediation in the
+"Remediation required" section below has not happened. Retrying again with the same
+(read-only) access will produce the same result.
 
 ## Acceptance criteria — none met (again)
 

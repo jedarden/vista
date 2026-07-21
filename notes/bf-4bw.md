@@ -1,5 +1,34 @@
 # Bead bf-4bw: Verify vista deployment on apexalgo-iad
 
+**Date (attempt 6):** 2026-07-21  ·  **Result: ⚠️ STILL PARTIAL — 3/5 pass; 2 fail, blockers UNCHANGED across attempts 1–5. Bead left open.**
+
+Re-verified live. Byte-for-byte identical to attempt 5. No operator remediation has landed. One fresh
+check this attempt that prior attempts did not run — **direct DockerHub probe confirms `ronaldraygun/vista`
+still does not exist**: repo root `https://hub.docker.com/v2/repositories/ronaldraygun/vista/` → **HTTP 404**,
+and every tag probed (`latest`, `1.0.5`, `1.0.21`, `1.0.0`) → **HTTP 404**. So the manifest's declared image
+(`declarative-config/k8s/apexalgo-iad/vista/deployment.yml:25 → ronaldraygun/vista:1.0.5`) is still unresolvable
+and the live template image (`ronaldraygun/vista:latest`) is still unresolvable.
+
+Access model re-confirmed unchanged: **`ardenone-manager.kubeconfig` is still ABSENT** from `~/.kube/` (only
+`iad-acb.kubeconfig` + `iad-ci.kubeconfig` exist — CLAUDE.md's documented write path is stale); ardenone-manager
+reachable only via the read-only `kubectl --server=http://traefik-ardenone-manager:8001` proxy; apexalgo-iad is
+**read-only** (`auth can-i '*' '*'` → `no`). No write path to either cluster where the blockers live.
+
+| # | Criterion | Verdict | Fresh evidence (attempt 6) |
+|---|-----------|---------|----------------------------|
+| 1 | ArgoCD `vista` Synced | ❌ FAIL | App CR `sync=Unknown`, `health=Healthy`, `op=Failed`. ComparisonError/UnknownError: `tls: failed` reaching `hcp-99476ebb-…spot.rackspace.com/version?timeout=32s`. Controller cannot reach apexalgo-iad. |
+| 2 | Deployment pods Running | ❌ FAIL | RS `vista-5d5f9dc954` wants `ronaldraygun/vista:latest`, ready `<none>` → pod `mrksg` 0/1 `ImagePullBackOff` (13h). RS `vista-7d87bd66df` runs `ghcr.io/jedarden/vista:1.0.0`, ready 1 (pod `g6tvh` 1/1 Running). Deploy `Progressing=False` (timed out). |
+| 3 | Service via cluster-internal DNS | ✅ PASS | `svc/vista` ClusterIP `10.21.64.133:3000` (`vista.vista.svc.cluster.local`). |
+| 4 | IngressRoute working | ✅ PASS | `vista` IngressRoute (48d) → `svc/vista:3000`; stale dup `vista-ingressroute` (127d) still present. |
+| 5 | vista.jedarden.com responds | ✅ PASS | `GET https://vista.jedarden.com/` → **HTTP 200**, 36274 B, `<title>VISTA — Visual Inspector of Social Tags &amp; Attributes</title>`, markers Inspect/Paste/Compare/Sitemap present. |
+
+**Bottom line:** identical to attempts 1–5. Both failing criteria need operator/infra action (restore
+ArgoCD→apexalgo-iad trust/CA in the cluster registration on ardenone-manager; repoint the image to a pullable
+registry — GHCR carries `1.0.0`…`1.0.5`,`latest`, but a declarative-config repoint is moot while blocker 1
+prevents any ArgoCD sync from landing) that read-only verification cannot perform. **Bead left open.**
+
+---
+
 **Date (attempt 5):** 2026-07-21  ·  **Result: ⚠️ STILL PARTIAL — 3/5 pass; 2 fail, blockers UNCHANGED across attempts 1–4. Bead left open.**
 
 Re-verified live. No operator remediation has landed. Same verdict, same two root causes. Two new environment data points (neither changes the access posture — still read-only to both clusters where the blockers live):

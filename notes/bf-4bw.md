@@ -1,5 +1,39 @@
 # Bead bf-4bw: Verify vista deployment on apexalgo-iad
 
+## Attempt 41 — 2026-07-21 (STILL PARTIAL 3/5, bead left open)
+
+Single-decision re-verification per memory [[apexalgo-iad-argocd-sync-broken]]. **Verdict identical
+to attempts 1–40: 3 of 5.** No operator repair has landed. The live state is byte-for-byte the same
+as attempt 40: the two image-referencing pods are unchanged, still split on the unpullable
+`ronaldraygun/vista:latest` (current RS) vs. the working legacy `ghcr.io/jedarden/vista:1.0.0`.
+
+| # | Criterion | Verdict | Fresh evidence (attempt 41) |
+|---|-----------|---------|-----------------------------|
+| 1 | ArgoCD `vista` Synced | ❌ FAIL | Read-only ArgoCD API `argocd-ro-ardenone-manager-ts.ardenone.com:8444` again returned **HTTP 000 / DNS-unresolvable** from this host (3/3 curl tries `http=000`; `getent hosts` → no resolution) — same as attempt 40, **not** load-bearing. Decisive independent proof of no-sync: live Deploy template image is `ronaldraygun/vista:latest` / `replicas: 1`, while GitOps source-of-truth `declarative-config/k8s/apexalgo-iad/vista/deployment.yml` (re-confirmed at HEAD `b3144ab`) pins `ghcr.io/jedarden/vista:1.0.5` / `replicas: 3`. The manifest drift on *both* image and replica count proves `b3144ab` has never been enforced. Cluster-wide x509 break still assumed per memory (78/78 spot.rackspace apps Unknown last readable attempt). |
+| 2 | Deployment pods Running | ❌ FAIL | `vista-5d5f9dc954-mrksg` 0/1 `ImagePullBackOff` (16h, **current** RS, wants `ronaldraygun/vista:latest` — DockerHub 404); `vista-7d87bd66df-g6tvh` 1/1 Running (12h, legacy `ghcr.io/jedarden/vista:1.0.0`). Deploy `READY=1/1 AVAILABLE=1` but `Progressing=False … ProgressDeadlineExceeded … ReplicaSet "vista-5d5f9dc954" has timed out progressing` — rollout FAILED, surviving solely on the single legacy pod. RSes: `vista-5d5f9dc954` (1/0 ready, 48d, `ronaldraygun/vista:latest`), `vista-7d87bd66df` (1/1 ready, 127d, `ghcr.io/jedarden/vista:1.0.0`). |
+| 3 | Service via cluster DNS | ✅ PASS | `svc/vista` ClusterIP `10.21.64.133:3000` (127d); Endpoints back the Running pod IP `10.20.92.160` → serves traffic. |
+| 4 | IngressRoute working | ✅ PASS | `vista` IngressRoute (48d, GitOps-managed) → `svc/vista`; stale dup `vista-ingressroute` (127d) still present. |
+| 5 | vista.jedarden.com responds | ✅ PASS | `GET https://vista.jedarden.com/` → **HTTP 200** (0.12s); `<title>VISTA — Visual Inspector of Social Tags &amp; Attributes</title>`, full app HTML returned. |
+
+**Cannot self-remediate (unchanged):** apexalgo-iad is read-only via kubectl-proxy
+(`devpod-observer` SA) — cannot restart the Deployment, swap the image, prune the stuck RS / dup
+IngressRoute, or touch the registration Secret. Only `iad-ci.kubeconfig` + `iad-acb.kubeconfig`
+exist in `~/.kube/`; the CLAUDE.md-documented write kubeconfigs (ardenone-manager, rs-manager,
+iad-options) are **absent**, so the ArgoCD registration Secret root cause is out of reach too.
+
+**Conclusion unchanged.** User-facing service is live and correct (criteria 3–5, HTTP 200). The
+image problem is solved in source and on `origin/main` (`b3144ab`, re-confirmed via local
+`declarative-config` at `ghcr.io/jedarden/vista:1.0.5` / replicas 3). The sole remaining blocker is
+the operator-only ArgoCD→apexalgo-iad cluster-registration x509 break: on ardenone-manager `argocd`
+ns — de-duplicate the two `cluster-*` Secrets for `hcp-99476ebb-…spot.rackspace.com`, then refresh
+`caData` (or set `tlsClientConfig.insecure=true`) on the survivor. ArgoCD then syncs `b3144ab`, the
+GHCR image pulls, and criteria 1 & 2 pass automatically for vista + ~77 sibling apps. **2 of 5
+criteria cannot be satisfied without operator write access → bead left open PARTIAL** per the
+task's close-gating rule; auto-released for operator retry. See memory
+[[apexalgo-iad-argocd-sync-broken]].
+
+---
+
 ## Attempt 40 — 2026-07-21 (STILL PARTIAL 3/5, bead left open)
 
 Single-decision re-verification per memory [[apexalgo-iad-argocd-sync-broken]]. **Verdict identical

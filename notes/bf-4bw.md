@@ -1544,6 +1544,18 @@ Live state re-queried fresh via `traefik-ardenone-manager:8001` (ArgoCD Applicat
 
 **Access (re-confirmed, all closed):** apexalgo-iad proxy is read-only (cannot create/delete/patch); `~/.kube/*.kubeconfig` holds only `iad-acb.kubeconfig` + `iad-ci.kubeconfig` (no `ardenone-manager.kubeconfig` — `[[kubeconfigs-on-disk-vs-claudemd]]`); no `argocd`/`gh` CLI; `GH_TOKEN`/`GITHUB_TOKEN` unset. **No self-service path.** Per task instructions ("If you cannot complete the task … Do NOT close the bead"), bead is **left OPEN PARTIAL 3/5** rather than closed — closing would misrepresent C1/C2 as passing. Remediation is operator-only and unchanged since attempt 95: (a) repair the apexalgo-iad cluster-registration x509 trust on ardenone-manager `argocd` ns (de-duplicate the two `cluster-*` Secrets for the HCP endpoint, refresh `caData` / set `tlsClientConfig.insecure=true`); (b) make the desired image pullable (public `ronaldraygun/vista` on Docker Hub, OR sync `b3144ab` AND make `ghcr.io/jedarden/vista` public / wire an `imagePullSecret`); then `argocd app sync vista-ns-apexalgo-iad` and confirm the new RS reaches Running and the legacy RS scales down. Still in the degenerate auto-retry loop (119 prior attempts today, all byte-for-byte identical); remains PARTIAL until an operator performs the two remediations above. See `[[apexalgo-iad-argocd-sync-broken]]` and `[[vista-image-fix-in-gitops]]`.
 
+## Attempt 127 (single consolidated re-verification — byte-for-byte identical, no delta)
+
+**Attempt 127 · 2026-07-21 · Result: STILL PARTIAL — 3/5 pass (C3, C4, C5); 2 fail (C1, C2). No delta from 126 prior attempts.** Per `[[apexalgo-iad-argocd-sync-broken]]` ("do NOT spend many attempts — immediately confirm the cluster-wide Unknown and leave the bead open PARTIAL"), one consolidated query batch.
+
+- **C1 FAIL:** `vista-ns-apexalgo-iad` `sync=Unknown / health=Healthy`, `server=https://hcp-99476ebb-4133-4a21-ac6a-6e2bdf6794c0.spot.rackspace.com` — cluster-registration x509 trust break, unchanged.
+- **C2 FAIL:** deploy `ronaldraygun/vista:latest`, replicas=1, `imagePullSecrets=[]`, ready=1/2; `vista-5d5f9dc954-xbzql` Pending/not-ready (Docker Hub pull denied); legacy `vista-7d87bd66df-p5hn5` Running/ready on node-cached `ghcr.io/jedarden/vista:1.0.0`. Same pod names/IPs as attempt 126.
+- **C3 PASS:** svc `10.21.64.133:3000`, one ready endpoint.
+- **C4 PASS:** IngressRoutes `vista` + `vista-ingressroute` → svc vista:3000.
+- **C5 PASS:** `https://vista.jedarden.com/` → HTTP 200 / 36274 bytes / `<title>VISTA — Visual Inspector of Social Tags &amp; Attributes</title>`.
+
+**Access unchanged/closed:** `auth can-i patch/update deployments -n vista` → both `no`; kubeconfigs = `iad-acb` + `iad-ci` only (no `ardenone-manager.kubeconfig`); no `argocd`/`gh` CLI. **No self-service path.** Bead **left OPEN** (not closed) per task instructions — C1/C2 require operator action: (a) repair apexalgo-iad cluster-registration x509 trust on ardenone-manager `argocd` ns; (b) make the target image pullable (public `ronaldraygun/vista` on Docker Hub, OR make `ghcr.io/jedarden/vista` public / wire an `imagePullSecret` then sync `b3144ab`); then `argocd app sync vista-ns-apexalgo-iad`. See `[[apexalgo-iad-argocd-sync-broken]]`, `[[vista-image-fix-in-gitops]]`.
+
 ## Attempt 126 (single consolidated re-verification — deliberately concise to break the boilerplate bloat)
 
 **Attempt 126 · 2026-07-21 · Result: STILL PARTIAL — 3/5 pass (C3, C4, C5); 2 fail (C1, C2). No delta from 120+ prior attempts.** Per `[[apexalgo-iad-argocd-sync-broken]]` ("do NOT spend many attempts"), ran ONE consolidated query batch instead of the prior per-criterion sprawl.

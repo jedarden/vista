@@ -1,5 +1,72 @@
 # Bead bf-4bw: Verify vista deployment on apexalgo-iad
 
+## Attempt 16 — 2026-07-21 (refined diagnosis; still PARTIAL 3/5, bead left open)
+
+Re-verified live; verdict and live state are byte-identical to attempts 1–15. This attempt
+**narrowed Blocker 1** and that is the value-add.
+
+**Blocker 1 is cluster-wide, not vista-specific.** ALL **63 applications** targeting the
+apexalgo-iad server URL `https://hcp-99476ebb-…spot.rackspace.com` report `sync=Unknown`
+(vista is one of them). The entire apexalgo-iad cluster is dark to ArgoCD — a single shared
+cluster-registration trust failure, i.e. operator/infra scope, not anything a vista
+verification can address.
+
+**Exact mechanism (newly traced):**
+- `vista-ns-apexalgo-iad` has `spec.destination.server = https://hcp-99476ebb-…spot.rackspace.com`
+  (no `name`), set by the ApplicationSet template
+  `declarative-config/k8s/apexalgo-iad/apexalgo-iad-applicationset.yml:31`, which hardcodes that
+  URL for every app under `k8s/apexalgo-iad/*`.
+- That URL resolves to the 110d URL-based registration Secret
+  `cluster-hcp-99476ebb-…spot.rackspace.com-3689407595`, whose `caData` no longer trusts the
+  apexalgo-iad API server cert → `x509: certificate signed by unknown authority`. Likely cause:
+  Rackspace rotated the HCP control-plane cert; the registration's CA bundle is stale.
+- A parallel name-based registration `cluster-apexalgo-iad` (113d) also exists. I cannot read
+  either Secret (argocd ns is `list`-only for the devpod-observer SA), so cannot confirm which
+  carries a valid CA.
+
+**Blocker 2 remains fully fixed in GitOps** — `declarative-config/k8s/apexalgo-iad/vista/deployment.yml`
+pins `ghcr.io/jedarden/vista:1.0.5`, replicas 3 (commit `b3144ab`). Live-ready; only Blocker 1
+keeps it from enforcing.
+
+**Every self-serve resolution path is closed:**
+- **ardenone-manager write:** CLAUDE.md-documented `ardenone-manager.kubeconfig` is **ABSENT**
+  from `~/.kube/` (only `iad-acb.kubeconfig` + `iad-ci.kubeconfig` exist — CLAUDE.md is stale
+  on this). The read-only proxy to ardenone-manager allows only `get/list/watch` on applications
+  and `list` (not even `get`) on secrets → cannot read, patch, or delete the cluster-registration
+  Secret.
+- **apexalgo-iad:** read-only (kubectl-proxy) → cannot patch the Deployment/image directly.
+- **GitOps:** the cluster-registration Secret is NOT in `declarative-config` (created out-of-band),
+  and the ApplicationSet destination is shared by all 63 apps — retargeting it to the unverified
+  name-based registration would be a high-blast-radius speculative infra change, not a
+  verification action. Rejected.
+- The Rackspace HCP endpoint is TCP-reachable from this host but presented no certificate over
+  `openssl s_client` (likely SNI/mTLS-guarded); fetching the CA wouldn't help anyway since I
+  can't write it into the registration Secret.
+
+**Operator remediation (now precisely scoped):** on ardenone-manager, in `argocd` ns, repair the
+URL-based cluster-registration Secret `cluster-hcp-99476ebb-…spot.rackspace.com-3689407595` —
+refresh `caData` with the current Rackspace HCP CA (or set the registration `config` to
+`tlsClientConfig.insecure=true`), or delete it and re-register so ArgoCD resolves the URL to a
+registration carrying a valid CA. This single fix re-syncs all 63 apexalgo-iad apps at once,
+including vista; the already-correct `b3144ab` manifest then lands and criteria 1 & 2 pass.
+
+| # | Criterion | Verdict | Fresh evidence |
+|---|-----------|---------|----------------|
+| 1 | ArgoCD `vista` Synced | ❌ FAIL | `sync=Unknown`, `health=Healthy`, `op=Failed`; x509 to `hcp-99476ebb-…spot.rackspace.com`. vista is 1 of 63 Unknown apps. |
+| 2 | Deployment pods Running | ❌ FAIL | `vista-5d5f9dc954-mrksg` 0/1 `ImagePullBackOff` (14h, current RS); `vista-7d87bd66df-g6tvh` 1/1 Running (10h, legacy `ghcr.io/jedarden/vista:1.0.0`); `Progressing=False` (timed out). |
+| 3 | Service via cluster-internal DNS | ✅ PASS | `svc/vista` ClusterIP `10.21.64.133:3000`, 1 healthy endpoint. |
+| 4 | IngressRoute working | ✅ PASS | `vista` IngressRoute (entryPoint `websecure`) → `svc/vista:3000`. |
+| 5 | vista.jedarden.com responds | ✅ PASS | `GET https://vista.jedarden.com/` → HTTP 200, 36274 B, `<title>VISTA — Visual Inspector of Social Tags &amp; Attributes</title>`. |
+
+**Conclusion:** user-facing service is live and correct (criteria 3–5, HTTP 200). Criteria 1–2
+require operator write access to the ardenone-manager `argocd` namespace that does not exist on
+this host and is not reachable via GitOps. 2 of 5 acceptance criteria cannot be satisfied from
+the verification role → **bead left open** per the close-gating rule.
+
+---
+
+## Attempt 15 (prior — retained; full live-state detail)
+
 **Date (attempt 15):** 2026-07-21 13:10Z  ·  **Result: ⚠️ STILL PARTIAL (3/5 pass) — identical to attempts 1–14. Bead left open. Re-verified live with a fresh reconciliation (App CR reconciled 2026-07-21T13:09:21Z, ~1 min before this check); access model re-confirmed: no write path to ardenone-manager. No new action available — kept this entry intentionally concise (see attempt 14 below for full detail).**
 
 | # | Criterion | Verdict | Fresh evidence (13:10Z) |

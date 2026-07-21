@@ -155,6 +155,10 @@ const HARNESS_HTML = `<!DOCTYPE html>
       <img id="cropperImage" class="cropper-image" alt=""/>
       <svg id="cropperOverlay" class="cropper-overlay" xmlns="http://www.w3.org/2000/svg"></svg>
     </div>
+    <!-- Mirrors production index.html: a sibling empty-state element toggled by
+         showCropperEmpty(), NOT injected into #cropperContainer (which would
+         detach the cached image/overlay refs). Starts hidden. -->
+    <div class="cropper-empty hidden" id="cropperEmpty" role="status" aria-live="polite"></div>
   </div>
   <div id="cropperControls"></div>
   <div id="cropperContainer"></div>
@@ -440,7 +444,7 @@ async function main() {
 
   // ── Edge cases ───────────────────────────────────────────────────────────
   console.log('\nEdge cases:');
-  let noImageStaleOverlayPresent = false;
+  let noImageOverlayCleared = false;
 
   // (1) No og:image → empty state, no overlay drawn. (Pass a full meta shape:
   //     initCropper reads `data.meta.og.image || data.meta.twitter.image`, so a
@@ -448,17 +452,24 @@ async function main() {
   await page.evaluate(() => {
     initCropper({ meta: { og: {}, twitter: {} }, imageProbe: null });
   });
-  const empty = await page.evaluate(() => ({
-    containerText: document.getElementById('cropperContainer').textContent.replace(/\s+/g, ' ').trim(),
-    hasSafe: !!document.getElementById('cropperOverlay').querySelector('.safe-zone-rect'),
-  }));
-  check('no og:image → cropper shows empty state',
-    /No image found/.test(empty.containerText), `"${empty.containerText}"`);
-  // NOTE: initCropper's no-image branch (app.js:3307-3311) returns WITHOUT
-  // clearing cropperOverlay.innerHTML, so the prior scenario's safe-zone rect
-  // persists. Recorded as a known minor limitation below — not asserted as a
-  // contract the product does not currently meet.
-  noImageStaleOverlayPresent = empty.hasSafe;
+  const empty = await page.evaluate(() => {
+    const el = document.getElementById('cropperEmpty');
+    return {
+      emptyText: el ? el.textContent.replace(/\s+/g, ' ').trim() : '',
+      // The element is present but hidden until a no-image / failed-load
+      // result; the empty state is "shown" when .hidden is absent.
+      emptyShown: el ? !el.classList.contains('hidden') : false,
+      hasSafe: !!document.getElementById('cropperOverlay').querySelector('.safe-zone-rect'),
+    };
+  });
+  check('no og:image → cropper shows empty state (#cropperEmpty text + un-hidden)',
+    /No image found/.test(empty.emptyText) && empty.emptyShown === true,
+    `"${empty.emptyText}" (shown=${empty.emptyShown})`);
+  // The no-image branch now calls showCropperEmpty(), which clears
+  // cropperOverlay.innerHTML in place — so the prior scenario's safe-zone rect
+  // must NOT linger. (Before bf-6aj this was a documented cosmetic limitation;
+  // the dedicated #cropperEmpty element + in-place reset fixed it.)
+  noImageOverlayCleared = empty.hasSafe === false;
 
   // (2) Single platform → safe zone == that platform's crop rect (intersection
   //     of one rect is the rect itself). Confirms the calc→render pipeline
@@ -506,12 +517,13 @@ async function main() {
     opacities.svgFillOpacity === '0.15',
     `svg fill-opacity=${opacities.svgFillOpacity}; canvas export measured α≈${insideA.toFixed(2)} above`);
 
-  // Recorded (not a regression): initCropper's no-image path does not clear the
-  // prior overlay, so the previous safe-zone <rect> lingers in the SVG. Minor
-  // visual artifact on a no-image re-load; documented in notes/bf-5yle.md.
-  check('KNOWN: no-image re-load leaves the prior safe-zone rect uncleared (cosmetic)',
-    noImageStaleOverlayPresent === true,
-    `hasSafe after no-image initCropper=${noImageStaleOverlayPresent}`);
+  // bf-6aj fixed the no-image path: showCropperEmpty() clears
+  // cropperOverlay.innerHTML in place, so the prior scenario's safe-zone <rect>
+  // no longer lingers in the SVG across a no-image re-load. (Was a documented
+  // cosmetic limitation in notes/bf-5yle.md.)
+  check('no-image re-load clears the prior safe-zone rect (overlay reset in place)',
+    noImageOverlayCleared === true,
+    `hasSafe after no-image initCropper=${!noImageOverlayCleared}`);
 
   if (pageErrors.length) {
     console.log(`\n  (harness page reported ${pageErrors.length} console/page errors — ` +

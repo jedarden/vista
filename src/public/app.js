@@ -132,6 +132,7 @@ const tabCompareBtn = $('#tabCompareBtn');
 const cropperViewport = $('#cropperViewport');
 const cropperImage = $('#cropperImage');
 const cropperOverlay = $('#cropperOverlay');
+const cropperEmpty = $('#cropperEmpty');
 const cropperControls = $('#cropperControls');
 const cropperContainer = $('#cropperContainer');
 const downloadOverlayBtn = $('#downloadOverlayBtn');
@@ -3302,11 +3303,37 @@ function renderGenericMessagingContext(title, desc, image, domain, pid) {
 }
 
 // ── Crop Visualizer ──
+// Show the cropper's empty / error state without destroying its DOM.
+//
+// In production #cropperContainer is the ANCESTOR of #cropperImage and
+// #cropperOverlay (cropper-container > cropper-main > cropper-viewport >
+// cropper-stage > image/overlay). The old code reached the empty state with
+// `cropperContainer.innerHTML = '<div class="cropper-empty">…</div>'`, which
+// DETACHES those cached element refs. Every later initCropper() then wrote to
+// detached nodes (img.src, overlay.innerHTML) — the Crop Visualizer stayed
+// blank for the rest of the session after any no-image / failed-load result.
+//
+// Fix: toggle a dedicated #cropperEmpty element (a sibling of the stage inside
+// the viewport) and reset state in place, leaving image/overlay/stage attached
+// so the next successful load recovers.
+function showCropperEmpty(message) {
+  cropperEmpty.textContent = message;
+  cropperEmpty.classList.remove('hidden');
+  cropperOverlay.innerHTML = '';
+  cropperImage.removeAttribute('src');
+  cropperBadge.textContent = '';
+  safeZoneInfo.innerHTML = '';
+  imageInfo.innerHTML = '';
+  cropperControls.innerHTML = '';
+  cropperState.imageNaturalWidth = 0;
+  cropperState.imageNaturalHeight = 0;
+  cropperState.imageAspectRatio = 0;
+}
+
 function initCropper(data) {
   const ogImage = data.meta.og.image || data.meta.twitter.image;
   if (!ogImage) {
-    cropperContainer.innerHTML = '<div class="cropper-empty">No image found in meta tags.</div>';
-    cropperBadge.textContent = '';
+    showCropperEmpty('No image found in meta tags.');
     return;
   }
 
@@ -3318,6 +3345,7 @@ function initCropper(data) {
     cropperState.imageNaturalWidth = cropperImage.naturalWidth;
     cropperState.imageNaturalHeight = cropperImage.naturalHeight;
     cropperState.imageAspectRatio = cropperImage.naturalWidth / cropperImage.naturalHeight;
+    cropperEmpty.classList.add('hidden');
 
     renderImageInfo(data.imageProbe);
     renderCropperControls();
@@ -3325,7 +3353,7 @@ function initCropper(data) {
   };
 
   cropperImage.onerror = () => {
-    cropperContainer.innerHTML = '<div class="cropper-empty">Failed to load image.</div>';
+    showCropperEmpty('Failed to load image.');
   };
 
   // Download button handler

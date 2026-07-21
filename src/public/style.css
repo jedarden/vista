@@ -1239,7 +1239,7 @@ body.has-results { padding-bottom: 48px; }
 
 /* ── Crop Visualizer ── */
 .cropper-container { display: flex; flex-direction: column; gap: 20px; }
-.cropper-empty { padding: 60px 20px; text-align: center; color: var(--text2); font-size: 16px; background: var(--bg2); border-radius: var(--radius-lg); }
+.cropper-empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 60px 20px; text-align: center; color: var(--text2); font-size: 16px; background: var(--bg2); border-radius: var(--radius-lg); }
 
 .cropper-main { display: flex; gap: 20px; }
 .cropper-viewport { flex: 1; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; position: relative; min-height: 400px; display: flex; align-items: center; justify-content: center; }

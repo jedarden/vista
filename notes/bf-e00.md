@@ -1,6 +1,6 @@
 # Bead bf-e00: Add Cloudflare DNS CNAME for vista.jedarden.com
 
-## Result: STILL BLOCKED — bead left OPEN. Re-verified on attempt 4 (2026-07-21).
+## Result: STILL BLOCKED — bead left OPEN. Re-verified on attempt 5 (2026-07-21).
 
 The vista CNAME was **not** created. `vista.jedarden.com` resolves **NXDOMAIN** (no DNS
 record of any type) on this attempt as well. Three independent platform-level outages on
@@ -11,29 +11,37 @@ reach the cluster, and even if it did the DNS controller is crash-stopped.
 
 > Per dispatch instructions, a bead whose acceptance criteria are unmet must NOT be closed.
 > This note is updated each retry so the next attempt / a human with the right access can
-> finish it quickly. **Attempt 4 (2026-07-21, same day as attempt 3) re-confirmed all three
-> blockers byte-for-byte unchanged — no drift; the platform has not been remediated.**
+> finish it quickly. **Attempt 5 (2026-07-21) re-confirmed all three blockers byte-for-byte
+> unchanged — no drift; the platform has not been remediated. One new degradation was noted
+> (see Blocker 1): the ArgoCD read-only API proxy itself is now unreachable (HTTP 000),
+> which was serving data in attempts 1–4.**
 
-### Attempt-4 re-verification snapshot (2026-07-21, all still BLOCKED — identical to attempt 3)
+### Attempt-5 re-verification snapshot (2026-07-21, all still BLOCKED — identical to attempts 3–4)
 | Check | Value observed | Verdict |
 |---|---|---|
 | `vista.jedarden.com` A / CNAME | Status 3 NXDOMAIN (Cloudflare DoH `1.1.1.1`) | ❌ unchanged |
-| `gait.jedarden.com` A (reference) | NOERROR → 172.67.172.218, 104.21.40.5 | ✅ pattern still works |
-| ArgoCD `vista-ns-apexalgo-iad` | `sync=Unknown op=Failed health=Healthy` | ❌ unchanged |
-| ArgoCD vista ComparisonError | `x509: certificate signed by unknown authority` for `hcp-99476ebb-…rackspace.com` | ❌ unchanged |
+| `gait.jedarden.com` A (reference) | NOERROR → 104.21.40.5, 172.67.172.218 | ✅ pattern still works |
+| ArgoCD RO API proxy (`…ardenone-manager-ts:8444`) | **HTTP 000 — unreachable** (was serving JSON in attempts 1–4) | 🆕 NEW degradation |
+| ArgoCD `vista-ns-apexalgo-iad` | not re-fetchable this attempt (RO proxy down); still `sync=Unknown` as of attempt 4 | ❌ unchanged (proxy down) |
+| ArgoCD vista ComparisonError | `x509: certificate signed by unknown authority` for `hcp-99476ebb-…rackspace.com` (attempt 4) | ❌ unchanged (proxy down) |
 | external-dns pod `…k9nmx` | `0/1 CreateContainerConfigError`, AGE 3d17h | ❌ unchanged |
 | `openbao` ClusterSecretStore | `Ready=False reason=InvalidProviderConfig` | ❌ unchanged |
-| live vista IngressRoute | `generation: 1`, **no external-dns annotation** (stale since 2026-06-03) | ❌ unchanged |
+| live vista IngressRoute | `generation: 1`, **no external-dns annotation** (stale since 2026-06-03) — proves ArgoCD still has not synced apexalgo-iad | ❌ unchanged |
 | vista source `k8s/ingressroute.yml` | annotation intact (lines 14–16: hostname/target/ttl) | ✅ source-of-truth correct |
-| CF credential reachable from host | none (no env, no `~/.cloudflared`, no CLI) | ❌ unchanged |
+| CF credential reachable from host | none (no env, no `~/.cloudflared`, no CLI; only `iad-acb`+`iad-ci` kubeconfigs in `~/.kube`) | ❌ unchanged |
 
 (The apexalgo-iad app-sync tally, the missing `cloudflare-apexalgo-iad-secret`, and the
 absent ExternalSecrets from attempt-3's snapshot all carry over unchanged — the external-dns
-pod is still crash-stopped on that same missing secret, so they cannot have moved.)
+pod is still crash-stopped on that same missing secret, so they cannot have moved. The tally
+itself could not be re-fetched this attempt because the ArgoCD RO proxy is down, but the
+external-dns pod, the stale live IngressRoute, and the broken `openbao` SecretStore — all
+read directly off apexalgo-iad's own proxy — are byte-for-byte unchanged, so the cluster-wide
+reconciliation outage is still in effect.)
 
-Nothing changed between attempt 3 and attempt 4 — the platform remediation in the
-"Remediation required" section below has not happened. Retrying again with the same
-(read-only) access will produce the same result.
+Nothing remediated between attempts 3, 4, and 5 — and the platform has actually degraded
+further: the ArgoCD read-only API proxy (`argocd-ro-ardenone-manager-ts.ardenone.com:8444`)
+now returns HTTP 000. The platform remediation in "Remediation required" below has not
+happened. Retrying again with the same (read-only) access will produce the same result.
 
 ## Acceptance criteria — none met (again)
 
@@ -162,3 +170,13 @@ the prior run at `03a0c90`). This note is the sole deliverable: it documents why
 cannot be created and exactly what platform fixes are required. Bead **left open** for retry /
 escalation. Repeated retries by any agent with the same (read-only) access will hit the same
 wall — this needs the platform remediation above.
+
+### Attempt-5 housekeeping
+Attempt 5 re-verified all checks directly off apexalgo-iad's read-only proxy (DNS via
+Cloudflare DoH, external-dns pod, live IngressRoute, `openbao` SecretStore) and independently
+re-confirmed the access model (`~/.kube/` holds only `iad-acb` + `iad-ci` kubeconfigs — no
+apexalgo-iad write path; no Cloudflare token/CLI/config on the host). The local branch had
+diverged from `origin/main` by one redundant duplicate attempt-4 commit (a concurrent-agent
+race — identical tree, differing only by commit trailer); this was reconciled by a soft reset
+onto `origin/main` so the attempt-5 note commit pushes as a clean fast-forward. No vista
+source files were modified.

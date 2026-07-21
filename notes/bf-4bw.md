@@ -180,3 +180,31 @@ Verification is **complete and accurate**; the underlying deployment is **not** 
 remain blocked on operator write access to the `argocd` ns on ardenone-manager, which this box does not
 have (no ardenone-manager kubeconfig on disk; secret reads Forbidden; cluster registration not in GitOps).
 **Bead left open.**
+
+---
+
+## Attempt 51 (fresh re-verification — unchanged)
+
+Re-verified live state on 2026-07-21. **Still PARTIAL 3/5, byte-for-byte identical to attempt 50.**
+No operator remediation has landed. Per the recorded learning
+(`[[apexalgo-iad-argocd-sync-broken]]` — "do NOT spend many attempts"), this attempt was a single
+focused re-confirmation rather than a fresh hunt, since every write-path candidate to ardenone-manager
+/ apexalgo-iad was already closed in attempts 43–50.
+
+Fresh evidence gathered this attempt:
+
+- **C1 (FAIL):** `vista-ns-apexalgo-iad` `sync=Unknown`, `health=Healthy`. Conditions carry the same
+  x509 error: `tls: failed to verify certificate: x509: certificate signed by unknown authority` on
+  `https://hcp-99476ebb-…spot.rackspace.com/version`.
+- **C2 (FAIL):** `vista-5d5f9dc954-mrksg` 0/1 `ImagePullBackOff` (18h, current RS, wants
+  `ronaldraygun/vista:latest`); `vista-7d87bd66df-g6tvh` 1/1 Running (legacy RS). Deploy
+  `.spec.template` image still `ronaldraygun/vista:latest`; `.spec.replicas=1` (manifest wants 3 —
+  drift, since ArgoCD cannot enforce); `Progressing=False`, `ready=1/2`.
+- **C3 (PASS):** `svc/vista` ClusterIP `10.21.64.133:3000`, 1 healthy endpoint `10.20.92.160:3000`.
+- **C4 (PASS):** IngressRoute `vista` (48d), `Host(vista.jedarden.com)`→`svc/vista:3000`.
+- **C5 (PASS):** `GET https://vista.jedarden.com/` → HTTP 200, 36 274 bytes,
+  `<title>VISTA — Visual Inspector of Social Tags &amp; Attributes</title>`.
+
+**Conclusion unchanged.** Criteria 1 + 2 are operator-blocked (ardenone-manager write access to repair
+the ArgoCD cluster-registration x509 trust, then sync `b3144ab`). Not fixable from this read-only
+verification box. **Bead left open.**

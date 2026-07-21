@@ -1,6 +1,17 @@
 # Bead bf-e00: Add Cloudflare DNS CNAME for vista.jedarden.com
 
-## Result: STILL BLOCKED — bead left OPEN. Re-verified on attempt 7 (2026-07-21).
+## Result: STILL BLOCKED — bead left OPEN. Re-verified on attempt 8 (2026-07-21).
+
+> **Attempt 8 (2026-07-21) — byte-identical to attempt 7; sole blocker unchanged.**
+> The single remaining blocker (ArgoCD → apexalgo-iad `x509: certificate signed by unknown
+> authority` for `hcp-99476ebb-…spot.rackspace.com`) is still active, hours after attempt 7.
+> The platform has **not** been remediated. What attempt 8 added over prior runs: a **direct
+> `ls ~/.kube/`** proving the write path situation, rather than asserting it — confirmed only
+> `iad-acb.kubeconfig` + `iad-ci.kubeconfig` exist on this host; the `ardenone-manager.kubeconfig`
+> / `rs-manager.kubeconfig` (cluster-admin, documented in `~/CLAUDE.md`) are **absent**, which
+> closes the one theoretical path to fixing ArgoCD cluster trust. No CF token/CLI/config either.
+> `vista.jedarden.com` still resolves **NXDOMAIN**; the vista IngressRoute annotation remains
+> committed in git but cannot reach the cluster. See "Attempt-8 snapshot" below.
 
 > **Attempt 7 narrowed the root cause to ONE blocker (not three).** A second, **healthy**
 > external-dns instance (`externaldns-ardenone-com`, `1/1 Running`, AGE 8h) was discovered
@@ -32,6 +43,30 @@ ArgoCD's TLS trust to apexalgo-iad is broken cluster-wide.
 > New wrinkle this attempt: the git server (`git.ardenone.com`) is returning HTTP 502,
 > blocking `git fetch`/`git push` — committed locally; push will be retried when the server
 > recovers.**
+
+### Attempt-8 re-verification snapshot (2026-07-21 — byte-identical to attempt 7; sole blocker unchanged)
+Re-ran every check; also **directly enumerated `~/.kube/`** to hard-verify the access model.
+| Check | Value observed | Verdict |
+|---|---|---|
+| `vista.jedarden.com` A / CNAME (Cloudflare DoH) | Status 3 NXDOMAIN, no answer | ❌ unchanged |
+| `gait.jedarden.com` A (reference) | Status 0 → 104.21.40.5, 172.67.172.218 | ✅ pattern works |
+| ArgoCD `vista-ns-apexalgo-iad` | sync=Unknown, health=Healthy, op=Failed ("retried 2 times") | ❌ unchanged |
+| ComparisonError | `x509: certificate signed by unknown authority` for `hcp-99476ebb-4133-4a21-ac6a-6e2bdf6794c0.spot.rackspace.com` (same endpoint) | ❌ unchanged |
+| live vista IngressRoute (apexalgo-iad) | `generation: 1`, **no external-dns annotation** | ❌ unchanged — ArgoCD never applied |
+| `external-dns-apexalgo-iad-…k9nmx` | `0/1 CreateContainerConfigError`, AGE 3d18h | ❌ unchanged (the broken instance) |
+| `externaldns-ardenone-com-…2q7mr` | `1/1 Running`, AGE 8h — manages jedarden.com, will create CNAME once annotation lands | ✅ healthy instance, unchanged |
+| **`~/.kube/` direct `ls`** | **only `iad-acb.kubeconfig` + `iad-ci.kubeconfig` present**; `ardenone-manager`/`rs-manager`/`iad-options*` kubeconfigs **absent** | 🆕 hard-confirmed: no ardenone-manager write path |
+| CF credential on host | none (env empty, no `flarectl`/`cloudflared`/`cf`/`wrangler` on PATH, no `~/.cloudflared`/`~/.config/cloudflare`) | ❌ unchanged |
+
+**Conclusion (attempt 8):** every write path is verified closed — apexalgo-iad (read-only proxy
+only), ArgoCD write API (no ardenone-manager kubeconfig), and Cloudflare API (no token). The
+single unblocking action remains: **re-add apexalgo-iad to ArgoCD with a fresh CA bundle from
+ardenone-manager cluster-admin** (or rotate/re-trust the `hcp-99476ebb-…spot.rackspace.com`
+endpoint cert). Once ArgoCD can reach apexalgo-iad again, it syncs the already-committed vista
+IngressRoute annotation, the healthy `externaldns-ardenone-com` pod creates the
+`vista.jedarden.com` → `cef7d924-…cfargotunnel.com` CNAME (proxied, ttl 300), and DNS resolves
+like `gait`. No agent with the current (read-only) access can finish this — it needs the
+platform owner. Bead **left OPEN**.
 
 ### Attempt-7 re-verification snapshot (2026-07-21 — root cause NARROWED to one blocker)
 Re-ran the verification commands and, for the first time, enumerated **all** external-dns

@@ -1,8 +1,36 @@
 # Bead bf-4bw: Verify vista deployment on apexalgo-iad
 
+**Date (attempt 3):** 2026-07-21  ·  **Result: ⚠️ STILL PARTIAL — 3/5 criteria pass; 2 fail, blockers UNCHANGED since attempts 1 & 2. Bead left open.**
+
+## Attempt-3 verification snapshot (2026-07-21 — UNCHANGED)
+
+Re-verified live against apexalgo-iad (kubectl-proxy) and the ArgoCD Application CR (read
+directly on ardenone-manager, since the read-only HTTP API endpoint
+`argocd-ro-ardenone-manager-ts.ardenone.com` is currently unresolvable from this host — the
+`ardenone.com` split-DNS route points at `100.93.223.15`, which is not answering for this
+record; reading the CR via kubectl is strictly stronger anyway).
+
+| # | Criterion | Verdict | Fresh evidence (attempt 3) |
+|---|-----------|---------|----------------------------|
+| 1 | ArgoCD `vista` Synced | ❌ FAIL | App CR: `sync=Unknown`, `health=Healthy`, `op.phase=Failed` ("one or more synchronization tasks are not valid (retried 2 times)"). ComparisonError/UnknownError: `x509: certificate signed by unknown authority` reaching `hcp-99476ebb-…spot.rackspace.com/version`. Spec source confirmed correct (`github.com/jedarden/declarative-config` @ `k8s/apexalgo-iad/vista`). |
+| 2 | Deployment pods Running | ❌ FAIL | `vista-5d5f9dc954-mrksg` 0/1 `ImagePullBackOff` wanting `ronaldraygun/vista:latest` ("repository does not exist or may require authorization"); `vista-7d87bd66df-g6tvh` 1/1 Running on `ghcr.io/jedarden/vista:1.0.0`. Deploy `Progressing=False` (timed out). |
+| 3 | Service via cluster-internal DNS | ✅ PASS | `svc/vista` ClusterIP `10.21.64.133:3000`; 1 healthy endpoint `10.20.92.160:3000` (1 notReady = the failing pod). |
+| 4 | IngressRoute working | ✅ PASS | `vista` IngressRoute gen=1, `Host(vista.jedarden.com)`→`svc/vista:3000`, entryPoint `websecure`. |
+| 5 | vista.jedarden.com responds | ✅ PASS | `GET https://vista.jedarden.com/` → **HTTP 200**, serves real VISTA app (`<title>VISTA — Visual Inspector of Social Tags & Attributes</title>`, Inspect/Paste/Compare/Sitemap). DNS NOERROR → CF anycast. |
+
+Both blockers are byte-for-byte the same root causes as attempts 1–2. No operator remediation
+has landed between attempts. Both fixes are operator/infra work outside read-only verification
+scope (apexalgo-iad is read-only; the x509 trust fix lives in ArgoCD's cluster-registration
+Secret on ardenone-manager and needs the new Rackspace CA; the image fix needs either a real
+DockerHub publish or a manifest repoint to GHCR + an ArgoCD sync that can't run while #1 is down).
+
+---
+
+## Earlier attempts (1 & 2) — detailed analysis retained below
+
 **Date (attempt 2):** 2026-07-21  ·  **Result: ⚠️ STILL PARTIAL — 3/5 criteria pass; 2 fail, blocked on operator/infra action. Bead left open.**
 
-This is a re-verification. The prior attempt (commit `9d02255`, earlier today) reached the same PARTIAL verdict. **No operator remediation has occurred since** — both blockers are unchanged. This note refines the root cause with freshly-confirmed evidence and adds new findings (nodes healthy; duplicate IngressRoute; GitOps source confirmed).
+The prior attempt (commit `9d02255`, earlier today) reached the same PARTIAL verdict. **No operator remediation has occurred since** — both blockers are unchanged. This note refines the root cause with freshly-confirmed evidence and adds new findings (nodes healthy; duplicate IngressRoute; GitOps source confirmed).
 
 ## Acceptance criteria verdict
 

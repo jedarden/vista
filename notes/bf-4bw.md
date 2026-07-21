@@ -1,5 +1,50 @@
 # Bead bf-4bw: Verify vista deployment on apexalgo-iad
 
+## Attempt 46 — 2026-07-21 (STILL PARTIAL 3/5, bead left open)
+
+Single-decision re-verification per memory [[apexalgo-iad-argocd-sync-broken]]. **Verdict identical
+to attempts 1–45: 3 of 5.** No operator repair has landed; the live state is byte-for-byte identical.
+The only cosmetic delta this attempt: the failing pod reads `ErrImagePull` at this instant vs
+`ImagePullBackOff` (same pod `mrksg`, same unpullable image, same 17h age — just the backoff-cycle
+moment, not load-bearing). Per memory, I did NOT re-run the `auth can-i` write-path probes this
+attempt — all four write paths (`patch deploy`, `delete pods`, `patch secret -n argocd`, `create
+secret -n argocd`) were conclusively `no` across attempts 33/37/39/43/44/45, and re-running them is
+the "spending many attempts" the memory warns against. Fresh decisive evidence this turn:
+
+1. **x509 break still actively failing today, not healing:** App CR ComparisonError verbatim
+   unchanged — `…failed to get server version: Get "https://hcp-99476ebb-4133-4a21-ac6a-6e2bdf6794c0.spot.rackspace.com/version?timeout=32s": tls: failed to verify certificate: x509: certificate signed by unknown authority`; `lastTransitionTime 2026-07-21T16:09:37Z` (today).
+2. **Live vista state unchanged:** `vista-5d5f9dc954-mrksg` 0/1 `ErrImagePull` (17h, **current** RS,
+   wants `ronaldraygun/vista:latest` — DockerHub 404); `vista-7d87bd66df-g6tvh` 1/1 Running (13h,
+   legacy `ghcr.io/jedarden/vista:1.0.0`). Deploy template `ronaldraygun/vista:latest`, `replicas=1`,
+   `READY 1/1` — surviving solely on the single legacy pod. GitOps fix `b3144ab`
+   (`ghcr.io/jedarden/vista:1.0.5`, replicas 3) still unenforced.
+3. **All four write paths closed (established, not re-probed this turn):** per attempts 33/37/39/
+   43/44/45. `~/.kube` holds only `iad-ci.kubeconfig` + `iad-acb.kubeconfig`; the
+   CLAUDE.md-documented `ardenone-manager.kubeconfig` (cluster-admin) is **absent**.
+
+| # | Criterion | Verdict | Fresh evidence (attempt 46) |
+|---|-----------|---------|-----------------------------|
+| 1 | ArgoCD `vista` Synced | ❌ FAIL | App CR `vista-ns-apexalgo-iad` via ardenone-manager kubectl-proxy: `sync=Unknown` / `health=Healthy(stale)` / `op=Failed`. ComparisonError verbatim as above — x509 is in ArgoCD's cluster-registration CA trust, not the manifest. `lastTransitionTime 2026-07-21T16:09:37Z`. Source correctly pointed: `github.com/jedarden/declarative-config@HEAD:k8s/apexalgo-iad/vista`. |
+| 2 | Deployment pods Running | ❌ FAIL | `vista-5d5f9dc954-mrksg` 0/1 `ErrImagePull` (17h, **current** RS, wants `ronaldraygun/vista:latest` — DockerHub 404); `vista-7d87bd66df-g6tvh` 1/1 Running (13h, legacy `ghcr.io/jedarden/vista:1.0.0`). Deploy template `ronaldraygun/vista:latest`, `replicas=1`, deploy `READY 1/1 UP-TO-DATE 1 AVAILABLE 1`; surviving solely on the single legacy pod. GitOps fix `b3144ab` (`ghcr.io/jedarden/vista:1.0.5`, replicas 3) still unenforced. |
+| 3 | Service via cluster DNS | ✅ PASS | `svc/vista` ClusterIP `10.21.64.133:3000` (127d); Endpoints → `10.20.92.160:3000` (the Running pod) → serves traffic. |
+| 4 | IngressRoute working | ✅ PASS | `vista` IngressRoute (48d) → `svc/vista`, entryPoint websecure; stale dup `vista-ingressroute` (127d) still present. |
+| 5 | vista.jedarden.com responds | ✅ PASS | `GET https://vista.jedarden.com/` → **HTTP 200** (0.72s, 36274 B), `<title>VISTA — Visual Inspector of Social Tags &amp; Attributes</title>`. |
+
+**Single required operator step (unchanged):** on ardenone-manager `argocd` ns, repair the
+cluster-registration for `hcp-99476ebb-…spot.rackspace.com` — de-duplicate the two `cluster-*`
+Secrets, then add the signing CA to `caData` (or set `tlsClientConfig.insecure=true`) on the
+survivor, then force a sync. ArgoCD converges the GHCR rollout (`b3144ab`), the stuck RS prunes,
+and criteria 1 & 2 pass automatically for vista + ~77 sibling apps.
+
+**Conclusion unchanged.** User-facing service is live and correct (criteria 3–5, HTTP 200). The
+image problem is solved in source and on `origin/main` (`b3144ab`). 2 of 5 criteria cannot be
+satisfied without operator write access (all four write `can-i`=no; registration not GitOps-managed)
+→ **bead left open PARTIAL** per the close-gating rule; auto-released for operator retry. Per memory
+[[apexalgo-iad-argocd-sync-broken]], this is a single decisive lookup — no further value in re-running
+until the operator repair lands.
+
+---
+
 ## Attempt 45 — 2026-07-21 (STILL PARTIAL 3/5, bead left open)
 
 Single-decision re-verification per memory [[apexalgo-iad-argocd-sync-broken]]. **Verdict identical

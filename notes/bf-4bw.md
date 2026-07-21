@@ -1013,3 +1013,40 @@ imagePullSecret into the vista Deployment manifest) so a sync to `b3144ab` doesn
 `ImagePullBackOff` on the private `1.0.5` — then `argocd app sync vista-ns-apexalgo-iad`. No
 self-service path exists from this read-only box (only `iad-acb` + `iad-ci` kubeconfigs on disk; no
 `gh`/`argocd` CLI). **Bead left open PARTIAL 3/5.**
+
+---
+
+## Attempt 93 (focused re-verification — unchanged)
+
+Re-verified live state on 2026-07-21. **Still PARTIAL 3/5, byte-for-byte identical to attempts 49–92.**
+No operator remediation has landed. Single focused re-confirmation per `[[apexalgo-iad-argocd-sync-broken]]`
+("do NOT spend many attempts"): one read of the ArgoCD `Application` CR via the ardenone-manager RO proxy
+(`traefik-ardenone-manager:8001`), one read of the live vista ns via the apexalgo-iad RO proxy
+(`traefik-apexalgo-iad:8001`), one `curl` of the public endpoint, plus a fresh anonymous GHCR visibility
+check and an `auth can-i` write-path check. Pod ages 20h/16h, deploy `READY 1/1`, current-RS image
+`ronaldraygun/vista:latest` — all unchanged.
+
+- **C1 (FAIL):** `application/vista-ns-apexalgo-iad` (argocd ns) still `sync=Unknown`, `health=Healthy`,
+  `targetRev=HEAD`. ComparisonError freshly re-captured on BOTH live + target state: *tls: failed to
+  verify certificate: x509: certificate signed by unknown authority* vs
+  `hcp-99476ebb-4133-4a21-ac6a-6e2bdf6794c0.spot.rackspace.com`. Cluster-wide cluster-registration trust
+  break; not vista-specific. Not repairable from this read-only box.
+- **C2 (FAIL):** `vista-5d5f9dc954-mrksg` 0/1 `ImagePullBackOff` (20h, current RS `vista-5d5f9dc954`
+  desired=1 ready=0, IP `10.20.92.166`, wants `ronaldraygun/vista:latest`); legacy
+  `vista-7d87bd66df-g6tvh` 1/1 Running (16h, IP `10.20.92.160`) serves all traffic. `declarative-config`
+  still pins `ghcr.io/jedarden/vista:1.0.5` but it has never synced down. GHCR package freshly
+  re-confirmed PRIVATE: anonymous `/tags/list` = HTTP 200, but manifest GET = HTTP 404 for BOTH `1.0.5`
+  (GitOps target) and `1.0.0` (the running legacy pod's image — so private, not missing). Deployment has
+  no `imagePullSecret`, so even a successful sync would re-trigger `ImagePullBackOff` on `1.0.5`.
+- **C3 (PASS):** `svc/vista` ClusterIP `10.21.64.133:3000` (127d, selector `app=vista`); legacy pod endpoint serving.
+- **C4 (PASS):** IngressRoutes `vista` (2026-06-03) + `vista-ingressroute` (2026-03-15) → `svc/vista:3000` intact.
+- **C5 (PASS):** `GET https://vista.jedarden.com/` → HTTP 200, 36 274 bytes (0.13 s),
+  `<title>VISTA — Visual Inspector of Social Tags &amp; Attributes</title>` (served by the stale legacy pod).
+
+**No self-service write path (freshly re-confirmed this attempt):** `kubectl auth can-i
+update/patch/create/delete deployments -n vista` via the apexalgo-iad proxy → `no` for all four; only
+`iad-acb` + `iad-ci` kubeconfigs on disk (no `ardenone-manager`); no `argocd`/`gh` CLI. Remediation still
+requires operator action: (a) repair the ArgoCD cluster-registration x509 trust on ardenone-manager
+(de-duplicate the two `cluster-*` Secrets for the HCP endpoint, refresh `caData` or set
+`tlsClientConfig.insecure=true`); (b) make `ghcr.io/jedarden/vista` public or wire an `imagePullSecret`
+into the vista Deployment manifest; then `argocd app sync vista-ns-apexalgo-iad`. **Bead left open PARTIAL 3/5.**

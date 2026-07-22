@@ -6256,6 +6256,50 @@ function handleEditorInput(e) {
   }, 300);
 }
 
+/**
+ * Merge the current editor edits over the original fetched metadata.
+ * Returns a fresh meta object reflecting what the user has typed so far.
+ */
+function buildEditedMeta() {
+  const modifiedMeta = { ...currentData.meta };
+  const e = editorState.edited;
+
+  if (e.title) modifiedMeta.title = e.title;
+  if (e.description) modifiedMeta.description = e.description;
+  if (e['og.title']) modifiedMeta.og = { ...modifiedMeta.og, title: e['og.title'] };
+  if (e['og.description']) modifiedMeta.og = { ...modifiedMeta.og, description: e['og.description'] };
+  if (e['og.image']) modifiedMeta.og = { ...modifiedMeta.og, image: e['og.image'] };
+  if (e['og.url']) modifiedMeta.og = { ...modifiedMeta.og, url: e['og.url'] };
+  if (e['og.site_name']) modifiedMeta.og = { ...modifiedMeta.og, site_name: e['og.site_name'] };
+  if (e['og.type']) modifiedMeta.og = { ...modifiedMeta.og, type: e['og.type'] };
+  if (e['twitter.card']) modifiedMeta.twitter = { ...modifiedMeta.twitter, card: e['twitter.card'] };
+  if (e['twitter.title']) modifiedMeta.twitter = { ...modifiedMeta.twitter, title: e['twitter.title'] };
+  if (e['twitter.description']) modifiedMeta.twitter = { ...modifiedMeta.twitter, description: e['twitter.description'] };
+  if (e['twitter.image']) modifiedMeta.twitter = { ...modifiedMeta.twitter, image: e['twitter.image'] };
+
+  return modifiedMeta;
+}
+
+/**
+ * Re-score ALL 31 platforms against the current editor content.
+ *
+ * This replaces the old "simple counter" placeholder: instead of counting how
+ * many diagnostics were fixed, it runs the full scoring-simulator (scoreAll)
+ * over the edited metadata and returns fresh scores/grades for every platform,
+ * plus the recomputed overall grade and passing/warning/failing summary.
+ *
+ * @returns {{meta: object, scoring: object}|null} edited meta + full scoring, or null if unavailable
+ */
+function rescoreAllPlatforms() {
+  if (!currentData || typeof scoreAll !== 'function') return null;
+
+  const modifiedMeta = buildEditedMeta();
+  // scoreAll iterates every entry in PLATFORMS (all 31) and returns
+  // { scores: {<platformId>: {grade, score, issues, fixes, platform}}, overall, summary }
+  const scoring = scoreAll(modifiedMeta, currentData.imageProbe);
+  return { meta: modifiedMeta, scoring };
+}
+
 function updatePreviewsWithEdits() {
   if (!currentData) return;
 
@@ -6263,30 +6307,21 @@ function updatePreviewsWithEdits() {
   const originalGrade = currentData.scoring?.overall?.grade;
   const originalScore = currentData.scoring?.overall?.score;
 
-  // Create modified meta object
-  const modifiedMeta = { ...currentData.meta };
+  // Re-score all 31 platforms from the edited content
+  const rescored = rescoreAllPlatforms();
+  const modifiedMeta = rescored ? rescored.meta : buildEditedMeta();
+  const newScoring = rescored ? rescored.scoring : null;
 
-  // Apply edits
-  if (editorState.edited.title) modifiedMeta.title = editorState.edited.title;
-  if (editorState.edited.description) modifiedMeta.description = editorState.edited.description;
-  if (editorState.edited['og.title']) modifiedMeta.og = { ...modifiedMeta.og, title: editorState.edited['og.title'] };
-  if (editorState.edited['og.description']) modifiedMeta.og = { ...modifiedMeta.og, description: editorState.edited['og.description'] };
-  if (editorState.edited['og.image']) modifiedMeta.og = { ...modifiedMeta.og, image: editorState.edited['og.image'] };
-  if (editorState.edited['og.url']) modifiedMeta.og = { ...modifiedMeta.og, url: editorState.edited['og.url'] };
-  if (editorState.edited['og.site_name']) modifiedMeta.og = { ...modifiedMeta.og, site_name: editorState.edited['og.site_name'] };
-  if (editorState.edited['og.type']) modifiedMeta.og = { ...modifiedMeta.og, type: editorState.edited['og.type'] };
-  if (editorState.edited['twitter.card']) modifiedMeta.twitter = { ...modifiedMeta.twitter, card: editorState.edited['twitter.card'] };
-  if (editorState.edited['twitter.title']) modifiedMeta.twitter = { ...modifiedMeta.twitter, title: editorState.edited['twitter.title'] };
-  if (editorState.edited['twitter.description']) modifiedMeta.twitter = { ...modifiedMeta.twitter, description: editorState.edited['twitter.description'] };
-  if (editorState.edited['twitter.image']) modifiedMeta.twitter = { ...modifiedMeta.twitter, image: editorState.edited['twitter.image'] };
-
-  // Re-render previews with modified data
+  // Re-render previews (and grade badges) with the freshly-scored data so every
+  // platform card reflects the new grade, not just the original fetch.
   const modifiedData = { ...currentData, meta: modifiedMeta };
+  if (newScoring) modifiedData.scoring = newScoring;
   renderPreviews(modifiedData);
 
-  // Recalculate and announce score changes
-  if (typeof scoreAll === 'function') {
-    const newScoring = scoreAll(modifiedMeta, currentData.imageProbe);
+  // Update the summary bar (overall grade + passing/warning/failing counts)
+  if (newScoring) {
+    renderSummaryBar(modifiedData);
+
     const newGrade = newScoring.overall?.grade;
     const newScore = newScoring.overall?.score;
 
@@ -6303,9 +6338,10 @@ function resetEditor() {
   populateEditorForm();
   updateEditorCharCounts();
 
-  // Reset previews
+  // Reset previews and summary bar back to the original scores
   if (currentData) {
     renderPreviews(currentData);
+    renderSummaryBar(currentData);
   }
 
   // Announce reset
@@ -7780,15 +7816,26 @@ function normalizeTagKey(tag) {
 function recalculateScore() {
   if (!currentData) return;
 
-  // Simple score recalculation - in a real app, this would call the backend
+  // Full 31-platform re-score: run scoring-simulator (scoreAll) over the edited
+  // content and refresh the UI, rather than merely counting fixed diagnostics.
+  const rescored = rescoreAllPlatforms();
+  if (rescored) {
+    const modifiedData = { ...currentData, meta: rescored.meta, scoring: rescored.scoring };
+    renderPreviews(modifiedData);
+    renderSummaryBar(modifiedData);
+  }
+
   const totalDiagnostics = currentData.diagnostics?.length || 0;
   const fixedCount = fixedDiagnostics.size;
   const remaining = totalDiagnostics - fixedCount;
+  const newGrade = rescored?.scoring?.overall?.grade;
+  const newScore = rescored?.scoring?.overall?.score;
+  const gradeSuffix = newGrade ? ` Overall grade: ${newGrade} (${newScore}/100).` : '';
 
   if (remaining > 0) {
-    showToast(`${fixedCount} issue${fixedCount !== 1 ? 's' : ''} fixed. ${remaining} remaining.`, 2000);
+    showToast(`${fixedCount} issue${fixedCount !== 1 ? 's' : ''} fixed. ${remaining} remaining.${gradeSuffix}`, 2000);
   } else {
-    showToast('All diagnostics fixed! 🎉', 2000);
+    showToast(`All diagnostics fixed! 🎉${gradeSuffix}`, 2000);
     triggerConfetti();
   }
 }

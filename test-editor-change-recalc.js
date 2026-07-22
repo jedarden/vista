@@ -60,8 +60,12 @@ check(
 console.log('\nTest 3: Recalculation invokes scoring callback');
 check('updatePreviewsWithEdits is defined', /function updatePreviewsWithEdits\s*\(/.test(appCode));
 check(
-  'updatePreviewsWithEdits calls scoreAll() to recalculate',
-  /function updatePreviewsWithEdits[\s\S]{0,3000}scoreAll\(/.test(appCode)
+  'updatePreviewsWithEdits triggers a full re-score via rescoreAllPlatforms()',
+  /function updatePreviewsWithEdits[\s\S]{0,3000}rescoreAllPlatforms\(/.test(appCode)
+);
+check(
+  'rescoreAllPlatforms calls scoreAll() to re-score all platforms',
+  /function rescoreAllPlatforms[\s\S]{0,600}scoreAll\(/.test(appCode)
 );
 
 // Test 4: Load order — scoring-simulator.js before app.js

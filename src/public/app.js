@@ -6376,6 +6376,57 @@ function applyRescore() {
   return { data, scoring: rescored.scoring, ms };
 }
 
+/**
+ * Swap the grade-* class on an element without disturbing its other classes
+ * (e.g. `.focused`, drag state). Removing/adding only the grade class — rather
+ * than replacing the whole className — lets the CSS `transition` on background /
+ * color / border-left-color fire smoothly (300ms) instead of resetting state.
+ */
+function swapGradeClass(el, grade) {
+  if (!el) return;
+  [...el.classList].filter((c) => c.startsWith('grade-')).forEach((c) => el.classList.remove(c));
+  el.classList.add(gradeClass(grade));
+}
+
+/**
+ * Update the already-rendered platform cards in place from freshly re-scored
+ * edit data. Because the DOM nodes persist (rather than being rebuilt), the
+ * grade badge color and card border-left color animate via their CSS
+ * transitions when a fix moves a card from e.g. C → A. Also refreshes the card
+ * body so the edited title/description preview stays in sync.
+ *
+ * @returns {boolean} true if cards were updated in place; false if the grid has
+ *   no cards yet (caller should fall back to a full render).
+ */
+function updateEditedCardsInPlace(data) {
+  const cards = previewGrid.querySelectorAll('.platform-card[data-pid]');
+  if (!cards.length) return false;
+
+  const scores = (data.scoring && data.scoring.scores) || {};
+  cards.forEach((card) => {
+    const pid = card.dataset.pid;
+    const scoreData = scores[pid];
+    if (scoreData) {
+      // Per-card grade badge: class change drives the animated color swap.
+      const gradeBadge = card.querySelector('.card-grade');
+      if (gradeBadge) {
+        swapGradeClass(gradeBadge, scoreData.grade);
+        gradeBadge.textContent = scoreData.grade;
+      }
+      // Card grade class drives the animated border-left-color swap.
+      swapGradeClass(card, scoreData.grade);
+    }
+
+    // Keep the preview body in sync with the edited meta.
+    const body = card.querySelector(`#card-body-${pid}`);
+    if (body) {
+      body.innerHTML = renderPlatformCard(pid, data.meta, data.imageProbe, data.finalUrl, data.dominantColor);
+    }
+  });
+
+  return true;
+}
+
 function updatePreviewsWithEdits() {
   if (!currentData) return;
 
@@ -6391,9 +6442,13 @@ function updatePreviewsWithEdits() {
     : { ...currentData, meta: buildEditedMeta() };
   const newScoring = applied ? applied.scoring : null;
 
-  // Re-render previews (and grade badges) from the stored, freshly-scored data
-  // so every platform card reflects the new grade, not just the original fetch.
-  renderPreviews(modifiedData);
+  // Prefer updating the existing cards in place so the grade badges and card
+  // border colors transition smoothly (300ms CSS) from the old grade to the new
+  // one. Only fall back to a destructive full render when the grid is empty
+  // (nothing to animate yet).
+  if (!updateEditedCardsInPlace(modifiedData)) {
+    renderPreviews(modifiedData);
+  }
 
   // Update the summary bar (overall grade + passing/warning/failing counts)
   if (newScoring) {

@@ -2111,6 +2111,13 @@ function updateCardHeader(pid) {
 }
 
 // ── Platform card renderers ──
+/**
+ * Render platform card HTML based on skeleton type.
+ * Uses getSkeletonType() to determine DOM structure:
+ * - TALL: Image on top, content below
+ * - SHORT: Thumbnail on left, content on right
+ * - TEXT_ONLY: No image, content only
+ */
 function renderPlatformCard(pid, meta, imageProbe, baseUrl, dominantColor) {
   const ogTitle = meta.og.title || meta.title || '';
   const ogDesc = meta.og.description || meta.description || '';
@@ -2124,287 +2131,191 @@ function renderPlatformCard(pid, meta, imageProbe, baseUrl, dominantColor) {
   const domain = getDomain(baseUrl);
   const faviconUrl = meta.favicon || '';
 
-  const imgHtml = (url, cls) => url
-    ? `<div class="img-loading-container" style="background:${dominantColor || '#e0e0e0'}"><img src="${escHtml(url)}" alt="" onerror="this.parentElement.style.display='none';this.nextElementSibling?.style.display='flex'" loading="lazy" onload="this.classList.add('loaded')" /><span class="img-placeholder" style="display:none">No image</span></div>`
-    : `<span class="img-placeholder">No image</span>`;
-
+  const skeletonType = getSkeletonType(pid);
   const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
 
-  switch (pid) {
-    case 'google':
-      return `<div class="google-card">
-        <div class="google-breadcrumb">
-          <span class="google-favicon">${faviconUrl ? `<img src="${escHtml(faviconUrl)}" alt="" onerror="this.parentElement.style.background='#ddd'" loading="lazy" />` : ''}</span>
-          <span class="google-domain">${escHtml(domain)}</span>
-        </div>
-        <div class="google-title">${escHtml(trunc(meta.title || ogTitle, 60))}</div>
-        <div class="google-desc">${escHtml(trunc(meta.description || ogDesc, 158))}</div>
-      </div>`;
-
-    case 'facebook':
-    case 'threads':
-      return `<div class="${pid === 'threads' ? 'threads-card' : 'fb-card'}">
-        <div class="mock-image ${pid === 'threads' ? 'threads-image' : 'fb-image'}">${imgHtml(ogImage)}</div>
-        <div class="${pid === 'threads' ? 'threads-meta' : 'fb-meta'}">
-          <div class="${pid === 'threads' ? 'threads-domain' : 'fb-domain'}">${escHtml(domain.toUpperCase())}</div>
-          <div class="${pid === 'threads' ? 'threads-title' : 'fb-title'}">${escHtml(trunc(ogTitle, 60))}</div>
-          ${ogDesc ? `<div class="${pid === 'threads' ? 'threads-desc' : 'fb-desc'}">${escHtml(trunc(ogDesc, 160))}</div>` : ''}
-        </div>
-      </div>`;
-
-    case 'twitter': {
-      const isLarge = twitterCard === 'summary_large_image';
-      return `<div class="tw-card${isLarge ? '' : ' tw-summary'}">
-        <div class="mock-image tw-image${isLarge ? '' : ' square'}">${imgHtml(twImage)}</div>
-        <div class="tw-meta">
-          <div class="tw-title">${escHtml(trunc(twTitle, 70))}</div>
-          ${twDesc ? `<div class="tw-desc">${escHtml(trunc(twDesc, 200))}</div>` : ''}
-          <div class="tw-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
-    }
-
-    case 'linkedin':
-      return `<div class="li-card">
-        <div class="mock-image li-image">${imgHtml(ogImage)}</div>
-        <div class="li-meta">
-          <div class="li-title">${escHtml(trunc(ogTitle, 60))}</div>
-          <div class="li-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
-
-    case 'reddit':
-      return `<div class="rd-card">
-        <div class="mock-image rd-image">${imgHtml(ogImage)}</div>
-        <div class="rd-meta">
-          <div class="rd-title">${escHtml(trunc(ogTitle || meta.title, 90))}</div>
-          ${ogDesc ? `<div class="rd-desc">${escHtml(trunc(ogDesc, 200))}</div>` : ''}
-          <div class="rd-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
-
-    case 'mastodon':
-      return `<div class="mastodon-card">
-        <div class="mock-image mastodon-image">${imgHtml(ogImage)}</div>
-        <div class="mastodon-meta">
-          <div class="mastodon-title">${escHtml(trunc(ogTitle, 80))}</div>
-          ${ogDesc ? `<div class="mastodon-desc">${escHtml(trunc(ogDesc, 200))}</div>` : ''}
-          <div class="mastodon-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
-
-    case 'bluesky':
-      return `<div class="bluesky-card">
-        <div class="mock-image bluesky-image">${imgHtml(ogImage)}</div>
-        <div class="bluesky-meta">
-          <div class="bluesky-title">${escHtml(trunc(ogTitle, 160))}</div>
-          ${ogDesc ? `<div class="bluesky-desc">${escHtml(trunc(ogDesc, 160))}</div>` : ''}
-          <div class="bluesky-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
-
-    case 'tumblr':
-      return `<div class="tumblr-card">
-        <div class="mock-image square" style="width:130px;flex-shrink:0;background:#2c3e50">${imgHtml(ogImage)}</div>
-        <div class="tumblr-meta">
-          <div class="tumblr-title">${escHtml(trunc(ogTitle, 60))}</div>
-          ${ogDesc ? `<div class="tumblr-desc">${escHtml(trunc(ogDesc, 120))}</div>` : ''}
-          <div class="tumblr-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
-
-    case 'pinterest':
-      return `<div class="pinterest-card">
-        <div class="mock-image vertical pinterest-image">${imgHtml(ogImage)}</div>
-        <div class="pinterest-meta">
-          <div class="pinterest-title">${escHtml(trunc(ogTitle, 60))}</div>
-          ${ogDesc ? `<div class="pinterest-desc">${escHtml(trunc(ogDesc, 100))}</div>` : ''}
-          <div class="pinterest-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
-
-    case 'slack':
-      return `<div class="slack-card">
-        <div class="slack-site">${escHtml(ogSite || domain)}</div>
-        <div class="slack-title">${escHtml(trunc(ogTitle, 80))}</div>
-        ${ogDesc ? `<div class="slack-desc">${escHtml(trunc(ogDesc, 150))}</div>` : ''}
-        ${ogImage ? `<div class="slack-image"><div class="mock-image" style="height:160px;aspect-ratio:auto">${imgHtml(ogImage)}</div></div>` : ''}
-      </div>`;
-
-    case 'discord':
-      return `<div class="discord-card" style="border-left-color:${escHtml(themeColor)}">
-        ${ogSite ? `<div class="discord-site">${escHtml(ogSite)}</div>` : ''}
-        <div class="discord-title">${escHtml(trunc(ogTitle, 256))}</div>
-        ${ogDesc ? `<div class="discord-desc">${escHtml(trunc(ogDesc, 300))}</div>` : ''}
-        ${ogImage ? `<div class="discord-image"><div class="mock-image" style="height:180px;aspect-ratio:auto;background:#1e2028">${imgHtml(ogImage)}</div></div>` : ''}
-      </div>`;
-
-    case 'whatsapp':
-      return `<div class="wa-card">
-        <div class="wa-card-inner">
-          <div class="wa-img-cell">${ogImage ? `<img src="${escHtml(ogImage)}" alt="" onerror="this.style.display='none'" loading="lazy" class="img-loading" style="width:68px;height:68px;object-fit:cover" onload="this.classList.add('loaded');this.classList.remove('img-loading')" />` : ''}</div>
-          <div class="wa-meta">
-            <div class="wa-domain">${escHtml(domain)}</div>
-            <div class="wa-title">${escHtml(trunc(ogTitle, 80))}</div>
-            ${ogDesc ? `<div class="wa-desc">${escHtml(trunc(ogDesc, 120))}</div>` : ''}
-          </div>
-        </div>
-      </div>`;
-
-    case 'imessage':
-      return `<div class="im-card">
-        <div class="mock-image im-image">${imgHtml(ogImage)}</div>
-        <div class="im-meta">
-          <div class="im-title">${escHtml(trunc(ogTitle || meta.title, 80))}</div>
-          <div class="im-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
-
-    case 'telegram':
-      return `<div class="tg-card">
-        <div class="mock-image tg-image">${imgHtml(ogImage)}</div>
-        <div class="tg-meta">
-          <div class="tg-title">${escHtml(trunc(ogTitle, 200))}</div>
-          ${ogDesc ? `<div class="tg-desc">${escHtml(trunc(ogDesc, 170))}</div>` : ''}
-          <div class="tg-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
-
-    case 'signal':
-      return `<div class="signal-card">
-        <div class="signal-img-cell">${ogImage ? `<img src="${escHtml(ogImage)}" alt="" onerror="this.style.display='none'" loading="lazy" class="img-loading" style="width:76px;height:76px;object-fit:cover" onload="this.classList.add('loaded');this.classList.remove('img-loading')" />` : ''}</div>
-        <div class="signal-meta">
-          <div class="signal-title">${escHtml(trunc(ogTitle, 80))}</div>
-          ${ogDesc ? `<div class="signal-desc">${escHtml(trunc(ogDesc, 120))}</div>` : ''}
-          <div class="signal-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
-
-    case 'teams':
-      return `<div class="teams-card">
-        <div class="mock-image teams-image">${imgHtml(ogImage)}</div>
-        <div class="teams-meta">
-          <div class="teams-title">${escHtml(trunc(ogTitle, 80))}</div>
-          ${ogDesc ? `<div class="teams-desc">${escHtml(trunc(ogDesc, 160))}</div>` : ''}
-          <div class="teams-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
-
-    case 'googlechat':
-      return `<div class="gchat-card">
-        <div class="mock-image gchat-image">${imgHtml(ogImage)}</div>
-        <div class="gchat-meta">
-          <div class="gchat-title">${escHtml(trunc(ogTitle, 80))}</div>
-          ${ogDesc ? `<div class="gchat-desc">${escHtml(trunc(ogDesc, 160))}</div>` : ''}
-          <div class="gchat-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
-
-    case 'zoom':
-    case 'line':
-    case 'kakaotalk':
-      return `<div class="generic-card">
-        <div class="mock-image generic-image">${imgHtml(ogImage)}</div>
-        <div class="generic-meta">
-          <div class="generic-title">${escHtml(trunc(ogTitle, 80))}</div>
-          ${ogDesc ? `<div class="generic-desc">${escHtml(trunc(ogDesc, 160))}</div>` : ''}
-          <div class="generic-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
-
-    case 'notion':
-      return `<div class="notion-card">
-        <div class="notion-img-cell">${ogImage ? `<img src="${escHtml(ogImage)}" alt="" onerror="this.style.display='none'" loading="lazy" class="img-loading" onload="this.classList.add('loaded');this.classList.remove('img-loading')" />` : ''}</div>
-        <div class="notion-meta">
-          <div class="notion-title">${escHtml(trunc(ogTitle, 80))}</div>
-          ${ogDesc ? `<div class="notion-desc">${escHtml(trunc(ogDesc, 120))}</div>` : ''}
-          <div class="notion-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
-
-    case 'jira':
-      return `<div class="jira-card">
-        <div class="jira-img-cell">${ogImage ? `<img src="${escHtml(ogImage)}" alt="" onerror="this.style.display='none'" loading="lazy" />` : ''}</div>
-        <div class="jira-meta">
-          <div class="jira-title">${escHtml(trunc(ogTitle, 80))}</div>
-          ${ogDesc ? `<div class="jira-desc">${escHtml(trunc(ogDesc, 120))}</div>` : ''}
-          <div class="jira-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
-
-    case 'github':
-      return `<div class="github-card">
-        <div class="mock-image github-image">${imgHtml(ogImage)}</div>
-        <div class="github-meta">
-          <div class="github-title">${escHtml(trunc(ogTitle, 80))}</div>
-          ${ogDesc ? `<div class="github-desc">${escHtml(trunc(ogDesc, 160))}</div>` : ''}
-          <div class="github-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
-
-    case 'trello':
-      return `<div class="trello-card">
-        <div class="trello-img-cell">${ogImage ? `<img src="${escHtml(ogImage)}" alt="" onerror="this.style.display='none'" loading="lazy" />` : ''}</div>
-        <div class="trello-meta">
-          <div class="trello-title">${escHtml(trunc(ogTitle, 80))}</div>
-          <div class="trello-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
-
-    case 'figma':
-      return `<div class="figma-card">
-        <div class="figma-img-cell">${ogImage ? `<img src="${escHtml(ogImage)}" alt="" onerror="this.style.display='none'" loading="lazy" />` : ''}</div>
-        <div class="figma-meta">
-          <div class="figma-title">${escHtml(trunc(ogTitle, 80))}</div>
-          ${ogDesc ? `<div class="figma-desc">${escHtml(trunc(ogDesc, 120))}</div>` : ''}
-          <div class="figma-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
-
-    case 'medium':
-    case 'substack': {
-      const cls = pid;
-      return `<div class="${cls}-card">
-        <div class="mock-image ${cls}-image">${imgHtml(ogImage)}</div>
-        <div class="${cls}-meta">
-          <div class="${cls}-title">${escHtml(trunc(ogTitle, 80))}</div>
-          ${ogDesc ? `<div class="${cls}-desc">${escHtml(trunc(ogDesc, 160))}</div>` : ''}
-          <div class="${cls}-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
-    }
-
-    case 'outlook':
-    case 'gmail':
-      return `<div class="email-card">
-        <div class="email-img-cell">${ogImage ? `<img src="${escHtml(ogImage)}" alt="" onerror="this.style.display='none'" loading="lazy" />` : ''}</div>
-        <div class="email-meta">
-          <div class="email-title">${escHtml(trunc(ogTitle, 80))}</div>
-          ${ogDesc ? `<div class="email-desc">${escHtml(trunc(ogDesc, 120))}</div>` : ''}
-          <div class="email-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
-
-    case 'feedly':
-      return `<div class="feedly-card">
-        <div class="feedly-img-cell">${ogImage ? `<img src="${escHtml(ogImage)}" alt="" onerror="this.style.display='none'" loading="lazy" />` : ''}</div>
-        <div class="feedly-meta">
-          <div class="feedly-title">${escHtml(trunc(ogTitle, 80))}</div>
-          ${ogDesc ? `<div class="feedly-desc">${escHtml(trunc(ogDesc, 120))}</div>` : ''}
-          <div class="feedly-source">${escHtml(domain)} &bull; just now</div>
-        </div>
-      </div>`;
-
-    default:
-      return `<div class="generic-card">
-        <div class="mock-image generic-image">${imgHtml(ogImage)}</div>
-        <div class="generic-meta">
-          <div class="generic-title">${escHtml(trunc(ogTitle, 80))}</div>
-          ${ogDesc ? `<div class="generic-desc">${escHtml(trunc(ogDesc, 160))}</div>` : ''}
-          <div class="generic-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
+  // Special case: Google is text-only with breadcrumb
+  if (pid === 'google') {
+    return `<div class="google-card">
+      <div class="google-breadcrumb">
+        <span class="google-favicon">${faviconUrl ? `<img src="${escHtml(faviconUrl)}" alt="" onerror="this.parentElement.style.background='#ddd'" loading="lazy" />` : ''}</span>
+        <span class="google-domain">${escHtml(domain)}</span>
+      </div>
+      <div class="google-title">${escHtml(trunc(meta.title || ogTitle, 60))}</div>
+      <div class="google-desc">${escHtml(trunc(meta.description || ogDesc, 158))}</div>
+    </div>`;
   }
+
+  // Special case: Twitter has summary vs large image variants
+  if (pid === 'twitter') {
+    const isLarge = twitterCard === 'summary_large_image';
+    return `<div class="tw-card${isLarge ? '' : ' tw-summary'}">
+      <div class="mock-image tw-image${isLarge ? '' : ' square'}">${renderImageHtml(ogImage, dominantColor, 'tw-image')}</div>
+      <div class="tw-meta">
+        <div class="tw-title">${escHtml(trunc(twTitle, 70))}</div>
+        ${twDesc ? `<div class="tw-desc">${escHtml(trunc(twDesc, 200))}</div>` : ''}
+        <div class="tw-domain">${escHtml(domain)}</div>
+      </div>
+    </div>`;
+  }
+
+  // Special case: Discord and Slack have site name and image at bottom
+  if (pid === 'discord' || pid === 'slack') {
+    const cardClass = pid === 'discord' ? 'discord-card' : 'slack-card';
+    const styleAttr = pid === 'discord' ? `border-left-color:${escHtml(themeColor)}` : '';
+    return `<div class="${cardClass}" style="${styleAttr}">
+      ${ogSite ? `<div class="${pid}-site">${escHtml(ogSite || domain)}</div>` : ''}
+      <div class="${pid}-title">${escHtml(trunc(ogTitle, pid === 'discord' ? 256 : 80))}</div>
+      ${ogDesc ? `<div class="${pid}-desc">${escHtml(trunc(ogDesc, pid === 'discord' ? 300 : 150))}</div>` : ''}
+      ${ogImage ? `<div class="${pid}-image"><div class="mock-image" style="height:${pid === 'discord' ? 180 : 160}px;aspect-ratio:auto;background:${pid === 'discord' ? '#1e2028' : 'transparent'}">${renderImageHtml(ogImage, dominantColor, pid + '-image')}</div></div>` : ''}
+    </div>`;
+  }
+
+  // Special case: Tumblr has square thumbnail
+  if (pid === 'tumblr') {
+    return `<div class="tumblr-card">
+      <div class="mock-image tumblr-image square" style="width:130px;flex-shrink:0;background:#2c3e50">${renderImageHtml(ogImage, dominantColor, 'tumblr-image')}</div>
+      <div class="tumblr-meta">
+        <div class="tumblr-title">${escHtml(trunc(ogTitle, 60))}</div>
+        ${ogDesc ? `<div class="tumblr-desc">${escHtml(trunc(ogDesc, 120))}</div>` : ''}
+        <div class="tumblr-domain">${escHtml(domain)}</div>
+      </div>
+    </div>`;
+  }
+
+  // Special case: Pinterest has vertical image
+  if (pid === 'pinterest') {
+    return `<div class="pinterest-card">
+      <div class="mock-image pinterest-image vertical">${renderImageHtml(ogImage, dominantColor, 'pinterest-image')}</div>
+      <div class="pinterest-meta">
+        <div class="pinterest-title">${escHtml(trunc(ogTitle, 60))}</div>
+        ${ogDesc ? `<div class="pinterest-desc">${escHtml(trunc(ogDesc, 100))}</div>` : ''}
+        <div class="pinterest-domain">${escHtml(domain)}</div>
+      </div>
+    </div>`;
+  }
+
+  // Special case: WhatsApp has custom image cell structure
+  if (pid === 'whatsapp') {
+    return `<div class="wa-card">
+      <div class="wa-card-inner">
+        <div class="wa-img-cell">${ogImage ? `<img src="${escHtml(ogImage)}" alt="" onerror="this.style.display='none'" loading="lazy" class="img-loading" style="width:68px;height:68px;object-fit:cover" onload="this.classList.add('loaded');this.classList.remove('img-loading')" />` : ''}</div>
+        <div class="wa-meta">
+          <div class="wa-domain">${escHtml(domain)}</div>
+          <div class="wa-title">${escHtml(trunc(ogTitle, 80))}</div>
+          ${ogDesc ? `<div class="wa-desc">${escHtml(trunc(ogDesc, 120))}</div>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // Special case: Signal has custom image cell structure
+  if (pid === 'signal') {
+    return `<div class="signal-card">
+      <div class="signal-img-cell">${ogImage ? `<img src="${escHtml(ogImage)}" alt="" onerror="this.style.display='none'" loading="lazy" class="img-loading" style="width:76px;height:76px;object-fit:cover" onload="this.classList.add('loaded');this.classList.remove('img-loading')" />` : ''}</div>
+      <div class="signal-meta">
+        <div class="signal-title">${escHtml(trunc(ogTitle, 80))}</div>
+        ${ogDesc ? `<div class="signal-desc">${escHtml(trunc(ogDesc, 120))}</div>` : ''}
+        <div class="signal-domain">${escHtml(domain)}</div>
+      </div>
+    </div>`;
+  }
+
+  // Special case: Feedly has "just now" timestamp
+  if (pid === 'feedly') {
+    return `<div class="feedly-card">
+      <div class="feedly-img-cell">${ogImage ? `<img src="${escHtml(ogImage)}" alt="" onerror="this.style.display='none'" loading="lazy" />` : ''}</div>
+      <div class="feedly-meta">
+        <div class="feedly-title">${escHtml(trunc(ogTitle, 80))}</div>
+        ${ogDesc ? `<div class="feedly-desc">${escHtml(trunc(ogDesc, 120))}</div>` : ''}
+        <div class="feedly-source">${escHtml(domain)} &bull; just now</div>
+      </div>
+    </div>`;
+  }
+
+  // Generic rendering based on skeleton type
+  return renderCardBySkeletonType(pid, skeletonType, ogTitle, ogDesc, ogImage, ogSite, domain, dominantColor, trunc);
+}
+
+/**
+ * Render image placeholder HTML with loading state
+ */
+function renderImageHtml(imageUrl, dominantColor, imgClass) {
+  if (!imageUrl) {
+    return '<span class="img-placeholder">No image</span>';
+  }
+  return `<div class="img-loading-container" style="background:${dominantColor || '#e0e0e0'}"><img src="${escHtml(imageUrl)}" alt="" onerror="this.parentElement.style.display='none';this.nextElementSibling?.style.display='flex'" loading="lazy" onload="this.classList.add('loaded')" /><span class="img-placeholder" style="display:none">No image</span></div>`;
+}
+
+/**
+ * Render card HTML based on skeleton type.
+ * This is the core function that wires skeleton types to DOM structure.
+ */
+function renderCardBySkeletonType(pid, skeletonType, title, desc, image, site, domain, dominantColor, trunc) {
+  // Platform-specific class prefix (e.g., 'facebook', 'linkedin', etc.)
+  const prefix = pid;
+
+  // TEXT_ONLY skeleton: No image, content only
+  // (Currently no platforms use this except Google, which is handled separately above)
+  if (skeletonType === 'text-only') {
+    return `<div class="${prefix}-card">
+      <div class="${prefix}-title">${escHtml(trunc(title, 80))}</div>
+      ${desc ? `<div class="${prefix}-desc">${escHtml(trunc(desc, 160))}</div>` : ''}
+      <div class="${prefix}-domain">${escHtml(domain)}</div>
+    </div>`;
+  }
+
+  // SHORT skeleton: Thumbnail on left, content on right
+  if (skeletonType === 'short') {
+    // Check if platform uses custom image cell structure (notion, jira, trello, figma, outlook, gmail, feedly)
+    const usesCustomImgCell = ['notion', 'jira', 'trello', 'figma', 'outlook', 'gmail'].includes(pid);
+
+    if (usesCustomImgCell) {
+      return `<div class="${prefix}-card">
+        <div class="${prefix}-img-cell">${image ? `<img src="${escHtml(image)}" alt="" onerror="this.style.display='none'" loading="lazy" class="img-loading" onload="this.classList.add('loaded');this.classList.remove('img-loading')" />` : ''}</div>
+        <div class="${prefix}-meta">
+          <div class="${prefix}-title">${escHtml(trunc(title, 80))}</div>
+          ${desc ? `<div class="${prefix}-desc">${escHtml(trunc(desc, 120))}</div>` : ''}
+          <div class="${prefix}-domain">${escHtml(domain)}</div>
+        </div>
+      </div>`;
+    }
+
+    // Default short structure with mock-image wrapper
+    return `<div class="${prefix}-card">
+      <div class="mock-image ${prefix}-image">${renderImageHtml(image, dominantColor, prefix + '-image')}</div>
+      <div class="${prefix}-meta">
+        <div class="${prefix}-title">${escHtml(trunc(title, 80))}</div>
+        ${desc ? `<div class="${prefix}-desc">${escHtml(trunc(desc, 160))}</div>` : ''}
+        <div class="${prefix}-domain">${escHtml(domain)}</div>
+      </div>
+    </div>`;
+  }
+
+  // TALL skeleton: Image on top, content below (default)
+  if (skeletonType === 'tall') {
+    // Special case: Threads and Facebook use domain.toUpperCase()
+    const displayDomain = (pid === 'threads' || pid === 'facebook') ? domain.toUpperCase() : domain;
+
+    return `<div class="${prefix}-card">
+      <div class="mock-image ${prefix}-image">${renderImageHtml(image, dominantColor, prefix + '-image')}</div>
+      <div class="${prefix}-meta">
+        <div class="${prefix}-domain">${escHtml(displayDomain)}</div>
+        <div class="${prefix}-title">${escHtml(trunc(title, 60))}</div>
+        ${desc ? `<div class="${prefix}-desc">${escHtml(trunc(desc, 160))}</div>` : ''}
+      </div>
+    </div>`;
+  }
+
+  // Fallback: Generic card structure
+  return `<div class="generic-card">
+    <div class="mock-image generic-image">${renderImageHtml(image, dominantColor, 'generic-image')}</div>
+    <div class="generic-meta">
+      <div class="generic-title">${escHtml(trunc(title, 80))}</div>
+      ${desc ? `<div class="generic-desc">${escHtml(trunc(desc, 160))}</div>` : ''}
+      <div class="generic-domain">${escHtml(domain)}</div>
+    </div>
+  </div>`;
 }
 
 // ── Platform Context Frame Renderers ──

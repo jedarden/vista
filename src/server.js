@@ -2633,6 +2633,13 @@ function assessPerformanceHeaders(headers) {
   return assessment;
 }
 
-app.listen(PORT, () => {
-  console.log(`VISTA running on port ${PORT}`);
-});
+// Export the response builder for unit tests so we can assert the shape of the
+// preview result (e.g. that rawTags is included for client-side diagnostics)
+// without binding a port. The server only listens when run directly.
+module.exports = { buildPreviewResult };
+
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`VISTA running on port ${PORT}`);
+  });
+}

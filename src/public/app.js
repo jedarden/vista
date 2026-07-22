@@ -115,6 +115,7 @@ const summaryUrl = $('#summaryUrl');
 const diagBadge = $('#diagBadge');
 const previewGrid = $('#previewGrid');
 const diagPanel = $('#diagPanel');
+const diagProgress = $('#diagProgress');
 const rawTagsPanel = $('#rawTagsPanel');
 const redirectPanel = $('#redirectPanel');
 const fixesPanel = $('#fixesPanel');
@@ -7860,6 +7861,10 @@ function initDiagnosticTracking() {
     actionsDiv.appendChild(fixBtn);
     item.appendChild(actionsDiv);
   });
+
+  // Fresh render → nothing fixed yet: hide the progress banner and sync the tab
+  // badge to the active diagnostic count. (bf-6aqf)
+  updateDiagnosticProgress();
 }
 
 /**
@@ -7953,6 +7958,11 @@ function applyDiagnosticFix(index) {
     // Update score
     recalculateScore();
 
+    // Refresh the tab badge (active count) and the "Fixed N/M — score improved
+    // X → Y" progress banner. Runs last so it wins over renderSummaryBar's
+    // full-count badge reset inside recalculateScore(). (bf-6aqf)
+    updateDiagnosticProgress();
+
     showToast('Fix applied to editor', 2000);
   }
 }
@@ -8016,6 +8026,50 @@ function recalculateScore() {
     showToast(`All diagnostics fixed! 🎉${gradeSuffix}`, 2000);
     triggerConfetti();
   }
+}
+
+/**
+ * Recompute the Diagnostics tab badge and the "Fixed N/M issues — score improved
+ * X → Y" progress banner from the CURRENT rendered state. (bf-6aqf)
+ *
+ * Counts are read from the live .diag-item DOM (not stored indices) so they stay
+ * correct regardless of severity sort order, and the tab badge reflects only
+ * active (unfixed) error/warning diagnostics. The banner is hidden until at least
+ * one fix has been applied, and X → Y compares the original fetched score against
+ * the current (re-scored) score. Call after each fix application and whenever the
+ * diagnostics list is (re-)rendered.
+ */
+function updateDiagnosticProgress() {
+  const items = Array.from(document.querySelectorAll('#diagPanel .diag-item'));
+  const total = items.length || (currentData?.diagnostics?.length || 0);
+  const fixed = items.filter(el => el.dataset.fixed === 'true').length;
+
+  // Tab badge: active (unfixed) error/warning diagnostics only.
+  if (diagBadge) {
+    const activeErrWarn = items.filter(el =>
+      el.dataset.fixed !== 'true' &&
+      (el.classList.contains('error') || el.classList.contains('warning'))
+    ).length;
+    diagBadge.textContent = activeErrWarn > 0 ? String(activeErrWarn) : '';
+  }
+
+  // Progress banner: only shown once at least one fix has landed.
+  if (!diagProgress) return;
+  if (fixed <= 0 || total <= 0) {
+    diagProgress.classList.add('hidden');
+    diagProgress.innerHTML = '';
+    return;
+  }
+
+  const origScore = currentData?.scoring?.overall?.score ?? 0;
+  const curScore = getCurrentScoring()?.overall?.score ?? origScore;
+
+  diagProgress.classList.remove('hidden');
+  diagProgress.innerHTML =
+    `<span class="diag-progress-count">Fixed ${fixed}/${total} issue${total !== 1 ? 's' : ''}</span>` +
+    ` &mdash; <span class="diag-progress-score">score improved ` +
+    `<span class="diag-progress-from">${origScore}</span>` +
+    ` &rarr; <span class="diag-progress-to">${curScore}</span></span>`;
 }
 
 // ── Smart Platform Ordering ──

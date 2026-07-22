@@ -2593,6 +2593,24 @@ body.has-results { padding-bottom: 48px; }
 .char-budget-fill.over { background: var(--red); }
 
 /* ── Diagnostic Tracking ── */
+/* Progress banner: "Fixed N/M issues — score improved X → Y" (bf-6aqf) */
+.diag-progress {
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--green);
+  border-left: 3px solid var(--green);
+  border-radius: var(--radius);
+  background: var(--bg2);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  transition: opacity var(--transition), transform var(--transition);
+}
+.diag-progress.hidden { display: none; }
+.diag-progress-count { color: var(--green); }
+.diag-progress-from { color: var(--text2); }
+.diag-progress-to { color: var(--green); font-weight: 700; }
+
 /* Base transitions so fix state changes animate smoothly */
 .diag-item {
   transition: opacity var(--transition), transform var(--transition);

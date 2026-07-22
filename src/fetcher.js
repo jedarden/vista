@@ -484,6 +484,26 @@ function resolveUrl(href, baseUrl) {
  */
 async function probeImage(imageUrl) {
   const start = Date.now();
+
+  // SSRF protection: validate the image URL before issuing any request.
+  // og:image / twitter:image come from the fetched page's content and are
+  // attacker-controlled, so they must be validated exactly like page URLs.
+  // Both the HEAD fetch and the probe-image-size GET below use this same
+  // URL, so validating once here guards both egress requests. On rejection
+  // we return a graceful "blocked" result instead of throwing — probeImage
+  // failures are non-fatal to the caller, and we must not let an SSRF
+  // attempt silently proceed or crash the surrounding request.
+  try {
+    await validateUrlOrThrow(imageUrl);
+  } catch (ssrfErr) {
+    return {
+      url: imageUrl,
+      blocked: true,
+      error: `Image URL blocked by SSRF protection: ${ssrfErr.message}`,
+      responseTime: Date.now() - start,
+    };
+  }
+
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 8000);

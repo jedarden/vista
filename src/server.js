@@ -4,6 +4,7 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const { fetchUrl, parseMetaTags, probeImage } = require('./fetcher');
+const { validateUrlOrThrow } = require('./ssrf-guard');
 const { detectMistakes } = require('./diagnostics');
 const { scoreAll, PLATFORMS } = require('./scorer');
 const { generateScreenshot, checkRateLimit, isValidPlatform } = require('./screenshot');
@@ -358,6 +359,16 @@ app.get('/api/sitemap', async (req, res) => {
     return res.status(400).json({ error: 'Invalid URL' });
   }
 
+  // SSRF protection: validate the resolved IP before fetching. The protocol
+  // check above only allows http/https — this rejects private/loopback/
+  // link-local hosts (e.g. http://127.0.0.1/... or http://169.254.169.254/...).
+  // Matches the 400 pattern used for the other validation failures above.
+  try {
+    await validateUrlOrThrow(sitemapUrl);
+  } catch (ssrfErr) {
+    return res.status(400).json({ error: `URL blocked by SSRF protection: ${ssrfErr.message}` });
+  }
+
   try {
     // Fetch sitemap
     const controller = new AbortController();
@@ -394,6 +405,17 @@ app.get('/api/sitemap', async (req, res) => {
         allUrls = [];
         for (const nestedSitemapUrl of urls.slice(0, 10)) { // Limit to 10 nested sitemaps
           try {
+            // SSRF protection: skip (do not fetch) any nested sitemap whose
+            // URL resolves to a private/loopback/link-local address. On
+            // rejection we continue the crawl rather than aborting the whole
+            // request, consistent with how this loop already tolerates
+            // individual fetch failures via the surrounding try/catch.
+            try {
+              await validateUrlOrThrow(nestedSitemapUrl);
+            } catch (ssrfErr) {
+              console.error('Skipping nested sitemap blocked by SSRF protection:', nestedSitemapUrl, ssrfErr.message);
+              continue;
+            }
             const nestedResp = await fetch(nestedSitemapUrl, {
               method: 'GET',
               headers: { 'User-Agent': 'Mozilla/5.0 (compatible; VISTA/1.0; +https://github.com/vista-tool)', Accept: 'application/xml,text/xml,*/*' },

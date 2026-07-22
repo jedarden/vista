@@ -11,6 +11,63 @@ This bead's work was therefore **verification**: confirm the overlay renders
 correctly with real OG images, confirm every task sub-item is genuinely wired
 end-to-end, and fix anything broken. Nothing was broken — all checks pass.
 
+## Independent re-verification (2026-07-22, second dispatch)
+
+The first dispatch (commit `35c8897`, 2026-07-22) committed and pushed this note
+but did **not** close the bead, so bf-5uz was re-dispatched still `in_progress`.
+This second dispatch did not trust the note's claims — it re-ran every check
+from scratch on the same HEAD (`35c8897`) and found them all to hold.
+
+**Test suites re-run fresh (all 0 failed):**
+
+```
+node test/unit/safe-zone.test.js            → 39 passed
+node test/e2e/overlay-alignment.e2e.js      → 11 passed
+node test/e2e/overlay-rendering.e2e.js      → 65 passed
+node test/e2e/overlay-integration.e2e.js    → 74 passed
+                                             ───────────
+                                        total 189 passed
+```
+
+**Real-OG-image render, visually re-inspected.** The integration suite serves
+real PNG fixtures (sharp-generated solid-color OG images with dimension labels)
+over localhost at 5 aspect ratios and drives the live path
+`initCropper(data)` → `cropperImage.src` → `onload` → `updateCropperOverlay()`
+in real Chromium, screenshotting `#cropperViewport`. The 5 screenshots were
+regenerated this dispatch (`test-results/overlay-integration/screenshots/`,
+2026-07-22 00:36) and vision-inspected:
+
+- **wide-2000x600.png** — OG image rendered as the base layer (its "2000×600 /
+  AR 3.333" label readable); multiple semi-transparent category-colored crop
+  rectangles overlaid; a **dashed cyan safe-zone rectangle centered**, spanning
+  the middle of the image. ✓
+- **landscape-1200x630.png** (canonical OG ratio) — same structure: OG base
+  layer + semi-transparent multi-color crop rects + centered dashed cyan
+  safe-zone. ✓
+
+(The screenshots are of `#cropperViewport` only — the image + overlay canvas —
+so the per-platform "% visible" labels and the coverage % live outside this crop,
+in `#cropperControls` / `#safeZoneInfo`. They are asserted by the suites instead:
+the rendering suite confirms the info panel reports e.g. "Coverage: 35.1% of
+image, 31 platforms selected", and `calculateVisiblePercentage()` drives each
+toggle's label. The alignment suite independently proves the `<img>` element box
+equals the `<svg>` overlay box to the sub-pixel across all 5 ratios, so the OG
+image is genuinely loaded and rendered at correct size — the "solid color" the
+fixtures present is the fixture image itself, by design.)
+
+**Render-path wiring re-confirmed.** `initCropper(data)` is called in the main
+analysis render path at `app.js:1041` (between `renderPreviews(data)` and
+`renderDiagnostics(...)`), sourcing the image from the real
+`data.meta.og.image || data.meta.twitter.image`. The "Crop Visualizer" tab
+(`#tabnav-cropper`, `data-tab="cropper"`) is wired into the generic
+`switchTab` system (`app.js:322`, same as every other tab), so it is fully
+reachable in the shipped UI — not test-isolated.
+
+**Why the dispatch description said "incomplete":** it referenced
+"lines 2319-2514," but the cropper code now lives at `app.js:3342–3690` — the
+file grew past that range via the 8 sibling commits below. The description
+predates those commits; the feature they shipped is complete.
+
 ## Implementation chain (prior sibling beads)
 
 The Phase 3 "Image Crop Safe Zone Visualizer" was built across these commits:
@@ -92,5 +149,9 @@ platforms on load (app.js:1434).
 
 ## Conclusion
 
-Feature complete and fully wired. No source changes made this dispatch; this
-note is the bead's commit artifact.
+Feature complete and fully wired — independently re-verified end-to-end on
+2026-07-22 (189 tests green, real-OG-image overlay visually re-inspected,
+render-path wiring re-confirmed). No source changes were made by either
+dispatch; this note is the bead's commit artifact. The first dispatch left the
+bead `in_progress` (it committed/pushed the note but did not run `br close`);
+this second dispatch closes it.

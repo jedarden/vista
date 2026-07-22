@@ -105,12 +105,12 @@ const appCode = fs.readFileSync(path.join(__dirname, 'src/public/app.js'), 'utf8
 check('rescoreAllPlatforms() helper is defined', /function rescoreAllPlatforms\s*\(/.test(appCode));
 check('rescoreAllPlatforms calls scoreAll()', /function rescoreAllPlatforms[\s\S]{0,600}scoreAll\(/.test(appCode));
 check(
-  'updatePreviewsWithEdits triggers rescoreAllPlatforms on edit',
-  /function updatePreviewsWithEdits[\s\S]{0,3000}rescoreAllPlatforms\(/.test(appCode)
+  'updatePreviewsWithEdits triggers a re-score on edit (applyRescore/rescoreAllPlatforms)',
+  /function updatePreviewsWithEdits[\s\S]{0,3000}(applyRescore|rescoreAllPlatforms)\(/.test(appCode)
 );
 check(
   'recalculateScore performs a real re-score (no "simple score" placeholder)',
-  /function recalculateScore[\s\S]{0,800}rescoreAllPlatforms\(/.test(appCode) &&
+  /function recalculateScore[\s\S]{0,900}(applyRescore|rescoreAllPlatforms)\(/.test(appCode) &&
     !/Simple score recalculation/.test(appCode)
 );
 

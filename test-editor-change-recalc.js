@@ -60,8 +60,8 @@ check(
 console.log('\nTest 3: Recalculation invokes scoring callback');
 check('updatePreviewsWithEdits is defined', /function updatePreviewsWithEdits\s*\(/.test(appCode));
 check(
-  'updatePreviewsWithEdits triggers a full re-score via rescoreAllPlatforms()',
-  /function updatePreviewsWithEdits[\s\S]{0,3000}rescoreAllPlatforms\(/.test(appCode)
+  'updatePreviewsWithEdits triggers a full re-score (applyRescore()->rescoreAllPlatforms())',
+  /function updatePreviewsWithEdits[\s\S]{0,3000}(applyRescore|rescoreAllPlatforms)\(/.test(appCode)
 );
 check(
   'rescoreAllPlatforms calls scoreAll() to re-score all platforms',

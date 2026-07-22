@@ -5917,8 +5917,52 @@ function downloadFile(content, filename, mimeType) {
 let editorState = {
   original: {},
   edited: {},
-  dirty: false
+  dirty: false,
+  // Score state for UI updates (bf-ssfp): the latest re-scored result derived
+  // from the current edits. `scoring` mirrors the backend scorer shape
+  // ({ scores, overall, summary }); `meta` is the edited metadata it was scored
+  // against; `lastRescoreMs` records how long the last re-score took so the
+  // <500ms performance budget can be observed/tested. All null until the first
+  // edit re-scores, at which point getCurrentScoring() starts returning them.
+  scoring: null,
+  meta: null,
+  lastRescoreMs: 0
 };
+
+/**
+ * Single source of truth for the scores the UI should currently display.
+ *
+ * Returns the edited scoring held in editorState when the user has made edits
+ * that were re-scored, otherwise falls back to the original fetched scoring on
+ * currentData. Any UI code that needs "the scores as they stand now" should read
+ * through here rather than currentData.scoring directly, so edits are reflected.
+ *
+ * @returns {object|null} scoring object ({ scores, overall, summary }) or null
+ */
+function getCurrentScoring() {
+  if (editorState.scoring) return editorState.scoring;
+  return currentData?.scoring || null;
+}
+
+/**
+ * The metadata the current scores were computed against — edited meta if the
+ * user has edits, otherwise the original fetched meta.
+ * @returns {object|null}
+ */
+function getCurrentMeta() {
+  if (editorState.meta) return editorState.meta;
+  return currentData?.meta || null;
+}
+
+/**
+ * Clear any edited score state, so getCurrentScoring() falls back to the
+ * original fetched scores. Called on reset and when new results load.
+ */
+function clearEditedScoring() {
+  editorState.scoring = null;
+  editorState.meta = null;
+  editorState.lastRescoreMs = 0;
+}
 
 // Platform customization state
 let platformPrefs = {
@@ -5955,6 +5999,9 @@ function initEditor(data) {
 
   editorState.edited = { ...editorState.original };
   editorState.dirty = false;
+  // Fresh results: drop any edited scores carried over from a previous URL so
+  // getCurrentScoring() reflects this fetch until the user edits again.
+  clearEditedScoring();
 
   // Populate form fields
   populateEditorForm();
@@ -6300,6 +6347,35 @@ function rescoreAllPlatforms() {
   return { meta: modifiedMeta, scoring };
 }
 
+/**
+ * Re-score the current edits and STORE the result in editorState so the UI has
+ * a single, persistent source of truth for the updated scores (bf-ssfp).
+ *
+ * Unlike rescoreAllPlatforms() (which is a pure computation), this commits the
+ * fresh scores/grades/meta into editorState.scoring / editorState.meta, records
+ * how long the re-score took (editorState.lastRescoreMs — the <500ms budget),
+ * and returns a `modifiedData` object that renderPreviews()/renderSummaryBar()
+ * can consume. After calling this, getCurrentScoring() reflects the edits.
+ *
+ * @returns {{data: object, scoring: object, ms: number}|null}
+ */
+function applyRescore() {
+  const t0 = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+  const rescored = rescoreAllPlatforms();
+  if (!rescored) return null;
+
+  const t1 = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+  const ms = t1 - t0;
+
+  // Commit to state so any UI read (getCurrentScoring) reflects the edits.
+  editorState.scoring = rescored.scoring;
+  editorState.meta = rescored.meta;
+  editorState.lastRescoreMs = ms;
+
+  const data = { ...currentData, meta: rescored.meta, scoring: rescored.scoring };
+  return { data, scoring: rescored.scoring, ms };
+}
+
 function updatePreviewsWithEdits() {
   if (!currentData) return;
 
@@ -6307,15 +6383,16 @@ function updatePreviewsWithEdits() {
   const originalGrade = currentData.scoring?.overall?.grade;
   const originalScore = currentData.scoring?.overall?.score;
 
-  // Re-score all 31 platforms from the edited content
-  const rescored = rescoreAllPlatforms();
-  const modifiedMeta = rescored ? rescored.meta : buildEditedMeta();
-  const newScoring = rescored ? rescored.scoring : null;
+  // Re-score all 31 platforms from the edited content and store the result in
+  // editorState so the UI (and getCurrentScoring) has a persistent copy.
+  const applied = applyRescore();
+  const modifiedData = applied
+    ? applied.data
+    : { ...currentData, meta: buildEditedMeta() };
+  const newScoring = applied ? applied.scoring : null;
 
-  // Re-render previews (and grade badges) with the freshly-scored data so every
-  // platform card reflects the new grade, not just the original fetch.
-  const modifiedData = { ...currentData, meta: modifiedMeta };
-  if (newScoring) modifiedData.scoring = newScoring;
+  // Re-render previews (and grade badges) from the stored, freshly-scored data
+  // so every platform card reflects the new grade, not just the original fetch.
   renderPreviews(modifiedData);
 
   // Update the summary bar (overall grade + passing/warning/failing counts)
@@ -6335,6 +6412,8 @@ function updatePreviewsWithEdits() {
 function resetEditor() {
   editorState.edited = { ...editorState.original };
   editorState.dirty = false;
+  // Drop stored edited scores so getCurrentScoring() falls back to the original.
+  clearEditedScoring();
   populateEditorForm();
   updateEditorCharCounts();
 
@@ -7817,19 +7896,19 @@ function recalculateScore() {
   if (!currentData) return;
 
   // Full 31-platform re-score: run scoring-simulator (scoreAll) over the edited
-  // content and refresh the UI, rather than merely counting fixed diagnostics.
-  const rescored = rescoreAllPlatforms();
-  if (rescored) {
-    const modifiedData = { ...currentData, meta: rescored.meta, scoring: rescored.scoring };
-    renderPreviews(modifiedData);
-    renderSummaryBar(modifiedData);
+  // content, store the fresh scores in state, and refresh the UI from that
+  // stored state, rather than merely counting fixed diagnostics.
+  const applied = applyRescore();
+  if (applied) {
+    renderPreviews(applied.data);
+    renderSummaryBar(applied.data);
   }
 
   const totalDiagnostics = currentData.diagnostics?.length || 0;
   const fixedCount = fixedDiagnostics.size;
   const remaining = totalDiagnostics - fixedCount;
-  const newGrade = rescored?.scoring?.overall?.grade;
-  const newScore = rescored?.scoring?.overall?.score;
+  const newGrade = applied?.scoring?.overall?.grade;
+  const newScore = applied?.scoring?.overall?.score;
   const gradeSuffix = newGrade ? ` Overall grade: ${newGrade} (${newScore}/100).` : '';
 
   if (remaining > 0) {

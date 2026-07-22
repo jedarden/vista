@@ -2593,12 +2593,32 @@ body.has-results { padding-bottom: 48px; }
 .char-budget-fill.over { background: var(--red); }
 
 /* ── Diagnostic Tracking ── */
+/* Base transitions so fix state changes animate smoothly */
+.diag-item {
+  transition: opacity var(--transition), transform var(--transition);
+}
 .diag-item.fixed {
-  opacity: 0.6;
+  /* Fade resolved items to 50% opacity */
+  opacity: 0.5;
+  /* Slide resolved items to the bottom of the flex-column list */
+  order: 100;
+}
+/* Strikethrough the message text, not the checkmark icon */
+.diag-item.fixed .diag-body {
   text-decoration: line-through;
 }
+/* Replace the severity glyph with a green checkmark */
 .diag-item.fixed .diag-icon {
+  color: transparent;
+  position: relative;
+}
+.diag-item.fixed .diag-icon::before {
+  content: "\2713";
+  position: absolute;
+  left: 0;
+  top: 0;
   color: var(--green);
+  font-weight: 700;
 }
 .diag-actions {
   margin-top: 8px;

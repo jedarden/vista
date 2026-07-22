@@ -7862,6 +7862,46 @@ function initDiagnosticTracking() {
   });
 }
 
+/**
+ * Runs `mutate` (which changes flex `order` via the .fixed class) inside a
+ * FLIP animation so diagnostic items visibly slide to their new positions.
+ * The actual motion is driven by the CSS `transform` transition on .diag-item;
+ * this only measures positions and applies the inverse transform to animate.
+ */
+function flipReorderDiagnostics(mutate) {
+  const items = Array.from(document.querySelectorAll('.diag-item'));
+
+  // FLIP unsupported / reduced-motion: apply mutation without animating.
+  if (!items.length ||
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+    mutate();
+    return;
+  }
+
+  // First: record current positions.
+  const before = items.map(el => el.getBoundingClientRect());
+
+  // Mutate: flex order changes, items jump to new positions.
+  mutate();
+
+  // Invert: translate each item back to where it started, then release.
+  items.forEach((el, i) => {
+    const after = el.getBoundingClientRect();
+    const dx = before[i].left - after.left;
+    const dy = before[i].top - after.top;
+    if (dx === 0 && dy === 0) return;
+
+    el.style.transition = 'none';
+    el.style.transform = `translate(${dx}px, ${dy}px)`;
+
+    // Play: next frame, clear the inverse and let the CSS transition run.
+    requestAnimationFrame(() => {
+      el.style.transition = '';
+      el.style.transform = '';
+    });
+  });
+}
+
 function applyDiagnosticFix(index) {
   if (!currentData?.diagnostics) return;
 
@@ -7897,8 +7937,12 @@ function applyDiagnosticFix(index) {
     // Update UI
     const diagItem = document.querySelectorAll('.diag-item')[index];
     if (diagItem) {
-      diagItem.classList.add('fixed');
-      diagItem.dataset.fixed = 'true';
+      // Apply the fixed state inside a FLIP so flex reorder (order: 100)
+      // slides smoothly to the bottom via the CSS transform transition.
+      flipReorderDiagnostics(() => {
+        diagItem.classList.add('fixed');
+        diagItem.dataset.fixed = 'true';
+      });
       const fixBtn = diagItem.querySelector('.diag-fix-btn');
       if (fixBtn) fixBtn.remove();
     }

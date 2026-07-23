@@ -270,6 +270,29 @@ function computePlatformDiff(scores1, scores2) {
 }
 
 // =============================================================================
+// highlightChangedText - Wrap changed field text in green highlight spans
+// =============================================================================
+
+/**
+ * Wrap text in a green highlight span if the field path is in the changed fields array.
+ *
+ * @param {string} text - The text value to potentially highlight
+ * @param {string[]} changedFields - Array of changed field paths (e.g., ['score', 'meta.og.title'])
+ * @param {string} fieldPath - The current field path to check (e.g., 'score', 'meta.og.title')
+ * @returns {string} HTML with green highlight span if changed, otherwise plain text
+ */
+function highlightChangedText(text, changedFields, fieldPath) {
+  const normalizedText = String(text ?? '');
+  const isChanged = changedFields.includes(fieldPath);
+
+  if (isChanged) {
+    return `<span class="diff-changed">${normalizedText}</span>`;
+  }
+
+  return normalizedText;
+}
+
+// =============================================================================
 // Browser exports
 // =============================================================================
 
@@ -278,6 +301,21 @@ if (typeof window !== 'undefined') {
     isIdentical,
     changedFields,
     missingTags,
-    computePlatformDiff
+    computePlatformDiff,
+    highlightChangedText
+  };
+}
+
+// =============================================================================
+// Node.js exports
+// =============================================================================
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    isIdentical,
+    changedFields,
+    missingTags,
+    computePlatformDiff,
+    highlightChangedText
   };
 }

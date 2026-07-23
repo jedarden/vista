@@ -274,6 +274,133 @@ const PLATFORM_FRAMES = {
     },
   },
 
+  instagram: {
+    name: 'Instagram',
+    category: 'social',
+    hasThemeSupport: false,
+    aspectRatio: '1:1',
+    chrome: `
+      <div class="ig-post-header">
+        <div class="ig-avatar"></div>
+        <div class="ig-post-meta">
+          <span class="ig-username">travel_photographer</span>
+          <span class="ig-post-time">2 hours ago</span>
+        </div>
+        <span class="ig-menu">•••</span>
+      </div>
+      {{linkPreview}}
+      <div class="ig-post-content">
+        <div class="ig-caption">Check out this amazing view! 📸</div>
+        <div class="ig-hashtags">#travel #photography #adventure</div>
+      </div>
+      <div class="ig-post-actions">♡ 124 · 💬 18 · 🔗 Share</div>
+    `,
+    neutralContent: '',
+    themeVars: {
+      dark: {
+        '--frame-bg': '#000000',
+        '--frame-surface': '#121212',
+        '--frame-border': '#262626',
+        '--frame-text-primary': '#ffffff',
+        '--frame-text-secondary': '#a8a8a8',
+        '--frame-text-muted': '#737373',
+        '--frame-accent': '#e1306c',
+        '--frame-accent-bg': '#e1306c',
+        '--frame-link-color': '#0095f6',
+        '--frame-divider': '#262626',
+        '--frame-input-bg': '#262626',
+        '--frame-overlay': 'rgba(0, 0, 0, 0.6)',
+      },
+      light: {
+        '--frame-bg': '#ffffff',
+        '--frame-surface': '#fafafa',
+        '--frame-border': '#dbdbdb',
+        '--frame-text-primary': '#000000',
+        '--frame-text-secondary': '#737373',
+        '--frame-text-muted': '#a8a8a8',
+        '--frame-accent': '#e1306c',
+        '--frame-accent-bg': '#fce4ec',
+        '--frame-link-color': '#0095f6',
+        '--frame-divider': '#dbdbdb',
+        '--frame-input-bg': '#fafafa',
+        '--frame-overlay': 'rgba(0, 0, 0, 0.1)',
+      },
+    },
+  },
+
+  youtube: {
+    name: 'YouTube',
+    category: 'social',
+    hasThemeSupport: true,
+    aspectRatio: '16:9',
+    chrome: `
+      <div class="yt-video-header">
+        <div class="yt-channel-avatar"></div>
+        <div class="yt-channel-meta">
+          <span class="yt-channel-name">TechChannel</span>
+          <span class="yt-subscriber-count">1.2M subscribers</span>
+        </div>
+        <button class="yt-subscribe-btn">Subscribe</button>
+      </div>
+      <div class="yt-video-title">Amazing Tutorial - Learn in 10 Minutes!</div>
+      <div class="yt-video-stats">234K views · 3 hours ago</div>
+      <div class="yt-comments-section">
+        <div class="yt-comment-header">Comments</div>
+        <div class="yt-comment yt-comment-dim">
+          <div class="yt-comment-avatar"></div>
+          <div class="yt-comment-meta">
+            <span class="yt-comment-author">User123</span>
+            <span class="yt-comment-time">2 hours ago</span>
+            <div class="yt-comment-text">This was really helpful, thanks!</div>
+            <div class="yt-comment-actions">👍 45 · 💬 Reply</div>
+          </div>
+        </div>
+        {{userComment}}
+      </div>
+    `,
+    neutralContent: `
+      <div class="yt-comment">
+        <div class="yt-comment-avatar"></div>
+        <div class="yt-comment-meta">
+          <span class="yt-comment-author">You</span>
+          <span class="yt-comment-time">Just now</span>
+          <div class="yt-comment-text">{{description}}</div>
+          <div class="yt-comment-actions">👍 0 · 💬 Reply</div>
+        </div>
+      </div>
+    `,
+    themeVars: {
+      dark: {
+        '--frame-bg': '#0f0f0f',
+        '--frame-surface': '#1a1a1a',
+        '--frame-border': '#303030',
+        '--frame-text-primary': '#ffffff',
+        '--frame-text-secondary': '#aaaaaa',
+        '--frame-text-muted': '#666666',
+        '--frame-accent': '#ff0000',
+        '--frame-accent-bg': '#ff0000',
+        '--frame-link-color': '#3ea6ff',
+        '--frame-divider': '#303030',
+        '--frame-input-bg': '#1a1a1a',
+        '--frame-overlay': 'rgba(0, 0, 0, 0.7)',
+      },
+      light: {
+        '--frame-bg': '#ffffff',
+        '--frame-surface': '#f9f9f9',
+        '--frame-border': '#e5e5e5',
+        '--frame-text-primary': '#0f0f0f',
+        '--frame-text-secondary': '#606060',
+        '--frame-text-muted': '#999999',
+        '--frame-accent': '#ff0000',
+        '--frame-accent-bg': '#ffe5e5',
+        '--frame-link-color': '#065fd4',
+        '--frame-divider': '#e5e5e5',
+        '--frame-input-bg': '#ffffff',
+        '--frame-overlay': 'rgba(0, 0, 0, 0.1)',
+      },
+    },
+  },
+
   slack: {
     name: 'Slack',
     category: 'messaging',
@@ -663,6 +790,20 @@ function buildLinkPreviewHTML(platformId, content, theme = 'dark') {
             <div class="li-context-title">${esc(trunc(title, 80))}</div>
             <div class="li-context-domain">${esc(domain)}</div>
           </div>
+        </div>
+      `;
+
+    case 'instagram':
+      return `
+        <div class="ig-link-preview">
+          ${image ? `<div class="ig-context-image img-loading-container"><img src="${esc(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" /></div>` : '<div class="ig-context-placeholder"></div>'}
+        </div>
+      `;
+
+    case 'youtube':
+      return `
+        <div class="yt-link-preview">
+          ${image ? `<div class="yt-context-image img-loading-container"><img src="${esc(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" /></div>` : '<div class="yt-context-placeholder"></div>'}
         </div>
       `;
 

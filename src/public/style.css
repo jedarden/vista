@@ -1833,6 +1833,444 @@ html[data-theme='dark'] .rd-post-actions span:hover {
   background: #2a2a2b;
 }
 
+/* Instagram Context */
+.instagram-context {
+  max-width: 500px;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: background-color 0.3s ease;
+}
+
+/* Dark mode for Instagram context */
+html[data-theme='dark'] .instagram-context {
+  background: #000;
+  border: 1px solid #262626;
+}
+
+/* Post header */
+.ig-post-header {
+  display: flex;
+  gap: 10px;
+  padding: 12px;
+  background: #fff;
+  transition: background-color 0.3s ease;
+}
+
+html[data-theme='dark'] .ig-post-header {
+  background: #000;
+}
+
+.ig-avatar {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ig-post-meta {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  justify-content: center;
+}
+
+.ig-username {
+  font-weight: 600;
+  color: #000;
+  font-size: 13px;
+  transition: color 0.3s ease;
+}
+
+html[data-theme='dark'] .ig-username {
+  color: #fff;
+}
+
+.ig-post-time {
+  font-size: 11px;
+  color: #737373;
+  transition: color 0.3s ease;
+}
+
+html[data-theme='dark'] .ig-post-time {
+  color: #a8a8a8;
+}
+
+.ig-menu {
+  color: #000;
+  font-size: 16px;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+html[data-theme='dark'] .ig-menu {
+  color: #fff;
+}
+
+/* Link preview */
+.ig-link-preview {
+  margin: 0;
+  border-radius: 0;
+  overflow: hidden;
+}
+
+.ig-context-placeholder {
+  width: 100%;
+  aspect-ratio: 1/1;
+  background: linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+  transition: background 0.3s ease;
+}
+
+html[data-theme='dark'] .ig-context-placeholder {
+  background: linear-gradient(135deg, #cc2366 0%, #bc1888 50%, #e6683c 75%, #f09433 100%);
+}
+
+.ig-context-image {
+  width: 100%;
+}
+
+.ig-context-image img {
+  width: 100%;
+  aspect-ratio: 1/1;
+  object-fit: cover;
+  display: block;
+}
+
+/* Post content */
+.ig-post-content {
+  padding: 10px 12px;
+  background: #fff;
+  transition: background-color 0.3s ease;
+}
+
+html[data-theme='dark'] .ig-post-content {
+  background: #000;
+}
+
+.ig-caption {
+  font-size: 13px;
+  color: #000;
+  line-height: 1.4;
+  margin-bottom: 4px;
+  transition: color 0.3s ease;
+}
+
+html[data-theme='dark'] .ig-caption {
+  color: #fff;
+}
+
+.ig-hashtags {
+  font-size: 12px;
+  color: #0095f6;
+  transition: color 0.3s ease;
+}
+
+html[data-theme='dark'] .ig-hashtags {
+  color: #3ea6ff;
+}
+
+/* Post actions */
+.ig-post-actions {
+  display: flex;
+  gap: 16px;
+  padding: 8px 12px;
+  background: #fff;
+  color: #000;
+  font-size: 13px;
+  font-weight: 600;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+html[data-theme='dark'] .ig-post-actions {
+  background: #000;
+  color: #fff;
+}
+
+.ig-post-actions span {
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.ig-post-actions span:hover {
+  background: #fafafa;
+}
+
+html[data-theme='dark'] .ig-post-actions span:hover {
+  background: #262626;
+}
+
+/* YouTube Context */
+.youtube-context {
+  max-width: 600px;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: background-color 0.3s ease;
+}
+
+/* Dark mode for YouTube context */
+html[data-theme='dark'] .youtube-context {
+  background: #0f0f0f;
+  border: 1px solid #303030;
+}
+
+/* Video header */
+.yt-video-header {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  background: #fff;
+  transition: background-color 0.3s ease;
+}
+
+html[data-theme='dark'] .yt-video-header {
+  background: #0f0f0f;
+}
+
+.yt-channel-avatar {
+  width: 36px;
+  height: 36px;
+  background: #ff0000;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  transition: background-color 0.3s ease;
+}
+
+html[data-theme='dark'] .yt-channel-avatar {
+  background: #cc0000;
+}
+
+.yt-channel-meta {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  justify-content: center;
+}
+
+.yt-channel-name {
+  font-weight: 600;
+  color: #0f0f0f;
+  font-size: 14px;
+  transition: color 0.3s ease;
+}
+
+html[data-theme='dark'] .yt-channel-name {
+  color: #fff;
+}
+
+.yt-subscriber-count {
+  font-size: 12px;
+  color: #606060;
+  transition: color 0.3s ease;
+}
+
+html[data-theme='dark'] .yt-subscriber-count {
+  color: #aaaaaa;
+}
+
+.yt-subscribe-btn {
+  padding: 8px 16px;
+  background: #000;
+  color: #fff;
+  border: none;
+  border-radius: 18px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+html[data-theme='dark'] .yt-subscribe-btn {
+  background: #fff;
+  color: #0f0f0f;
+}
+
+.yt-subscribe-btn:hover {
+  background: #303030;
+}
+
+html[data-theme='dark'] .yt-subscribe-btn:hover {
+  background: #e5e5e5;
+}
+
+/* Video title and stats */
+.yt-video-title {
+  padding: 8px 12px 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #0f0f0f;
+  line-height: 1.3;
+  transition: color 0.3s ease;
+}
+
+html[data-theme='dark'] .yt-video-title {
+  color: #fff;
+}
+
+.yt-video-stats {
+  padding: 4px 12px 8px;
+  font-size: 12px;
+  color: #606060;
+  transition: color 0.3s ease;
+}
+
+html[data-theme='dark'] .yt-video-stats {
+  color: #aaaaaa;
+}
+
+/* Comments section */
+.yt-comments-section {
+  padding: 12px;
+  background: #fff;
+  transition: background-color 0.3s ease;
+}
+
+html[data-theme='dark'] .yt-comments-section {
+  background: #0f0f0f;
+}
+
+.yt-comment-header {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f0f0f;
+  margin-bottom: 12px;
+  transition: color 0.3s ease;
+}
+
+html[data-theme='dark'] .yt-comment-header {
+  color: #fff;
+}
+
+.yt-comment {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 8px 0;
+}
+
+.yt-comment-dim {
+  opacity: 0.6;
+}
+
+.yt-comment-avatar {
+  width: 32px;
+  height: 32px;
+  background: #888;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.yt-comment-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.yt-comment-author {
+  font-size: 12px;
+  font-weight: 600;
+  color: #0f0f0f;
+  transition: color 0.3s ease;
+}
+
+html[data-theme='dark'] .yt-comment-author {
+  color: #fff;
+}
+
+.yt-comment-time {
+  font-size: 11px;
+  color: #606060;
+  margin-left: 4px;
+  transition: color 0.3s ease;
+}
+
+html[data-theme='dark'] .yt-comment-time {
+  color: #aaaaaa;
+}
+
+.yt-comment-text {
+  font-size: 13px;
+  color: #0f0f0f;
+  line-height: 1.4;
+  margin-top: 2px;
+  transition: color 0.3s ease;
+}
+
+html[data-theme='dark'] .yt-comment-text {
+  color: #fff;
+}
+
+.yt-comment-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #606060;
+  transition: color 0.3s ease;
+}
+
+html[data-theme='dark'] .yt-comment-actions {
+  color: #aaaaaa;
+}
+
+.yt-comment-actions span {
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.yt-comment-actions span:hover {
+  background: #f9f9f9;
+}
+
+html[data-theme='dark'] .yt-comment-actions span:hover {
+  background: #1a1a1a;
+}
+
+/* YouTube link preview */
+.yt-link-preview {
+  margin: 12px 0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.yt-context-placeholder {
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: #f9f9f9;
+  transition: background 0.3s ease;
+}
+
+html[data-theme='dark'] .yt-context-placeholder {
+  background: #1a1a1a;
+}
+
+.yt-context-image {
+  width: 100%;
+}
+
+.yt-context-image img {
+  width: 100%;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  display: block;
+}
+
 /* Slack Context */
 .slack-context { display: flex; min-height: 300px; }
 .slack-dark { background: #1a1d1d; }

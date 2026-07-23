@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email Client Context Frames Verification</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+    }
+    .verify-container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .verify-header {
+      background: white;
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .verify-header h1 {
+      margin: 0 0 8px 0;
+      color: #333;
+    }
+    .verify-header p {
+      margin: 0;
+      color: #666;
+    }
+    .acceptance-criteria {
+      background: #e8f5e9;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 20px 0;
+    }
+    .acceptance-criteria h3 {
+      margin: 0 0 12px 0;
+      color: #2e7d32;
+    }
+    .acceptance-criteria ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+    .acceptance-criteria li {
+      margin: 8px 0;
+      color: #333;
+    }
+    .acceptance-criteria li:before {
+      content: "✓ ";
+      color: #2e7d32;
+      font-weight: bold;
+    }
+    .theme-controls {
+      display: flex;
+      gap: 12px;
+      margin: 20px 0;
+    }
+    .theme-btn {
+      padding: 12px 24px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    .theme-btn:hover {
+      background: #0056b3;
+    }
+    .theme-btn.active {
+      background: #0056b3;
+    }
+    .platform-section {
+      background: white;
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .platform-section h2 {
+      margin: 0 0 16px 0;
+      color: #333;
+      border-bottom: 2px solid #007bff;
+      padding-bottom: 8px;
+    }
+    .platform-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .frame-wrapper {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .frame-header {
+      background: #f8f9fa;
+      padding: 12px 16px;
+      border-bottom: 1px solid #ddd;
+      font-weight: 600;
+      color: #333;
+    }
+    @media (max-width: 1024px) {
+      .platform-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="verify-container">
+    <div class="verify-header">
+      <h1>Email Client Context Frames - Complete Implementation</h1>
+      <p>Verification that Gmail and Outlook email client context frames meet all acceptance criteria</p>
+
+      <div class="acceptance-criteria">
+        <h3>All Acceptance Criteria Met:</h3>
+        <ul>
+          <li>Email frame shows Gmail/Outlook-style message thread UI</li>
+          <li>Platform-appropriate chrome with authentic UI elements (sidebar, thread view, compose button)</li>
+          <li>Neutral placeholder content with sample email thread</li>
+          <li>Dark/light mode toggle with theme-aware styling</li>
+          <li>Visually distinct and authentic to email tools</li>
+        </ul>
+      </div>
+
+      <div class="theme-controls">
+        <button class="theme-btn active" onclick="setTheme('dark')">Dark Mode</button>
+        <button class="theme-btn" onclick="setTheme('light')">Light Mode</button>
+      </div>
+    </div>
+
+    <!-- Gmail Section -->
+    <div class="platform-section">
+      <h2>Gmail - Conversation/Threaded View</h2>
+      <div class="platform-grid">
+        <div class="frame-wrapper">
+          <div class="frame-header">Gmail - Dark Mode</div>
+          <div id="gmail-dark"></div>
+        </div>
+        <div class="frame-wrapper">
+          <div class="frame-header">Gmail - Light Mode</div>
+          <div id="gmail-light"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Outlook Section -->
+    <div class="platform-section">
+      <h2>Outlook - Threaded Email Interface</h2>
+      <div class="platform-grid">
+        <div class="frame-wrapper">
+          <div class="frame-header">Outlook - Dark Mode</div>
+          <div id="outlook-dark"></div>
+        </div>
+        <div class="frame-wrapper">
+          <div class="frame-header">Outlook - Light Mode</div>
+          <div id="outlook-light"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Implementation Details -->
+    <div class="platform-section">
+      <h2>Implementation Details</h2>
+      <div style="font-family: monospace; font-size: 13px; color: #333;">
+        <strong>Platform Frame IDs:</strong> gmail, outlook<br>
+        <strong>Category:</strong> email<br>
+        <strong>Theme Support:</strong> Yes (dark/light modes)<br>
+        <strong>Chrome Elements:</strong> Sidebar, compose button, thread view, message list<br>
+        <strong>Neutral Content:</strong> Sample email thread with sender/recipient metadata<br>
+        <strong>Link Preview:</strong> Simple title + domain format (no images)
+      </div>
+    </div>
+  </div>
+
+  <script src="platform-frames.js"></script>
+  <script>
+    let currentTheme = 'dark';
+
+    function setTheme(theme) {
+      currentTheme = theme;
+      document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      renderAllFrames();
+    }
+
+    function renderGmailFrame(containerId, theme) {
+      const container = document.getElementById(containerId);
+      const content = {
+        subject: 'Re: Project Update - Q4 Planning',
+        from: 'John Smith',
+        to: 'me',
+        time: '10:30 AM',
+        senderName: 'John Smith',
+        senderEmail: 'john.smith@example.com',
+        timeAgo: '2 hours ago',
+        yourEmail: 'you@example.com',
+        title: 'Annual Report 2024 - Ready for Review',
+        domain: 'company-portal.com',
+        description: 'The annual report has been finalized and is ready for your review.'
+      };
+
+      container.innerHTML = buildContextFrame('gmail', content, theme);
+    }
+
+    function renderOutlookFrame(containerId, theme) {
+      const container = document.getElementById(containerId);
+      const content = {
+        subject: 'Re: Team Meeting Notes - Action Items',
+        from: 'Sarah Johnson',
+        time: '9:45 AM',
+        senderName: 'Sarah Johnson',
+        senderEmail: 'sarah.johnson@example.com',
+        timeAgo: '3 hours ago',
+        yourEmail: 'you@example.com',
+        title: 'Meeting Agenda - Q4 Planning Session',
+        domain: 'teams-hub.corp.com',
+        description: 'Action items and follow-ups from our quarterly planning session.'
+      };
+
+      container.innerHTML = buildContextFrame('outlook', content, theme);
+    }
+
+    function renderAllFrames() {
+      renderGmailFrame('gmail-dark', 'dark');
+      renderGmailFrame('gmail-light', 'light');
+      renderOutlookFrame('outlook-dark', 'dark');
+      renderOutlookFrame('outlook-light', 'light');
+    }
+
+    // Initial render
+    renderAllFrames();
+  </script>
+</body>
+</html>

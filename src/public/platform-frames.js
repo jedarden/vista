@@ -668,6 +668,83 @@ const PLATFORM_FRAMES = {
     },
   },
 
+  // Discussion & Community
+  reddit: {
+    name: 'Reddit',
+    category: 'social',
+    hasThemeSupport: true,
+    aspectRatio: 'variable',
+    chrome: `
+      <div class="rd-subreddit-header">
+        <div class="rd-subreddit-banner"></div>
+        <div class="rd-subreddit-info">
+          <div class="rd-subreddit-icon">r/</div>
+          <div class="rd-subreddit-details">
+            <div class="rd-subreddit-name">r/{{subreddit}}</div>
+            <div class="rd-subreddit-meta">{{memberCount}} members · {{onlineCount}} online</div>
+          </div>
+          <button class="rd-join-btn">Join</button>
+        </div>
+      </div>
+      <div class="rd-post-list">
+        {{postList}}
+      </div>
+    `,
+    neutralContent: `
+      <div class="rd-post-item">
+        <div class="rd-upvote-section">
+          <div class="rd-upvote-arrow">▲</div>
+          <div class="rd-vote-count">{{upvotes}}</div>
+          <div class="rd-downvote-arrow">▼</div>
+        </div>
+        <div class="rd-post-main">
+          <div class="rd-post-meta">
+            <span class="rd-subreddit-link">r/{{subreddit}}</span>
+            <span class="rd-post-author">• Posted by u/{{author}}</span>
+            <span class="rd-post-time">• {{timeAgo}}</span>
+          </div>
+          <div class="rd-post-title">{{title}}</div>
+          {{linkPreview}}
+          <div class="rd-post-actions">
+            <span>💬 {{commentCount}} comments</span>
+            <span>🔗 Share</span>
+            <span>💾 Save</span>
+          </div>
+        </div>
+      </div>
+    `,
+    themeVars: {
+      dark: {
+        '--frame-bg': '#1a1a1e',
+        '--frame-surface': '#25252a',
+        '--frame-border': '#343536',
+        '--frame-text-primary': '#e4e4e7',
+        '--frame-text-secondary': '#a5a5a9',
+        '--frame-text-muted': '#6e6e73',
+        '--frame-accent': '#FF4500',
+        '--frame-accent-bg': '#FF4500',
+        '--frame-link-color': '#5f99cf',
+        '--frame-divider': '#343536',
+        '--frame-input-bg': '#272729',
+        '--frame-overlay': 'rgba(0, 0, 0, 0.6)',
+      },
+      light: {
+        '--frame-bg': '#ffffff',
+        '--frame-surface': '#f8f9fa',
+        '--frame-border': '#ccc',
+        '--frame-text-primary': '#1c1c1c',
+        '--frame-text-secondary': '#5a5a5a',
+        '--frame-text-muted': '#7a7a7a',
+        '--frame-accent': '#FF4500',
+        '--frame-accent-bg': '#FF4500',
+        '--frame-link-color': '#5f99cf',
+        '--frame-divider': '#ddd',
+        '--frame-input-bg': '#ffffff',
+        '--frame-overlay': 'rgba(0, 0, 0, 0.1)',
+      },
+    },
+  },
+
   // Generic template for platforms without custom context frames
   generic: {
     name: 'Generic Platform',

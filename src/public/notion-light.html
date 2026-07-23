@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notion - Light Mode Frame</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #ffffff;
+      color: #37352f;
+    }
+
+    .notion-context {
+      display: flex;
+      flex-direction: column;
+      min-height: 350px;
+      background: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      border: 1px solid #e6e6e6;
+    }
+
+    .no-page-header {
+      padding: 20px 24px;
+      background: #ffffff;
+      border-bottom: 1px solid #e6e6e6;
+    }
+
+    .no-page-icon {
+      font-size: 24px;
+      margin-bottom: 12px;
+    }
+
+    .no-page-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #37352f;
+      margin-bottom: 8px;
+    }
+
+    .no-page-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      color: #787774;
+    }
+
+    .no-author {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .no-author::before {
+      content: '👤';
+      font-size: 14px;
+    }
+
+    .no-content {
+      flex: 1;
+      padding: 20px 24px;
+      overflow-y: auto;
+      background: #ffffff;
+    }
+
+    .no-block {
+      margin-bottom: 16px;
+    }
+
+    .no-block-dim {
+      opacity: 0.6;
+    }
+
+    .no-block-text {
+      font-size: 15px;
+      line-height: 1.6;
+      color: #37352f;
+      padding: 8px 0;
+    }
+
+    .no-block-callout {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 16px;
+      background: #f7f7f5;
+      border-radius: 6px;
+      margin: 8px 0;
+    }
+
+    .no-emoji {
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .no-callout-text {
+      font-size: 14px;
+      color: #37352f;
+      line-height: 1.5;
+    }
+
+    .no-link-preview {
+      background: #f7f7f5;
+      border: 1px solid #e6e6e6;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 8px 0;
+    }
+
+    .no-link-image {
+      width: 100%;
+      height: 160px;
+      background: linear-gradient(135deg, #e8f0fe 0%, #d0e6ff 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .no-link-image::before {
+      content: '🔗';
+      font-size: 32px;
+    }
+
+    .no-link-title {
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #37352f;
+    }
+
+    .no-link-domain {
+      padding: 0 16px 12px;
+      font-size: 12px;
+      color: #787774;
+    }
+
+    .no-heading {
+      font-size: 18px;
+      font-weight: 600;
+      color: #37352f;
+      margin: 16px 0 8px;
+    }
+
+    .no-bullet-list {
+      padding-left: 24px;
+      margin: 8px 0;
+    }
+
+    .no-bullet-item {
+      font-size: 14px;
+      color: #37352f;
+      padding: 4px 0;
+      line-height: 1.5;
+    }
+
+    .no-bullet-item::marker {
+      color: #787774;
+    }
+
+    .no-divider {
+      height: 1px;
+      background: #e6e6e6;
+      margin: 20px 0;
+    }
+
+    .no-toggle {
+      margin: 8px 0;
+    }
+
+    .no-toggle-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      padding: 8px 0;
+    }
+
+    .no-toggle-arrow {
+      font-size: 12px;
+      color: #787774;
+      transition: transform 0.2s;
+    }
+
+    .no-toggle-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: #37352f;
+    }
+
+    .no-toggle-content {
+      padding-left: 24px;
+      margin-top: 8px;
+    }
+
+    .no-toggle-content p {
+      font-size: 14px;
+      color: #37352f;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="notion-context">
+    <div class="no-page-header">
+      <div class="no-page-icon">📄</div>
+      <div class="no-page-title">Project Documentation</div>
+      <div class="no-page-meta">
+        <span class="no-author">John Doe</span>
+        <span class="no-time">Last edited 2 hours ago</span>
+      </div>
+    </div>
+
+    <div class="no-content">
+      <div class="no-heading">Overview</div>
+      <div class="no-block no-block-dim">
+        <div class="no-block-text">This page contains project documentation and resources for the team.</div>
+      </div>
+
+      <div class="no-block no-block-dim">
+        <div class="no-block-callout">
+          <span class="no-emoji">💡</span>
+          <span class="no-callout-text">Remember to keep this documentation up to date as the project evolves.</span>
+        </div>
+      </div>
+
+      <div class="no-heading">Key Resources</div>
+      <div class="no-bullet-list">
+        <div class="no-bullet-item">API documentation and endpoints</div>
+        <div class="no-bullet-item">Design specifications and assets</div>
+        <div class="no-bullet-item">Development guidelines and standards</div>
+      </div>
+
+      <div class="no-divider"></div>
+
+      <div class="no-toggle">
+        <div class="no-toggle-header">
+          <span class="no-toggle-arrow">▶</span>
+          <span class="no-toggle-title">Implementation Notes</span>
+        </div>
+        <div class="no-toggle-content">
+          <p>Key considerations for the implementation phase include scalability, performance, and maintainability.</p>
+        </div>
+      </div>
+
+      <div class="no-block">
+        <div class="no-link-preview">
+          <div class="no-link-image"></div>
+          <div class="no-link-title">External Resource Link</div>
+          <div class="no-link-domain">example.com</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

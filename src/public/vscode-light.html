@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VS Code - Light Mode Frame</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #ffffff;
+      color: #333333;
+    }
+
+    .vscode-context {
+      display: flex;
+      min-height: 400px;
+      background: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      border: 1px solid #e4e4e4;
+    }
+
+    .vs-activity-bar {
+      width: 48px;
+      background: #2c2c2c;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 8px 0;
+      flex-shrink: 0;
+    }
+
+    .vs-activity-icon {
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: #858585;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .vs-activity-icon:hover {
+      color: #ffffff;
+    }
+
+    .vs-activity-active {
+      color: #ffffff;
+      border-left: 2px solid #0078d4;
+    }
+
+    .vs-sidebar {
+      width: 200px;
+      background: #f3f3f3;
+      border-right: 1px solid #e4e4e4;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .vs-explorer {
+      padding: 10px 16px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #616161;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .vs-folder {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 16px;
+      font-size: 13px;
+      color: #333333;
+      cursor: pointer;
+    }
+
+    .vs-folder::before {
+      content: '📁';
+      font-size: 14px;
+    }
+
+    .vs-file {
+      padding: 4px 16px 4px 32px;
+      font-size: 13px;
+      color: #333333;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .vs-file:hover {
+      background: #e8e8e8;
+    }
+
+    .vs-file-active {
+      background: #e0e0e0;
+      color: #000000;
+    }
+
+    .vs-main-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .vs-editor {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .vs-tab-bar {
+      display: flex;
+      background: #f3f3f3;
+      border-bottom: 1px solid #e4e4e4;
+    }
+
+    .vs-tab {
+      padding: 8px 16px;
+      font-size: 13px;
+      color: #333333;
+      background: #e8e8e8;
+      border-right: 1px solid #e4e4e4;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .vs-tab-active {
+      background: #ffffff;
+      color: #000000;
+      border-top: 1px solid #0078d4;
+    }
+
+    .vs-tab-close {
+      font-size: 12px;
+      color: #9e9e9e;
+      cursor: pointer;
+    }
+
+    .vs-content {
+      flex: 1;
+      padding: 16px;
+      background: #ffffff;
+      overflow-y: auto;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .vs-comment {
+      padding: 8px 0;
+    }
+
+    .vs-comment-dim {
+      opacity: 0.5;
+    }
+
+    .vs-comment-author {
+      font-weight: 600;
+      color: #0066cc;
+      margin-right: 8px;
+    }
+
+    .vs-comment-time {
+      font-size: 12px;
+      color: #9e9e9e;
+    }
+
+    .vs-comment-body {
+      color: #333333;
+      margin-top: 4px;
+      padding-left: 16px;
+    }
+
+    .vs-line-number {
+      color: #9e9e9e;
+      margin-right: 16px;
+      user-select: none;
+    }
+
+    .vs-code {
+      color: #333333;
+    }
+
+    .vs-keyword {
+      color: #0000ff;
+    }
+
+    .vs-string {
+      color: #a31515;
+    }
+
+    .vs-function {
+      color: #795e26;
+    }
+
+    .vs-comment-text {
+      color: #008000;
+    }
+
+    .vs-terminal-panel {
+      height: 120px;
+      background: #ffffff;
+      border-top: 1px solid #e4e4e4;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .vs-terminal-header {
+      padding: 4px 16px;
+      background: #f3f3f3;
+      border-bottom: 1px solid #e4e4e4;
+      font-size: 12px;
+      color: #616161;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .vs-terminal-tab {
+      cursor: pointer;
+      padding: 4px 8px;
+    }
+
+    .vs-terminal-tab.active {
+      color: #000000;
+    }
+
+    .vs-terminal-content {
+      flex: 1;
+      padding: 8px 16px;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 13px;
+      overflow-y: auto;
+      background: #fafafa;
+    }
+
+    .vs-terminal-line {
+      color: #333333;
+      margin-bottom: 4px;
+    }
+
+    .vs-terminal-success {
+      color: #008000;
+    }
+
+    .vs-terminal-error {
+      color: #cd3131;
+    }
+
+    .vs-terminal-warning {
+      color: #949600;
+    }
+
+    .vs-status-bar {
+      padding: 2px 16px;
+      background: #007acc;
+      color: #ffffff;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .vs-status-left, .vs-status-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .vs-status-item {
+      cursor: pointer;
+    }
+
+    .vs-status-item:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="vscode-context">
+    <div class="vs-activity-bar">
+      <div class="vs-activity-icon vs-activity-active">📁</div>
+      <div class="vs-activity-icon">🔍</div>
+      <div class="vs-activity-icon">⎇</div>
+      <div class="vs-activity-icon">🐛</div>
+      <div class="vs-activity-icon">⚙️</div>
+    </div>
+
+    <div class="vs-sidebar">
+      <div class="vs-explorer">Explorer</div>
+      <div class="vs-folder">src</div>
+      <div class="vs-file vs-file-active">app.ts</div>
+      <div class="vs-file">utils.ts</div>
+      <div class="vs-file">types.ts</div>
+      <div class="vs-folder">components</div>
+      <div class="vs-file">Header.tsx</div>
+      <div class="vs-file">Footer.tsx</div>
+      <div class="vs-file">README.md</div>
+      <div class="vs-file">package.json</div>
+    </div>
+
+    <div class="vs-main-area">
+      <div class="vs-editor">
+        <div class="vs-tab-bar">
+          <div class="vs-tab vs-tab-active">
+            <span>app.ts</span>
+            <span class="vs-tab-close">×</span>
+          </div>
+          <div class="vs-tab">
+            <span>utils.ts</span>
+            <span class="vs-tab-close">×</span>
+          </div>
+          <div class="vs-tab">
+            <span>types.ts</span>
+            <span class="vs-tab-close">×</span>
+          </div>
+        </div>
+
+        <div class="vs-content">
+          <div class="vs-comment vs-comment-dim">
+            <span class="vs-comment-author">Dev</span>
+            <span class="vs-comment-time">2 hours ago</span>
+            <div class="vs-comment-body">// TODO: Refactor this function for better performance</div>
+          </div>
+
+          <div>
+            <span class="vs-line-number">1</span><span class="vs-code"><span class="vs-keyword">import</span> { useState } <span class="vs-keyword">from</span> <span class="vs-string">'react'</span>;</span>
+          </div>
+          <div>
+            <span class="vs-line-number">2</span><span class="vs-code"></span>
+          </div>
+          <div>
+            <span class="vs-line-number">3</span><span class="vs-code"><span class="vs-keyword">export function</span> <span class="vs-function">initializeApp</span>() {</span>
+          </div>
+          <div>
+            <span class="vs-line-number">4</span><span class="vs-code">  <span class="vs-keyword">const</span> [state, setState] = <span class="vs-function">useState</span>(<span class="vs-string">'initial'</span>);</span>
+          </div>
+          <div>
+            <span class="vs-line-number">5</span><span class="vs-code"></span>
+          </div>
+          <div>
+            <span class="vs-line-number">6</span><span class="vs-code">  <span class="vs-comment-text">// Initialize application state and services</span></span>
+          </div>
+          <div>
+            <span class="vs-line-number">7</span><span class="vs-code">  <span class="vs-keyword">return</span> { state, setState };</span>
+          </div>
+          <div>
+            <span class="vs-line-number">8</span><span class="vs-code">}</span>
+          </div>
+
+          <div class="vs-comment">
+            <span class="vs-comment-author">You</span>
+            <span class="vs-comment-time">Just now</span>
+            <div class="vs-comment-body">// Added error handling for state initialization</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="vs-terminal-panel">
+        <div class="vs-terminal-header">
+          <div class="vs-terminal-tab active">Terminal</div>
+          <div class="vs-terminal-tab">Problems</div>
+          <div class="vs-terminal-tab">Output</div>
+        </div>
+        <div class="vs-terminal-content">
+          <div class="vs-terminal-line">$ npm run build</div>
+          <div class="vs-terminal-line vs-terminal-success">✓ Build completed successfully</div>
+          <div class="vs-terminal-line vs-terminal-warning">⚠ 1 warning found</div>
+          <div class="vs-terminal-line">$ _</div>
+        </div>
+      </div>
+
+      <div class="vs-status-bar">
+        <div class="vs-status-left">
+          <span class="vs-status-item">✓ 0 Errors</span>
+          <span class="vs-status-item">⚠ 1 Warning</span>
+        </div>
+        <div class="vs-status-right">
+          <span class="vs-status-item">Line 8, Col 12</span>
+          <span class="vs-status-item">UTF-8</span>
+          <span class="vs-status-item">TypeScript React</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

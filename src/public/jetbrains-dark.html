@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JetBrains IDE - Dark Mode Frame</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+      background: #2b2b2b;
+      color: #a9b7c6;
+    }
+
+    .jetbrains-context {
+      display: flex;
+      flex-direction: column;
+      min-height: 400px;
+      background: #2b2b2b;
+      border-radius: 8px;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .jb-navigation-bar {
+      background: #313335;
+      border-bottom: 1px solid #4e5254;
+      padding: 4px 8px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .jb-menu-item {
+      padding: 4px 8px;
+      font-size: 12px;
+      color: #a9b7c6;
+      cursor: pointer;
+      border-radius: 3px;
+    }
+
+    .jb-menu-item:hover {
+      background: #4e5254;
+    }
+
+    .jb-toolbar {
+      background: #313335;
+      border-bottom: 1px solid #4e5254;
+      padding: 4px 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .jb-tool-btn {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: #a9b7c6;
+      cursor: pointer;
+      border-radius: 3px;
+    }
+
+    .jb-tool-btn:hover {
+      background: #4e5254;
+    }
+
+    .jb-content-area {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    .jb-sidebar {
+      width: 250px;
+      background: #313335;
+      border-right: 1px solid #4e5254;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .jb-project-header {
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #a9b7c6;
+      border-bottom: 1px solid #4e5254;
+    }
+
+    .jb-explorer {
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #808080;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .jb-file-tree {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .jb-folder {
+      margin: 2px 0;
+    }
+
+    .jb-folder-name {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      font-size: 13px;
+      color: #a9b7c6;
+      cursor: pointer;
+    }
+
+    .jb-folder-name::before {
+      content: '▼';
+      font-size: 10px;
+      color: #808080;
+    }
+
+    .jb-file {
+      padding: 2px 8px 2px 24px;
+      font-size: 13px;
+      color: #a9b7c6;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .jb-file:hover {
+      background: #4e5254;
+    }
+
+    .jb-file-active {
+      background: #4b6eaf;
+      color: #ffffff;
+    }
+
+    .jb-file::before {
+      content: '📄';
+      font-size: 12px;
+      margin-right: 4px;
+    }
+
+    .jb-main-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .jb-editor {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .jb-tab-bar {
+      display: flex;
+      background: #313335;
+      border-bottom: 1px solid #4e5254;
+    }
+
+    .jb-tab {
+      padding: 6px 12px;
+      font-size: 12px;
+      color: #a9b7c6;
+      background: #3c3f41;
+      border-right: 1px solid #4e5254;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .jb-tab-active {
+      background: #2b2b2b;
+      color: #ffffff;
+      border-top: 2px solid #6c8eba;
+    }
+
+    .jb-tab-close {
+      font-size: 10px;
+      color: #808080;
+      cursor: pointer;
+    }
+
+    .jb-content {
+      flex: 1;
+      padding: 12px;
+      background: #2b2b2b;
+      overflow-y: auto;
+      font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .jb-comment {
+      padding: 4px 0;
+    }
+
+    .jb-comment-dim {
+      opacity: 0.5;
+    }
+
+    .jb-comment-author {
+      font-weight: 600;
+      color: #cc7832;
+      margin-right: 6px;
+    }
+
+    .jb-comment-time {
+      font-size: 11px;
+      color: #808080;
+    }
+
+    .jb-comment-body {
+      color: #a9b7c6;
+      margin-top: 2px;
+      padding-left: 12px;
+    }
+
+    .jb-line-number {
+      color: #606366;
+      margin-right: 12px;
+      user-select: none;
+      text-align: right;
+    }
+
+    .jb-code {
+      color: #a9b7c6;
+    }
+
+    .jb-keyword {
+      color: #cc7832;
+    }
+
+    .jb-string {
+      color: #6a8759;
+    }
+
+    .jb-function {
+      color: #ffc66d;
+    }
+
+    .jb-class {
+      color: #a9b7c6;
+    }
+
+    .jb-comment-text {
+      color: #808080;
+    }
+
+    .jb-status-bar {
+      padding: 2px 12px;
+      background: #313335;
+      border-top: 1px solid #4e5254;
+      font-size: 11px;
+      color: #a9b7c6;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .jb-status-left, .jb-status-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .jb-status-item {
+      cursor: pointer;
+    }
+
+    .jb-status-item:hover {
+      color: #ffffff;
+    }
+
+    .jb-breadcrumb {
+      padding: 4px 12px;
+      background: #2b2b2b;
+      border-bottom: 1px solid #4e5254;
+      font-size: 11px;
+      color: #808080;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .jb-breadcrumb span {
+      cursor: pointer;
+    }
+
+    .jb-breadcrumb span:hover {
+      color: #a9b7c6;
+    }
+
+    .jb-breadcrumb-separator {
+      color: #606366;
+    }
+  </style>
+</head>
+<body>
+  <div class="jetbrains-context">
+    <div class="jb-navigation-bar">
+      <span class="jb-menu-item">File</span>
+      <span class="jb-menu-item">Edit</span>
+      <span class="jb-menu-item">View</span>
+      <span class="jb-menu-item">Navigate</span>
+      <span class="jb-menu-item">Code</span>
+      <span class="jb-menu-item">Refactor</span>
+      <span class="jb-menu-item">Build</span>
+      <span class="jb-menu-item">Run</span>
+      <span class="jb-menu-item">Tools</span>
+    </div>
+
+    <div class="jb-toolbar">
+      <div class="jb-tool-btn">📁</div>
+      <div class="jb-tool-btn">💾</div>
+      <div class="jb-tool-btn">🔍</div>
+      <div class="jb-tool-btn">▶️</div>
+      <div class="jb-tool-btn">🐛</div>
+      <div class="jb-tool-btn">⚙️</div>
+    </div>
+
+    <div class="jb-content-area">
+      <div class="jb-sidebar">
+        <div class="jb-project-header">my-project</div>
+        <div class="jb-explorer">Project</div>
+        <div class="jb-file-tree">
+          <div class="jb-folder">
+            <div class="jb-folder-name">src</div>
+            <div class="jb-file jb-file-active">App.java</div>
+            <div class="jb-file">Utils.java</div>
+            <div class="jb-file">Config.java</div>
+          </div>
+          <div class="jb-folder">
+            <div class="jb-folder-name">test</div>
+            <div class="jb-file">AppTest.java</div>
+          </div>
+          <div class="jb-folder">
+            <div class="jb-folder-name">resources</div>
+            <div class="jb-file">application.properties</div>
+          </div>
+          <div class="jb-file">pom.xml</div>
+          <div class="jb-file">README.md</div>
+        </div>
+      </div>
+
+      <div class="jb-main-area">
+        <div class="jb-breadcrumb">
+          <span>my-project</span>
+          <span class="jb-breadcrumb-separator›</span>
+          <span>src</span>
+          <span class="jb-breadcrumb-separator›</span>
+          <span>App.java</span>
+        </div>
+
+        <div class="jb-editor">
+          <div class="jb-tab-bar">
+            <div class="jb-tab jb-tab-active">
+              <span>App.java</span>
+              <span class="jb-tab-close">×</span>
+            </div>
+            <div class="jb-tab">
+              <span>Utils.java</span>
+              <span class="jb-tab-close">×</span>
+            </div>
+            <div class="jb-tab">
+              <span>Config.java</span>
+              <span class="jb-tab-close">×</span>
+            </div>
+          </div>
+
+          <div class="jb-content">
+            <div class="jb-comment jb-comment-dim">
+              <span class="jb-comment-author">Developer</span>
+              <span class="jb-comment-time">2 hours ago</span>
+              <div class="jb-comment-body">// TODO: Optimize this algorithm for better performance</div>
+            </div>
+
+            <div style="display: flex;">
+              <span class="jb-line-number">1</span><span class="jb-code"><span class="jb-keyword">package</span> com.example.app;</span>
+            </div>
+            <div style="display: flex;">
+              <span class="jb-line-number">2</span><span class="jb-code"></span>
+            </div>
+            <div style="display: flex;">
+              <span class="jb-line-number">3</span><span class="jb-code"><span class="jb-keyword">public class</span> <span class="jb-class">App</span> {</span>
+            </div>
+            <div style="display: flex;">
+              <span class="jb-line-number">4</span><span class="jb-code">    <span class="jb-keyword">public static void</span> <span class="jb-function">main</span>(<span class="jb-class">String</span>[] args) {</span>
+            </div>
+            <div style="display: flex;">
+              <span class="jb-line-number">5</span><span class="jb-code">        <span class="jb-class">System</span>.out.<span class="jb-function">println</span>(<span class="jb-string">"Hello, World!"</span>);</span>
+            </div>
+            <div style="display: flex;">
+              <span class="jb-line-number">6</span><span class="jb-code">    }</span>
+            </div>
+            <div style="display: flex;">
+              <span class="jb-line-number">7</span><span class="jb-code">}</span>
+            </div>
+
+            <div class="jb-comment">
+              <span class="jb-comment-author">You</span>
+              <span class="jb-comment-time">Just now</span>
+              <div class="jb-comment-body">// Added input validation and error handling</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="jb-status-bar">
+          <div class="jb-status-left">
+            <span class="jb-status-item">✓</span>
+            <span class="jb-status-item">JUnit: OK</span>
+            <span class="jb-status-item">Build: Success</span>
+          </div>
+          <div class="jb-status-right">
+            <span class="jb-status-item">Line 7, Col 4</span>
+            <span class="jb-status-item">UTF-8</span>
+            <span class="jb-status-item">4 spaces</span>
+            <span class="jb-status-item">Java 17</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Evernote - Dark Mode Frame</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a1a;
+      color: #e0e0e0;
+    }
+
+    .evernote-context {
+      display: flex;
+      min-height: 350px;
+      background: #1a1a1a;
+      border-radius: 8px;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .ev-sidebar {
+      width: 200px;
+      background: #2a2a2a;
+      border-right: 1px solid #3a3a3a;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .ev-sidebar-header {
+      padding: 16px 12px;
+      border-bottom: 1px solid #3a3a3a;
+    }
+
+    .ev-logo {
+      font-weight: 700;
+      font-size: 16px;
+      color: #00a82d;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .ev-logo::before {
+      content: '🐘';
+      font-size: 18px;
+    }
+
+    .ev-notebook-list {
+      padding: 8px;
+    }
+
+    .ev-notebook-item {
+      padding: 8px 12px;
+      font-size: 13px;
+      color: #e0e0e0;
+      cursor: pointer;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 2px;
+    }
+
+    .ev-notebook-item:hover {
+      background: #3a3a3a;
+    }
+
+    .ev-notebook-item.active {
+      background: #00a82d;
+      color: #ffffff;
+    }
+
+    .ev-notebook-item::before {
+      content: '📒';
+      font-size: 14px;
+    }
+
+    .ev-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .ev-notebook-header {
+      padding: 16px 20px;
+      background: #1a1a1a;
+      border-bottom: 1px solid #3a3a3a;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .ev-notebook-icon {
+      font-size: 20px;
+    }
+
+    .ev-notebook-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #e0e0e0;
+    }
+
+    .ev-note-list {
+      flex: 1;
+      padding: 16px 20px;
+      overflow-y: auto;
+      background: #1a1a1a;
+    }
+
+    .ev-note {
+      background: #2a2a2a;
+      border: 1px solid #3a3a3a;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .ev-note:hover {
+      border-color: #00a82d;
+      box-shadow: 0 2px 8px rgba(0, 168, 45, 0.2);
+    }
+
+    .ev-note-dim {
+      opacity: 0.6;
+    }
+
+    .ev-note-title {
+      font-size: 15px;
+      font-weight: 500;
+      color: #e0e0e0;
+      margin-bottom: 8px;
+    }
+
+    .ev-note-preview {
+      font-size: 13px;
+      color: #a0a0a0;
+      margin-bottom: 8px;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .ev-note-content {
+      font-size: 14px;
+      color: #e0e0e0;
+      line-height: 1.5;
+      margin-bottom: 8px;
+    }
+
+    .ev-note-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 11px;
+      color: #6a6a6a;
+    }
+
+    .ev-link-card {
+      background: #1a1a1a;
+      border: 1px solid #3a3a3a;
+      border-radius: 6px;
+      overflow: hidden;
+      margin: 8px 0;
+    }
+
+    .ev-link-image {
+      width: 100%;
+      height: 120px;
+      background: linear-gradient(135deg, #00a82d 0%, #007820 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ev-link-image::before {
+      content: '🔗';
+      font-size: 24px;
+    }
+
+    .ev-link-domain {
+      padding: 8px 12px;
+      font-size: 12px;
+      color: #00a82d;
+      font-weight: 500;
+    }
+
+    .ev-tag {
+      display: inline-block;
+      padding: 4px 8px;
+      background: #3a3a3a;
+      color: #a0a0a0;
+      border-radius: 12px;
+      font-size: 11px;
+      margin-right: 6px;
+    }
+
+    .ev-search-bar {
+      padding: 0 20px 12px;
+    }
+
+    .ev-search-input {
+      width: 100%;
+      padding: 8px 12px;
+      background: #2a2a2a;
+      border: 1px solid #3a3a3a;
+      border-radius: 6px;
+      color: #e0e0e0;
+      font-size: 13px;
+    }
+
+    .ev-search-input::placeholder {
+      color: #6a6a6a;
+    }
+  </style>
+</head>
+<body>
+  <div class="evernote-context">
+    <div class="ev-sidebar">
+      <div class="ev-sidebar-header">
+        <div class="ev-logo">Evernote</div>
+      </div>
+      <div class="ev-notebook-list">
+        <div class="ev-notebook-item">All Notes</div>
+        <div class="ev-notebook-item">Notebooks</div>
+        <div class="ev-notebook-item active">Project Notes</div>
+        <div class="ev-notebook-item">Personal</div>
+        <div class="ev-notebook-item">Archive</div>
+      </div>
+    </div>
+
+    <div class="ev-main">
+      <div class="ev-notebook-header">
+        <div class="ev-notebook-icon">📒</div>
+        <div class="ev-notebook-title">Project Notes</div>
+      </div>
+
+      <div class="ev-search-bar">
+        <input class="ev-search-input" placeholder="Search notes..." />
+      </div>
+
+      <div class="ev-note-list">
+        <div class="ev-note ev-note-dim">
+          <div class="ev-note-title">Meeting Notes - Q1 Planning</div>
+          <div class="ev-note-preview">Discussed quarterly objectives and resource allocation for the upcoming projects...</div>
+          <div class="ev-note-meta">
+            <span>Mar 15, 2024</span>
+            <span class="ev-tag">planning</span>
+            <span class="ev-tag">meeting</span>
+          </div>
+        </div>
+
+        <div class="ev-note ev-note-dim">
+          <div class="ev-note-title">Research: API Documentation</div>
+          <div class="ev-note-preview">Collected resources and best practices for REST API design and documentation...</div>
+          <div class="ev-note-meta">
+            <span>Mar 12, 2024</span>
+            <span class="ev-tag">research</span>
+            <span class="ev-tag">api</span>
+          </div>
+        </div>
+
+        <div class="ev-note">
+          <div class="ev-note-title">Design System Reference</div>
+          <div class="ev-note-content">
+            Design system components and style guidelines for the project.
+            <div class="ev-link-card">
+              <div class="ev-link-image"></div>
+              <div class="ev-link-domain">design.example.com</div>
+            </div>
+          </div>
+          <div class="ev-note-meta">
+            <span>Just now</span>
+            <span class="ev-tag">design</span>
+            <span class="ev-tag">reference</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

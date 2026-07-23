@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Hash on Compare Mode</title>
+    <style>
+        body { font-family: system-ui; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .test-result { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .pass { background: #d4edda; color: #155724; }
+        .fail { background: #f8d7da; color: #721c24; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Test: URL Hash Updates on Compare Mode</h1>
+    <div id="results"></div>
+    <pre id="log"></pre>
+
+    <script>
+        const results = document.getElementById('results');
+        const log = document.getElementById('log');
+        let logMessages = [];
+
+        function logMsg(msg) {
+            logMessages.push(msg);
+            log.textContent = logMessages.join('\n');
+        }
+
+        function addResult(name, passed, details) {
+            const div = document.createElement('div');
+            div.className = `test-result ${passed ? 'pass' : 'fail'}`;
+            div.innerHTML = `<strong>${passed ? '✓' : '✗'} ${name}</strong><br>${details}`;
+            results.appendChild(div);
+        }
+
+        // Test cases
+        async function runTests() {
+            logMsg('Starting compare mode hash tests...');
+
+            // Test 1: Verify handleCompareSubmit calls updateHash with b parameter
+            logMsg('\nTest 1: Check if handleCompareSubmit calls updateHash with b parameter...');
+            const appJs = await fetch('/app.js').then(r => r.text());
+            const hasCompareHashUpdate = appJs.includes('updateHash({ b:') &&
+                appJs.match(/handleCompareSubmit[\s\S]{0,1000}updateHash/);
+            addResult(
+                'handleCompareSubmit calls updateHash with b parameter',
+                !!hasCompareHashUpdate,
+                'Found updateHash call with b parameter in handleCompareSubmit function'
+            );
+            logMsg(`Result: ${!!hasCompareHashUpdate}`);
+
+            // Test 2: Verify updateHash uses encodeURIComponent for b parameter
+            logMsg('\nTest 2: Check if updateHash encodes the b parameter...');
+            const usesEncodeComponent = appJs.includes('encodeURIComponent(b)') ||
+                appJs.includes('encodeURIComponent(normalizedUrl2)');
+            addResult(
+                'updateHash uses encodeURIComponent for b parameter',
+                usesEncodeComponent,
+                'Found encodeURIComponent for proper URL encoding'
+            );
+            logMsg(`Result: ${usesEncodeComponent}`);
+
+            // Test 3: Verify switchMode updates hash when leaving compare mode
+            logMsg('\nTest 3: Check if switchMode calls updateHash when exiting compare mode...');
+            const hasExitCompareUpdate = appJs.includes('wasCompareMode') &&
+                appJs.includes('mode !== \'compare\'') &&
+                appJs.match(/switchMode[\s\S]{0,2000}updateHash\(\)/);
+            addResult(
+                'switchMode calls updateHash when leaving compare mode',
+                !!hasExitCompareUpdate,
+                'Found hash update logic when switching away from compare mode'
+            );
+            logMsg(`Result: ${!!hasExitCompareUpdate}`);
+
+            // Test 4: Verify updateHash condition for compare mode
+            logMsg('\nTest 4: Check if updateHash checks currentMode === "compare"...');
+            const hasModeCheck = appJs.includes('currentMode === \'compare\'') &&
+                appJs.includes('compareData.after');
+            addResult(
+                'updateHash checks currentMode and compareData.after',
+                hasModeCheck,
+                'Found proper condition checks for compare mode hash'
+            );
+            logMsg(`Result: ${hasModeCheck}`);
+
+            // Test 5: Verify hash format is #mode=compare&b=<encoded-url>
+            logMsg('\nTest 5: Check hash format in updateHash...');
+            const correctHashFormat = appJs.includes('mode=compare') &&
+                appJs.includes('b=') &&
+                appJs.includes('parts.push(`mode=compare`)');
+            addResult(
+                'Hash format includes mode=compare and b parameters',
+                correctHashFormat,
+                'Found correct hash format construction'
+            );
+            logMsg(`Result: ${correctHashFormat}`);
+
+            // Test 6: Verify history.replaceState is used (no page reload)
+            logMsg('\nTest 6: Check if updateHash uses history.replaceState...');
+            const usesReplaceState = appJs.includes('history.replaceState');
+            addResult(
+                'updateHash uses history.replaceState (no page reload)',
+                usesReplaceState,
+                'Found history.replaceState for hash updates without reload'
+            );
+            logMsg(`Result: ${usesReplaceState}`);
+
+            logMsg('\n\nTests completed!');
+        }
+
+        // Run tests on load
+        runTests().catch(err => {
+            logMsg('Error running tests: ' + err.message);
+            addResult('Test suite error', false, err.message);
+        });
+    </script>
+</body>
+</html>

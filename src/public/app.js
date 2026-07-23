@@ -511,6 +511,7 @@ document.getElementById('globalThemeToggle')?.addEventListener('click', toggleGl
 
 // ── Mode switching ──
 function switchMode(mode) {
+  const wasCompareMode = currentMode === 'compare';
   currentMode = mode;
   if (mode === 'url') {
     urlMode.classList.remove('hidden');
@@ -552,6 +553,13 @@ function switchMode(mode) {
     navInspect?.classList.remove('active');
     navPaste?.classList.remove('active');
     navCompare?.classList.remove('active');
+  }
+
+  // Update hash: remove compare mode parameters when leaving compare mode
+  // Since currentMode is no longer 'compare', updateHash will automatically skip
+  // adding the mode=compare and b= parameters
+  if (wasCompareMode && mode !== 'compare') {
+    updateHash();
   }
 }
 

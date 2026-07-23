@@ -14,9 +14,14 @@ const PLATFORMS = [
   { id: 'twitter', name: 'X (Twitter)', category: 'Social & Microblogging', weight: 10 },
   { id: 'linkedin', name: 'LinkedIn', category: 'Social & Microblogging', weight: 9 },
   { id: 'reddit', name: 'Reddit', category: 'Social & Microblogging', weight: 7 },
+  { id: 'youtube', name: 'YouTube', category: 'Social & Microblogging', weight: 8 },
+  { id: 'instagram', name: 'Instagram', category: 'Social & Microblogging', weight: 7 },
+  { id: 'threads', name: 'Threads', category: 'Social & Microblogging', weight: 6 },
+  { id: 'tiktok', name: 'TikTok', category: 'Social & Microblogging', weight: 6 },
+  { id: 'producthunt', name: 'Product Hunt', category: 'Social & Microblogging', weight: 5 },
   { id: 'mastodon', name: 'Mastodon', category: 'Social & Microblogging', weight: 4 },
   { id: 'bluesky', name: 'Bluesky', category: 'Social & Microblogging', weight: 5 },
-  { id: 'threads', name: 'Threads', category: 'Social & Microblogging', weight: 6 },
+  { id: 'hackernews', name: 'Hacker News', category: 'Social & Microblogging', weight: 4 },
   { id: 'tumblr', name: 'Tumblr', category: 'Social & Microblogging', weight: 3 },
   { id: 'pinterest', name: 'Pinterest', category: 'Social & Microblogging', weight: 5 },
   // Messaging
@@ -32,19 +37,27 @@ const PLATFORMS = [
   { id: 'line', name: 'Line', category: 'Messaging', weight: 4 },
   { id: 'kakaotalk', name: 'KakaoTalk', category: 'Messaging', weight: 3 },
   // Collaboration
-  { id: 'notion', name: 'Notion', category: 'Collaboration & Productivity', weight: 6 },
-  { id: 'jira', name: 'Jira / Confluence', category: 'Collaboration & Productivity', weight: 5 },
   { id: 'github', name: 'GitHub', category: 'Collaboration & Productivity', weight: 7 },
+  { id: 'notion', name: 'Notion', category: 'Collaboration & Productivity', weight: 6 },
+  { id: 'gitlab', name: 'GitLab', category: 'Collaboration & Productivity', weight: 5 },
+  { id: 'jira', name: 'Jira / Confluence', category: 'Collaboration & Productivity', weight: 5 },
+  { id: 'asana', name: 'Asana', category: 'Collaboration & Productivity', weight: 4 },
+  { id: 'evernote', name: 'Evernote', category: 'Collaboration & Productivity', weight: 4 },
   { id: 'trello', name: 'Trello', category: 'Collaboration & Productivity', weight: 4 },
   { id: 'figma', name: 'Figma', category: 'Collaboration & Productivity', weight: 4 },
   // Content
   { id: 'medium', name: 'Medium', category: 'Content Platforms', weight: 4 },
+  { id: 'devto', name: 'Dev.to', category: 'Content Platforms', weight: 5 },
   { id: 'substack', name: 'Substack', category: 'Content Platforms', weight: 4 },
   // Email
   { id: 'outlook', name: 'Outlook', category: 'Email', weight: 5 },
   { id: 'gmail', name: 'Gmail', category: 'Email', weight: 6 },
   // RSS
   { id: 'feedly', name: 'Feedly / RSS', category: 'RSS / Readers', weight: 3 },
+  // Developer Tools
+  { id: 'stackoverflow', name: 'Stack Overflow', category: 'Developer Tools', weight: 6 },
+  { id: 'vscode', name: 'VS Code', category: 'Developer Tools', weight: 5 },
+  { id: 'jetbrains', name: 'JetBrains IDEs', category: 'Developer Tools', weight: 4 },
 ];
 
 /**
@@ -166,6 +179,42 @@ function scorePlatform(platformId, meta, imageProbe) {
       break;
     }
 
+    case 'youtube': {
+      if (!ogTitle && !meta.title) { points -= 50; issues.push('No title'); }
+      if (!ogDesc && !meta.description) { points -= 25; issues.push('No description'); }
+      if (!hasImage) { points -= 30; issues.push('Missing og:image'); }
+      else if (!imageMeetsRecommended) { points -= 15; issues.push('YouTube recommends 1280×720 (16:9)'); }
+      break;
+    }
+
+    case 'instagram': {
+      if (!ogTitle && !meta.title) { points -= 50; issues.push('No title'); }
+      if (!hasImage) { points -= 40; issues.push('Missing og:image'); }
+      else if (!imageIsHttps) { points -= 20; issues.push('Instagram requires HTTPS images'); }
+      break;
+    }
+
+    case 'tiktok': {
+      if (!ogTitle && !meta.title) { points -= 50; issues.push('No title'); }
+      if (!hasImage) { points -= 35; issues.push('Missing og:image'); }
+      break;
+    }
+
+    case 'producthunt': {
+      if (!ogTitle && !meta.title) { points -= 50; issues.push('No title'); }
+      if (!ogDesc && !meta.description) { points -= 30; issues.push('No description — PH shows this prominently'); }
+      if (!hasImage) { points -= 35; issues.push('Missing og:image'); }
+      else if (!imageMeetsMin) { points -= 20; issues.push('Product Hunt needs min 200×200px'); }
+      break;
+    }
+
+    case 'hackernews': {
+      if (!ogTitle && !meta.title) { points -= 60; issues.push('No title — HN relies heavily on title'); }
+      if (!ogDesc && !meta.description) { points -= 15; issues.push('No description'); }
+      if (!hasImage) { points -= 10; issues.push('Missing og:image (HN shows images)'); }
+      break;
+    }
+
     case 'slack': {
       if (!ogTitle) { points -= 40; issues.push('Missing og:title'); }
       if (!ogDesc) { points -= 20; issues.push('Missing og:description'); }
@@ -229,7 +278,10 @@ function scorePlatform(platformId, meta, imageProbe) {
     case 'jira':
     case 'github':
     case 'trello':
-    case 'figma': {
+    case 'figma':
+    case 'gitlab':
+    case 'asana':
+    case 'evernote': {
       if (!ogTitle && !meta.title) { points -= 50; issues.push('No title'); }
       if (!hasImage) { points -= 25; issues.push('Missing og:image'); }
       break;
@@ -247,6 +299,20 @@ function scorePlatform(platformId, meta, imageProbe) {
     case 'feedly': {
       if (!hasImage) { points -= 30; issues.push('Missing og:image (Feedly uses this for feed thumbnails)'); }
       if (!ogTitle && !meta.title) { points -= 40; issues.push('No title'); }
+      break;
+    }
+
+    case 'stackoverflow': {
+      if (!ogTitle && !meta.title) { points -= 60; issues.push('No title'); }
+      if (!ogDesc && !meta.description) { points -= 25; issues.push('No description'); }
+      if (!hasImage) { points -= 20; issues.push('Missing og:image'); }
+      break;
+    }
+
+    case 'vscode':
+    case 'jetbrains': {
+      if (!ogTitle && !meta.title) { points -= 50; issues.push('No title'); }
+      if (!hasImage) { points -= 30; issues.push('Missing og:image'); }
       break;
     }
   }

@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RSS Reader Context Frame Verification</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 40px 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+      background: #f5f5f5;
+      color: #333;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    html[data-theme='dark'] body {
+      background: #1a1a1a;
+      color: #e0e0e0;
+    }
+
+    .test-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .test-header h1 {
+      font-size: 36px;
+      margin-bottom: 12px;
+      color: #21293c;
+    }
+
+    html[data-theme='dark'] .test-header h1 {
+      color: #e0e0e0;
+    }
+
+    .test-header p {
+      color: #5f6b7c;
+      font-size: 16px;
+    }
+
+    html[data-theme='dark'] .test-header p {
+      color: #a0a0a0;
+    }
+
+    .acceptance-criteria {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 40px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    html[data-theme='dark'] .acceptance-criteria {
+      background: #2a2a2a;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .acceptance-criteria h2 {
+      font-size: 20px;
+      margin-bottom: 16px;
+      color: #059669;
+    }
+
+    .criteria-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .criteria-list li {
+      padding: 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+
+    .criteria-list li:before {
+      content: '✓';
+      color: #22c55e;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .platform-section {
+      margin-bottom: 60px;
+    }
+
+    .platform-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #e5e7eb;
+    }
+
+    html[data-theme='dark'] .platform-header {
+      border-color: #3a3a3a;
+    }
+
+    .platform-icon {
+      font-size: 32px;
+    }
+
+    .platform-title {
+      font-size: 24px;
+      color: #21293c;
+    }
+
+    html[data-theme='dark'] .platform-title {
+      color: #e0e0e0;
+    }
+
+    .platform-desc {
+      color: #6b7280;
+      font-size: 14px;
+      margin-top: 4px;
+    }
+
+    html[data-theme='dark'] .platform-desc {
+      color: #a0a0a0;
+    }
+
+    .demo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 24px;
+    }
+
+    .demo-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    html[data-theme='dark'] .demo-card {
+      background: #2a2a2a;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .demo-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #2bb24a;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .demo-name {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #21293c;
+    }
+
+    html[data-theme='dark'] .demo-name {
+      color: #e0e0e0;
+    }
+
+    .demo-features {
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 16px;
+    }
+
+    html[data-theme='dark'] .demo-features {
+      color: #a0a0a0;
+    }
+
+    .frame-container {
+      margin: 16px 0;
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      background: linear-gradient(135deg, #2bb24a, #22a072);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(43, 178, 74, 0.3);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .theme-toggle:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(43, 178, 74, 0.4);
+    }
+
+    .theme-info {
+      position: fixed;
+      top: 70px;
+      right: 20px;
+      padding: 8px 12px;
+      background: rgba(43, 178, 74, 0.1);
+      border: 1px solid rgba(43, 178, 74, 0.3);
+      border-radius: 6px;
+      font-size: 12px;
+      color: #2bb24a;
+      z-index: 999;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      background: #dcfce7;
+      color: #166534;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+
+    html[data-theme='dark'] .status-badge {
+      background: #14532d;
+      color: #86efac;
+    }
+
+    @media (max-width: 768px) {
+      .demo-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body data-theme="light">
+  <button class="theme-toggle" onclick="toggleTheme()">🌓 Toggle Dark/Light Mode</button>
+  <div class="theme-info">Current: <span id="theme-label">Light</span></div>
+
+  <div class="test-header">
+    <h1>📰 RSS Reader Context Frame Verification</h1>
+    <p>Comprehensive verification of RSS reader platform frames with Feedly-style UI</p>
+  </div>
+
+  <div class="acceptance-criteria">
+    <h2>✅ Acceptance Criteria</h2>
+    <ul class="criteria-list">
+      <li>RSS frame shows Feedly-style article list UI</li>
+      <li>Platform-appropriate chrome with authentic UI elements (feed list, article preview, mark read button)</li>
+      <li>Neutral placeholder content with sample articles</li>
+      <li>Dark/light mode toggle with theme-aware styling</li>
+      <li>Visually distinct and authentic to RSS readers</li>
+    </ul>
+  </div>
+
+  <!-- Feedly Platform Section -->
+  <div class="platform-section">
+    <div class="platform-header">
+      <div class="platform-icon">📰</div>
+      <div>
+        <div class="platform-title">Feedly RSS Reader <span class="status-badge">1 platform</span></div>
+        <div class="platform-desc">Feed aggregation with three-panel layout, sidebar navigation, and article management</div>
+      </div>
+    </div>
+
+    <div class="demo-grid">
+      <div class="demo-card">
+        <div class="demo-label">Sample 1: Tech News Feed</div>
+        <div class="demo-name">Technology & Development</div>
+        <div class="demo-features">Article list with source attribution, timestamps, and unread indicators</div>
+        <div class="frame-container" id="feedly-demo-1"></div>
+      </div>
+
+      <div class="demo-card">
+        <div class="demo-label">Sample 2: Design Blog</div>
+        <div class="demo-name">Design & UX Inspiration</div>
+        <div class="demo-features">Visual feed with article previews and engagement metrics</div>
+        <div class="frame-container" id="feedly-demo-2"></div>
+      </div>
+
+      <div class="demo-card">
+        <div class="demo-label">Sample 3: Science Updates</div>
+        <div class="demo-name">Science & Research</div>
+        <div class="demo-features">Academic and research content with detailed descriptions</div>
+        <div class="frame-container" id="feedly-demo-3"></div>
+      </div>
+
+      <div class="demo-card">
+        <div class="demo-label">Sample 4: Productivity Content</div>
+        <div class="demo-name">Productivity & Workflow</div>
+        <div class="demo-features">Professional development articles with practical tips</div>
+        <div class="frame-container" id="feedly-demo-4"></div>
+      </div>
+
+      <div class="demo-card">
+        <div class="demo-label">UI Feature: Mark as Read</div>
+        <div class="demo-name">Article Management</div>
+        <div class="demo-features">Interactive mark as read button with visual feedback</div>
+        <div class="frame-container" id="feedly-demo-mark"></div>
+      </div>
+
+      <div class="demo-card">
+        <div class="demo-label">UI Feature: Dark/Light Mode</div>
+        <div class="demo-name">Theme-aware Styling</div>
+        <div class="demo-features">CSS custom properties for seamless theme switching</div>
+        <div class="frame-container" id="feedly-demo-theme"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="platform-frames.js"></script>
+  <script>
+    let currentTheme = 'light';
+
+    function toggleTheme() {
+      currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+      document.body.setAttribute('data-theme', currentTheme);
+      document.getElementById('theme-label').textContent =
+        currentTheme === 'light' ? 'Light' : 'Dark';
+      renderAllDemos();
+    }
+
+    function renderFeedlyDemo(container, content) {
+      container.innerHTML = buildContextFrame('feedly', content, currentTheme);
+    }
+
+    function renderDemo1() {
+      const container = document.getElementById('feedly-demo-1');
+      const content = {
+        feedTitle: 'Tech News Daily',
+        unreadCount: '12',
+        feedName: 'TechCrunch',
+        title: 'New AI Model Breaks Performance Records',
+        description: 'A new artificial intelligence system has achieved unprecedented results on benchmark tests, revolutionizing the field of machine learning.',
+        timeAgo: '2 hours ago'
+      };
+      renderFeedlyDemo(container, content);
+    }
+
+    function renderDemo2() {
+      const container = document.getElementById('feedly-demo-2');
+      const content = {
+        feedTitle: 'Design Inspiration',
+        unreadCount: '8',
+        feedName: 'Smashing Magazine',
+        title: '10 UI Design Trends for 2024',
+        description: 'Explore the latest design trends shaping user interfaces, from glassmorphism to neomorphism and beyond.',
+        timeAgo: '5 hours ago'
+      };
+      renderFeedlyDemo(container, content);
+    }
+
+    function renderDemo3() {
+      const container = document.getElementById('feedly-demo-3');
+      const content = {
+        feedTitle: 'Science Daily',
+        unreadCount: '23',
+        feedName: 'Nature',
+        title: 'Breakthrough in Renewable Energy Storage',
+        description: 'Scientists develop new battery technology that could transform how we store and use renewable energy.',
+        timeAgo: '3 hours ago'
+      };
+      renderFeedlyDemo(container, content);
+    }
+
+    function renderDemo4() {
+      const container = document.getElementById('feedly-demo-4');
+      const content = {
+        feedTitle: 'Productivity Blog',
+        unreadCount: '5',
+        feedName: 'Dumb Little Man',
+        title: 'Focus Techniques for Deep Work',
+        description: 'Learn practical strategies to eliminate distractions and achieve deep focus in your daily work routine.',
+        timeAgo: 'Yesterday'
+      };
+      renderFeedlyDemo(container, content);
+    }
+
+    function renderMarkDemo() {
+      const container = document.getElementById('feedly-demo-mark');
+      const content = {
+        feedTitle: 'Developer Updates',
+        unreadCount: '47',
+        feedName: 'Hacker News',
+        title: 'Open Source Project Reaches 10K Stars',
+        description: 'A community-driven development project celebrating a major milestone with new features and improved performance.',
+        timeAgo: 'Just now'
+      };
+      renderFeedlyDemo(container, content);
+    }
+
+    function renderThemeDemo() {
+      const container = document.getElementById('feedly-demo-theme');
+      const content = {
+        feedTitle: 'Web Development',
+        unreadCount: '16',
+        feedName: 'CSS-Tricks',
+        title: 'Modern CSS Layout Techniques',
+        description: 'Master the latest CSS features for building responsive, flexible layouts with Grid and Flexbox.',
+        timeAgo: '4 hours ago'
+      };
+      renderFeedlyDemo(container, content);
+    }
+
+    function renderAllDemos() {
+      renderDemo1();
+      renderDemo2();
+      renderDemo3();
+      renderDemo4();
+      renderMarkDemo();
+      renderThemeDemo();
+    }
+
+    // Initial render
+    document.body.setAttribute('data-theme', currentTheme);
+    renderAllDemos();
+  </script>
+</body>
+</html>

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube - Light Mode Frame</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+      background: #ffffff;
+      color: #0f0f0f;
+      padding: 20px;
+    }
+
+    .youtube-context.light-theme {
+      display: flex;
+      flex-direction: column;
+      min-height: 500px;
+      background: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .yt-video-header {
+      display: flex;
+      align-items: center;
+      padding: 16px;
+      background: #ffffff;
+      border-bottom: 1px solid #e5e5e5;
+    }
+
+    .yt-channel-avatar {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+      border-radius: 50%;
+      margin-right: 12px;
+    }
+
+    .yt-channel-meta {
+      flex: 1;
+    }
+
+    .yt-channel-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #0f0f0f;
+    }
+
+    .yt-subscriber-count {
+      font-size: 12px;
+      color: #606060;
+      margin-top: 2px;
+    }
+
+    .yt-subscribe-btn {
+      padding: 8px 16px;
+      background: #cc0000;
+      color: #ffffff;
+      border: none;
+      border-radius: 18px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .yt-video-title {
+      padding: 16px;
+      font-size: 18px;
+      font-weight: 600;
+      color: #0f0f0f;
+      background: #ffffff;
+    }
+
+    .yt-video-stats {
+      padding: 0 16px 16px;
+      font-size: 14px;
+      color: #606060;
+      background: #ffffff;
+    }
+
+    .yt-comments-section {
+      flex: 1;
+      background: #f9f9f9;
+      padding: 16px;
+      overflow-y: auto;
+    }
+
+    .yt-comment-header {
+      font-size: 16px;
+      font-weight: 600;
+      color: #0f0f0f;
+      margin-bottom: 16px;
+    }
+
+    .yt-comment {
+      display: flex;
+      margin-bottom: 16px;
+      background: #ffffff;
+      padding: 12px;
+      border-radius: 8px;
+    }
+
+    .yt-comment-avatar {
+      width: 32px;
+      height: 32px;
+      background: #e0e0e0;
+      border-radius: 50%;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+
+    .yt-comment-meta {
+      flex: 1;
+    }
+
+    .yt-comment-author {
+      font-size: 13px;
+      font-weight: 600;
+      color: #0f0f0f;
+    }
+
+    .yt-comment-time {
+      font-size: 12px;
+      color: #606060;
+      margin-left: 8px;
+    }
+
+    .yt-comment-text {
+      font-size: 14px;
+      color: #0f0f0f;
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+
+    .yt-comment-actions {
+      font-size: 12px;
+      color: #606060;
+      margin-top: 8px;
+    }
+
+    .yt-link-preview {
+      width: 100%;
+      height: 180px;
+      background: #f0f0f0;
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 16px 0;
+    }
+
+    .yt-context-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .yt-context-placeholder {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #e5e5e5 0%, #d5d5d5 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #999999;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="youtube-context light-theme">
+    <div class="yt-video-header">
+      <div class="yt-channel-avatar"></div>
+      <div class="yt-channel-meta">
+        <div class="yt-channel-name">TechChannel</div>
+        <div class="yt-subscriber-count">1.2M subscribers</div>
+      </div>
+      <button class="yt-subscribe-btn">Subscribe</button>
+    </div>
+    <div class="yt-video-title">Amazing Tutorial - Learn in 10 Minutes!</div>
+    <div class="yt-video-stats">234K views · 3 hours ago</div>
+    <div class="yt-comments-section">
+      <div class="yt-comment-header">Comments</div>
+      <div class="yt-comment">
+        <div class="yt-comment-avatar"></div>
+        <div class="yt-comment-meta">
+          <div>
+            <span class="yt-comment-author">User123</span>
+            <span class="yt-comment-time">2 hours ago</span>
+          </div>
+          <div class="yt-comment-text">This was really helpful, thanks!</div>
+          <div class="yt-comment-actions">👍 45 · 💬 Reply</div>
+        </div>
+      </div>
+      <div class="yt-comment">
+        <div class="yt-link-preview">
+          <div class="yt-context-placeholder">🔗 Link Preview</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

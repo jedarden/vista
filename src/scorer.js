@@ -160,6 +160,14 @@ function scorePlatform(platformId, meta, imageProbe) {
       break;
     }
 
+    case 'devto': {
+      if (!ogTitle && !meta.title) { points -= 50; issues.push('No title'); }
+      if (!ogDesc && !meta.description) { points -= 25; issues.push('Missing og:description — Dev.to shows this prominently'); }
+      if (!hasImage) { points -= 30; issues.push('Missing og:image'); }
+      else if (!imageMeetsMin) { points -= 15; issues.push('Image below minimum size (Dev.to recommends 1000×500px)'); }
+      break;
+    }
+
     case 'tumblr': {
       if (!ogTitle && !meta.title) { points -= 50; issues.push('No title'); }
       if (!hasImage) { points -= 30; issues.push('No image for thumbnail'); }
@@ -278,11 +286,29 @@ function scorePlatform(platformId, meta, imageProbe) {
     case 'jira':
     case 'github':
     case 'trello':
-    case 'figma':
-    case 'gitlab':
-    case 'asana':
+    case 'figma': {
+      if (!ogTitle && !meta.title) { points -= 50; issues.push('No title'); }
+      if (!hasImage) { points -= 25; issues.push('Missing og:image'); }
+      break;
+    }
+
+    case 'gitlab': {
+      if (!ogTitle && !meta.title) { points -= 50; issues.push('No title'); }
+      if (!hasImage) { points -= 25; issues.push('Missing og:image'); }
+      else if (!imageIsHttps) { points -= 15; issues.push('GitLab requires HTTPS for og:image'); }
+      break;
+    }
+
+    case 'asana': {
+      if (!ogTitle && !meta.title) { points -= 50; issues.push('No title'); }
+      if (!ogDesc && !meta.description) { points -= 20; issues.push('Missing og:description — Asana shows this in link previews'); }
+      if (!hasImage) { points -= 25; issues.push('Missing og:image'); }
+      break;
+    }
+
     case 'evernote': {
       if (!ogTitle && !meta.title) { points -= 50; issues.push('No title'); }
+      if (!ogDesc && !meta.description) { points -= 20; issues.push('Missing og:description — Evernote shows this in clip previews'); }
       if (!hasImage) { points -= 25; issues.push('Missing og:image'); }
       break;
     }

@@ -3189,6 +3189,35 @@ html[data-theme='dark'] .pin-saver-name {
 /* Platform comparison grid */
 .compare-platforms { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; }
 .platform-comparison-grid { display: flex; flex-direction: column; gap: 16px; }
+
+/* Platform comparison summary bar */
+.platform-comparison-summary {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+  border-radius: var(--radius-lg);
+  color: white;
+  margin-bottom: 8px;
+}
+.summary-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.summary-stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+}
+.summary-stat-label {
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0.9;
+  text-transform: lowercase;
+}
+
 .platform-comparison-row { display: flex; flex-direction: column; gap: 12px; padding: 16px; background: var(--bg3); border-radius: var(--radius-lg); }
 .platform-comparison-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
 .platform-comparison-name { font-size: 16px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 8px; }

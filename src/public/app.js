@@ -5593,6 +5593,42 @@ function renderPlatformComparison(data1, data2) {
   // Get all platform IDs
   const allPids = new Set([...Object.keys(scores1), ...Object.keys(scores2)]);
 
+  // Calculate summary counts
+  let identicalCount = 0;
+  let differCount = 0;
+  let missingTagsCount = 0;
+
+  allPids.forEach(pid => {
+    const diff = platformDiffs[pid] || { changedFields: [], missingTags: [], identical: true };
+    if (!diff.identical) {
+      differCount++;
+    } else {
+      identicalCount++;
+    }
+    if (diff.missingTags && diff.missingTags.length > 0) {
+      missingTagsCount++;
+    }
+  });
+
+  // Render summary bar
+  const summaryBar = document.createElement('div');
+  summaryBar.className = 'platform-comparison-summary';
+  summaryBar.innerHTML = `
+    <div class="summary-stat">
+      <span class="summary-stat-value">${identicalCount}</span>
+      <span class="summary-stat-label">identical</span>
+    </div>
+    <div class="summary-stat">
+      <span class="summary-stat-value">${differCount}</span>
+      <span class="summary-stat-label">differ</span>
+    </div>
+    <div class="summary-stat">
+      <span class="summary-stat-value">${missingTagsCount}</span>
+      <span class="summary-stat-label">missing tags on URL B</span>
+    </div>
+  `;
+  grid.appendChild(summaryBar);
+
   allPids.forEach(pid => {
     const score1 = scores1[pid];
     const score2 = scores2[pid];
@@ -5667,6 +5703,9 @@ function renderPlatformComparison(data1, data2) {
     cardsContainer.appendChild(afterCard);
 
     row.appendChild(cardsContainer);
+
+    // Setup scroll-lock synchronization between before and after cards
+    setupScrollLock(beforeCard, afterCard);
 
     // Add screenshot comparison if imageDiff module is available
     if (window.imageDiff && typeof window.imageDiff.create === 'function') {
@@ -5776,6 +5815,60 @@ async function handleSitemapSubmit() {
     // Announce sitemap results to screen readers
     const { totalFound, crawled, errors } = data;
     announce(`Sitemap analysis complete. Found ${totalFound} URLs, crawled ${crawled} pages, ${errors} errors.`);
+}
+
+/**
+ * Setup scroll-lock synchronization between two scrollable elements
+ * When one scrolls, the other scrolls to the same position
+ */
+function setupScrollLock(el1, el2) {
+  if (!el1 || !el2) return;
+
+  let isScrolling1 = false;
+  let isScrolling2 = false;
+
+  // Find the first scrollable container within each card
+  const findScrollable = (element) => {
+    const candidates = element.querySelectorAll('*');
+    for (const candidate of candidates) {
+      const style = window.getComputedStyle(candidate);
+      const overflow = style.overflow;
+      const overflowY = style.overflowY;
+      if ((overflow === 'auto' || overflow === 'scroll' || overflowY === 'auto' || overflowY === 'scroll') &&
+          candidate.scrollHeight > candidate.clientHeight) {
+        return candidate;
+      }
+    }
+    return element;
+  };
+
+  const scrollable1 = findScrollable(el1);
+  const scrollable2 = findScrollable(el2);
+
+  if (!scrollable1 || !scrollable2) return;
+
+  // Synchronize scroll from element 1 to element 2
+  scrollable1.addEventListener('scroll', () => {
+    if (!isScrolling2) {
+      isScrolling1 = true;
+      const scrollRatio = scrollable1.scrollTop / (scrollable1.scrollHeight - scrollable1.clientHeight);
+      scrollable2.scrollTop = scrollRatio * (scrollable2.scrollHeight - scrollable2.clientHeight);
+      setTimeout(() => { isScrolling1 = false; }, 50);
+    }
+  });
+
+  // Synchronize scroll from element 2 to element 1
+  scrollable2.addEventListener('scroll', () => {
+    if (!isScrolling1) {
+      isScrolling2 = true;
+      const scrollRatio = scrollable2.scrollTop / (scrollable2.scrollHeight - scrollable2.clientHeight);
+      scrollable1.scrollTop = scrollRatio * (scrollable1.scrollHeight - scrollable1.clientHeight);
+      setTimeout(() => { isScrolling2 = false; }, 50);
+    }
+  });
+}
+
+function renderPlatformComparison(data1, data2) {
 
     // Scroll to results
     if (resultsSection) resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });

@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trello - Light Mode Frame</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0079bf;
+      color: #17394d;
+    }
+
+    .trello-context {
+      display: flex;
+      flex-direction: column;
+      min-height: 350px;
+      background: #0079bf;
+      border-radius: 8px;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    /* Board Header */
+    .tr-board-header {
+      padding: 8px 16px;
+      background: #0067a3;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      height: 48px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .tr-board-title {
+      font-weight: 700;
+      color: #ffffff;
+      font-size: 16px;
+    }
+
+    .tr-board-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tr-nav-btn {
+      padding: 6px 12px;
+      background: rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+      border: none;
+      border-radius: 4px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tr-nav-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    .tr-nav-btn.active {
+      background: rgba(0, 0, 0, 0.15);
+      color: #ffffff;
+    }
+
+    /* Board View */
+    .tr-board-view {
+      display: flex;
+      gap: 12px;
+      padding: 12px 16px;
+      background: #0079bf;
+      overflow-x: auto;
+    }
+
+    /* List Column */
+    .tr-list {
+      min-width: 260px;
+      max-width: 260px;
+      background: #ebecf0;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      max-height: 400px;
+    }
+
+    .tr-list-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      cursor: pointer;
+    }
+
+    .tr-list-title {
+      font-weight: 600;
+      font-size: 14px;
+      color: #17394d;
+    }
+
+    .tr-list-menu {
+      opacity: 0.5;
+      transition: opacity 0.2s;
+    }
+
+    .tr-list:hover .tr-list-menu {
+      opacity: 1;
+    }
+
+    .tr-list-cards {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 8px 8px 8px;
+    }
+
+    /* Card */
+    .tr-card {
+      background: #ffffff;
+      border-radius: 6px;
+      padding: 8px 10px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+      box-shadow: 0 1px 0 rgba(9, 30, 66, 0.25);
+    }
+
+    .tr-card:hover {
+      background: #f4f5f7;
+    }
+
+    .tr-card-title {
+      font-size: 13px;
+      color: #17394d;
+      line-height: 1.4;
+      margin-bottom: 6px;
+    }
+
+    .tr-card-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tr-card-labels {
+      display: flex;
+      gap: 4px;
+    }
+
+    .tr-card-label {
+      width: 32px;
+      height: 8px;
+      border-radius: 4px;
+    }
+
+    .tr-card-label.red { background: #eb5a46; }
+    .tr-card-label.yellow { background: #f2d600; }
+    .tr-card-label.green { background: #61bd4f; }
+    .tr-card-label.blue { background: #0079bf; }
+    .tr-card-label.purple { background: #c377e0; }
+
+    .tr-card-members {
+      display: flex;
+      gap: -4px;
+    }
+
+    .tr-card-member {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #dfe1e6;
+      border: 2px solid #ffffff;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #17394d;
+      font-weight: 600;
+    }
+
+    .tr-card-member.colored {
+      background: #0079bf;
+      color: white;
+    }
+
+    .tr-card-due {
+      font-size: 11px;
+      color: #17394d;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #dfe1e6;
+    }
+
+    .tr-card-due.overdue {
+      background: #eb5a46;
+      color: white;
+    }
+
+    .tr-card-due.soon {
+      background: #f2d600;
+      color: #17394d;
+    }
+
+    .tr-add-card {
+      margin: 0 8px 8px 8px;
+      padding: 8px;
+      background: transparent;
+      border: none;
+      border-radius: 6px;
+      color: #5e6c84;
+      font-size: 13px;
+      cursor: pointer;
+      text-align: left;
+      opacity: 0.8;
+      transition: all 0.2s;
+    }
+
+    .tr-add-card:hover {
+      background: #dfe1e6;
+      opacity: 1;
+    }
+
+    /* Add List Button */
+    .tr-add-list {
+      min-width: 260px;
+      max-width: 260px;
+      background: rgba(255, 255, 255, 0.25);
+      border: none;
+      border-radius: 8px;
+      padding: 12px;
+      color: #ffffff;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tr-add-list:hover {
+      background: rgba(255, 255, 255, 0.35);
+    }
+  </style>
+</head>
+<body>
+  <div class="trello-context">
+    <div class="tr-board-header">
+      <div class="tr-board-title">Product Roadmap</div>
+      <div class="tr-board-nav">
+        <button class="tr-nav-btn active">Board</button>
+        <button class="tr-nav-btn">Timeline</button>
+        <button class="tr-nav-btn">Calendar</button>
+      </div>
+    </div>
+
+    <div class="tr-board-view">
+      <!-- Backlog List -->
+      <div class="tr-list">
+        <div class="tr-list-header">
+          <div class="tr-list-title">Backlog</div>
+          <div class="tr-list-menu">⋯</div>
+        </div>
+        <div class="tr-list-cards">
+          <div class="tr-card">
+            <div class="tr-card-title">Research competitor features</div>
+            <div class="tr-card-meta">
+              <div class="tr-card-labels">
+                <div class="tr-card-label purple"></div>
+              </div>
+              <div class="tr-card-members">
+                <div class="tr-card-member colored">JD</div>
+              </div>
+            </div>
+          </div>
+          <div class="tr-card">
+            <div class="tr-card-title">Create user personas</div>
+            <div class="tr-card-meta">
+              <div class="tr-card-labels">
+                <div class="tr-card-label green"></div>
+              </div>
+              <div class="tr-card-members">
+                <div class="tr-card-member colored">AS</div>
+                <div class="tr-card-member colored">SK</div>
+              </div>
+            </div>
+          </div>
+          <div class="tr-card">
+            <div class="tr-card-title">Design system documentation</div>
+            <div class="tr-card-meta">
+              <div class="tr-card-labels">
+                <div class="tr-card-label blue"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="tr-add-card">+ Add a card</button>
+      </div>
+
+      <!-- To Do List -->
+      <div class="tr-list">
+        <div class="tr-list-header">
+          <div class="tr-list-title">To Do</div>
+          <div class="tr-list-menu">⋯</div>
+        </div>
+        <div class="tr-list-cards">
+          <div class="tr-card">
+            <div class="tr-card-title">Implement dashboard charts</div>
+            <div class="tr-card-meta">
+              <div class="tr-card-labels">
+                <div class="tr-card-label red"></div>
+                <div class="tr-card-label yellow"></div>
+              </div>
+              <div class="tr-card-members">
+                <div class="tr-card-member colored">MR</div>
+              </div>
+              <div class="tr-card-due soon">Dec 20</div>
+            </div>
+          </div>
+          <div class="tr-card">
+            <div class="tr-card-title">Set up CI/CD pipeline</div>
+            <div class="tr-card-meta">
+              <div class="tr-card-labels">
+                <div class="tr-card-label red"></div>
+              </div>
+              <div class="tr-card-members">
+                <div class="tr-card-member colored">JD</div>
+              </div>
+              <div class="tr-card-due overdue">Dec 15</div>
+            </div>
+          </div>
+          <div class="tr-card">
+            <div class="tr-card-title">Write API integration tests</div>
+            <div class="tr-card-meta">
+              <div class="tr-card-labels">
+                <div class="tr-card-label green"></div>
+              </div>
+              <div class="tr-card-members">
+                <div class="tr-card-member colored">SK</div>
+              </div>
+            </div>
+          </div>
+          <div class="tr-card">
+            <div class="tr-card-title">Database schema review</div>
+            <div class="tr-card-meta">
+              <div class="tr-card-labels">
+                <div class="tr-card-label blue"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="tr-add-card">+ Add a card</button>
+      </div>
+
+      <!-- In Progress List -->
+      <div class="tr-list">
+        <div class="tr-list-header">
+          <div class="tr-list-title">In Progress</div>
+          <div class="tr-list-menu">⋯</div>
+        </div>
+        <div class="tr-list-cards">
+          <div class="tr-card">
+            <div class="tr-card-title">User authentication flow</div>
+            <div class="tr-card-meta">
+              <div class="tr-card-labels">
+                <div class="tr-card-label red"></div>
+              </div>
+              <div class="tr-card-members">
+                <div class="tr-card-member colored">JD</div>
+                <div class="tr-card-member colored">MR</div>
+              </div>
+              <div class="tr-card-due soon">Dec 18</div>
+            </div>
+          </div>
+          <div class="tr-card">
+            <div class="tr-card-title">Mobile responsive design</div>
+            <div class="tr-card-meta">
+              <div class="tr-card-labels">
+                <div class="tr-card-label yellow"></div>
+              </div>
+              <div class="tr-card-members">
+                <div class="tr-card-member colored">AS</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="tr-add-card">+ Add a card</button>
+      </div>
+
+      <!-- Review List -->
+      <div class="tr-list">
+        <div class="tr-list-header">
+          <div class="tr-list-title">Review</div>
+          <div class="tr-list-menu">⋯</div>
+        </div>
+        <div class="tr-list-cards">
+          <div class="tr-card">
+            <div class="tr-card-title">PR: Feature flag implementation</div>
+            <div class="tr-card-meta">
+              <div class="tr-card-labels">
+                <div class="tr-card-label purple"></div>
+              </div>
+              <div class="tr-card-members">
+                <div class="tr-card-member colored">SK</div>
+              </div>
+            </div>
+          </div>
+          <div class="tr-card">
+            <div class="tr-card-title">PR: Performance optimizations</div>
+            <div class="tr-card-meta">
+              <div class="tr-card-labels">
+                <div class="tr-card-label green"></div>
+              </div>
+              <div class="tr-card-members">
+                <div class="tr-card-member colored">MR</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="tr-add-card">+ Add a card</button>
+      </div>
+
+      <!-- Done List -->
+      <div class="tr-list">
+        <div class="tr-list-header">
+          <div class="tr-list-title">Done</div>
+          <div class="tr-list-menu">⋯</div>
+        </div>
+        <div class="tr-list-cards">
+          <div class="tr-card">
+            <div class="tr-card-title">Project kickoff meeting</div>
+            <div class="tr-card-meta">
+              <div class="tr-card-labels">
+                <div class="tr-card-label green"></div>
+              </div>
+            </div>
+          </div>
+          <div class="tr-card">
+            <div class="tr-card-title">Setup dev environment</div>
+            <div class="tr-card-meta">
+              <div class="tr-card-labels">
+                <div class="tr-card-label blue"></div>
+              </div>
+            </div>
+          </div>
+          <div class="tr-card">
+            <div class="tr-card-title">Initial wireframes</div>
+            <div class="tr-card-meta">
+              <div class="tr-card-labels">
+                <div class="tr-card-label green"></div>
+              </div>
+              <div class="tr-card-members">
+                <div class="tr-card-member colored">AS</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="tr-add-card">+ Add a card</button>
+      </div>
+
+      <!-- Add List Button -->
+      <button class="tr-add-list">+ Add another list</button>
+    </div>
+  </div>
+</body>
+</html>

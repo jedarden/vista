@@ -4338,29 +4338,29 @@ html[data-theme='dark'] .pin-saver-name {
 
 /* LinkedIn Theme Variables */
 .linkedin-context.dark-theme {
-  --frame-bg: #1a1d21;
-  --frame-surface: #24272b;
-  --frame-border: #383b40;
-  --frame-text-primary: #e0e0e0;
-  --frame-text-secondary: #b0b0b0;
-  --frame-text-muted: #6a6a6a;
-  --frame-accent: #0A66C2;
-  --frame-accent-bg: rgba(10, 102, 194, 0.15);
-  --frame-link-color: #0A66C2;
-  --frame-divider: #383b40;
-  --frame-input-bg: #24272b;
-  --frame-overlay: rgba(0, 0, 0, 0.5);
+  --frame-bg: #000000;
+  --frame-surface: #1a1a1b;
+  --frame-border: #2d2d2d;
+  --frame-text-primary: #ffffff;
+  --frame-text-secondary: #a8b3ba;
+  --frame-text-muted: #666666;
+  --frame-accent: #0a66c2;
+  --frame-accent-bg: #0a66c2;
+  --frame-link-color: #0a66c2;
+  --frame-divider: #2d2d2d;
+  --frame-input-bg: #1a1a1b;
+  --frame-overlay: rgba(0, 0, 0, 0.7);
 }
 .linkedin-context.light-theme {
   --frame-bg: #ffffff;
-  --frame-surface: #f3f2ef;
+  --frame-surface: #f3f5f7;
   --frame-border: #e0e0e0;
   --frame-text-primary: #000000;
   --frame-text-secondary: #666666;
   --frame-text-muted: #999999;
-  --frame-accent: #0A66C2;
-  --frame-accent-bg: #e7f3ff;
-  --frame-link-color: #0A66C2;
+  --frame-accent: #0a66c2;
+  --frame-accent-bg: #e0f1ff;
+  --frame-link-color: #0a66c2;
   --frame-divider: #e0e0e0;
   --frame-input-bg: #ffffff;
   --frame-overlay: rgba(0, 0, 0, 0.1);

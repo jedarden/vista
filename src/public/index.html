@@ -210,7 +210,7 @@
           <div class="summary-url" id="summaryUrl"></div>
           <div class="summary-actions">
             <button class="action-btn primary" id="shareBtn">&#128279; Share</button>
-            <button class="action-btn" id="qrBtn">&#129440; QR Code</button>
+            <button class="action-btn" id="qrBtn" aria-label="Open QR code modal for sharing URL">&#129440; QR Code</button>
             <button class="action-btn" id="badgeBtn">&#127919; Get Badge</button>
             <button class="action-btn" id="newInspectBtn">New Inspect</button>
           </div>
@@ -798,7 +798,7 @@
       </div>
       <div class="modal-body modal-body-qr">
         <div class="qr-preview" id="qrPreview">
-          <div id="qrCode"></div>
+          <div id="qrCode" role="img" aria-label="QR code containing the share URL"></div>
         </div>
         <div class="qr-url-section">
           <label for="qrShareUrl">Share URL:</label>

@@ -4682,7 +4682,7 @@ function openQrModal() {
   // Generate new QR code using qrcodejs library
   // Respect prefers-reduced-motion by disabling animations
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  new QRCode(qrCode, {
+  const qr = new QRCode(qrCode, {
     text: shareUrl,
     width: 200,
     height: 200,
@@ -4690,6 +4690,17 @@ function openQrModal() {
     colorLight: '#ffffff',
     correctLevel: QRCode.CorrectLevel.H
   });
+
+  // Add alt text to the generated QR code image for accessibility
+  const qrImg = qrCode.querySelector('img, canvas');
+  if (qrImg) {
+    if (qrImg.tagName === 'IMG') {
+      qrImg.alt = 'QR code containing the share URL: ' + shareUrl;
+    } else {
+      // For canvas, add aria-label to the parent div which already has role="img"
+      qrCode.setAttribute('aria-label', 'QR code containing the share URL: ' + shareUrl);
+    }
+  }
 
   // Update the share URL input
   qrShareUrl.value = shareUrl;

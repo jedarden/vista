@@ -627,6 +627,12 @@ const PLATFORM_FRAMES = {
           <div class="pin-desc">Discover this inspiring idea for your next project</div>
           <div class="pin-domain">pinterest.com</div>
         </div>
+        <div class="pin-footer">
+          <div class="pin-saver">
+            <div class="pin-saver-avatar">JP</div>
+            <span class="pin-saver-name">Jane Parker</span>
+          </div>
+        </div>
       </div>
     `,
     neutralContent: '',

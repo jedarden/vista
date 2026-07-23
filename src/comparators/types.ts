@@ -169,3 +169,36 @@ export interface DetailedComparisonResult extends ComparisonResult {
   /** Numeric score delta (positive = improvement, negative = degradation) */
   scoreDelta: number;
 }
+
+// ============================================================================
+// Main Diff Computation Types
+// ============================================================================
+
+/**
+ * Complete comparison diff between two /api/compare response objects.
+ * Provides structured diff results across all platforms.
+ */
+export interface CompareDiffResult {
+  /** Set of platform IDs that are identical between the two responses */
+  identicalPlatforms: Set<string>;
+  /** Map of platform ID -> array of changed field paths */
+  changedFields: Map<string, string[]>;
+  /** Map of platform ID -> array of missing tag names */
+  missingTags: Map<string, string[]>;
+}
+
+/**
+ * Main diff computation function for platform metadata comparison.
+ *
+ * Takes two /api/compare API response objects as input, iterates through
+ * all platforms from both responses, uses helper functions to compute
+ * per-platform diffs, and returns a structured diff object.
+ *
+ * @param responseA - First /api/compare response object
+ * @param responseB - Second /api/compare response object
+ * @returns Structured diff object with identical platforms, changed fields, and missing tags
+ */
+export declare function computeCompareDiff(
+  responseA: any,
+  responseB: any
+): CompareDiffResult;

@@ -601,3 +601,371 @@
   --frame-input-bg: var(--pinterest-input-bg, var(--frame-input-bg-global));
   --frame-overlay: var(--pinterest-overlay, var(--frame-overlay-global));
 }
+
+/* GitHub Context */
+.github-context {
+  --frame-bg: var(--github-bg, var(--frame-bg-global));
+  --frame-surface: var(--github-surface, var(--frame-surface-global));
+  --frame-border: var(--github-border, var(--frame-border-global));
+  --frame-text-primary: var(--github-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--github-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--github-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--github-accent, var(--frame-accent-global));
+  --frame-accent-bg: var(--github-accent-bg, var(--frame-accent-bg-global));
+  --frame-link-color: var(--github-link-color, var(--frame-link-color-global));
+  --frame-divider: var(--github-divider, var(--frame-divider-global));
+  --frame-input-bg: var(--github-input-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--github-overlay, var(--frame-overlay-global));
+}
+
+/* GitLab Context */
+.gitlab-context {
+  --frame-bg: var(--gitlab-bg, var(--frame-bg-global));
+  --frame-surface: var(--gitlab-surface, var(--frame-surface-global));
+  --frame-border: var(--gitlab-border, var(--frame-border-global));
+  --frame-text-primary: var(--gitlab-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--gitlab-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--gitlab-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--gitlab-accent, var(--frame-accent-global));
+  --frame-accent-bg: var(--gitlab-accent-bg, var(--frame-accent-bg-global));
+  --frame-link-color: var(--gitlab-link-color, var(--frame-link-color-global));
+  --frame-divider: var(--gitlab-divider, var(--frame-divider-global));
+  --frame-input-bg: var(--gitlab-input-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--gitlab-overlay, var(--frame-overlay-global));
+}
+
+/* Stack Overflow Context */
+.stackoverflow-context {
+  --frame-bg: var(--stackoverflow-bg, var(--frame-bg-global));
+  --frame-surface: var(--stackoverflow-surface, var(--frame-surface-global));
+  --frame-border: var(--stackoverflow-border, var(--frame-border-global));
+  --frame-text-primary: var(--stackoverflow-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--stackoverflow-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--stackoverflow-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--stackoverflow-accent, var(--frame-accent-global));
+  --frame-accent-bg: var(--stackoverflow-accent-bg, var(--frame-accent-bg-global));
+  --frame-link-color: var(--stackoverflow-link-color, var(--frame-link-color-global));
+  --frame-divider: var(--stackoverflow-divider, var(--frame-divider-global));
+  --frame-input-bg: var(--stackoverflow-input-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--stackoverflow-overlay, var(--frame-overlay-global));
+}
+
+/* Hacker News Context */
+.hackernews-context {
+  --frame-bg: var(--hackernews-bg, var(--frame-bg-global));
+  --frame-surface: var(--hackernews-surface, var(--frame-surface-global));
+  --frame-border: var(--hackernews-border, var(--frame-border-global));
+  --frame-text-primary: var(--hackernews-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--hackernews-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--hackernews-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--hackernews-accent, var(--frame-accent-global));
+  --frame-accent-bg: var(--hackernews-accent-bg, var(--frame-accent-bg-global));
+  --frame-link-color: var(--hackernews-link-color, var(--frame-link-color-global));
+  --frame-divider: var(--hackernews-divider, var(--frame-divider-global));
+  --frame-input-bg: var(--hackernews-input-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--hackernews-overlay, var(--frame-overlay-global));
+}
+
+/* Product Hunt Context */
+.producthunt-context {
+  --frame-bg: var(--producthunt-bg, var(--frame-bg-global));
+  --frame-surface: var(--producthunt-surface, var(--frame-surface-global));
+  --frame-border: var(--producthunt-border, var(--frame-border-global));
+  --frame-text-primary: var(--producthunt-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--producthunt-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--producthunt-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--producthunt-accent, var(--frame-accent-global));
+  --frame-accent-bg: var(--producthunt-accent-bg, var(--frame-accent-bg-global));
+  --frame-link-color: var(--producthunt-link-color, var(--frame-link-color-global));
+  --frame-divider: var(--producthunt-divider, var(--frame-divider-global));
+  --frame-input-bg: var(--producthunt-input-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--producthunt-overlay, var(--frame-overlay-global));
+}
+
+/* Dev.to Context */
+.devto-context {
+  --frame-bg: var(--devto-bg, var(--frame-bg-global));
+  --frame-surface: var(--devto-surface, var(--frame-surface-global));
+  --frame-border: var(--devto-border, var(--frame-border-global));
+  --frame-text-primary: var(--devto-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--devto-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--devto-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--devto-accent, var(--frame-accent-global));
+  --frame-accent-bg: var(--devto-accent-bg, var(--frame-accent-bg-global));
+  --frame-link-color: var(--devto-link-color, var(--frame-link-color-global));
+  --frame-divider: var(--devto-divider, var(--frame-divider-global));
+  --frame-input-bg: var(--devto-input-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--devto-overlay, var(--frame-overlay-global));
+}
+
+/* Medium Context */
+.medium-context {
+  --frame-bg: var(--medium-bg, var(--frame-bg-global));
+  --frame-surface: var(--medium-surface, var(--frame-surface-global));
+  --frame-border: var(--medium-border, var(--frame-border-global));
+  --frame-text-primary: var(--medium-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--medium-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--medium-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--medium-accent, var(--frame-accent-global));
+  --frame-accent-bg: var(--medium-accent-bg, var(--frame-accent-bg-global));
+  --frame-link-color: var(--medium-link-color, var(--frame-link-color-global));
+  --frame-divider: var(--medium-divider, var(--frame-divider-global));
+  --frame-input-bg: var(--medium-input-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--medium-overlay, var(--frame-overlay-global));
+}
+
+/* Gmail Context */
+.gmail-context {
+  --frame-bg: var(--gmail-bg, var(--frame-bg-global));
+  --frame-surface: var(--gmail-surface, var(--frame-surface-global));
+  --frame-border: var(--gmail-border, var(--frame-border-global));
+  --frame-text-primary: var(--gmail-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--gmail-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--gmail-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--gmail-accent, var(--frame-accent-global));
+  --frame-accent-bg: var(--gmail-accent-bg, var(--frame-accent-bg-global));
+  --frame-link-color: var(--gmail-link-color, var(--frame-link-color-global));
+  --frame-divider: var(--gmail-divider, var(--frame-divider-global));
+  --frame-input-bg: var(--gmail-input-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--gmail-overlay, var(--frame-overlay-global));
+}
+
+/* Outlook Context */
+.outlook-context {
+  --frame-bg: var(--outlook-bg, var(--frame-bg-global));
+  --frame-surface: var(--outlook-surface, var(--frame-surface-global));
+  --frame-border: var(--outlook-border, var(--frame-border-global));
+  --frame-text-primary: var(--outlook-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--outlook-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--outlook-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--outlook-accent, var(--frame-accent-global));
+  --frame-accent-bg: var(--outlook-accent-bg, var(--frame-accent-bg-global));
+  --frame-link-color: var(--outlook-link-color, var(--frame-link-color-global));
+  --frame-divider: var(--outlook-divider, var(--frame-divider-global));
+  --frame-input-bg: var(--outlook-input-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--outlook-overlay, var(--frame-overlay-global));
+}
+
+/* Feedly Context */
+.feedly-context {
+  --frame-bg: var(--feedly-bg, var(--frame-bg-global));
+  --frame-surface: var(--feedly-surface, var(--frame-surface-global));
+  --frame-border: var(--feedly-border, var(--frame-border-global));
+  --frame-text-primary: var(--feedly-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--feedly-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--feedly-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--feedly-accent, var(--frame-accent-global));
+  --frame-accent-bg: var(--feedly-accent-bg, var(--frame-accent-bg-global));
+  --frame-link-color: var(--feedly-link-color, var(--frame-link-color-global));
+  --frame-divider: var(--feedly-divider, var(--frame-divider-global));
+  --frame-input-bg: var(--feedly-input-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--feedly-overlay, var(--frame-overlay-global));
+}
+
+/* Notion Context */
+.notion-context {
+  --frame-bg: var(--notion-bg, var(--frame-bg-global));
+  --frame-surface: var(--notion-surface, var(--frame-surface-global));
+  --frame-border: var(--notion-border, var(--frame-border-global));
+  --frame-text-primary: var(--notion-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--notion-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--notion-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--notion-accent, var(--frame-accent-global));
+  --frame-accent-bg: var(--notion-accent-bg, var(--frame-accent-bg-global));
+  --frame-link-color: var(--notion-link-color, var(--frame-link-color-global));
+  --frame-divider: var(--notion-divider, var(--frame-divider-global));
+  --frame-input-bg: var(--notion-input-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--notion-overlay, var(--frame-overlay-global));
+}
+
+/* Evernote Context */
+.evernote-context {
+  --frame-bg: var(--evernote-bg, var(--frame-bg-global));
+  --frame-surface: var(--evernote-surface, var(--frame-surface-global));
+  --frame-border: var(--evernote-border, var(--frame-border-global));
+  --frame-text-primary: var(--evernote-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--evernote-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--evernote-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--evernote-accent, var(--frame-accent-global));
+  --frame-accent-bg: var(--evernote-accent-bg, var(--frame-accent-bg-global));
+  --frame-link-color: var(--evernote-link-color, var(--frame-link-color-global));
+  --frame-divider: var(--evernote-divider, var(--frame-divider-global));
+  --frame-input-bg: var(--evernote-input-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--evernote-overlay, var(--frame-overlay-global));
+}
+
+/* VS Code Context */
+.vscode-context {
+  --frame-bg: var(--vscode-bg, var(--frame-bg-global));
+  --frame-surface: var(--vscode-surface, var(--frame-surface-global));
+  --frame-border: var(--vscode-border, var(--frame-border-global));
+  --frame-text-primary: var(--vscode-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--vscode-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--vscode-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--vscode-accent, var(--frame-accent-global));
+  --frame-accent-bg: var(--vscode-accent-bg, var(--frame-accent-bg-global));
+  --frame-link-color: var(--vscode-link-color, var(--frame-link-color-global));
+  --frame-divider: var(--vscode-divider, var(--frame-divider-global));
+  --frame-input-bg: var(--vscode-input-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--vscode-overlay, var(--frame-overlay-global));
+}
+
+/* Jira Context */
+.jira-context {
+  --frame-bg: var(--jira-bg, var(--frame-bg-global));
+  --frame-surface: var(--jira-surface, var(--frame-surface-global));
+  --frame-border: var(--jira-border, var(--frame-border-global));
+  --frame-text-primary: var(--jira-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--jira-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--jira-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--jira-accent, var(--frame-accent-global));
+  --frame-accent-bg: var(--jira-accent-bg, var(--frame-accent-bg-global));
+  --frame-link-color: var(--jira-link-color, var(--frame-link-color-global));
+  --frame-divider: var(--jira-divider, var(--frame-divider-global));
+  --frame-input-bg: var(--jira-input-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--jira-overlay, var(--frame-overlay-global));
+}
+
+/* JetBrains IDE Context */
+.jetbrains-context {
+  --frame-bg: var(--jetbrains-bg, var(--frame-bg-global));
+  --frame-surface: var(--jetbrains-surface, var(--frame-surface-global));
+  --frame-border: var(--jetbrains-border, var(--frame-border-global));
+  --frame-text-primary: var(--jetbrains-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--jetbrains-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--jetbrains-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--jetbrains-accent, var(--frame-accent-global));
+  --frame-accent-bg: var(--jetbrains-accent-bg, var(--frame-accent-bg-global));
+  --frame-link-color: var(--jetbrains-link-color, var(--frame-link-color-global));
+  --frame-divider: var(--jetbrains-divider, var(--frame-divider-global));
+  --frame-input-bg: var(--jetbrains-input-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--jetbrains-overlay, var(--frame-overlay-global));
+}
+
+/* Trello Context */
+.trello-context {
+  --frame-bg: var(--trello-bg, var(--frame-bg-global));
+  --frame-surface: var(--trello-surface, var(--frame-surface-global));
+  --frame-border: var(--trello-border, var(--frame-border-global));
+  --frame-text-primary: var(--trello-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--trello-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--trello-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--trello-accent, var(--frame-accent-global));
+  --frame-accent-bg: var(--trello-accent-bg, var(--frame-accent-bg-global));
+  --frame-link-color: var(--trello-link-color, var(--frame-link-color-global));
+  --frame-divider: var(--trello-divider, var(--frame-divider-global));
+  --frame-input-bg: var(--trello-input-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--trello-overlay, var(--frame-overlay-global));
+}
+
+/* Asana Context */
+.asana-context {
+  --frame-bg: var(--asana-bg, var(--frame-bg-global));
+  --frame-surface: var(--asana-surface, var(--frame-surface-global));
+  --frame-border: var(--asana-border, var(--frame-border-global));
+  --frame-text-primary: var(--asana-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--asana-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--asana-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--asana-accent, var(--frame-accent-global));
+  --frame-accent-bg: var(--asana-accent-bg, var(--frame-accent-bg-global));
+  --frame-link-color: var(--asana-link-color, var(--frame-link-color-global));
+  --frame-divider: var(--asana-divider, var(--frame-divider-global));
+  --frame-input-bg: var(--asana-input-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--asana-overlay, var(--frame-overlay-global));
+}
+
+/* iMessage Context */
+.imessage-context {
+  --frame-bg: var(--imessage-bg, var(--frame-bg-global));
+  --frame-surface: var(--imessage-surface, var(--frame-surface-global));
+  --frame-border: var(--imessage-border, var(--frame-border-global));
+  --frame-text-primary: var(--imessage-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--imessage-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--imessage-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--imessage-accent, var(--frame-accent-global));
+  --frame-accent-bg: var(--imessage-accent-bg, var(--frame-accent-bg-global));
+  --frame-link-color: var(--imessage-link-color, var(--frame-link-color-global));
+  --frame-divider: var(--imessage-divider, var(--frame-divider-global));
+  --frame-input-bg: var(--imessage-input-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--imessage-overlay, var(--frame-overlay-global));
+}
+
+/* Signal Context */
+.signal-context {
+  --frame-bg: var(--signal-bg, var(--frame-bg-global));
+  --frame-surface: var(--signal-surface, var(--frame-surface-global));
+  --frame-border: var(--signal-border, var(--frame-border-global));
+  --frame-text-primary: var(--signal-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--signal-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--signal-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--signal-accent, var(--frame-accent-global));
+  --frame-accent-bg: var(--signal-accent-bg, var(--frame-accent-bg-global));
+  --frame-link-color: var(--signal-link-color, var(--frame-link-color-global));
+  --frame-divider: var(--signal-divider, var(--frame-divider-global));
+  --frame-input-bg: var(--signal-input-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--signal-overlay, var(--frame-overlay-global));
+}
+
+/* Telegram Context */
+.telegram-context {
+  --frame-bg: var(--telegram-bg, var(--frame-bg-global));
+  --frame-surface: var(--telegram-surface, var(--frame-surface-global));
+  --frame-border: var(--telegram-border, var(--frame-border-global));
+  --frame-text-primary: var(--telegram-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--telegram-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--telegram-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--telegram-accent, var(--frame-accent-global));
+  --frame-accent-bg: var(--telegram-accent-bg, var(--frame-accent-bg-global));
+  --frame-link-color: var(--telegram-link-color, var(--frame-link-color-global));
+  --frame-divider: var(--telegram-divider, var(--frame-divider-global));
+  --frame-input-bg: var(--telegram-input-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--telegram-overlay, var(--frame-overlay-global));
+}
+
+/* TikTok Context */
+.tiktok-context {
+  --frame-bg: var(--tiktok-bg, var(--frame-bg-global));
+  --frame-surface: var(--tiktok-surface, var(--frame-surface-global));
+  --frame-border: var(--tiktok-border, var(--frame-border-global));
+  --frame-text-primary: var(--tiktok-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--tiktok-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--tiktok-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--tiktok-accent, var(--frame-accent-global));
+  --frame-accent-bg: var(--tiktok-accent-bg, var(--frame-accent-bg-global));
+  --frame-link-color: var(--tiktok-link-color, var(--frame-link-color-global));
+  --frame-divider: var(--tiktok-divider, var(--frame-divider-global));
+  --frame-input-bg: var(--tiktok-input-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--tiktok-overlay, var(--frame-overlay-global));
+}
+
+/* WhatsApp Context */
+.whatsapp-context {
+  --frame-bg: var(--whatsapp-bg, var(--frame-bg-global));
+  --frame-surface: var(--whatsapp-surface, var(--frame-surface-global));
+  --frame-border: var(--whatsapp-border, var(--frame-border-global));
+  --frame-text-primary: var(--whatsapp-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--whatsapp-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--whatsapp-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--whatsapp-accent, var(--frame-accent-global));
+  --frame-accent-bg: var(--whatsapp-accent-bg, var(--frame-accent-bg-global));
+  --frame-link-color: var(--whatsapp-link-color, var(--frame-link-color-global));
+  --frame-divider: var(--whatsapp-divider, var(--frame-divider-global));
+  --frame-input-bg: var(--whatsapp-input-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--whatsapp-overlay, var(--frame-overlay-global));
+}
+
+/* YouTube Context */
+.youtube-context {
+  --frame-bg: var(--youtube-bg, var(--frame-bg-global));
+  --frame-surface: var(--youtube-surface, var(--frame-surface-global));
+  --frame-border: var(--youtube-border, var(--frame-border-global));
+  --frame-text-primary: var(--youtube-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--youtube-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--youtube-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--youtube-accent, var(--frame-accent-global));
+  --frame-accent-bg: var(--youtube-accent-bg, var(--frame-accent-bg-global));
+  --frame-link-color: var(--youtube-link-color, var(--frame-link-color-global));
+  --frame-divider: var(--youtube-divider, var(--frame-divider-global));
+  --frame-input-bg: var(--youtube-input-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--youtube-overlay, var(--frame-overlay-global));
+}

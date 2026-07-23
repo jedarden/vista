@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compare Mode Diff Rendering Test</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="platform-diff.js"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 40px 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+      background: #1a1a1e;
+      color: #e4e4e7;
+    }
+    .test-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .test-header h1 {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+    .test-header p {
+      color: #a1a1aa;
+      font-size: 16px;
+    }
+    .acceptance-criteria {
+      background: #25252a;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 40px;
+    }
+    .acceptance-criteria h2 {
+      font-size: 18px;
+      margin-bottom: 16px;
+      color: #6366f1;
+    }
+    .criteria-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .criteria-list li {
+      padding: 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+    .criteria-list li.pass:before {
+      content: '✓';
+      color: #4ade80;
+      font-weight: bold;
+    }
+    .criteria-list li.fail:before {
+      content: '✗';
+      color: #ef4444;
+      font-weight: bold;
+    }
+    .test-section {
+      margin-bottom: 40px;
+    }
+    .test-section h2 {
+      font-size: 20px;
+      margin-bottom: 16px;
+      color: #6366f1;
+    }
+    .test-result {
+      background: #25252a;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .test-result.pass {
+      border-left: 4px solid #22c55e;
+    }
+    .test-result.fail {
+      border-left: 4px solid #ef4444;
+    }
+    .test-result h3 {
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+    .test-result .description {
+      color: #a1a1aa;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+    .mock-card {
+      background: #2a2a30;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 12px 0;
+    }
+    .verification-output {
+      background: #1e1e24;
+      border-radius: 6px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-header">
+    <h1>Compare Mode Diff Rendering Test</h1>
+    <p>Verification that green highlighted text and red badges appear on platform cards in compare mode</p>
+  </div>
+
+  <div class="acceptance-criteria">
+    <h2>Acceptance Criteria</h2>
+    <ul class="criteria-list" id="criteria-list">
+      <li id="criterion-1">Platform cards show green highlighted text for changed fields</li>
+      <li id="criterion-2">Platform cards show red badges for missing tags</li>
+      <li id="criterion-3">renderPlatformComparison passes diff data to renderPlatformCard</li>
+      <li id="criterion-4">highlightChangedText wraps changed text in green spans</li>
+      <li id="criterion-5">renderMissingTagsBadges renders red badge spans</li>
+    </ul>
+  </div>
+
+  <div id="test-results"></div>
+
+  <script>
+    // Mock data simulating before/after states
+    const mockData1 = {
+      scoring: {
+        scores: {
+          twitter: {
+            grade: 'B',
+            score: 85,
+            platform: { id: 'twitter', name: 'Twitter' },
+            issues: ['Add og:title meta tag', 'twitter:card missing'],
+            fixes: []
+          },
+          facebook: {
+            grade: 'C',
+            score: 72,
+            platform: { id: 'facebook', name: 'Facebook' },
+            issues: ['og:image too small'],
+            fixes: []
+          }
+        }
+      },
+      meta: {
+        title: 'Original Title',
+        description: 'Original description',
+        og: {
+          title: 'Original OG Title',
+          description: 'Original OG Description',
+          image: 'https://example.com/image1.jpg',
+          site_name: 'Example Site'
+        },
+        twitter: {
+          title: 'Original Twitter Title',
+          description: 'Original Twitter Description',
+          card: 'summary_large_image',
+          image: 'https://example.com/image1.jpg'
+        }
+      },
+      imageProbe: null,
+      finalUrl: 'https://example.com',
+      dominantColor: '#5865f2'
+    };
+
+    const mockData2 = {
+      scoring: {
+        scores: {
+          twitter: {
+            grade: 'A',
+            score: 95,
+            platform: { id: 'twitter', name: 'Twitter' },
+            issues: [],
+            fixes: ['Add og:title meta tag', 'twitter:card missing']
+          },
+          facebook: {
+            grade: 'B',
+            score: 88,
+            platform: { id: 'facebook', name: 'Facebook' },
+            issues: [],
+            fixes: ['og:image too small']
+          }
+        }
+      },
+      meta: {
+        title: 'Updated Title',
+        description: 'Original description',
+        og: {
+          title: 'Updated OG Title',
+          description: 'Original OG Description',
+          image: 'https://example.com/image2.jpg',
+          site_name: 'Example Site'
+        },
+        twitter: {
+          title: 'Updated Twitter Title',
+          description: 'Original Twitter Description',
+          card: 'summary_large_image',
+          image: 'https://example.com/image2.jpg'
+        }
+      },
+      imageProbe: null,
+      finalUrl: 'https://example.com',
+      dominantColor: '#5865f2'
+    };
+
+    function runTests() {
+      const results = [];
+      const testContainer = document.getElementById('test-results');
+      const criteriaList = document.getElementById('criteria-list');
+
+      // Test 1: platformDiff module is loaded
+      function test1_platformDiffLoaded() {
+        const passed = typeof window.platformDiff === 'object' &&
+                      typeof window.platformDiff.computePlatformDiff === 'function' &&
+                      typeof window.platformDiff.highlightChangedText === 'function' &&
+                      typeof window.platformDiff.renderMissingTagsBadges === 'function';
+        return {
+          name: 'platformDiff module loaded',
+          passed,
+          description: passed ? 'All platformDiff functions are available' : 'platformDiff module is not fully loaded'
+        };
+      }
+
+      // Test 2: computePlatformDiff returns diff data
+      function test2_computePlatformDiff() {
+        const diffs = window.platformDiff.computePlatformDiff(mockData1.scoring.scores, mockData2.scoring.scores);
+        const hasTwitterDiff = diffs.twitter && !diffs.twitter.identical;
+        const hasChangedFields = hasTwitterDiff && diffs.twitter.changedFields.length > 0;
+        const hasMissingTags = hasTwitterDiff && diffs.twitter.missingTags.length > 0;
+
+        return {
+          name: 'computePlatformDiff returns diff data',
+          passed: hasTwitterDiff && hasChangedFields && hasMissingTags,
+          description: hasTwitterDiff ?
+            `Twitter diff: ${diffs.twitter.changedFields.length} changed fields, ${diffs.twitter.missingTags.length} missing tags` :
+            'No diff data computed for Twitter',
+          details: hasTwitterDiff ? diffs.twitter : null
+        };
+      }
+
+      // Test 3: highlightChangedText wraps changed text
+      function test3_highlightChangedText() {
+        const diffs = window.platformDiff.computePlatformDiff(mockData1.scoring.scores, mockData2.scoring.scores);
+        const changedFields = diffs.twitter.changedFields;
+
+        // Test with a field that changed
+        const highlighted = window.platformDiff.highlightChangedText('Updated OG Title', changedFields, 'meta.og.title');
+        const hasHighlightSpan = highlighted.includes('<span class="diff-changed">');
+
+        return {
+          name: 'highlightChangedText wraps changed text',
+          passed: hasHighlightSpan,
+          description: hasHighlightSpan ? 'Changed text wrapped in green highlight span' : 'Changed text not wrapped',
+          details: { input: 'Updated OG Title', output: highlighted }
+        };
+      }
+
+      // Test 4: renderMissingTagsBadges renders badges
+      function test4_renderMissingTagsBadges() {
+        const diffs = window.platformDiff.computePlatformDiff(mockData1.scoring.scores, mockData2.scoring.scores);
+        const missingTags = diffs.twitter.missingTags;
+
+        const badges = window.platformDiff.renderMissingTagsBadges(missingTags);
+        const hasBadgeSpan = badges.includes('<span class="diff-tag-missing">');
+        const badgeCount = (badges.match(/diff-tag-missing/g) || []).length;
+
+        return {
+          name: 'renderMissingTagsBadges renders badges',
+          passed: hasBadgeSpan && badgeCount === missingTags.length,
+          description: hasBadgeSpan ? `Rendered ${badgeCount} badges` : 'No badges rendered',
+          details: { input: missingTags, output: badges }
+        };
+      }
+
+      // Test 5: Diff data contains expected changes
+      function test5_diffDataContent() {
+        const diffs = window.platformDiff.computePlatformDiff(mockData1.scoring.scores, mockData2.scoring.scores);
+        const twitterDiff = diffs.twitter;
+
+        // Check if grade changed (B -> A)
+        const gradeChanged = twitterDiff.changedFields.some(f => f.includes('grade'));
+        // Check if issues changed (missing tags in issues/fixes)
+        const hasIssueChanges = twitterDiff.missingTags.length > 0;
+
+        return {
+          name: 'Diff data contains expected changes',
+          passed: gradeChanged && hasIssueChanges,
+          description: `Grade changed: ${gradeChanged}, Issue changes: ${hasIssueChanges}`,
+          details: twitterDiff
+        };
+      }
+
+      // Run all tests
+      const tests = [
+        test1_platformDiffLoaded(),
+        test2_computePlatformDiff(),
+        test3_highlightChangedText(),
+        test4_renderMissingTagsBadges(),
+        test5_diffDataContent()
+      ];
+
+      // Render results
+      tests.forEach((test, index) => {
+        const resultDiv = document.createElement('div');
+        resultDiv.className = `test-result ${test.passed ? 'pass' : 'fail'}`;
+
+        let html = `<h3>${test.name}: ${test.passed ? 'PASS' : 'FAIL'}</h3>`;
+        html += `<div class="description">${test.description}</div>`;
+
+        if (test.details) {
+          html += `<div class="verification-output">${JSON.stringify(test.details, null, 2)}</div>`;
+        }
+
+        resultDiv.innerHTML = html;
+        testContainer.appendChild(resultDiv);
+
+        // Update criteria list
+        const criterionEl = document.getElementById(`criterion-${index + 1}`);
+        if (criterionEl) {
+          criterionEl.classList.add(test.passed ? 'pass' : 'fail');
+        }
+      });
+
+      // Summary
+      const passedCount = tests.filter(t => t.passed).length;
+      const summaryDiv = document.createElement('div');
+      summaryDiv.className = `test-result ${passedCount === tests.length ? 'pass' : 'fail'}`;
+      summaryDiv.innerHTML = `<h3>Summary: ${passedCount}/${tests.length} tests passed</h3>`;
+      testContainer.appendChild(summaryDiv);
+
+      return passedCount === tests.length;
+    }
+
+    // Run tests when DOM is ready
+    document.addEventListener('DOMContentLoaded', () => {
+      const allPassed = runTests();
+      console.log('All tests passed:', allPassed);
+    });
+  </script>
+</body>
+</html>

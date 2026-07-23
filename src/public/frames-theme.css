@@ -1145,3 +1145,51 @@
   --frame-input-bg: var(--substack-input-bg, var(--frame-input-bg-global));
   --frame-overlay: var(--substack-overlay, var(--frame-overlay-global));
 }
+
+/* Product Hunt Context */
+.producthunt-context {
+  --frame-bg: var(--producthunt-bg, var(--frame-bg-global));
+  --frame-surface: var(--producthunt-surface, var(--frame-surface-global));
+  --frame-border: var(--producthunt-border, var(--frame-border-global));
+  --frame-text-primary: var(--producthunt-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--producthunt-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--producthunt-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--producthunt-accent, var(--frame-accent-global));
+  --frame-accent-bg: var(--producthunt-accent-bg, var(--frame-accent-bg-global));
+  --frame-link-color: var(--producthunt-link-color, var(--frame-link-color-global));
+  --frame-divider: var(--producthunt-divider, var(--frame-divider-global));
+  --frame-input-bg: var(--producthunt-input-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--producthunt-overlay, var(--frame-overlay-global));
+}
+
+/* Dev.to Context */
+.devto-context {
+  --frame-bg: var(--devto-bg, var(--frame-bg-global));
+  --frame-surface: var(--devto-surface, var(--frame-surface-global));
+  --frame-border: var(--devto-border, var(--frame-border-global));
+  --frame-text-primary: var(--devto-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--devto-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--devto-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--devto-accent, var(--frame-accent-global));
+  --frame-accent-bg: var(--devto-accent-bg, var(--frame-accent-bg-global));
+  --frame-link-color: var(--devto-link-color, var(--frame-link-color-global));
+  --frame-divider: var(--devto-divider, var(--frame-divider-global));
+  --frame-input-bg: var(--devto-input-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--devto-overlay, var(--frame-overlay-global));
+}
+
+/* Medium Context */
+.medium-context {
+  --frame-bg: var(--medium-bg, var(--frame-bg-global));
+  --frame-surface: var(--medium-surface, var(--frame-surface-global));
+  --frame-border: var(--medium-border, var(--frame-border-global));
+  --frame-text-primary: var(--medium-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--medium-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--medium-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--medium-accent, var(--frame-accent-global));
+  --frame-accent-bg: var(--medium-accent-bg, var(--frame-accent-bg-global));
+  --frame-link-color: var(--medium-link-color, var(--frame-link-color-global));
+  --frame-divider: var(--medium-divider, var(--frame-divider-global));
+  --frame-input-bg: var(--medium-input-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--medium-overlay, var(--frame-overlay-global));
+}

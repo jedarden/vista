@@ -302,6 +302,10 @@ badgeModal?.addEventListener('click', (e) => {
   if (e.target === badgeModal) closeBadgeModal();
 });
 
+qrModal?.addEventListener('click', (e) => {
+  if (e.target === qrModal) closeQrModal();
+});
+
 // OG Generator event listeners
 oggenBgType?.addEventListener('change', handleBgTypeChange);
 oggenBgColor?.addEventListener('input', updateOggenCanvas);

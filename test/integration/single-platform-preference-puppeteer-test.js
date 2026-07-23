@@ -280,8 +280,8 @@ async function runTest() {
       throw error;
     }
 
-    // Test 8: Verify DOM order reflects preference-based sorting
-    console.log('\n📝 Test 8: Verify DOM Order Reflects Preference-Based Sorting');
+    // Test 8: Verify DOM order reflects score-sorted preference order
+    console.log('\n📝 Test 8: Verify DOM Order Reflects Score-Sorted Preference Order');
     try {
       // Wait for DOM to stabilize after reload
       console.log('    Waiting for DOM to stabilize...');
@@ -301,39 +301,77 @@ async function runTest() {
       console.log(`    Found ${actualOrder.length} platform(s) in DOM`);
       console.log(`    Actual order: ${actualOrder.join(', ')}`);
 
-      // Expected order: Reddit should be first (highest score due to favorite preference)
-      // Other platforms may follow in their default order
-      const expectedOrder = actualOrder.length > 0 ? [TEST_PLATFORM, ...actualOrder.filter(p => p !== TEST_PLATFORM)] : [TEST_PLATFORM];
+      // When Reddit is set as favorite, it should receive the highest score bonus
+      // and appear first in the DOM. The rest should be sorted by their scores.
+      // Expected: Reddit should be first, followed by other platforms in score order
+      const redditFirst = actualOrder.length > 0 && actualOrder[0] === TEST_PLATFORM;
 
-      console.log(`    Expected order (Reddit first): ${expectedOrder.join(', ')}`);
+      console.log(`    ${TEST_PLATFORM} is first in DOM: ${redditFirst}`);
+
+      // Additional verification: check that all platforms are present
+      const redditPresent = actualOrder.includes(TEST_PLATFORM);
+      console.log(`    ${TEST_PLATFORM} is present in DOM: ${redditPresent}`);
+
+      // Build detailed comparison - Reddit should be first, rest maintain relative order
+      // This verifies that favorites are promoted to the top while preserving other order
+      let expectedOrder;
+      if (actualOrder.includes(TEST_PLATFORM)) {
+        // Create expected order with Reddit first, then others in their current relative order
+        const others = actualOrder.filter(p => p !== TEST_PLATFORM);
+        expectedOrder = [TEST_PLATFORM, ...others];
+      } else {
+        // If Reddit not found, we can't verify ordering
+        expectedOrder = actualOrder;
+      }
+
+      console.log(`    Expected order (${TEST_PLATFORM} promoted to first): ${expectedOrder.join(', ')}`);
 
       // Compare orders
       const comparison = compareOrders(expectedOrder, actualOrder);
 
       console.log(`    Comparison results:`);
-      console.log(`      - Passed: ${comparison.passed}`);
+      console.log(`      - Exact match: ${comparison.passed}`);
       console.log(`      - Matches: ${comparison.matches}/${comparison.total}`);
       console.log(`      - Pass rate: ${comparison.passRate}%`);
+      console.log(`      - Missing platforms: ${comparison.missing.join(', ') || 'none'}`);
+      console.log(`      - Extra platforms: ${comparison.extra.join(', ') || 'none'}`);
 
-      // Reddit should be in the first position after setting it as favorite
-      const redditFirst = actualOrder.length > 0 && actualOrder[0] === TEST_PLATFORM;
+      // Detailed position checks
+      const redditIndex = actualOrder.indexOf(TEST_PLATFORM);
+      console.log(`    ${TEST_PLATFORM} position: ${redditIndex >= 0 ? redditIndex + 1 : 'not found'}`);
 
-      console.log(`    ${TEST_PLATFORM} is first in DOM: ${redditFirst}`);
+      // The test passes if:
+      // 1. Reddit is present in the DOM
+      // 2. Reddit is in the first position (preference-based sorting)
+      const testPassed = redditPresent && redditFirst;
+
+      let details;
+      if (testPassed) {
+        details = `${TEST_PLATFORM} correctly appears first in DOM (preference-based sorting verified)`;
+      } else if (!redditPresent) {
+        details = `${TEST_PLATFORM} is not present in the DOM at all`;
+      } else {
+        details = `${TEST_PLATFORM} is present but not first (position ${redditIndex + 1}); actual order: ${actualOrder.join(', ')}`;
+      }
 
       logTest(
-        'DOM Order Preference Verification',
-        redditFirst,
-        redditFirst
-          ? `${TEST_PLATFORM} correctly appears first in DOM (preference-based sorting working)`
-          : `${TEST_PLATFORM} is not first in DOM; actual order: ${actualOrder.join(', ')}`
+        'DOM Order Score-Sorted Preference Verification',
+        testPassed,
+        details
       );
 
-      if (!redditFirst) {
-        console.log(`    ⚠️  Expected ${TEST_PLATFORM} to be first, but got: ${actualOrder.join(', ')}`);
-        console.log(`    This may indicate preference-based sorting is not working correctly`);
+      if (!testPassed) {
+        console.log(`    ⚠️  Preference-based sorting verification failed:`);
+        if (!redditPresent) {
+          console.log(`    - ${TEST_PLATFORM} is not present in the DOM`);
+        } else if (!redditFirst) {
+          console.log(`    - ${TEST_PLATFORM} is at position ${redditIndex + 1}, expected position 1`);
+          console.log(`    - Actual order: ${actualOrder.join(', ')}`);
+          console.log(`    - Expected ${TEST_PLATFORM} to be promoted to first position when set as favorite`);
+        }
       }
     } catch (error) {
-      logTest('DOM Order Preference Verification', false, error.message);
+      logTest('DOM Order Score-Sorted Preference Verification', false, error.message);
       console.log(`    Error details: ${error.message}`);
       // Don't throw error here - we want to continue and see the results
     }

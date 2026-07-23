@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>All Content Platforms Verification - Product Hunt, Dev.to, Medium</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 40px 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+      background: #f5f5f5;
+      color: #333;
+    }
+    .test-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .test-header h1 {
+      font-size: 32px;
+      margin-bottom: 8px;
+      color: #21293c;
+    }
+    .test-header p {
+      color: #5f6b7c;
+      font-size: 16px;
+    }
+    .acceptance-criteria {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 40px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .acceptance-criteria h2 {
+      font-size: 18px;
+      margin-bottom: 16px;
+      color: #3b49df;
+    }
+    .criteria-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .criteria-list li {
+      padding: 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+    .criteria-list li:before {
+      content: '✓';
+      color: #22c55e;
+      font-weight: bold;
+    }
+    .platform-section {
+      margin-bottom: 60px;
+    }
+    .platform-section h2 {
+      font-size: 24px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #e8e8e8;
+    }
+    .platform-section h2.product-hunt { border-color: #da552f; color: #da552f; }
+    .platform-section h2.dev-to { border-color: #3b49df; color: #3b49df; }
+    .platform-section h2.medium { border-color: #1a8917; color: #1a8917; }
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 16px;
+      background: #3b49df;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 1000;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .theme-toggle:hover {
+      opacity: 0.9;
+    }
+    .context-frame {
+      margin: 20px 0;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body data-theme="light">
+  <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
+
+  <div class="test-header">
+    <h1>Content Platform Context Frames Verification</h1>
+    <p>Testing Product Hunt, Dev.to, and Medium context frames with dark/light mode</p>
+  </div>
+
+  <div class="acceptance-criteria">
+    <h2>✅ Acceptance Criteria</h2>
+    <ul class="criteria-list">
+      <li>All 3 content platforms have context frames</li>
+      <li>Product Hunt frame shows comment section layout</li>
+      <li>Dev.to frame shows article comments</li>
+      <li>Medium frame shows article responses</li>
+      <li>Dark/light mode toggle works for all platforms</li>
+      <li>Each frame is visually distinct and authentic to the platform</li>
+    </ul>
+  </div>
+
+  <!-- Product Hunt Section -->
+  <div class="platform-section">
+    <h2 class="product-hunt">1. Product Hunt - Comment Section Layout</h2>
+    <div id="producthunt-frame"></div>
+  </div>
+
+  <!-- Dev.to Section -->
+  <div class="platform-section">
+    <h2 class="dev-to">2. Dev.to - Article Comments Layout</h2>
+    <div id="devto-frame"></div>
+  </div>
+
+  <!-- Medium Section -->
+  <div class="platform-section">
+    <h2 class="medium">3. Medium - Article Response Layout</h2>
+    <div id="medium-frame"></div>
+  </div>
+
+  <script src="platform-frames.js"></script>
+  <script>
+    let currentTheme = 'light';
+
+    function toggleTheme() {
+      currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+      document.body.setAttribute('data-theme', currentTheme);
+      renderAllFrames();
+    }
+
+    function renderProductHunt() {
+      const container = document.getElementById('producthunt-frame');
+      const content = {
+        productName: 'CodeFlow Pro',
+        tagline: 'The ultimate developer productivity suite with AI-powered code completion',
+        comment: 'Been using this for a week now - game changer for my workflow!'
+      };
+
+      container.innerHTML = buildContextFrame('producthunt', content, currentTheme);
+    }
+
+    function renderDevTo() {
+      const container = document.getElementById('devto-frame');
+      const content = {
+        author: 'Jane Developer',
+        timeAgo: '2 hours ago',
+        title: 'Building Scalable APIs: Best Practices for Modern Development',
+        tag1: '#javascript',
+        tag2: '#api',
+        tag3: '#webdev',
+        likes: '142',
+        comments: '28',
+        comment: 'Thanks for sharing! The section on rate limiting was exactly what I needed.'
+      };
+
+      container.innerHTML = buildContextFrame('devto', content, currentTheme);
+    }
+
+    function renderMedium() {
+      const container = document.getElementById('medium-frame');
+      const content = {
+        author: 'Tech Writer',
+        timeAgo: '3 hours ago',
+        title: 'The Future of Web Development: Trends to Watch in 2025',
+        preview: 'Explore the emerging technologies and methodologies that are shaping the next generation of web applications...',
+        claps: '1.2K',
+        responses: '48',
+        response: 'This really resonated with me. The section on edge computing was particularly interesting.'
+      };
+
+      container.innerHTML = buildContextFrame('medium', content, currentTheme);
+    }
+
+    function renderAllFrames() {
+      renderProductHunt();
+      renderDevTo();
+      renderMedium();
+    }
+
+    // Initial render
+    renderAllFrames();
+  </script>
+</body>
+</html>

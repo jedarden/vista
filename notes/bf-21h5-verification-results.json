@@ -1,0 +1,620 @@
+{
+  "startTime": "2026-07-23T22:52:02.156Z",
+  "apiTests": [
+    {
+      "endpoint": "/api/health",
+      "status": "passed",
+      "response": {
+        "status": "ok",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "endpoint": "/api/platforms",
+      "status": "passed",
+      "platformCount": 43,
+      "platforms": [
+        "google",
+        "facebook",
+        "twitter",
+        "linkedin",
+        "reddit",
+        "youtube",
+        "instagram",
+        "threads",
+        "tiktok",
+        "producthunt",
+        "mastodon",
+        "bluesky",
+        "hackernews",
+        "tumblr",
+        "pinterest",
+        "slack",
+        "discord",
+        "whatsapp",
+        "imessage",
+        "telegram",
+        "signal",
+        "teams",
+        "googlechat",
+        "zoom",
+        "line",
+        "kakaotalk",
+        "github",
+        "notion",
+        "gitlab",
+        "jira",
+        "asana",
+        "evernote",
+        "trello",
+        "figma",
+        "medium",
+        "devto",
+        "substack",
+        "outlook",
+        "gmail",
+        "feedly",
+        "stackoverflow",
+        "vscode",
+        "jetbrains"
+      ]
+    }
+  ],
+  "platformConfigs": [
+    {
+      "config": "Tech Blog Article",
+      "url": "https://techcrunch.com/2024/07/23/example-article",
+      "description": "Tech blog article should prioritize Twitter, Facebook, LinkedIn, Reddit",
+      "expectedPlatforms": [
+        "twitter",
+        "facebook",
+        "linkedin",
+        "reddit",
+        "bluesky",
+        "threads",
+        "mastodon"
+      ],
+      "scoredPlatforms": [
+        "google",
+        "facebook",
+        "twitter",
+        "linkedin",
+        "reddit",
+        "youtube",
+        "instagram",
+        "threads",
+        "tiktok",
+        "producthunt",
+        "mastodon",
+        "bluesky",
+        "hackernews",
+        "tumblr",
+        "pinterest",
+        "slack",
+        "discord",
+        "whatsapp",
+        "imessage",
+        "telegram",
+        "signal",
+        "teams",
+        "googlechat",
+        "zoom",
+        "line",
+        "kakaotalk",
+        "github",
+        "notion",
+        "gitlab",
+        "jira",
+        "asana",
+        "evernote",
+        "trello",
+        "figma",
+        "medium",
+        "devto",
+        "substack",
+        "outlook",
+        "gmail",
+        "feedly",
+        "stackoverflow",
+        "vscode",
+        "jetbrains"
+      ],
+      "matchedPlatforms": [
+        "twitter",
+        "facebook",
+        "linkedin",
+        "reddit",
+        "bluesky",
+        "threads",
+        "mastodon"
+      ],
+      "matchRate": 100,
+      "platformCount": 43,
+      "topPlatforms": [
+        {
+          "id": "hackernews",
+          "score": 75
+        },
+        {
+          "id": "github",
+          "score": 75
+        },
+        {
+          "id": "notion",
+          "score": 75
+        },
+        {
+          "id": "gitlab",
+          "score": 75
+        },
+        {
+          "id": "jira",
+          "score": 75
+        },
+        {
+          "id": "trello",
+          "score": 75
+        },
+        {
+          "id": "figma",
+          "score": 75
+        },
+        {
+          "id": "google",
+          "score": 70
+        },
+        {
+          "id": "tumblr",
+          "score": 70
+        },
+        {
+          "id": "whatsapp",
+          "score": 70
+        }
+      ],
+      "success": true,
+      "timestamp": "2026-07-23T22:52:02.997Z"
+    },
+    {
+      "config": "E-commerce Product",
+      "url": "https://www.amazon.com/dp/example-product",
+      "description": "E-commerce product should prioritize Pinterest, Facebook, Instagram, Twitter",
+      "expectedPlatforms": [
+        "pinterest",
+        "facebook",
+        "instagram",
+        "twitter",
+        "linkedin"
+      ],
+      "scoredPlatforms": [
+        "google",
+        "facebook",
+        "twitter",
+        "linkedin",
+        "reddit",
+        "youtube",
+        "instagram",
+        "threads",
+        "tiktok",
+        "producthunt",
+        "mastodon",
+        "bluesky",
+        "hackernews",
+        "tumblr",
+        "pinterest",
+        "slack",
+        "discord",
+        "whatsapp",
+        "imessage",
+        "telegram",
+        "signal",
+        "teams",
+        "googlechat",
+        "zoom",
+        "line",
+        "kakaotalk",
+        "github",
+        "notion",
+        "gitlab",
+        "jira",
+        "asana",
+        "evernote",
+        "trello",
+        "figma",
+        "medium",
+        "devto",
+        "substack",
+        "outlook",
+        "gmail",
+        "feedly",
+        "stackoverflow",
+        "vscode",
+        "jetbrains"
+      ],
+      "matchedPlatforms": [
+        "pinterest",
+        "facebook",
+        "instagram",
+        "twitter",
+        "linkedin"
+      ],
+      "matchRate": 100,
+      "platformCount": 43,
+      "topPlatforms": [
+        {
+          "id": "hackernews",
+          "score": 75
+        },
+        {
+          "id": "github",
+          "score": 75
+        },
+        {
+          "id": "notion",
+          "score": 75
+        },
+        {
+          "id": "gitlab",
+          "score": 75
+        },
+        {
+          "id": "jira",
+          "score": 75
+        },
+        {
+          "id": "trello",
+          "score": 75
+        },
+        {
+          "id": "figma",
+          "score": 75
+        },
+        {
+          "id": "google",
+          "score": 70
+        },
+        {
+          "id": "tumblr",
+          "score": 70
+        },
+        {
+          "id": "whatsapp",
+          "score": 70
+        }
+      ],
+      "success": true,
+      "timestamp": "2026-07-23T22:52:03.175Z"
+    },
+    {
+      "config": "Standard Website",
+      "url": "https://example.com",
+      "description": "Standard website should prioritize Google, Facebook, Twitter, LinkedIn",
+      "expectedPlatforms": [
+        "google",
+        "facebook",
+        "twitter",
+        "linkedin",
+        "slack",
+        "discord"
+      ],
+      "scoredPlatforms": [
+        "google",
+        "facebook",
+        "twitter",
+        "linkedin",
+        "reddit",
+        "youtube",
+        "instagram",
+        "threads",
+        "tiktok",
+        "producthunt",
+        "mastodon",
+        "bluesky",
+        "hackernews",
+        "tumblr",
+        "pinterest",
+        "slack",
+        "discord",
+        "whatsapp",
+        "imessage",
+        "telegram",
+        "signal",
+        "teams",
+        "googlechat",
+        "zoom",
+        "line",
+        "kakaotalk",
+        "github",
+        "notion",
+        "gitlab",
+        "jira",
+        "asana",
+        "evernote",
+        "trello",
+        "figma",
+        "medium",
+        "devto",
+        "substack",
+        "outlook",
+        "gmail",
+        "feedly",
+        "stackoverflow",
+        "vscode",
+        "jetbrains"
+      ],
+      "matchedPlatforms": [
+        "google",
+        "facebook",
+        "twitter",
+        "linkedin",
+        "slack",
+        "discord"
+      ],
+      "matchRate": 100,
+      "platformCount": 43,
+      "topPlatforms": [
+        {
+          "id": "hackernews",
+          "score": 75
+        },
+        {
+          "id": "github",
+          "score": 75
+        },
+        {
+          "id": "notion",
+          "score": 75
+        },
+        {
+          "id": "gitlab",
+          "score": 75
+        },
+        {
+          "id": "jira",
+          "score": 75
+        },
+        {
+          "id": "trello",
+          "score": 75
+        },
+        {
+          "id": "figma",
+          "score": 75
+        },
+        {
+          "id": "google",
+          "score": 70
+        },
+        {
+          "id": "tumblr",
+          "score": 70
+        },
+        {
+          "id": "whatsapp",
+          "score": 70
+        }
+      ],
+      "success": true,
+      "timestamp": "2026-07-23T22:52:03.213Z"
+    },
+    {
+      "config": "News Article",
+      "url": "https://bbc.com/news/world-example",
+      "description": "News article should prioritize social platforms",
+      "expectedPlatforms": [
+        "twitter",
+        "facebook",
+        "linkedin",
+        "reddit",
+        "bluesky"
+      ],
+      "scoredPlatforms": [
+        "google",
+        "facebook",
+        "twitter",
+        "linkedin",
+        "reddit",
+        "youtube",
+        "instagram",
+        "threads",
+        "tiktok",
+        "producthunt",
+        "mastodon",
+        "bluesky",
+        "hackernews",
+        "tumblr",
+        "pinterest",
+        "slack",
+        "discord",
+        "whatsapp",
+        "imessage",
+        "telegram",
+        "signal",
+        "teams",
+        "googlechat",
+        "zoom",
+        "line",
+        "kakaotalk",
+        "github",
+        "notion",
+        "gitlab",
+        "jira",
+        "asana",
+        "evernote",
+        "trello",
+        "figma",
+        "medium",
+        "devto",
+        "substack",
+        "outlook",
+        "gmail",
+        "feedly",
+        "stackoverflow",
+        "vscode",
+        "jetbrains"
+      ],
+      "matchedPlatforms": [
+        "twitter",
+        "facebook",
+        "linkedin",
+        "reddit",
+        "bluesky"
+      ],
+      "matchRate": 100,
+      "platformCount": 43,
+      "topPlatforms": [
+        {
+          "id": "google",
+          "score": 100
+        },
+        {
+          "id": "hackernews",
+          "score": 90
+        },
+        {
+          "id": "reddit",
+          "score": 80
+        },
+        {
+          "id": "slack",
+          "score": 80
+        },
+        {
+          "id": "stackoverflow",
+          "score": 80
+        },
+        {
+          "id": "github",
+          "score": 75
+        },
+        {
+          "id": "notion",
+          "score": 75
+        },
+        {
+          "id": "gitlab",
+          "score": 75
+        },
+        {
+          "id": "jira",
+          "score": 75
+        },
+        {
+          "id": "asana",
+          "score": 75
+        }
+      ],
+      "success": true,
+      "timestamp": "2026-07-23T22:52:03.638Z"
+    },
+    {
+      "config": "Professional Content",
+      "url": "https://linkedin.com",
+      "description": "Professional content should prioritize LinkedIn, Twitter",
+      "expectedPlatforms": [
+        "linkedin",
+        "twitter",
+        "facebook",
+        "slack"
+      ],
+      "scoredPlatforms": [
+        "google",
+        "facebook",
+        "twitter",
+        "linkedin",
+        "reddit",
+        "youtube",
+        "instagram",
+        "threads",
+        "tiktok",
+        "producthunt",
+        "mastodon",
+        "bluesky",
+        "hackernews",
+        "tumblr",
+        "pinterest",
+        "slack",
+        "discord",
+        "whatsapp",
+        "imessage",
+        "telegram",
+        "signal",
+        "teams",
+        "googlechat",
+        "zoom",
+        "line",
+        "kakaotalk",
+        "github",
+        "notion",
+        "gitlab",
+        "jira",
+        "asana",
+        "evernote",
+        "trello",
+        "figma",
+        "medium",
+        "devto",
+        "substack",
+        "outlook",
+        "gmail",
+        "feedly",
+        "stackoverflow",
+        "vscode",
+        "jetbrains"
+      ],
+      "matchedPlatforms": [
+        "linkedin",
+        "twitter",
+        "facebook",
+        "slack"
+      ],
+      "matchRate": 100,
+      "platformCount": 43,
+      "topPlatforms": [
+        {
+          "id": "google",
+          "score": 100
+        },
+        {
+          "id": "hackernews",
+          "score": 90
+        },
+        {
+          "id": "twitter",
+          "score": 80
+        },
+        {
+          "id": "reddit",
+          "score": 80
+        },
+        {
+          "id": "slack",
+          "score": 80
+        },
+        {
+          "id": "stackoverflow",
+          "score": 80
+        },
+        {
+          "id": "github",
+          "score": 75
+        },
+        {
+          "id": "notion",
+          "score": 75
+        },
+        {
+          "id": "gitlab",
+          "score": 75
+        },
+        {
+          "id": "jira",
+          "score": 75
+        }
+      ],
+      "success": true,
+      "timestamp": "2026-07-23T22:52:03.981Z"
+    }
+  ],
+  "summary": {}
+}

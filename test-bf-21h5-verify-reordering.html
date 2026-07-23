@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DOM Reordering Verification Test - BF-21h5</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.5;
+    }
+    .test-section {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 20px 0;
+      background: #f9f9f9;
+    }
+    .test-config {
+      background: #fff;
+      padding: 15px;
+      border-left: 4px solid #007acc;
+      margin: 10px 0;
+    }
+    .expected-order {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 10px 0;
+    }
+    .platform-badge {
+      background: #007acc;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-family: monospace;
+    }
+    .result-box {
+      background: #fff;
+      border: 2px solid #ddd;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 4px;
+    }
+    .result-box.pass {
+      border-color: #22c55e;
+      background: #f0fdf4;
+    }
+    .result-box.fail {
+      border-color: #ef4444;
+      background: #fef2f2;
+    }
+    .result-box.warn {
+      border-color: #f59e0b;
+      background: #fffbeb;
+    }
+    button {
+      background: #007acc;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      margin: 5px;
+    }
+    button:hover {
+      background: #005a9e;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .instructions {
+      background: #e3f2fd;
+      padding: 15px;
+      border-radius: 4px;
+      margin: 20px 0;
+    }
+    .url-display {
+      font-family: monospace;
+      background: #f0f0f0;
+      padding: 8px 12px;
+      border-radius: 4px;
+      word-break: break-all;
+    }
+    .platform-comparison {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin: 15px 0;
+    }
+    .comparison-column h4 {
+      margin-top: 0;
+    }
+    .platform-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .platform-list li {
+      padding: 5px 10px;
+      margin: 2px 0;
+      background: #f5f5f5;
+      border-radius: 3px;
+      font-family: monospace;
+      font-size: 13px;
+    }
+    .platform-list li.miss {
+      background: #fef2f2;
+      color: #dc2626;
+    }
+    .platform-list li.match {
+      background: #f0fdf4;
+      color: #16a34a;
+    }
+    .summary {
+      background: #f0f9ff;
+      padding: 20px;
+      border-radius: 8px;
+      border: 2px solid #0ea5e9;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔍 DOM Reordering Verification Test</h1>
+  <p><strong>Bead:</strong> bf-21h5 | <strong>Objective:</strong> Verify DOM reordering matches expected platform preference order</p>
+
+  <div class="instructions">
+    <h3>📋 Instructions</h3>
+    <ol>
+      <li>Open VISTA application in a new tab: <a href="http://localhost:3000" target="_blank">http://localhost:3000</a></li>
+      <li>For each test configuration below:
+        <ul>
+          <li>Copy the test URL</li>
+          <li>Paste it in VISTA's URL input field</li>
+          <li>Click "Inspect" button</li>
+          <li>Wait for platform cards to load</li>
+          <li>Return to this page and click "Verify Order" button</li>
+        </ul>
+      </li>
+      <li>The verification script will check if the DOM order matches expected order</li>
+    </ol>
+  </div>
+
+  <div id="test-results"></div>
+
+  <script>
+    const TEST_CONFIGS = [
+      {
+        name: 'Article Page Type',
+        url: 'https://blog.example.com/2024/07/my-article',
+        pageType: 'article',
+        expectedOrder: ['twitter', 'facebook', 'linkedin', 'reddit', 'bluesky', 'threads', 'mastodon'],
+        description: 'Blog article should prioritize Twitter, Facebook, LinkedIn, Reddit'
+      },
+      {
+        name: 'Product Page Type',
+        url: 'https://shop.example.com/products/awesome-product',
+        pageType: 'product',
+        expectedOrder: ['pinterest', 'facebook', 'instagram', 'twitter', 'linkedin'],
+        description: 'E-commerce product should prioritize Pinterest, Facebook, Instagram, Twitter'
+      },
+      {
+        name: 'General Website',
+        url: 'https://example.com',
+        pageType: 'website',
+        expectedOrder: ['google', 'facebook', 'twitter', 'linkedin', 'slack', 'discord'],
+        description: 'Standard website should prioritize Google, Facebook, Twitter, LinkedIn'
+      }
+    ];
+
+    // Check if we can access the VISTA app (same-origin policy may block this)
+    function canAccessVistaWindow() {
+      try {
+        // Try to access localStorage of the VISTA app
+        const vistaWindow = window.open('http://localhost:3000', '_blank');
+        return !!vistaWindow;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function createTestConfigUI(config, index) {
+      const section = document.createElement('div');
+      section.className = 'test-section';
+      section.innerHTML = `
+        <h2>${index + 1}. ${config.name}</h2>
+        <p><strong>Description:</strong> ${config.description}</p>
+        <p><strong>Page Type:</strong> <code>${config.pageType}</code></p>
+        <p><strong>Test URL:</strong> <span class="url-display">${config.url}</span></p>
+
+        <div class="test-config">
+          <h4>Expected Platform Order:</h4>
+          <div class="expected-order">
+            ${config.expectedOrder.map(p => `<span class="platform-badge">${p}</span>`).join('')}
+          </div>
+        </div>
+
+        <button onclick="runVerification(${index}, '${config.url}')">Verify Order</button>
+
+        <div id="result-${index}" style="display:none;" class="result-box">
+          <h4>Verification Result</h4>
+          <div id="result-content-${index}"></div>
+        </div>
+      `;
+      return section;
+    }
+
+    function runVerification(index, url) {
+      const resultDiv = document.getElementById(`result-${index}`);
+      const contentDiv = document.getElementById(`result-content-${index}`);
+      const config = TEST_CONFIGS[index];
+
+      resultDiv.style.display = 'block';
+      contentDiv.innerHTML = '<p>⏳ Checking DOM order... (Make sure VISTA has loaded the URL)</p>';
+
+      // Try to get platform order from VISTA app via postMessage
+      // This requires the VISTA app to be loaded in another tab/window
+      try {
+        // Check if we can access localStorage (same-origin)
+        const prefs = localStorage.getItem('vista-platform-prefs');
+        if (prefs) {
+          const parsed = JSON.parse(prefs);
+          if (parsed.cardOrder && parsed.cardOrder.social) {
+            const actualOrder = parsed.cardOrder.social.slice(0, config.expectedOrder.length);
+            displayResult(index, config, actualOrder);
+            return;
+          }
+        }
+      } catch (e) {
+        console.log('Cannot access localStorage directly:', e);
+      }
+
+      // Manual verification mode
+      contentDiv.innerHTML = `
+        <p style="color: #f59e0b;">⚠️ Automatic verification requires VISTA app to be on the same origin.</p>
+        <p><strong>Manual Verification Steps:</strong></p>
+        <ol>
+          <li>In VISTA tab, open DevTools Console (F12)</li>
+          <li>Run this command:</li>
+          <pre style="background:#f5f5f5;padding:10px;border-radius:4px;overflow-x:auto;">
+const platforms = Array.from(document.querySelectorAll('.platform-card'))
+  .map(card => card.dataset.platform);
+console.log('Platform order:', platforms.slice(0, ${config.expectedOrder.length}));
+          </pre>
+          <li>Compare the output with expected order below</li>
+        </ol>
+        <div class="platform-comparison">
+          <div class="comparison-column">
+            <h4>✅ Expected Order:</h4>
+            <ul class="platform-list">
+              ${config.expectedOrder.map((p, i) => `<li>${i + 1}. ${p}</li>`).join('')}
+            </ul>
+          </div>
+          <div class="comparison-column">
+            <h4>🔍 Your Result (paste from console):</h4>
+            <textarea id="manual-input-${index}" rows="7" style="width:100%;font-family:monospace;font-size:12px;" placeholder="Paste the platform array from console here, e.g.: ['twitter', 'facebook', 'linkedin', 'reddit', 'bluesky', 'threads', 'mastodon']"></textarea>
+            <button onclick="verifyManualInput(${index})">Compare</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function verifyManualInput(index) {
+      const config = TEST_CONFIGS[index];
+      const input = document.getElementById(`manual-input-${index}`).value;
+      const contentDiv = document.getElementById(`result-content-${index}`);
+
+      try {
+        // Parse the input - handle various formats
+        let actualOrder;
+        if (input.includes('[')) {
+          // Array format
+          actualOrder = JSON.parse(input.match(/\[.*\]/)[0]);
+        } else {
+          // Comma-separated
+          actualOrder = input.split(',').map(s => s.trim().replace(/['"]/g, ''));
+        }
+
+        displayResult(index, config, actualOrder);
+      } catch (e) {
+        contentDiv.innerHTML += `<p style="color:#dc2626;">❌ Error parsing input: ${e.message}</p>`;
+      }
+    }
+
+    function displayResult(index, config, actualOrder) {
+      const resultDiv = document.getElementById(`result-${index}`);
+      const contentDiv = document.getElementById(`result-content-${index}`);
+
+      // Compare orders
+      const expected = config.expectedOrder;
+      const matches = expected.slice(0, actualOrder.length).map((exp, i) => ({
+        expected: exp,
+        actual: actualOrder[i],
+        match: actualOrder[i] === exp
+      }));
+
+      const allMatch = matches.every(m => m.match);
+      const partialMatch = matches.filter(m => m.match).length;
+
+      let status, statusClass;
+      if (allMatch) {
+        status = '✅ PASS - Platform order matches expected';
+        statusClass = 'pass';
+      } else if (partialMatch >= expected.length / 2) {
+        status = `⚠️ PARTIAL - ${partialMatch}/${expected.length} platforms match expected order`;
+        statusClass = 'warn';
+      } else {
+        status = `❌ FAIL - Platform order does not match expected`;
+        statusClass = 'fail';
+      }
+
+      resultDiv.className = `result-box ${statusClass}`;
+
+      contentDiv.innerHTML = `
+        <p><strong>${status}</strong></p>
+        <div class="platform-comparison">
+          <div class="comparison-column">
+            <h4>✅ Expected Order:</h4>
+            <ul class="platform-list">
+              ${matches.map((m, i) => `<li class="${m.match ? 'match' : 'miss'}">${i + 1}. ${m.expected} ${m.match ? '✓' : '✗'}</li>`).join('')}
+            </ul>
+          </div>
+          <div class="comparison-column">
+            <h4>🔍 Actual Order:</h4>
+            <ul class="platform-list">
+              ${actualOrder.map((p, i) => `<li>${i + 1}. ${p || '(undefined)'}</li>`).join('')}
+            </ul>
+          </div>
+        </div>
+        <p style="margin-top:15px;"><strong>Test Details:</strong></p>
+        <ul>
+          <li>Expected platforms in correct position: ${partialMatch}/${expected.length}</li>
+          <li>Test URL: <code>${config.url}</code></li>
+          <li>Expected page type: <code>${config.pageType}</code></li>
+        </ul>
+      `;
+
+      // Save result
+      saveTestResult(index, config, actualOrder, allMatch, partialMatch);
+    }
+
+    function saveTestResult(index, config, actualOrder, passed, partialMatch) {
+      const results = JSON.parse(localStorage.getItem('bf-21h5-results') || '[]');
+      results[index] = {
+        timestamp: new Date().toISOString(),
+        testCase: config.name,
+        url: config.url,
+        expectedOrder: config.expectedOrder,
+        actualOrder: actualOrder.slice(0, config.expectedOrder.length),
+        passed: passed,
+        partialMatch: partialMatch,
+        totalExpected: config.expectedOrder.length
+      };
+      localStorage.setItem('bf-21h5-results', JSON.stringify(results));
+      updateSummary();
+    }
+
+    function updateSummary() {
+      const results = JSON.parse(localStorage.getItem('bf-21h5-results') || '[]');
+      const completed = results.filter(r => r).length;
+      const passed = results.filter(r => r && r.passed).length;
+      const partial = results.filter(r => r && !r.passed && r.partialMatch > 0).length;
+
+      const summaryDiv = document.createElement('div');
+      summaryDiv.className = 'summary';
+      summaryDiv.innerHTML = `
+        <h3>📊 Test Summary</h3>
+        <p>Completed: ${completed}/${TEST_CONFIGS.length} test cases</p>
+        <p>✅ Passed: ${passed}</p>
+        <p>⚠️ Partial: ${partial}</p>
+        <p>❌ Failed: ${completed - passed - partial}</p>
+        <button onclick="exportResults()">Export Results</button>
+      `;
+
+      const existingSummary = document.querySelector('.summary');
+      if (existingSummary) {
+        existingSummary.replaceWith(summaryDiv);
+      } else {
+        document.body.insertBefore(summaryDiv, document.body.firstChild);
+      }
+    }
+
+    function exportResults() {
+      const results = JSON.parse(localStorage.getItem('bf-21h5-results') || '[]');
+      const blob = new Blob([JSON.stringify(results, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'bf-21h5-results-' + new Date().toISOString().split('T')[0] + '.json';
+      a.click();
+    }
+
+    // Initialize UI
+    document.getElementById('test-results').innerHTML = '';
+    TEST_CONFIGS.forEach((config, index) => {
+      document.getElementById('test-results').appendChild(createTestConfigUI(config, index));
+    });
+  </script>
+</body>
+</html>

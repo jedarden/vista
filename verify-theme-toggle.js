@@ -9,18 +9,50 @@ const fs = require('fs');
 const path = require('path');
 
 // Platforms with theme support (from platform-frames.js)
+// All platforms that have hasThemeSupport: true in platform-frames.js
 const PLATFORMS_WITH_THEME = [
-  'twitter',
-  'linkedin',
-  'youtube',
-  'slack',
+  'asana',
+  'bluesky',
+  'devto',
   'discord',
-  'tiktok',
-  'pinterest',
-  'reddit',
+  'evernote',
+  'facebook',
+  'feedly',
+  'figma',
+  'github',
+  'gitlab',
+  'gmail',
+  'googlechat',
+  'hackernews',
+  'imessage',
+  'instagram',
+  'jetbrains',
   'jira',
+  'kakaotalk',
+  'line',
+  'linkedin',
+  'mastodon',
+  'medium',
+  'notion',
+  'outlook',
+  'pinterest',
+  'producthunt',
+  'reddit',
+  'signal',
+  'slack',
+  'stackoverflow',
+  'substack',
+  'teams',
+  'telegram',
+  'threads',
+  'tiktok',
   'trello',
-  'asana'
+  'tumblr',
+  'twitter',
+  'vscode',
+  'whatsapp',
+  'youtube',
+  'zoom'
 ];
 
 // Test data
@@ -47,11 +79,11 @@ function verifyThemeVariables() {
     const hasThemeVars = content.includes(`${platform}: {`) &&
                         content.match(new RegExp(`${platform}:.*?themeVars:`, 's'));
 
-    // Check if both dark and light theme vars are defined
-    const hasDarkTheme = content.includes(`"${platform}":`) &&
-                        content.match(new RegExp(`${platform}:.*?"dark":`, 's'));
-    const hasLightTheme = content.includes(`"${platform}":`) &&
-                         content.match(new RegExp(`${platform}:.*?"light":`, 's'));
+    // Check if both dark and light theme vars are defined (fixed: removed quotes around dark/light)
+    const hasDarkTheme = content.includes(`${platform}: {`) &&
+                        content.match(new RegExp(`${platform}:.*?dark:\\s*\\{`, 's'));
+    const hasLightTheme = content.includes(`${platform}: {`) &&
+                         content.match(new RegExp(`${platform}:.*?light:\\s*\\{`, 's'));
 
     const passed = hasThemeVars && hasDarkTheme && hasLightTheme;
 

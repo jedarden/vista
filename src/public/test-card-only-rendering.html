@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Card-Only Rendering Test - All Platforms</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="frames-theme.css">
+  <link rel="stylesheet" href="frame-layouts.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #0f1117;
+      color: #e8eaf0;
+    }
+    body.light-mode {
+      background: #f8f9fa;
+      color: #212529;
+    }
+    .test-container {
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+    .test-header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #1e2330;
+      border-radius: 8px;
+    }
+    body.light-mode .test-header {
+      background: #ffffff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .test-header h1 {
+      margin: 0 0 8px 0;
+      font-size: 28px;
+      color: #5b8dee;
+    }
+    .test-header p {
+      margin: 0;
+      opacity: 0.8;
+      font-size: 14px;
+    }
+    .test-controls {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .test-btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: opacity 0.2s;
+    }
+    .test-btn:hover {
+      opacity: 0.8;
+    }
+    .btn-theme {
+      background: #5b8dee;
+      color: white;
+    }
+    .btn-refresh {
+      background: #28a745;
+      color: white;
+    }
+    .test-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    .summary-card {
+      padding: 15px;
+      background: #1e2330;
+      border-radius: 8px;
+      text-align: center;
+    }
+    body.light-mode .summary-card {
+      background: #ffffff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .summary-label {
+      font-size: 12px;
+      opacity: 0.7;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 5px;
+    }
+    .summary-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #5b8dee;
+    }
+    .summary-value.success {
+      color: #22c55e;
+    }
+    .summary-value.error {
+      color: #ef4444;
+    }
+    .platform-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+    }
+    .platform-card {
+      background: #1e2330;
+      border-radius: 8px;
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    body.light-mode .platform-card {
+      background: #ffffff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .platform-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .platform-card-header {
+      padding: 12px 15px;
+      background: #2a2f3e;
+      border-bottom: 1px solid #3a3f4e;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    body.light-mode .platform-card-header {
+      background: #f8f9fa;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    .platform-name {
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .platform-status {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .status-working {
+      background: #22c55e;
+      color: white;
+    }
+    .status-failed {
+      background: #ef4444;
+      color: white;
+    }
+    .platform-card-content {
+      padding: 15px;
+      min-height: 150px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card-frame {
+      width: 100%;
+    }
+    .error-message {
+      color: #ef4444;
+      font-size: 12px;
+      text-align: center;
+      padding: 20px;
+    }
+    body.light-mode .error-message {
+      color: #dc2626;
+    }
+    .console-output {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 400px;
+      max-height: 300px;
+      background: #1e2330;
+      border: 1px solid #3a3f4e;
+      border-radius: 8px;
+      overflow: hidden;
+      z-index: 1000;
+      display: none;
+    }
+    body.light-mode .console-output {
+      background: #ffffff;
+      border-color: #e0e0e0;
+    }
+    .console-output.show {
+      display: block;
+    }
+    .console-header {
+      padding: 10px 15px;
+      background: #2a2f3e;
+      border-bottom: 1px solid #3a3f4e;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+    body.light-mode .console-header {
+      background: #f8f9fa;
+      border-bottom-color: #e0e0e0;
+    }
+    .console-title {
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .console-close {
+      font-size: 18px;
+      cursor: pointer;
+      opacity: 0.7;
+    }
+    .console-close:hover {
+      opacity: 1;
+    }
+    .console-logs {
+      padding: 10px;
+      max-height: 240px;
+      overflow-y: auto;
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: 11px;
+      line-height: 1.4;
+    }
+    .log-entry {
+      margin-bottom: 5px;
+      padding: 5px;
+      border-radius: 3px;
+    }
+    .log-error {
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+    }
+    .log-warn {
+      background: rgba(234, 179, 8, 0.2);
+      color: #eab308;
+    }
+    .log-info {
+      background: rgba(91, 141, 238, 0.2);
+      color: #5b8dee;
+    }
+    .console-toggle {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 10px 15px;
+      background: #5b8dee;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      z-index: 999;
+    }
+    .loading-spinner {
+      border: 2px solid #3a3f4e;
+      border-top: 2px solid #5b8dee;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body class="dark-mode">
+  <div class="test-container">
+    <div class="test-header">
+      <h1>📄 Card-Only Rendering Test</h1>
+      <p>Testing all platform frames in card-only mode (no context chrome)</p>
+    </div>
+
+    <div class="test-controls">
+      <button class="test-btn btn-theme" id="themeToggle">☀️ Light Mode</button>
+      <button class="test-btn btn-refresh" id="refreshBtn">🔄 Refresh All</button>
+    </div>
+
+    <div class="test-summary">
+      <div class="summary-card">
+        <div class="summary-label">Total Platforms</div>
+        <div class="summary-value" id="totalStat">0</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">Rendered Successfully</div>
+        <div class="summary-value success" id="successStat">0</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">Failed</div>
+        <div class="summary-value error" id="failedStat">0</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">Console Errors</div>
+        <div class="summary-value error" id="errorStat">0</div>
+      </div>
+    </div>
+
+    <div class="platform-grid" id="platformGrid"></div>
+  </div>
+
+  <button class="console-toggle" id="consoleToggle">📋 Console Logs</button>
+  <div class="console-output" id="consoleOutput">
+    <div class="console-header">
+      <span class="console-title">Console Errors & Warnings</span>
+      <span class="console-close" id="consoleClose">×</span>
+    </div>
+    <div class="console-logs" id="consoleLogs"></div>
+  </div>
+
+  <script src="platform-frames.js"></script>
+  <script src="frame-renderer.js"></script>
+  <script>
+    // Console error capture
+    const consoleErrors = [];
+    const originalConsoleError = console.error;
+    const originalConsoleWarn = console.warn;
+
+    console.error = function(...args) {
+      consoleErrors.push({ type: 'error', message: args.join(' '), timestamp: new Date().toISOString() });
+      originalConsoleError.apply(console, args);
+      updateConsoleDisplay();
+    };
+
+    console.warn = function(...args) {
+      consoleErrors.push({ type: 'warn', message: args.join(' '), timestamp: new Date().toISOString() });
+      originalConsoleWarn.apply(console, args);
+      updateConsoleDisplay();
+    };
+
+    // All 44 platforms
+    const ALL_PLATFORMS = [
+      { id: 'google', name: 'Google Search' },
+      { id: 'facebook', name: 'Facebook' },
+      { id: 'twitter', name: 'X (Twitter)' },
+      { id: 'linkedin', name: 'LinkedIn' },
+      { id: 'instagram', name: 'Instagram' },
+      { id: 'youtube', name: 'YouTube' },
+      { id: 'slack', name: 'Slack' },
+      { id: 'discord', name: 'Discord' },
+      { id: 'imessage', name: 'iMessage' },
+      { id: 'whatsapp', name: 'WhatsApp' },
+      { id: 'telegram', name: 'Telegram' },
+      { id: 'signal', name: 'Signal' },
+      { id: 'microsoft-teams', name: 'Microsoft Teams' },
+      { id: 'google-chat', name: 'Google Chat' },
+      { id: 'zoom-chat', name: 'Zoom Chat' },
+      { id: 'line', name: 'Line' },
+      { id: 'kakao', name: 'KakaoTalk' },
+      { id: 'tiktok', name: 'TikTok' },
+      { id: 'pinterest', name: 'Pinterest' },
+      { id: 'bluesky', name: 'Bluesky' },
+      { id: 'mastodon', name: 'Mastodon' },
+      { id: 'threads', name: 'Threads' },
+      { id: 'tumblr', name: 'Tumblr' },
+      { id: 'reddit', name: 'Reddit' },
+      { id: 'github', name: 'GitHub' },
+      { id: 'gitlab', name: 'GitLab' },
+      { id: 'stackoverflow', name: 'Stack Overflow' },
+      { id: 'hackernews', name: 'Hacker News' },
+      { id: 'producthunt', name: 'Product Hunt' },
+      { id: 'devto', name: 'Dev.to' },
+      { id: 'medium', name: 'Medium' },
+      { id: 'gmail', name: 'Gmail' },
+      { id: 'outlook', name: 'Outlook' },
+      { id: 'feedly', name: 'Feedly' },
+      { id: 'notion', name: 'Notion' },
+      { id: 'evernote', name: 'Evernote' },
+      { id: 'vscode', name: 'VS Code' },
+      { id: 'jetbrains-ide', name: 'JetBrains IDE' },
+      { id: 'jira', name: 'Jira' },
+      { id: 'trello', name: 'Trello' },
+      { id: 'asana', name: 'Asana' },
+      { id: 'figma', name: 'Figma' },
+      { id: 'substack', name: 'Substack' },
+      { id: 'generic', name: 'Generic Platform' }
+    ];
+
+    // Test results
+    const testResults = {
+      total: ALL_PLATFORMS.length,
+      success: 0,
+      failed: 0,
+      failures: {}
+    };
+
+    // DOM elements
+    const platformGrid = document.getElementById('platformGrid');
+    const themeToggle = document.getElementById('themeToggle');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const consoleToggle = document.getElementById('consoleToggle');
+    const consoleOutput = document.getElementById('consoleOutput');
+    const consoleClose = document.getElementById('consoleClose');
+    const consoleLogs = document.getElementById('consoleLogs');
+
+    // Initialize test grid
+    function initTestGrid() {
+      platformGrid.innerHTML = '';
+      testResults.success = 0;
+      testResults.failed = 0;
+      testResults.failures = {};
+
+      ALL_PLATFORMS.forEach(platform => {
+        const platformCard = document.createElement('div');
+        platformCard.className = 'platform-card';
+        platformCard.id = `card-${platform.id}`;
+
+        platformCard.innerHTML = `
+          <div class="platform-card-header">
+            <span class="platform-name">${platform.name}</span>
+            <span class="platform-status" id="status-${platform.id}">Loading...</span>
+          </div>
+          <div class="platform-card-content" id="content-${platform.id}">
+            <div class="loading-spinner"></div>
+          </div>
+        `;
+
+        platformGrid.appendChild(platformCard);
+
+        // Test platform rendering
+        setTimeout(() => testPlatformCard(platform), 50);
+      });
+
+      updateStats();
+    }
+
+    // Test individual platform card rendering
+    function testPlatformCard(platform) {
+      const contentEl = document.getElementById(`content-${platform.id}`);
+      const statusEl = document.getElementById(`status-${platform.id}`);
+
+      try {
+        // Create sample card data
+        const cardData = {
+          title: `Test Card for ${platform.name}`,
+          description: `This is a sample description for ${platform.name} in card-only mode.`,
+          domain: 'example.com',
+          url: `https://example.com/test-${platform.id}`,
+          image: 'https://picsum.photos/800/450?random=' + platform.id
+        };
+
+        // Render card-only frame (no context chrome)
+        const cardHTML = renderCardOnlyFrame(platform.id, cardData);
+
+        if (cardHTML) {
+          contentEl.innerHTML = `<div class="card-frame">${cardHTML}</div>`;
+          statusEl.textContent = '✓ Success';
+          statusEl.className = 'platform-status status-working';
+          testResults.success++;
+        } else {
+          throw new Error('renderCardOnlyFrame returned empty result');
+        }
+
+      } catch (error) {
+        contentEl.innerHTML = `<div class="error-message">✗ ${error.message}</div>`;
+        statusEl.textContent = '✗ Failed';
+        statusEl.className = 'platform-status status-failed';
+        testResults.failed++;
+        testResults.failures[platform.id] = error.message;
+        console.error(`Failed to render ${platform.name}:`, error.message);
+      }
+
+      updateStats();
+    }
+
+    // Render card-only frame (without platform context chrome)
+    function renderCardOnlyFrame(platformId, cardData) {
+      if (typeof PLATFORM_FRAMES === 'undefined' || !PLATFORM_FRAMES[platformId]) {
+        return renderFallbackCard(cardData);
+      }
+
+      const frameData = PLATFORM_FRAMES[platformId];
+      const isDarkMode = document.body.classList.contains('dark-mode');
+      const themeVars = isDarkMode ? frameData.themeVars.dark : frameData.themeVars.light;
+
+      // Build inline styles from theme vars
+      const styles = Object.entries(themeVars)
+        .map(([key, value]) => `${key.replace('--frame-', '--card-')}: ${value};`)
+        .join(' ');
+
+      // Render simple card with platform-specific styling
+      return `
+        <div class="card-only-frame" style="
+          ${styles}
+          border: 1px solid var(--card-border, #3a3f4e);
+          border-radius: 8px;
+          overflow: hidden;
+          background: var(--card-bg, #1e2330);
+        ">
+          ${cardData.image ? `
+            <div style="
+              width: 100%;
+              aspect-ratio: 16/9;
+              background: var(--card-surface, #2a2f3e);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              overflow: hidden;
+            ">
+              <img src="${cardData.image}" alt="" style="
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                onerror: this.style.display='none';
+              " loading="lazy" />
+            </div>
+          ` : ''}
+          <div style="padding: 12px;">
+            <div style="
+              font-size: 11px;
+              color: var(--card-text-muted, #9ba3b8);
+              text-transform: uppercase;
+              letter-spacing: 0.05em;
+              margin-bottom: 6px;
+            ">${cardData.domain}</div>
+            <div style="
+              font-size: 15px;
+              font-weight: 600;
+              color: var(--card-text-primary, #e8eaf0);
+              margin-bottom: 6px;
+              line-height: 1.3;
+            ">${cardData.title}</div>
+            <div style="
+              font-size: 13px;
+              color: var(--card-text-secondary, #9ba3b8);
+              line-height: 1.4;
+            ">${cardData.description}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Fallback card for platforms without frame definitions
+    function renderFallbackCard(cardData) {
+      return `
+        <div style="
+          border: 1px solid #3a3f4e;
+          border-radius: 8px;
+          overflow: hidden;
+          background: #1e2330;
+        ">
+          ${cardData.image ? `
+            <div style="
+              width: 100%;
+              aspect-ratio: 16/9;
+              background: #2a2f3e;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            ">
+              <img src="${cardData.image}" alt="" style="
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+              " loading="lazy" />
+            </div>
+          ` : ''}
+          <div style="padding: 12px;">
+            <div style="
+              font-size: 11px;
+              color: #9ba3b8;
+              text-transform: uppercase;
+              margin-bottom: 6px;
+            ">${cardData.domain}</div>
+            <div style="
+              font-size: 15px;
+              font-weight: 600;
+              color: #e8eaf0;
+              margin-bottom: 6px;
+            ">${cardData.title}</div>
+            <div style="
+              font-size: 13px;
+              color: #9ba3b8;
+            ">${cardData.description}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Update statistics display
+    function updateStats() {
+      document.getElementById('totalStat').textContent = testResults.total;
+      document.getElementById('successStat').textContent = testResults.success;
+      document.getElementById('failedStat').textContent = testResults.failed;
+      document.getElementById('errorStat').textContent = consoleErrors.filter(e => e.type === 'error').length;
+    }
+
+    // Update console display
+    function updateConsoleDisplay() {
+      const errorCount = consoleErrors.filter(e => e.type === 'error').length;
+      const warnCount = consoleErrors.filter(e => e.type === 'warn').length;
+
+      consoleToggle.textContent = `📋 Console (${errorCount} errors, ${warnCount} warnings)`;
+
+      consoleLogs.innerHTML = consoleErrors.map(log => `
+        <div class="log-entry log-${log.type}">
+          [${new Date(log.timestamp).toLocaleTimeString()}] ${log.type.toUpperCase()}: ${log.message}
+        </div>
+      `).join('');
+    }
+
+    // Theme toggle
+    themeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+      document.body.classList.toggle('light-mode');
+
+      const isDarkMode = document.body.classList.contains('dark-mode');
+      themeToggle.textContent = isDarkMode ? '☀️ Light Mode' : '🌙 Dark Mode';
+
+      // Re-render all cards with new theme
+      initTestGrid();
+    });
+
+    // Refresh all
+    refreshBtn.addEventListener('click', () => {
+      consoleErrors.length = 0;
+      initTestGrid();
+    });
+
+    // Console toggle
+    consoleToggle.addEventListener('click', () => {
+      consoleOutput.classList.toggle('show');
+    });
+
+    consoleClose.addEventListener('click', () => {
+      consoleOutput.classList.remove('show');
+    });
+
+    // Initialize on load
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('🧪 Card-Only Rendering Test initialized');
+      console.log(`Testing ${ALL_PLATFORMS.length} platforms in card-only mode`);
+      initTestGrid();
+    });
+  </script>
+</body>
+</html>

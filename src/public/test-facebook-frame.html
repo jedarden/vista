@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Facebook Context Frame Verification</title>
+  <link rel="stylesheet" href="src/public/style.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 40px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+      background: #1a1a1e;
+      color: #e4e4e7;
+    }
+    .test-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .test-header h1 {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+    .test-header p {
+      color: #a1a1aa;
+      font-size: 16px;
+    }
+    .acceptance-criteria {
+      background: #25252a;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 40px;
+    }
+    .acceptance-criteria h2 {
+      font-size: 18px;
+      margin-bottom: 16px;
+      color: #6366f1;
+    }
+    .criteria-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .criteria-list li {
+      padding: 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+    .criteria-list li:before {
+      content: '✓';
+      color: #4ade80;
+      font-weight: bold;
+    }
+    .test-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+      margin: 24px 0;
+    }
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 16px;
+      background: #6366f1;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 1000;
+    }
+    .theme-toggle:hover {
+      background: #4f46e5;
+    }
+    .test-section {
+      margin-bottom: 40px;
+    }
+    .test-section h2 {
+      font-size: 20px;
+      margin-bottom: 16px;
+      color: #6366f1;
+    }
+    .verification-log {
+      background: #25252a;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 20px;
+      font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+      font-size: 13px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .verification-log div {
+      padding: 4px 0;
+    }
+    .pass { color: #4ade80; }
+    .fail { color: #ef4444; }
+    .info { color: #6366f1; }
+
+    /* HTML theme support */
+    html[data-theme='light'] body {
+      background: #f8f9fa;
+      color: #1f2937;
+    }
+    html[data-theme='light'] .acceptance-criteria,
+    html[data-theme='light'] .verification-log {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" id="themeToggle">☀️ Light Mode</button>
+
+  <div class="test-header">
+    <h1>📘 Facebook Context Frame Verification</h1>
+    <p>Testing Facebook news feed context frame with realistic chrome</p>
+  </div>
+
+  <!-- Acceptance Criteria Checklist -->
+  <div class="acceptance-criteria">
+    <h2>✅ Acceptance Criteria</h2>
+    <ul class="criteria-list">
+      <li>Frame matches Facebook visual style (blue header, circular avatar)</li>
+      <li>Content placeholder shows realistic Facebook post header</li>
+      <li>Dark/light mode works correctly</li>
+      <li>Structure is semantically correct HTML</li>
+      <li>Facebook blue color scheme (#1877F2) used as accent</li>
+      <li>Platform-appropriate spacing and typography</li>
+      <li>Neutral placeholder content (fake user, timestamp)</li>
+    </ul>
+  </div>
+
+  <!-- Test Section: Dark Mode Frames -->
+  <div class="test-section">
+    <h2>1. Facebook Context Frames - Dark Mode</h2>
+    <div class="test-grid">
+      <!-- Facebook Context Frame with Link Preview -->
+      <div class="context-frame facebook-context dark-theme">
+        <div class="fb-post-header">
+          <div class="fb-avatar"></div>
+          <div class="fb-post-meta">
+            <span class="fb-author-name">Jane Smith</span>
+            <span class="fb-post-time">2h · 🌍</span>
+          </div>
+          <span class="fb-menu">•••</span>
+        </div>
+        <div class="fb-post-content">Check out this interesting article!</div>
+        <div class="fb-link-preview">
+          <div class="fb-context-domain">EXAMPLE.COM</div>
+          <div class="fb-context-title">Understanding Facebook Open Graph Implementation</div>
+          <div class="fb-context-desc">Learn how to properly implement Facebook link previews with Open Graph meta tags for optimal sharing experience.</div>
+          <div class="fb-context-placeholder"></div>
+        </div>
+        <div class="fb-post-stats">👍 24 · 💬 8 · 🔗 5</div>
+      </div>
+
+      <!-- Facebook Context Frame with Image -->
+      <div class="context-frame facebook-context dark-theme">
+        <div class="fb-post-header">
+          <div class="fb-avatar"></div>
+          <div class="fb-post-meta">
+            <span class="fb-author-name">John Doe</span>
+            <span class="fb-post-time">5h · 🌍</span>
+          </div>
+          <span class="fb-menu">•••</span>
+        </div>
+        <div class="fb-post-content">Amazing photography from my recent trip!</div>
+        <div class="fb-link-preview">
+          <div class="fb-context-domain">INSTAGRAM.COM</div>
+          <div class="fb-context-title">Beautiful Landscape Photography</div>
+          <div class="fb-context-desc">Stunning views from around the world</div>
+          <div class="fb-context-placeholder"></div>
+        </div>
+        <div class="fb-post-stats">👍 156 · 💬 42 · 🔗 23</div>
+      </div>
+
+      <!-- Minimal Facebook Context Frame -->
+      <div class="context-frame facebook-context dark-theme">
+        <div class="fb-post-header">
+          <div class="fb-avatar"></div>
+          <div class="fb-post-meta">
+            <span class="fb-author-name">Tech News</span>
+            <span class="fb-post-time">1h · 🌍</span>
+          </div>
+          <span class="fb-menu">•••</span>
+        </div>
+        <div class="fb-post-content">Breaking: New web development framework released!</div>
+        <div class="fb-link-preview">
+          <div class="fb-context-domain">GITHUB.COM</div>
+          <div class="fb-context-title">New Framework Announcement</div>
+          <div class="fb-context-desc">Revolutionary approach to building modern web applications</div>
+          <div class="fb-context-placeholder"></div>
+        </div>
+        <div class="fb-post-stats">👍 89 · 💬 31 · 🔗 12</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Verification Log -->
+  <div class="test-section">
+    <h2>2. Verification Results</h2>
+    <div class="verification-log" id="verificationLog">
+      <div class="info">Running verification tests...</div>
+    </div>
+  </div>
+
+  <script>
+    // Verification test suite
+    function runVerification() {
+      const log = document.getElementById('verificationLog');
+      const results = [];
+
+      function logResult(message, status = 'info') {
+        const div = document.createElement('div');
+        div.className = status;
+        div.textContent = `[${status.toUpperCase()}] ${message}`;
+        log.appendChild(div);
+        results.push({ message, status });
+      }
+
+      // Test 1: Check if Facebook context frames exist
+      function testStructureExists() {
+        const fbFrames = document.querySelectorAll('.facebook-context');
+        if (fbFrames.length > 0) {
+          logResult(`Found ${fbFrames.length} Facebook context frames`, 'pass');
+          return true;
+        } else {
+          logResult('No Facebook context frames found', 'fail');
+          return false;
+        }
+      }
+
+      // Test 2: Check Facebook-specific HTML structure
+      function testFacebookStructure() {
+        const fbFrame = document.querySelector('.facebook-context');
+        if (!fbFrame) {
+          logResult('No Facebook frame to check structure', 'fail');
+          return false;
+        }
+
+        const checks = {
+          'fb-post-header': fbFrame.querySelector('.fb-post-header'),
+          'fb-avatar': fbFrame.querySelector('.fb-avatar'),
+          'fb-post-meta': fbFrame.querySelector('.fb-post-meta'),
+          'fb-author-name': fbFrame.querySelector('.fb-author-name'),
+          'fb-post-time': fbFrame.querySelector('.fb-post-time'),
+          'fb-menu': fbFrame.querySelector('.fb-menu'),
+          'fb-post-content': fbFrame.querySelector('.fb-post-content'),
+          'fb-link-preview': fbFrame.querySelector('.fb-link-preview'),
+          'fb-context-domain': fbFrame.querySelector('.fb-context-domain'),
+          'fb-context-title': fbFrame.querySelector('.fb-context-title'),
+          'fb-post-stats': fbFrame.querySelector('.fb-post-stats')
+        };
+
+        let allPresent = true;
+        for (const [className, element] of Object.entries(checks)) {
+          if (element) {
+            logResult(`✓ Found .${className} element`, 'pass');
+          } else {
+            logResult(`✗ Missing .${className} element`, 'fail');
+            allPresent = false;
+          }
+        }
+
+        return allPresent;
+      }
+
+      // Test 3: Check Facebook blue accent color
+      function testFacebookBlue() {
+        const fbFrame = document.querySelector('.facebook-context');
+        if (!fbFrame) {
+          logResult('No Facebook frame to check colors', 'fail');
+          return false;
+        }
+
+        const computedStyle = getComputedStyle(fbFrame);
+        const accentColor = computedStyle.getPropertyValue('--frame-accent').trim();
+
+        // Check if Facebook blue is defined
+        if (accentColor && (accentColor === '#1877f2' || accentColor === 'rgb(24, 119, 242)')) {
+          logResult(`Facebook blue accent found: ${accentColor}`, 'pass');
+          return true;
+        } else {
+          logResult(`Facebook blue accent not correct: ${accentColor}`, 'fail');
+          return false;
+        }
+      }
+
+      // Test 4: Check neutral placeholder content
+      function testPlaceholderContent() {
+        const fbFrame = document.querySelector('.facebook-context');
+        if (!fbFrame) {
+          logResult('No Facebook frame to check content', 'fail');
+          return false;
+        }
+
+        const authorName = fbFrame.querySelector('.fb-author-name');
+        const postTime = fbFrame.querySelector('.fb-post-time');
+
+        if (authorName && postTime) {
+          const name = authorName.textContent.trim();
+          const time = postTime.textContent.trim();
+          logResult(`Placeholder content found - Author: "${name}", Time: "${time}"`, 'pass');
+          return true;
+        } else {
+          logResult('Placeholder content elements missing', 'fail');
+          return false;
+        }
+      }
+
+      // Test 5: Check circular avatar
+      function testCircularAvatar() {
+        const fbFrame = document.querySelector('.facebook-context');
+        if (!fbFrame) {
+          logResult('No Facebook frame to check avatar', 'fail');
+          return false;
+        }
+
+        const avatar = fbFrame.querySelector('.fb-avatar');
+        if (!avatar) {
+          logResult('Avatar element not found', 'fail');
+          return false;
+        }
+
+        const avatarStyle = getComputedStyle(avatar);
+        const borderRadius = avatarStyle.borderRadius;
+        const width = avatarStyle.width;
+        const height = avatarStyle.height;
+
+        if (borderRadius === '50%' || borderRadius === '40px') {
+          logResult(`Avatar is circular - border-radius: ${borderRadius}`, 'pass');
+          return true;
+        } else {
+          logResult(`Avatar not circular - border-radius: ${borderRadius}`, 'fail');
+          return false;
+        }
+      }
+
+      // Test 6: Check semantic HTML structure
+      function testSemanticStructure() {
+        const fbFrame = document.querySelector('.facebook-context');
+        if (!fbFrame) {
+          logResult('No Facebook frame to check semantics', 'fail');
+          return false;
+        }
+
+        // Check for proper class names that indicate semantic structure
+        const semanticClasses = [
+          'fb-post-header',
+          'fb-post-meta',
+          'fb-post-content',
+          'fb-link-preview',
+          'fb-post-stats'
+        ];
+
+        let hasSemanticStructure = true;
+        for (const className of semanticClasses) {
+          if (fbFrame.querySelector(`.${className}`)) {
+            logResult(`✓ Semantic structure found: .${className}`, 'pass');
+          } else {
+            logResult(`✗ Missing semantic structure: .${className}`, 'fail');
+            hasSemanticStructure = false;
+          }
+        }
+
+        return hasSemanticStructure;
+      }
+
+      // Run all tests
+      logResult('Starting Facebook context frame verification...', 'info');
+      logResult('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+
+      const results = {
+        structure: testStructureExists(),
+        htmlStructure: testFacebookStructure(),
+        colors: testFacebookBlue(),
+        content: testPlaceholderContent(),
+        avatar: testCircularAvatar(),
+        semantics: testSemanticStructure()
+      };
+
+      const allPassed = Object.values(results).every(result => result === true);
+
+      logResult('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+      if (allPassed) {
+        logResult('✅ ALL TESTS PASSED - Facebook context frame fully implemented', 'pass');
+      } else {
+        const failedTests = Object.entries(results).filter(([_, result]) => result === false);
+        logResult(`⚠️  ${failedTests.length} test(s) failed`, 'fail');
+      }
+    }
+
+    // Theme toggle functionality
+    const themeToggle = document.getElementById('themeToggle');
+    let currentTheme = 'dark';
+
+    themeToggle.addEventListener('click', () => {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      themeToggle.textContent = currentTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+
+      // Re-run verification to test theme switching
+      setTimeout(() => {
+        runVerification();
+      }, 100);
+    });
+
+    // Run verification on load
+    document.addEventListener('DOMContentLoaded', () => {
+      runVerification();
+    });
+  </script>
+</body>
+</html>

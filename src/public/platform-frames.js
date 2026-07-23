@@ -123,7 +123,7 @@ const PLATFORM_FRAMES = {
   facebook: {
     name: 'Facebook',
     category: 'social',
-    hasThemeSupport: false,
+    hasThemeSupport: true,
     aspectRatio: '1.91:1',
     chrome: `
       <div class="fb-post-header">

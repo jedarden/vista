@@ -1833,6 +1833,117 @@ html[data-theme='dark'] .rd-post-actions span:hover {
   background: #2a2a2b;
 }
 
+/* Comments Section */
+.rd-comments-section {
+  padding: 12px 16px;
+  background: #fff;
+  transition: background-color 0.3s ease;
+}
+
+html[data-theme='dark'] .rd-comments-section {
+  background: #1a1a1b;
+}
+
+.rd-comments-header {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1c1c1c;
+  margin-bottom: 12px;
+  transition: color 0.3s ease;
+}
+
+html[data-theme='dark'] .rd-comments-header {
+  color: #cccccc;
+}
+
+.rd-comment {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 12px;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.rd-comment:hover {
+  background: #f6f7f8;
+}
+
+html[data-theme='dark'] .rd-comment {
+  background: transparent;
+}
+
+html[data-theme='dark'] .rd-comment:hover {
+  background: #2a2a2b;
+}
+
+.rd-comment-dim {
+  opacity: 0.6;
+}
+
+.rd-comment-avatar {
+  width: 32px;
+  height: 32px;
+  background: #ff4500;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+}
+
+html[data-theme='dark'] .rd-comment-avatar {
+  background: #cc3700;
+}
+
+.rd-comment-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.rd-comment-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.rd-comment-author {
+  font-weight: 600;
+  color: #0079d3;
+  font-size: 13px;
+  transition: color 0.3s ease;
+}
+
+html[data-theme='dark'] .rd-comment-author {
+  color: #58a6ff;
+}
+
+.rd-comment-time {
+  color: #7c7c7c;
+  font-size: 12px;
+  transition: color 0.3s ease;
+}
+
+html[data-theme='dark'] .rd-comment-time {
+  color: #898989;
+}
+
+.rd-comment-body {
+  color: #1c1c1c;
+  font-size: 14px;
+  line-height: 1.5;
+  transition: color 0.3s ease;
+}
+
+html[data-theme='dark'] .rd-comment-body {
+  color: #cccccc;
+}
+
 /* Instagram Context */
 .instagram-context {
   max-width: 500px;

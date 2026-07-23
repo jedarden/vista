@@ -106,6 +106,8 @@ html[data-theme='light'] .site-header { background: rgba(255,255,255,0.95); }
 .header-nav { display: flex; gap: 8px; flex: 1; justify-content: center; }
 .nav-btn { padding: 6px 14px; border-radius: 6px; font-size: 14px; font-weight: 500; color: var(--text2); transition: var(--transition); }
 .nav-btn:hover, .nav-btn.active { background: var(--bg3); color: var(--text); }
+.nav-link { padding: 6px 14px; border-radius: 6px; font-size: 14px; font-weight: 500; color: var(--accent); text-decoration: none; transition: var(--transition); display: inline-block; }
+.nav-link:hover { background: var(--bg3); color: var(--accent-hover); }
 
 /* Global theme toggle */
 .theme-toggle {

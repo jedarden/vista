@@ -2,12 +2,12 @@
 #
 # Platform Frame Screenshot Capture Script (via ADB)
 #
-# Takes screenshots of all 7 platform frames in both dark and light modes
+# Takes screenshots of all 8 platform frames in both dark and light modes
 # using an Android phone connected via ADB.
 #
 # Usage:
 #   bash screenshots/capture-platform-frames.sh
-#   npm run screenshots:adb
+#   npm run screenshots
 #
 # Requirements:
 #   - Android phone connected via ADB
@@ -15,7 +15,7 @@
 #   - Chrome installed on the phone
 #
 # Platforms Covered:
-#   - Twitter (X), Instagram, YouTube, TikTok, Pinterest, LinkedIn, Reddit
+#   - Twitter (X), Instagram, YouTube, TikTok, Pinterest, LinkedIn, Reddit, Facebook
 #
 # Output:
 #   Screenshots saved to ./screenshots/ with platform-identifying names:
@@ -36,6 +36,7 @@ platforms=(
   "pinterest:test-pinterest-frame.html"
   "linkedin:test-linkedin-frame.html"
   "reddit:test-reddit-frame.html"
+  "facebook:test-facebook-frame.html"
 )
 
 echo "Starting platform frame screenshot capture..."

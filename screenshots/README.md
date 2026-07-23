@@ -1,43 +1,16 @@
 # Platform Frame Screenshots
 
-This directory contains automated screenshots of all 7 platform context frame test pages.
+This directory contains automated screenshots of all 8 platform context frame test pages.
 
 ## Available Capture Methods
 
-### 1. Puppeteer (Headless Chrome) - Recommended ⭐
-
-**Script:** `capture-frames.js`
-
-**Usage:**
-```bash
-npm run screenshots
-# or
-node screenshots/capture-frames.js
-```
-
-**Requirements:**
-- Puppeteer (already in package.json dependencies)
-- Test HTML files in `src/public/`
-
-**Features:**
-- ✅ Captures both dark and light modes
-- ✅ Fast, no external dependencies
-- ✅ Works offline
-- ✅ Consistent results across runs
-
-**Output:**
-- `{platform}-dark.png` (e.g., `twitter-dark.png`)
-- `{platform}-light.png` (e.g., `twitter-light.png`)
-
----
-
-### 2. ADB (Android Phone)
+### 1. ADB (Android Phone) - Recommended ⭐
 
 **Script:** `capture-platform-frames.sh`
 
 **Usage:**
 ```bash
-npm run screenshots:adb
+npm run screenshots
 # or
 bash screenshots/capture-platform-frames.sh
 ```
@@ -51,6 +24,35 @@ bash screenshots/capture-platform-frames.sh
 - ✅ Captures both dark and light modes
 - ✅ Real device rendering
 - ✅ Tests actual mobile Chrome experience
+- ✅ Works on NixOS systems (no system library dependencies)
+
+**Output:**
+- `{platform}-frame-dark.png` (e.g., `twitter-frame-dark.png`)
+- `{platform}-frame-light.png` (e.g., `twitter-frame-light.png`)
+
+---
+
+### 2. Playwright (Headless Chrome)
+
+**Script:** `capture-frames-playwright.js`
+
+**Usage:**
+```bash
+npm run screenshots:playwright
+# or
+node screenshots/capture-frames-playwright.js
+```
+
+**Requirements:**
+- Playwright (already in package.json devDependencies)
+- Test HTML files in `src/public/`
+- System libraries for Chromium (may not work on NixOS)
+
+**Features:**
+- ✅ Captures both dark and light modes
+- ✅ Fast, no external hardware
+- ✅ Works offline
+- ✅ Consistent results across runs
 
 **Output:**
 - `{platform}-frame-dark.png` (e.g., `twitter-frame-dark.png`)
@@ -93,15 +95,16 @@ bash screenshots/capture-real-platforms.sh
 | Pinterest | test-pinterest-frame.html | dark, light, real |
 | LinkedIn | test-linkedin-frame.html | dark, light, real |
 | Reddit | test-reddit-frame.html | dark, light, real |
+| Facebook | test-facebook-frame.html | dark, light |
 
 ## Quick Start
 
 ```bash
-# Capture all platform frames in both themes (fastest, recommended)
+# Capture all platform frames in both themes (ADB - recommended)
 npm run screenshots
 
-# Capture via ADB phone (includes theme toggle)
-npm run screenshots:adb
+# Capture via Playwright (if system libraries available)
+npm run screenshots:playwright
 
 # Capture real platform interfaces for comparison
 npm run screenshots:real

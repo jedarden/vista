@@ -7,8 +7,8 @@
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "test": "node test/unit/ssrf-guard.test.js",
-    "screenshots": "node screenshots/capture-frames.js",
-    "screenshots:adb": "bash screenshots/capture-platform-frames.sh",
+    "screenshots": "bash screenshots/capture-platform-frames.sh",
+    "screenshots:playwright": "node screenshots/capture-frames-playwright.js",
     "screenshots:real": "bash screenshots/capture-real-platforms.sh"
   },
   "dependencies": {

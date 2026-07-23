@@ -3441,6 +3441,36 @@ function buildLinkPreviewHTML(platformId, content, theme = 'dark') {
         <div class="ol-domain">${esc(domain)}</div>
       `;
 
+    case 'feedly':
+      return `
+        <div class="fl-article">
+          <div class="fl-article-source">${esc(trunc(description || feedName || domain, 30))}</div>
+          <div class="fl-article-title">${esc(trunc(title, 70))}</div>
+          ${description ? `<div class="fl-article-preview">${esc(trunc(description, 120))}</div>` : ''}
+          <div class="fl-article-time">Just now</div>
+          <div class="fl-article-mark">⭐ Mark as read</div>
+        </div>
+      `;
+
+    case 'notion':
+      return `
+        <div class="no-link-preview">
+          ${image ? `<div class="no-link-image img-loading-container"><img src="${esc(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" /></div>` : ''}
+          <div class="no-link-title">${esc(trunc(title, 70))}</div>
+          <div class="no-link-domain">${esc(domain)}</div>
+        </div>
+      `;
+
+    case 'evernote':
+      return `
+        <div class="ev-note-preview">
+          ${image ? `<div class="ev-note-image img-loading-container"><img src="${esc(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" /></div>` : ''}
+          <div class="ev-note-title">${esc(trunc(title, 60))}</div>
+          ${description ? `<div class="ev-note-desc">${esc(trunc(description, 100))}</div>` : ''}
+          <div class="ev-note-domain">${esc(domain)}</div>
+        </div>
+      `;
+
     default:
       // Generic link preview
       return `

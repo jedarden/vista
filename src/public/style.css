@@ -5482,3 +5482,22 @@ html[data-theme='light'] .image-diff-slider-handle {
 .as-title { font-weight: 600; color: var(--frame-text-primary); font-size: 14px; margin-bottom: 4px; }
 .as-desc { color: var(--frame-text-secondary); font-size: 13px; margin-bottom: 6px; }
 .as-domain { color: var(--frame-link-color); font-size: 12px; }
+
+/* Evernote Context (platform-frames.js - .ev- prefix) */
+.evernote-context { display: flex; flex-direction: column; min-height: 400px; background: var(--frame-bg); border-radius: 8px; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+.ev-notebook-header { display: flex; align-items: center; gap: 12px; padding: 16px 20px; background: var(--frame-surface); border-bottom: 1px solid var(--frame-border); }
+.ev-notebook-icon { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: var(--frame-accent-bg); border-radius: 8px; font-size: 20px; }
+.ev-notebook-title { font-size: 18px; font-weight: 600; color: var(--frame-text-primary); }
+.ev-note-list { flex: 1; padding: 16px 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+.ev-note { background: var(--frame-surface); border: 1px solid var(--frame-border); border-radius: 8px; padding: 16px; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.ev-note:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+.ev-note-dim { opacity: 0.5; }
+.ev-note-title { font-size: 16px; font-weight: 600; color: var(--frame-text-primary); margin-bottom: 8px; line-height: 1.3; }
+.ev-note-preview { font-size: 14px; color: var(--frame-text-secondary); margin-bottom: 8px; line-height: 1.4; }
+.ev-note-meta { font-size: 12px; color: var(--frame-text-muted); display: flex; align-items: center; gap: 8px; }
+.ev-note-content { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--frame-border); }
+.ev-link-card { display: flex; gap: 12px; background: var(--frame-bg); border-radius: 6px; overflow: hidden; border: 1px solid var(--frame-border); }
+.ev-link-image { width: 80px; height: 60px; flex-shrink: 0; background: var(--frame-surface); overflow: hidden; }
+.ev-link-image img { width: 100%; height: 100%; object-fit: cover; }
+.ev-link-placeholder { width: 80px; height: 60px; flex-shrink: 0; background: var(--frame-surface); display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--frame-text-muted); }
+.ev-link-domain { font-size: 12px; color: var(--frame-link-color); flex: 1; display: flex; align-items: center; padding: 0 12px; }

@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Productivity Tools Context Frames Verification</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 40px 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+      background: #f5f5f5;
+      color: #333;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    html[data-theme='dark'] body {
+      background: #1a1a1e;
+      color: #e4e4e7;
+    }
+
+    .test-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .test-header h1 {
+      font-size: 36px;
+      margin-bottom: 12px;
+      color: #21293c;
+    }
+
+    html[data-theme='dark'] .test-header h1 {
+      color: #e4e4e7;
+    }
+
+    .test-header p {
+      color: #5f6b7c;
+      font-size: 16px;
+    }
+
+    html[data-theme='dark'] .test-header p {
+      color: #a1a1aa;
+    }
+
+    .acceptance-criteria {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 40px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    html[data-theme='dark'] .acceptance-criteria {
+      background: #27272a;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .acceptance-criteria h2 {
+      font-size: 20px;
+      margin-bottom: 16px;
+      color: #059669;
+    }
+
+    .criteria-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .criteria-list li {
+      padding: 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+
+    .criteria-list li:before {
+      content: '✓';
+      color: #22c55e;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .category-section {
+      margin-bottom: 60px;
+    }
+
+    .category-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #e5e7eb;
+    }
+
+    html[data-theme='dark'] .category-header {
+      border-color: #3f3f46;
+    }
+
+    .category-icon {
+      font-size: 32px;
+    }
+
+    .category-title {
+      font-size: 24px;
+      color: #21293c;
+    }
+
+    html[data-theme='dark'] .category-title {
+      color: #e4e4e7;
+    }
+
+    .category-desc {
+      color: #6b7280;
+      font-size: 14px;
+      margin-top: 4px;
+    }
+
+    html[data-theme='dark'] .category-desc {
+      color: #a1a1aa;
+    }
+
+    .platform-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+      gap: 24px;
+    }
+
+    .platform-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    html[data-theme='dark'] .platform-card {
+      background: #27272a;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .platform-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #6366f1;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .platform-name {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #21293c;
+    }
+
+    html[data-theme='dark'] .platform-name {
+      color: #e4e4e7;
+    }
+
+    .platform-features {
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 16px;
+    }
+
+    html[data-theme='dark'] .platform-features {
+      color: #a1a1aa;
+    }
+
+    .frame-container {
+      margin: 16px 0;
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .theme-toggle:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      background: #dcfce7;
+      color: #166534;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+
+    html[data-theme='dark'] .status-badge {
+      background: #14532d;
+      color: #86efac;
+    }
+
+    .theme-info {
+      position: fixed;
+      top: 70px;
+      right: 20px;
+      padding: 8px 12px;
+      background: rgba(99, 102, 241, 0.1);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 6px;
+      font-size: 12px;
+      color: #6366f1;
+      z-index: 999;
+    }
+
+    @media (max-width: 768px) {
+      .platform-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body data-theme="light">
+  <button class="theme-toggle" onclick="toggleTheme()">🌓 Toggle Dark/Light Mode</button>
+  <div class="theme-info">Current: <span id="theme-label">Light</span></div>
+
+  <div class="test-header">
+    <h1>📋 Productivity Tools Context Frames</h1>
+    <p>Comprehensive verification of Email, RSS Reader, and Note-taking platform frames</p>
+  </div>
+
+  <div class="acceptance-criteria">
+    <h2>✅ Acceptance Criteria</h2>
+    <ul class="criteria-list">
+      <li>All 3 tool categories have context frames (Email, RSS, Note-taking)</li>
+      <li>Email frame shows Gmail/Outlook-style message thread with conversation view</li>
+      <li>RSS reader frame shows Feedly-style article list with sidebar navigation</li>
+      <li>Note-taking frame shows Notion/Evernote-style document with block editor</li>
+      <li>Dark/light mode toggle works for all platforms</li>
+      <li>Each frame is visually distinct and authentic to the tool type</li>
+      <li>Theme-aware styling with CSS custom properties</li>
+    </ul>
+  </div>
+
+  <!-- Category 1: Email Clients -->
+  <div class="category-section">
+    <div class="category-header">
+      <div class="category-icon">📧</div>
+      <div>
+        <div class="category-title">Email Clients <span class="status-badge">2 platforms</span></div>
+        <div class="category-desc">Conversation-style messaging with threading support</div>
+      </div>
+    </div>
+
+    <div class="platform-grid">
+      <div class="platform-card">
+        <div class="platform-label">Email Platform 1</div>
+        <div class="platform-name">Gmail</div>
+        <div class="platform-features">Threaded conversation view, avatars, link previews</div>
+        <div class="frame-container" id="gmail-frame"></div>
+      </div>
+
+      <div class="platform-card">
+        <div class="platform-label">Email Platform 2</div>
+        <div class="platform-name">Outlook</div>
+        <div class="platform-features">Professional thread view, clean layout</div>
+        <div class="frame-container" id="outlook-frame"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category 2: RSS Readers -->
+  <div class="category-section">
+    <div class="category-header">
+      <div class="category-icon">📰</div>
+      <div>
+        <div class="category-title">RSS Readers <span class="status-badge">1 platform</span></div>
+        <div class="category-desc">Feed aggregation with article list and unread management</div>
+      </div>
+    </div>
+
+    <div class="platform-grid">
+      <div class="platform-card">
+        <div class="platform-label">RSS Platform 1</div>
+        <div class="platform-name">Feedly</div>
+        <div class="platform-features">Three-panel layout, sidebar navigation, mark as read</div>
+        <div class="frame-container" id="feedly-frame"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category 3: Note-taking Apps -->
+  <div class="category-section">
+    <div class="category-header">
+      <div class="category-icon">📝</div>
+      <div>
+        <div class="category-title">Note-taking Apps <span class="status-badge">2 platforms</span></div>
+        <div class="category-desc">Block-based editing and notebook organization</div>
+      </div>
+    </div>
+
+    <div class="platform-grid">
+      <div class="platform-card">
+        <div class="platform-label">Note-taking Platform 1</div>
+        <div class="platform-name">Notion</div>
+        <div class="platform-features">Block editor, callouts, page structure</div>
+        <div class="frame-container" id="notion-frame"></div>
+      </div>
+
+      <div class="platform-card">
+        <div class="platform-label">Note-taking Platform 2</div>
+        <div class="platform-name">Evernote</div>
+        <div class="platform-features">Notebook view, note list, rich content cards</div>
+        <div class="frame-container" id="evernote-frame"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="platform-frames.js"></script>
+  <script>
+    let currentTheme = 'light';
+
+    function toggleTheme() {
+      currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+      document.body.setAttribute('data-theme', currentTheme);
+      document.getElementById('theme-label').textContent =
+        currentTheme === 'light' ? 'Light' : 'Dark';
+      renderAllFrames();
+    }
+
+    function renderGmail() {
+      const container = document.getElementById('gmail-frame');
+      const content = {
+        subject: 'Re: Q4 Planning - Project Update',
+        from: 'michael.johnson@company.com',
+        to: 'me',
+        time: '10:30 AM',
+        senderName: 'Michael Johnson',
+        senderEmail: 'michael.johnson@company.com',
+        timeAgo: '2 hours ago',
+        yourEmail: 'you@company.com',
+        title: 'Project Documentation and Best Practices',
+        domain: 'docs.company.com',
+        description: 'Comprehensive guide to project workflows'
+      };
+      container.innerHTML = buildContextFrame('gmail', content, currentTheme);
+    }
+
+    function renderOutlook() {
+      const container = document.getElementById('outlook-frame');
+      const content = {
+        subject: 'FW: Team Meeting - Action Items',
+        from: 'sarah.williams@company.com',
+        time: '9:45 AM',
+        senderName: 'Sarah Williams',
+        senderEmail: 'sarah.williams@company.com',
+        timeAgo: '3 hours ago',
+        yourEmail: 'you@company.com',
+        title: 'Meeting Agenda - Q4 Planning',
+        domain: 'teams.company.com',
+        description: 'Discussion notes and follow-up tasks'
+      };
+      container.innerHTML = buildContextFrame('outlook', content, currentTheme);
+    }
+
+    function renderFeedly() {
+      const container = document.getElementById('feedly-frame');
+      const content = {
+        feedTitle: 'Tech & Design Weekly',
+        unreadCount: '12',
+        feedName: 'Smashing Magazine',
+        title: 'Modern CSS Layout Techniques: Grid and Flexbox Mastery',
+        description: 'A comprehensive guide to building responsive layouts with modern CSS. Learn advanced techniques for creating flexible, maintainable designs.',
+        timeAgo: '2 hours ago',
+        domain: 'smashingmagazine.com'
+      };
+      container.innerHTML = buildContextFrame('feedly', content, currentTheme);
+    }
+
+    function renderNotion() {
+      const container = document.getElementById('notion-frame');
+      const content = {
+        pageTitle: 'Product Development Roadmap',
+        author: 'Alex Chen',
+        timeAgo: '2 hours ago',
+        title: 'Q4 Feature Specifications',
+        domain: 'notion.so',
+        description: 'Detailed requirements and implementation plan for upcoming features',
+        image: 'https://picsum.photos/seed/notion/80/60'
+      };
+      container.innerHTML = buildContextFrame('notion', content, currentTheme);
+    }
+
+    function renderEvernote() {
+      const container = document.getElementById('evernote-frame');
+      const content = {
+        notebookName: 'Research & Development',
+        title: 'Industry Analysis Report',
+        domain: 'mckinsey.com',
+        description: 'Quarterly analysis of market trends and competitive landscape',
+        image: 'https://picsum.photos/seed/evernote/80/60'
+      };
+      container.innerHTML = buildContextFrame('evernote', content, currentTheme);
+    }
+
+    function renderAllFrames() {
+      renderGmail();
+      renderOutlook();
+      renderFeedly();
+      renderNotion();
+      renderEvernote();
+    }
+
+    // Initial render
+    document.body.setAttribute('data-theme', currentTheme);
+    renderAllFrames();
+  </script>
+</body>
+</html>

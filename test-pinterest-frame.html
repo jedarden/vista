@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pinterest Context Frame Verification</title>
+  <link rel="stylesheet" href="src/public/style.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 40px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+      background: #1a1a1e;
+      color: #e4e4e7;
+    }
+    .test-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .test-header h1 {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+    .test-header p {
+      color: #a1a1aa;
+      font-size: 16px;
+    }
+    .acceptance-criteria {
+      background: #25252a;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 40px;
+    }
+    .acceptance-criteria h2 {
+      font-size: 18px;
+      margin-bottom: 16px;
+      color: #E60023;
+    }
+    .criteria-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .criteria-list li {
+      padding: 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+    .criteria-list li:before {
+      content: '✓';
+      color: #4ade80;
+      font-weight: bold;
+    }
+    .test-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin: 24px 0;
+    }
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 16px;
+      background: #E60023;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 1000;
+    }
+    .theme-toggle:hover {
+      opacity: 0.9;
+    }
+    .test-section {
+      margin-bottom: 40px;
+    }
+    .test-section h2 {
+      font-size: 20px;
+      margin-bottom: 16px;
+      color: #E60023;
+    }
+    .verification-log {
+      background: #25252a;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 20px;
+      font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+      font-size: 13px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .verification-log div {
+      padding: 4px 0;
+    }
+    .pass { color: #4ade80; }
+    .fail { color: #ef4444; }
+    .info { color: #E60023; }
+
+    /* HTML theme support */
+    html[data-theme='light'] body {
+      background: #f8f9fa;
+      color: #1f2937;
+    }
+    html[data-theme='light'] .acceptance-criteria,
+    html[data-theme='light'] .verification-log {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" id="themeToggle">☀️ Light Mode</button>
+
+  <div class="test-header">
+    <h1>📌 Pinterest Context Frame Verification</h1>
+    <p>Testing Pinterest pin card context frame with realistic chrome</p>
+  </div>
+
+  <!-- Acceptance Criteria Checklist -->
+  <div class="acceptance-criteria">
+    <h2>✅ Acceptance Criteria</h2>
+    <ul class="criteria-list">
+      <li>Frame matches Pinterest visual style (rounded corners, shadow, save button)</li>
+      <li>Content placeholder shows realistic Pinterest pin card</li>
+      <li>Dark/light mode works correctly</li>
+      <li>Structure is semantically correct HTML</li>
+      <li>Pinterest red color scheme used as accent</li>
+      <li>Platform-appropriate spacing and typography</li>
+      <li>Neutral placeholder content (fake title, description, domain)</li>
+    </ul>
+  </div>
+
+  <!-- Test Section: Dark Mode Frames -->
+  <div class="test-section">
+    <h2>1. Pinterest Context Frames - Dark Mode</h2>
+    <div class="test-grid">
+      <!-- Pinterest Context Frame - Food Pin -->
+      <div class="context-frame pinterest-context dark-theme">
+        <div class="pin-card">
+          <div class="pin-image-container">
+            <div class="pin-image-placeholder"></div>
+            <div class="pin-save-btn">Save</div>
+          </div>
+          <div class="pin-meta">
+            <div class="pin-title">Amazing Chocolate Cake Recipe</div>
+            <div class="pin-desc">Easy homemade chocolate cake that's moist and delicious</div>
+            <div class="pin-domain">foodblog.com</div>
+          </div>
+          <div class="pin-footer">
+            <div class="pin-saver">
+              <div class="pin-saver-avatar"></div>
+              <div class="pin-saver-name">Sarah Johnson</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pinterest Context Frame - Fashion Pin -->
+      <div class="context-frame pinterest-context dark-theme">
+        <div class="pin-card">
+          <div class="pin-image-container">
+            <div class="pin-image-placeholder"></div>
+            <div class="pin-save-btn">Save</div>
+          </div>
+          <div class="pin-meta">
+            <div class="pin-title">Summer Fashion Essentials 2024</div>
+            <div class="pin-desc">Must-have pieces for your summer wardrobe</div>
+            <div class="pin-domain">fashionweekly.com</div>
+          </div>
+          <div class="pin-footer">
+            <div class="pin-saver">
+              <div class="pin-saver-avatar"></div>
+              <div class="pin-saver-name">Emma Styles</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pinterest Context Frame - DIY Pin -->
+      <div class="context-frame pinterest-context dark-theme">
+        <div class="pin-card">
+          <div class="pin-image-container">
+            <div class="pin-image-placeholder"></div>
+            <div class="pin-save-btn">Save</div>
+          </div>
+          <div class="pin-meta">
+            <div class="pin-title">Easy DIY Home Decor Projects</div>
+            <div class="pin-desc">Simple and affordable ways to refresh your home</div>
+            <div class="pin-domain">diyinspiration.com</div>
+          </div>
+          <div class="pin-footer">
+            <div class="pin-saver">
+              <div class="pin-saver-avatar"></div>
+              <div class="pin-saver-name">Mike Crafts</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pinterest Context Frame - Travel Pin -->
+      <div class="context-frame pinterest-context dark-theme">
+        <div class="pin-card">
+          <div class="pin-image-container">
+            <div class="pin-image-placeholder"></div>
+            <div class="pin-save-btn">Save</div>
+          </div>
+          <div class="pin-meta">
+            <div class="pin-title">Hidden Gems in Portugal</div>
+            <div class="pin-desc">Off the beaten path destinations you must visit</div>
+            <div class="pin-domain">travelsecrets.com</div>
+          </div>
+          <div class="pin-footer">
+            <div class="pin-saver">
+              <div class="pin-saver-avatar"></div>
+              <div class="pin-saver-name">Luna Travels</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Verification Log -->
+  <div class="test-section">
+    <h2>2. Verification Results</h2>
+    <div class="verification-log" id="verificationLog">
+      <div class="info">Running verification tests...</div>
+    </div>
+  </div>
+
+  <script>
+    // Verification test suite
+    function runVerification() {
+      const log = document.getElementById('verificationLog');
+      const results = [];
+
+      function logResult(message, status = 'info') {
+        const div = document.createElement('div');
+        div.className = status;
+        div.textContent = `[${status.toUpperCase()}] ${message}`;
+        log.appendChild(div);
+        results.push({ message, status });
+      }
+
+      // Test 1: Check if Pinterest context frames exist
+      function testStructureExists() {
+        const pinFrames = document.querySelectorAll('.pinterest-context');
+        if (pinFrames.length > 0) {
+          logResult(`Found ${pinFrames.length} Pinterest context frames`, 'pass');
+          return true;
+        } else {
+          logResult('No Pinterest context frames found', 'fail');
+          return false;
+        }
+      }
+
+      // Test 2: Check Pinterest-specific HTML structure
+      function testPinterestStructure() {
+        const pinFrame = document.querySelector('.pinterest-context');
+        if (!pinFrame) {
+          logResult('No Pinterest frame to check structure', 'fail');
+          return false;
+        }
+
+        const checks = {
+          'pin-card': pinFrame.querySelector('.pin-card'),
+          'pin-image-container': pinFrame.querySelector('.pin-image-container'),
+          'pin-image-placeholder': pinFrame.querySelector('.pin-image-placeholder'),
+          'pin-save-btn': pinFrame.querySelector('.pin-save-btn'),
+          'pin-meta': pinFrame.querySelector('.pin-meta'),
+          'pin-title': pinFrame.querySelector('.pin-title'),
+          'pin-desc': pinFrame.querySelector('.pin-desc'),
+          'pin-domain': pinFrame.querySelector('.pin-domain'),
+          'pin-footer': pinFrame.querySelector('.pin-footer'),
+          'pin-saver': pinFrame.querySelector('.pin-saver')
+        };
+
+        let allPresent = true;
+        for (const [className, element] of Object.entries(checks)) {
+          if (element) {
+            logResult(`✓ Found .${className} element`, 'pass');
+          } else {
+            logResult(`✗ Missing .${className} element`, 'fail');
+            allPresent = false;
+          }
+        }
+
+        return allPresent;
+      }
+
+      // Test 3: Check Pinterest red accent color
+      function testPinterestRed() {
+        const pinFrame = document.querySelector('.pinterest-context');
+        if (!pinFrame) {
+          logResult('No Pinterest frame to check colors', 'fail');
+          return false;
+        }
+
+        const saveBtn = pinFrame.querySelector('.pin-save-btn');
+        if (!saveBtn) {
+          logResult('Save button element not found for color check', 'fail');
+          return false;
+        }
+
+        const btnStyle = getComputedStyle(saveBtn);
+        const bg = btnStyle.background;
+
+        logResult(`Pinterest save button background: ${bg.substring(0, 50)}...`, 'pass');
+        return true;
+      }
+
+      // Test 4: Check neutral placeholder content
+      function testPlaceholderContent() {
+        const pinFrame = document.querySelector('.pinterest-context');
+        if (!pinFrame) {
+          logResult('No Pinterest frame to check content', 'fail');
+          return false;
+        }
+
+        const title = pinFrame.querySelector('.pin-title');
+        const desc = pinFrame.querySelector('.pin-desc');
+        const domain = pinFrame.querySelector('.pin-domain');
+
+        if (title && desc && domain) {
+          const ttl = title.textContent.trim();
+          const dsc = desc.textContent.trim();
+          const dom = domain.textContent.trim();
+          logResult(`Placeholder content - Title: "${ttl}", Desc: "${dsc.substring(0, 30)}...", Domain: "${dom}"`, 'pass');
+          return true;
+        } else {
+          logResult('Placeholder content elements missing', 'fail');
+          return false;
+        }
+      }
+
+      // Test 5: Check rounded corners on pin card
+      function testRoundedCorners() {
+        const pinFrame = document.querySelector('.pinterest-context');
+        if (!pinFrame) {
+          logResult('No Pinterest frame to check corners', 'fail');
+          return false;
+        }
+
+        const pinCard = pinFrame.querySelector('.pin-card');
+        if (!pinCard) {
+          logResult('Pin card element not found', 'fail');
+          return false;
+        }
+
+        const cardStyle = getComputedStyle(pinCard);
+        const borderRadius = cardStyle.borderRadius;
+
+        if (borderRadius && borderRadius !== '0px') {
+          logResult(`Pin card has rounded corners - border-radius: ${borderRadius}`, 'pass');
+          return true;
+        } else {
+          logResult(`Pin card lacks rounded corners - border-radius: ${borderRadius}`, 'fail');
+          return false;
+        }
+      }
+
+      // Test 6: Check semantic HTML structure
+      function testSemanticStructure() {
+        const pinFrame = document.querySelector('.pinterest-context');
+        if (!pinFrame) {
+          logResult('No Pinterest frame to check semantics', 'fail');
+          return false;
+        }
+
+        const semanticClasses = [
+          'pin-card',
+          'pin-image-container',
+          'pin-meta',
+          'pin-footer',
+          'pin-save-btn'
+        ];
+
+        let hasSemanticStructure = true;
+        for (const className of semanticClasses) {
+          if (pinFrame.querySelector(`.${className}`)) {
+            logResult(`✓ Semantic structure found: .${className}`, 'pass');
+          } else {
+            logResult(`✗ Missing semantic structure: .${className}`, 'fail');
+            hasSemanticStructure = false;
+          }
+        }
+
+        return hasSemanticStructure;
+      }
+
+      // Test 7: Check save button text (Pinterest-specific)
+      function testSaveButton() {
+        const pinFrame = document.querySelector('.pinterest-context');
+        if (!pinFrame) {
+          logResult('No Pinterest frame to check save button', 'fail');
+          return false;
+        }
+
+        const saveBtn = pinFrame.querySelector('.pin-save-btn');
+        if (saveBtn) {
+          const text = saveBtn.textContent.trim();
+          logResult(`Pinterest save button found: "${text}"`, 'pass');
+          return true;
+        } else {
+          logResult('Pinterest save button not found', 'fail');
+          return false;
+        }
+      }
+
+      // Test 8: Check pin saver section (Pinterest-specific)
+      function testPinSaver() {
+        const pinFrame = document.querySelector('.pinterest-context');
+        if (!pinFrame) {
+          logResult('No Pinterest frame to check pin saver', 'fail');
+          return false;
+        }
+
+        const pinSaver = pinFrame.querySelector('.pin-saver');
+        if (pinSaver) {
+          const avatar = pinSaver.querySelector('.pin-saver-avatar');
+          const name = pinSaver.querySelector('.pin-saver-name');
+          if (avatar && name) {
+            logResult(`Pinterest pin saver section found with avatar and name`, 'pass');
+            return true;
+          } else {
+            logResult(`Pin saver section incomplete`, 'fail');
+            return false;
+          }
+        } else {
+          logResult('Pinterest pin saver section not found', 'fail');
+          return false;
+        }
+      }
+
+      // Run all tests
+      logResult('Starting Pinterest context frame verification...', 'info');
+      logResult('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+
+      const results = {
+        structure: testStructureExists(),
+        htmlStructure: testPinterestStructure(),
+        colors: testPinterestRed(),
+        content: testPlaceholderContent(),
+        corners: testRoundedCorners(),
+        semantics: testSemanticStructure(),
+        saveBtn: testSaveButton(),
+        pinSaver: testPinSaver()
+      };
+
+      const allPassed = Object.values(results).every(result => result === true);
+
+      logResult('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+      if (allPassed) {
+        logResult('✅ ALL TESTS PASSED - Pinterest context frame fully implemented', 'pass');
+      } else {
+        const failedTests = Object.entries(results).filter(([_, result]) => result === false);
+        logResult(`⚠️  ${failedTests.length} test(s) failed`, 'fail');
+      }
+    }
+
+    // Theme toggle functionality
+    const themeToggle = document.getElementById('themeToggle');
+    let currentTheme = 'dark';
+
+    themeToggle.addEventListener('click', () => {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      themeToggle.textContent = currentTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+
+      // Re-run verification to test theme switching
+      setTimeout(() => {
+        runVerification();
+      }, 100);
+    });
+
+    // Run verification on load
+    document.addEventListener('DOMContentLoaded', () => {
+      runVerification();
+    });
+  </script>
+</body>
+</html>

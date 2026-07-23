@@ -547,6 +547,121 @@ const PLATFORM_FRAMES = {
     },
   },
 
+  // Video Content
+  tiktok: {
+    name: 'TikTok',
+    category: 'social',
+    hasThemeSupport: true,
+    aspectRatio: '9:16',
+    chrome: `
+      <div class="tt-video-container">
+        <div class="tt-video-placeholder"></div>
+        <div class="tt-right-sidebar">
+          <div class="tt-action-btn">
+            <span class="tt-action-icon">♡</span>
+            <span class="tt-action-count">24</span>
+          </div>
+          <div class="tt-action-btn">
+            <span class="tt-action-icon">💬</span>
+            <span class="tt-action-count">8</span>
+          </div>
+          <div class="tt-action-btn">
+            <span class="tt-action-icon">↗</span>
+            <span class="tt-action-count">12</span>
+          </div>
+        </div>
+        <div class="tt-bottom-overlay">
+          <div class="tt-username">@tiktok_user</div>
+          <div class="tt-caption">Check out this amazing content! 🔗</div>
+          <div class="tt-music">🎵 Original Sound - Artist</div>
+        </div>
+      </div>
+    `,
+    neutralContent: '',
+    themeVars: {
+      dark: {
+        '--frame-bg': '#000000',
+        '--frame-surface': '#121212',
+        '--frame-border': '#262626',
+        '--frame-text-primary': '#ffffff',
+        '--frame-text-secondary': '#a8a8a8',
+        '--frame-text-muted': '#737373',
+        '--frame-accent': '#ff0050',
+        '--frame-accent-bg': '#ff0050',
+        '--frame-link-color': '#00f2ea',
+        '--frame-divider': '#262626',
+        '--frame-input-bg': '#1a1a1a',
+        '--frame-overlay': 'rgba(0, 0, 0, 0.7)',
+      },
+      light: {
+        '--frame-bg': '#ffffff',
+        '--frame-surface': '#f8f8f8',
+        '--frame-border': '#e5e5e5',
+        '--frame-text-primary': '#1a1a1a',
+        '--frame-text-secondary': '#666666',
+        '--frame-text-muted': '#999999',
+        '--frame-accent': '#e60045',
+        '--frame-accent-bg': '#e60045',
+        '--frame-link-color': '#00d0cf',
+        '--frame-divider': '#e5e5e5',
+        '--frame-input-bg': '#f5f5f5',
+        '--frame-overlay': 'rgba(0, 0, 0, 0.1)',
+      },
+    },
+  },
+
+  // Visual Discovery
+  pinterest: {
+    name: 'Pinterest',
+    category: 'social',
+    hasThemeSupport: true,
+    aspectRatio: '2:3',
+    chrome: `
+      <div class="pin-card">
+        <div class="pin-image-container">
+          <div class="pin-image-placeholder"></div>
+          <button class="pin-save-btn">Save</button>
+        </div>
+        <div class="pin-meta">
+          <div class="pin-title">Amazing Pin Title</div>
+          <div class="pin-desc">Discover this inspiring idea for your next project</div>
+          <div class="pin-domain">pinterest.com</div>
+        </div>
+      </div>
+    `,
+    neutralContent: '',
+    themeVars: {
+      dark: {
+        '--frame-bg': '#1a1a1a',
+        '--frame-surface': '#242424',
+        '--frame-border': '#333333',
+        '--frame-text-primary': '#e0e0e0',
+        '--frame-text-secondary': '#999999',
+        '--frame-text-muted': '#666666',
+        '--frame-accent': '#E60023',
+        '--frame-accent-bg': '#E60023',
+        '--frame-link-color': '#E60023',
+        '--frame-divider': '#333333',
+        '--frame-input-bg': '#242424',
+        '--frame-overlay': 'rgba(0, 0, 0, 0.6)',
+      },
+      light: {
+        '--frame-bg': '#ffffff',
+        '--frame-surface': '#f8f8f8',
+        '--frame-border': '#e5e5e5',
+        '--frame-text-primary': '#111111',
+        '--frame-text-secondary': '#767676',
+        '--frame-text-muted': '#999999',
+        '--frame-accent': '#E60023',
+        '--frame-accent-bg': '#E60023',
+        '--frame-link-color': '#E60023',
+        '--frame-divider': '#e5e5e5',
+        '--frame-input-bg': '#f8f8f8',
+        '--frame-overlay': 'rgba(0, 0, 0, 0.1)',
+      },
+    },
+  },
+
   // Generic template for platforms without custom context frames
   generic: {
     name: 'Generic Platform',

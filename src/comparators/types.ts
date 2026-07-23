@@ -66,6 +66,49 @@ export interface ComparisonField {
 export type ComparisonValue = string | number | boolean | string[] | null;
 
 // ============================================================================
+// Comparison Function Signatures
+// ============================================================================
+
+/**
+ * Check if two platform metadata objects are identical.
+ * Performs deep equality check on all fields including nested arrays.
+ *
+ * @param a - First platform metadata object
+ * @param b - Second platform metadata object
+ * @returns true if the objects are identical, false otherwise
+ */
+export declare function isIdentical(
+  a: PlatformMetadata | null | undefined,
+  b: PlatformMetadata | null | undefined
+): boolean;
+
+/**
+ * Extract the list of changed fields between two platform metadata objects.
+ *
+ * Returns an array of field paths (strings) that differ between the two objects.
+ * Field paths use dot notation for nested properties (e.g., 'tags.count', 'meta.og.title').
+ * Returns an empty array if the objects are identical.
+ *
+ * @param a - First platform metadata object
+ * @param b - Second platform metadata object
+ * @returns Array of changed field paths (empty array if identical)
+ *
+ * @example
+ * const a = { platformId: 'twitter', score: 85, issues: ['no-title'] };
+ * const b = { platformId: 'twitter', score: 92, issues: [] };
+ * changedFields(a, b); // ['score', 'issues']
+ *
+ * @example
+ * const objA = { meta: { og: { title: 'Test' } } };
+ * const objB = { meta: { og: { title: 'Changed' } } };
+ * changedFields(objA, objB); // ['meta.og.title']
+ */
+export declare function changedFields(
+  a: Record<string, any> | null | undefined,
+  b: Record<string, any> | null | undefined
+): string[];
+
+// ============================================================================
 // Extended Types for Batch Comparison
 // ============================================================================
 

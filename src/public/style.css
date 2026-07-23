@@ -2271,6 +2271,317 @@ html[data-theme='dark'] .yt-context-placeholder {
   display: block;
 }
 
+/* TikTok Context */
+.tiktok-context {
+  max-width: 350px;
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: background-color 0.3s ease;
+}
+
+/* Dark mode for TikTok context */
+html[data-theme='dark'] .tiktok-context {
+  background: #000;
+  border: 1px solid #1a1a1a;
+}
+
+/* Light mode for TikTok context */
+html[data-theme='light'] .tiktok-context {
+  background: #fff;
+  border: 1px solid #e5e5e5;
+}
+
+/* Video container with vertical aspect ratio */
+.tt-video-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 9/16;
+  background: #000;
+  transition: background-color 0.3s ease;
+}
+
+html[data-theme='light'] .tt-video-container {
+  background: #f5f5f5;
+}
+
+/* Video placeholder with TikTok gradient */
+.tt-video-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #00f2ea 0%, #ff0050 100%);
+  transition: background 0.3s ease;
+}
+
+html[data-theme='light'] .tt-video-placeholder {
+  background: linear-gradient(135deg, #00d0cf 0%, #e60045 100%);
+}
+
+/* Right sidebar with action buttons */
+.tt-right-sidebar {
+  position: absolute;
+  right: 12px;
+  bottom: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  z-index: 2;
+}
+
+.tt-action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.tt-action-icon {
+  font-size: 28px;
+  color: #fff;
+  transition: color 0.3s ease;
+}
+
+html[data-theme='light'] .tt-action-icon {
+  color: #1a1a1a;
+}
+
+.tt-action-count {
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  transition: color 0.3s ease;
+}
+
+html[data-theme='light'] .tt-action-count {
+  color: #1a1a1a;
+}
+
+/* Bottom overlay with text content */
+.tt-bottom-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 60px;
+  padding: 12px;
+  background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
+  z-index: 1;
+  transition: background 0.3s ease;
+}
+
+html[data-theme='light'] .tt-bottom-overlay {
+  background: linear-gradient(to top, rgba(255,255,255,0.9) 0%, transparent 100%);
+}
+
+.tt-username {
+  font-weight: 700;
+  color: #fff;
+  font-size: 14px;
+  margin-bottom: 6px;
+  transition: color 0.3s ease;
+}
+
+html[data-theme='light'] .tt-username {
+  color: #1a1a1a;
+}
+
+.tt-caption {
+  font-size: 13px;
+  color: #fff;
+  line-height: 1.4;
+  margin-bottom: 8px;
+  transition: color 0.3s ease;
+}
+
+html[data-theme='light'] .tt-caption {
+  color: #333;
+}
+
+.tt-music {
+  font-size: 12px;
+  color: rgba(255,255,255,0.8);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.3s ease;
+}
+
+html[data-theme='light'] .tt-music {
+  color: #666;
+}
+
+/* Pinterest Context */
+.pinterest-context {
+  max-width: 350px;
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: background-color 0.3s ease;
+}
+
+/* Dark mode for Pinterest context */
+html[data-theme='dark'] .pinterest-context {
+  background: #1a1a1a;
+  border: 1px solid #333;
+}
+
+/* Pin card */
+.pin-card {
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+html[data-theme='dark'] .pin-card {
+  background: #242424;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+/* Pin image container */
+.pin-image-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2/3;
+  overflow: hidden;
+  transition: background-color 0.3s ease;
+}
+
+.pin-image-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #E60023 0%, #ad081b 100%);
+  transition: background 0.3s ease;
+}
+
+html[data-theme='light'] .pin-image-placeholder {
+  background: linear-gradient(135deg, #E60023 0%, #ff4d6a 100%);
+}
+
+/* Save button overlay */
+.pin-save-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 10px 18px;
+  background: #E60023;
+  color: #fff;
+  border: none;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+html[data-theme='dark'] .pin-save-btn {
+  background: #E60023;
+}
+
+.pin-save-btn:hover {
+  background: #ad081b;
+}
+
+/* Pin metadata */
+.pin-meta {
+  padding: 12px;
+  background: #fff;
+  transition: background-color 0.3s ease;
+}
+
+html[data-theme='dark'] .pin-meta {
+  background: #242424;
+}
+
+.pin-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111;
+  margin-bottom: 4px;
+  line-height: 1.3;
+  transition: color 0.3s ease;
+}
+
+html[data-theme='dark'] .pin-title {
+  color: #e0e0e0;
+}
+
+.pin-desc {
+  font-size: 12px;
+  color: #767676;
+  margin-bottom: 6px;
+  line-height: 1.4;
+  transition: color 0.3s ease;
+}
+
+html[data-theme='dark'] .pin-desc {
+  color: #999;
+}
+
+.pin-domain {
+  font-size: 11px;
+  color: #767676;
+  text-transform: uppercase;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+html[data-theme='dark'] .pin-domain {
+  color: #888;
+}
+
+/* Pin footer with saver info */
+.pin-footer {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  background: #fff;
+  border-top: 1px solid #f0f0f0;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+html[data-theme='dark'] .pin-footer {
+  background: #242424;
+  border-top-color: #333;
+}
+
+.pin-saver {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pin-saver-avatar {
+  width: 24px;
+  height: 24px;
+  background: #E60023;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  transition: background-color 0.3s ease;
+}
+
+html[data-theme='dark'] .pin-saver-avatar {
+  background: #E60023;
+}
+
+.pin-saver-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #111;
+  transition: color 0.3s ease;
+}
+
+html[data-theme='dark'] .pin-saver-name {
+  color: #e0e0e0;
+}
+
 /* Slack Context */
 .slack-context { display: flex; min-height: 300px; }
 .slack-dark { background: #1a1d1d; }
@@ -3935,6 +4246,66 @@ html[data-theme='dark'] .yt-context-placeholder {
   --frame-accent-bg: rgba(255, 69, 0, 0.1);
   --frame-link-color: #0079d3;
   --frame-divider: #edeff1;
+  --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* TikTok Theme Variables */
+.tiktok-context.dark-theme {
+  --frame-bg: #000000;
+  --frame-surface: #000000;
+  --frame-border: #1a1a1a;
+  --frame-text-primary: #ffffff;
+  --frame-text-secondary: #cccccc;
+  --frame-text-muted: #999999;
+  --frame-accent: #ff0050;
+  --frame-accent-bg: linear-gradient(135deg, #00f2ea 0%, #ff0050 100%);
+  --frame-link-color: #00f2ea;
+  --frame-divider: #1a1a1a;
+  --frame-input-bg: #1a1a1a;
+  --frame-overlay: rgba(0, 0, 0, 0.6);
+}
+.tiktok-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #f5f5f5;
+  --frame-border: #e5e5e5;
+  --frame-text-primary: #1a1a1a;
+  --frame-text-secondary: #666666;
+  --frame-text-muted: #999999;
+  --frame-accent: #ff0050;
+  --frame-accent-bg: linear-gradient(135deg, #00d0cf 0%, #e60045 100%);
+  --frame-link-color: #00f2ea;
+  --frame-divider: #e5e5e5;
+  --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.3);
+}
+
+/* Pinterest Theme Variables */
+.pinterest-context.dark-theme {
+  --frame-bg: #1a1a1a;
+  --frame-surface: #242424;
+  --frame-border: #333333;
+  --frame-text-primary: #e0e0e0;
+  --frame-text-secondary: #999999;
+  --frame-text-muted: #888888;
+  --frame-accent: #E60023;
+  --frame-accent-bg: rgba(230, 0, 35, 0.15);
+  --frame-link-color: #E60023;
+  --frame-divider: #333333;
+  --frame-input-bg: #242424;
+  --frame-overlay: rgba(0, 0, 0, 0.6);
+}
+.pinterest-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #ffffff;
+  --frame-border: #e5e5e5;
+  --frame-text-primary: #111111;
+  --frame-text-secondary: #767676;
+  --frame-text-muted: #999999;
+  --frame-accent: #E60023;
+  --frame-accent-bg: rgba(230, 0, 35, 0.1);
+  --frame-link-color: #E60023;
+  --frame-divider: #f0f0f0;
   --frame-input-bg: #ffffff;
   --frame-overlay: rgba(0, 0, 0, 0.1);
 }

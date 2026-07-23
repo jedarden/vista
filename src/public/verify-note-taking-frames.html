@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Note-Taking App Context Frames Verification</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 40px 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+      background: #f5f5f5;
+      color: #333;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    html[data-theme='dark'] body {
+      background: #1a1a1e;
+      color: #e4e4e7;
+    }
+
+    .test-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .test-header h1 {
+      font-size: 36px;
+      margin-bottom: 12px;
+      color: #21293c;
+    }
+
+    html[data-theme='dark'] .test-header h1 {
+      color: #e4e4e7;
+    }
+
+    .test-header p {
+      color: #5f6b7c;
+      font-size: 16px;
+    }
+
+    html[data-theme='dark'] .test-header p {
+      color: #a1a1aa;
+    }
+
+    .acceptance-criteria {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 40px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    html[data-theme='dark'] .acceptance-criteria {
+      background: #27272a;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .acceptance-criteria h2 {
+      font-size: 20px;
+      margin-bottom: 16px;
+      color: #059669;
+    }
+
+    .criteria-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .criteria-list li {
+      padding: 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+
+    .criteria-list li:before {
+      content: '✓';
+      color: #22c55e;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .platform-section {
+      margin-bottom: 60px;
+    }
+
+    .platform-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #e5e7eb;
+    }
+
+    html[data-theme='dark'] .platform-header {
+      border-color: #3f3f46;
+    }
+
+    .platform-icon {
+      font-size: 32px;
+    }
+
+    .platform-title {
+      font-size: 24px;
+      color: #21293c;
+    }
+
+    html[data-theme='dark'] .platform-title {
+      color: #e4e4e7;
+    }
+
+    .platform-desc {
+      color: #6b7280;
+      font-size: 14px;
+      margin-top: 4px;
+    }
+
+    html[data-theme='dark'] .platform-desc {
+      color: #a1a1aa;
+    }
+
+    .platform-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+      gap: 24px;
+    }
+
+    .platform-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    html[data-theme='dark'] .platform-card {
+      background: #27272a;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .platform-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #6366f1;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .platform-name {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #21293c;
+    }
+
+    html[data-theme='dark'] .platform-name {
+      color: #e4e4e7;
+    }
+
+    .platform-features {
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 16px;
+    }
+
+    html[data-theme='dark'] .platform-features {
+      color: #a1a1aa;
+    }
+
+    .frame-container {
+      margin: 16px 0;
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .theme-toggle:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      background: #dcfce7;
+      color: #166534;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+
+    html[data-theme='dark'] .status-badge {
+      background: #14532d;
+      color: #86efac;
+    }
+
+    .theme-info {
+      position: fixed;
+      top: 70px;
+      right: 20px;
+      padding: 8px 12px;
+      background: rgba(99, 102, 241, 0.1);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 6px;
+      font-size: 12px;
+      color: #6366f1;
+      z-index: 999;
+    }
+
+    @media (max-width: 768px) {
+      .platform-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body data-theme="light">
+  <button class="theme-toggle" onclick="toggleTheme()">🌓 Toggle Dark/Light Mode</button>
+  <div class="theme-info">Current: <span id="theme-label">Light</span></div>
+
+  <div class="test-header">
+    <h1>📝 Note-Taking App Context Frames</h1>
+    <p>Comprehensive verification of Notion and Evernote platform frames</p>
+  </div>
+
+  <div class="acceptance-criteria">
+    <h2>✅ Acceptance Criteria</h2>
+    <ul class="criteria-list">
+      <li>Note frame shows Notion/Evernote-style document UI</li>
+      <li>Platform-appropriate chrome with authentic UI elements (sidebar, editor, formatting toolbar)</li>
+      <li>Neutral placeholder content with sample note/document</li>
+      <li>Dark/light mode toggle with theme-aware styling</li>
+      <li>Visually distinct and authentic to note-taking tools</li>
+      <li>Theme-aware styling with CSS custom properties</li>
+    </ul>
+  </div>
+
+  <!-- Notion Section -->
+  <div class="platform-section">
+    <div class="platform-header">
+      <div class="platform-icon">📄</div>
+      <div>
+        <div class="platform-title">Notion <span class="status-badge">Block Editor</span></div>
+        <div class="platform-desc">Block-based document editing with rich content types</div>
+      </div>
+    </div>
+
+    <div class="platform-grid">
+      <div class="platform-card">
+        <div class="platform-label">Notion - Standard View</div>
+        <div class="platform-name">Project Documentation</div>
+        <div class="platform-features">Page header, text blocks, callouts, link previews</div>
+        <div class="frame-container" id="notion-frame"></div>
+      </div>
+
+      <div class="platform-card">
+        <div class="platform-label">Notion - Meeting Notes</div>
+        <div class="platform-name">Team Meeting Notes</div>
+        <div class="platform-features">Advanced blocks with callouts and toggle sections</div>
+        <div class="frame-container" id="notion-meeting-frame"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Evernote Section -->
+  <div class="platform-section">
+    <div class="platform-header">
+      <div class="platform-icon">🐘</div>
+      <div>
+        <div class="platform-title">Evernote <span class="status-badge">Notebook View</span></div>
+        <div class="platform-desc">Notebook organization with note cards and rich content</div>
+      </div>
+    </div>
+
+    <div class="platform-grid">
+      <div class="platform-card">
+        <div class="platform-label">Evernote - Work Notebook</div>
+        <div class="platform-name">Project Notes</div>
+        <div class="platform-features">Sidebar navigation, note list, link cards</div>
+        <div class="frame-container" id="evernote-frame"></div>
+      </div>
+
+      <div class="platform-card">
+        <div class="platform-label">Evernote - Research Notebook</div>
+        <div class="platform-name">Research & Development</div>
+        <div class="platform-features">Multiple notes with tags and metadata</div>
+        <div class="frame-container" id="evernote-research-frame"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="platform-frames.js"></script>
+  <script>
+    let currentTheme = 'light';
+
+    function toggleTheme() {
+      currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+      document.body.setAttribute('data-theme', currentTheme);
+      document.getElementById('theme-label').textContent =
+        currentTheme === 'light' ? 'Light' : 'Dark';
+      renderAllFrames();
+    }
+
+    function renderNotion() {
+      const container = document.getElementById('notion-frame');
+      const content = {
+        pageTitle: 'Product Development Roadmap',
+        author: 'Alex Chen',
+        timeAgo: '2 hours ago',
+        title: 'Q4 Feature Specifications',
+        domain: 'notion.so',
+        description: 'Detailed requirements and implementation plan for upcoming features',
+        image: 'https://picsum.photos/seed/notion/80/60'
+      };
+      container.innerHTML = buildContextFrame('notion', content, currentTheme);
+    }
+
+    function renderNotionMeeting() {
+      const container = document.getElementById('notion-meeting-frame');
+      const content = {
+        pageTitle: 'Weekly Team Meetings',
+        author: 'Sarah Miller',
+        timeAgo: '1 hour ago',
+        title: 'Action Items from Sprint Review',
+        domain: 'company.com',
+        description: 'Follow-up tasks and decisions from latest sprint retrospective'
+      };
+      container.innerHTML = buildContextFrame('notion', content, currentTheme);
+    }
+
+    function renderEvernote() {
+      const container = document.getElementById('evernote-frame');
+      const content = {
+        notebookName: 'Research & Development',
+        title: 'Industry Analysis Report',
+        domain: 'mckinsey.com',
+        description: 'Quarterly analysis of market trends and competitive landscape',
+        image: 'https://picsum.photos/seed/evernote/80/60'
+      };
+      container.innerHTML = buildContextFrame('evernote', content, currentTheme);
+    }
+
+    function renderEvernoteResearch() {
+      const container = document.getElementById('evernote-research-frame');
+      const content = {
+        notebookName: 'Personal Knowledge Base',
+        title: 'Learning Resources Collection',
+        domain: 'learning.example.com',
+        description: 'Curated list of tutorials, courses, and documentation'
+      };
+      container.innerHTML = buildContextFrame('evernote', content, currentTheme);
+    }
+
+    function renderAllFrames() {
+      renderNotion();
+      renderNotionMeeting();
+      renderEvernote();
+      renderEvernoteResearch();
+    }
+
+    // Initial render
+    document.body.setAttribute('data-theme', currentTheme);
+    renderAllFrames();
+  </script>
+</body>
+</html>

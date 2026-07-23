@@ -2652,200 +2652,137 @@ html[data-theme='light'] .pin-image-placeholder {
 }
 
 /* Slack Context */
-.slack-context { display: flex; min-height: 300px; }
-.slack-dark { background: #1a1d1d; }
-.slack-light { background: #fff; border: 1px solid #ddd; }
-.slack-sidebar { width: 80px; background: #3F0E40; padding: 12px 8px; flex-shrink: 0; }
-.slack-light .slack-sidebar { background: #f8f8f8; border-right: 1px solid #ddd; }
-.slack-workspace { width: 40px; height: 40px; background: #fff; border-radius: 8px; margin: 0 auto 16px; }
-.slack-light .slack-workspace { background: #ddd; }
-.slack-channel { padding: 8px; color: rgba(255,255,255,0.7); font-size: 22px; text-align: center; margin-bottom: 8px; }
-.slack-light .slack-channel { color: #555; }
+.slack-context { display: flex; min-height: 300px; background: var(--frame-bg); border: 1px solid var(--frame-border); }
+.slack-sidebar { width: 80px; background: var(--frame-surface); padding: 12px 8px; flex-shrink: 0; border-right: 1px solid var(--frame-border); }
+.slack-workspace { width: 40px; height: 40px; background: var(--frame-text-primary); border-radius: 8px; margin: 0 auto 16px; }
+.slack-channel { padding: 8px; color: var(--frame-text-secondary); font-size: 22px; text-align: center; margin-bottom: 8px; }
 .slack-main { flex: 1; display: flex; flex-direction: column; }
-.slack-channel-header { padding: 12px 16px; background: #1a1d1d; border-bottom: 1px solid #333; font-weight: 600; }
-.slack-light .slack-channel-header { background: #fff; border-bottom-color: #ddd; color: #000; }
-.slack-dark .slack-channel-header { color: #fff; }
-.slack-messages { flex: 1; padding: 16px; }
-.slack-dark .slack-messages { background: #1a1d1d; }
-.slack-light .slack-messages { background: #f8f8f8; }
+.slack-channel-header { padding: 12px 16px; background: var(--frame-surface); border-bottom: 1px solid var(--frame-divider); font-weight: 600; color: var(--frame-text-primary); }
+.slack-messages { flex: 1; padding: 16px; background: var(--frame-bg); }
 .slack-message { display: flex; gap: 8px; margin-bottom: 16px; }
 .slack-message-dim { opacity: 0.6; }
-.slack-msg-avatar { width: 32px; height: 32px; background: #555; border-radius: 4px; flex-shrink: 0; }
-.slack-light .slack-msg-avatar { background: #ddd; }
+.slack-msg-avatar { width: 32px; height: 32px; background: var(--frame-text-muted); border-radius: 4px; flex-shrink: 0; }
 .slack-msg-content { flex: 1; }
-.slack-msg-author { font-weight: 600; font-size: 13px; }
-.slack-dark .slack-msg-author { color: #fff; }
-.slack-light .slack-msg-author { color: #000; }
-.slack-msg-time { font-size: 11px; margin-left: 8px; }
-.slack-dark .slack-msg-time { color: #999; }
-.slack-light .slack-msg-time { color: #888; }
-.slack-msg-content p { margin: 4px 0; }
-.slack-dark .slack-msg-content { color: #ddd; }
-.slack-light .slack-msg-content { color: #333; }
-.slack-link-preview { border-left: 4px solid var(--accent); padding: 10px; margin-top: 8px; }
-.slack-dark .slack-link-preview { background: #134a45; }
-.slack-light .slack-link-preview { background: #f0f0f0; }
-.slack-site { font-size: 11px; font-weight: 700; margin-bottom: 4px; }
-.slack-dark .slack-site { color: #73cdbe; }
-.slack-light .slack-site { color: #1d1c1d; }
-.slack-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
-.slack-dark .slack-title { color: #fff; }
-.slack-light .slack-title { color: #1264a3; }
-.slack-desc { font-size: 13px; margin-bottom: 8px; }
-.slack-dark .slack-desc { color: #bbb; }
-.slack-light .slack-desc { color: #616061; }
+.slack-msg-author { font-weight: 600; font-size: 13px; color: var(--frame-text-primary); }
+.slack-msg-time { font-size: 11px; margin-left: 8px; color: var(--frame-text-secondary); }
+.slack-msg-content p { margin: 4px 0; color: var(--frame-text-primary); }
+.slack-link-preview { border-left: 4px solid var(--frame-accent); padding: 10px; margin-top: 8px; background: var(--frame-surface); }
+.slack-site { font-size: 11px; font-weight: 700; margin-bottom: 4px; color: var(--frame-accent); }
+.slack-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; color: var(--frame-text-primary); }
+.slack-desc { font-size: 13px; margin-bottom: 8px; color: var(--frame-text-secondary); }
 .slack-image { border-radius: 4px; overflow: hidden; }
 .slack-image img { max-width: 100%; max-height: 160px; }
-.slack-placeholder { height: 120px; background: rgba(0,0,0,0.2); border-radius: 4px; }
-.slack-light .slack-placeholder { background: rgba(0,0,0,0.1); }
+.slack-placeholder { height: 120px; background: var(--frame-border); border-radius: 4px; }
 
 /* Discord Context */
-.discord-context { display: flex; min-height: 300px; }
-.discord-dark { background: #313338; }
-.discord-light { background: #fff; border: 1px solid #ddd; }
-.discord-sidebar { width: 80px; background: #2b2d31; padding: 12px 8px; flex-shrink: 0; }
-.discord-light .discord-sidebar { background: #f2f3f5; border-right: 1px solid #ddd; }
-.discord-server { width: 48px; height: 48px; background: #5865f2; border-radius: 50%; margin: 0 auto 16px; }
-.discord-light .discord-server { background: #ddd; }
-.discord-channel { width: 100%; aspect-ratio: 1; background: #3f4147; border-radius: 12px; margin-bottom: 8px; }
-.discord-light .discord-channel { background: #e3e5e8; }
+.discord-context { display: flex; min-height: 300px; background: var(--frame-bg); border: 1px solid var(--frame-border); }
+.discord-sidebar { width: 80px; background: var(--frame-surface); padding: 12px 8px; flex-shrink: 0; border-right: 1px solid var(--frame-border); }
+.discord-server { width: 48px; height: 48px; background: var(--frame-accent); border-radius: 50%; margin: 0 auto 16px; }
+.discord-channel { width: 100%; aspect-ratio: 1; background: var(--frame-border); border-radius: 12px; margin-bottom: 8px; }
 .discord-main { flex: 1; display: flex; flex-direction: column; }
-.discord-channel-header { padding: 12px 16px; background: #313338; border-bottom: 1px solid #1e1f22; font-weight: 600; }
-.discord-light .discord-channel-header { background: #fff; border-bottom-color: #ddd; color: #000; }
-.discord-dark .discord-channel-header { color: #f2f3f5; }
-.discord-messages { flex: 1; padding: 16px; }
-.discord-dark .discord-messages { background: #313338; }
-.discord-light .discord-messages { background: #f8f9f9; }
+.discord-channel-header { padding: 12px 16px; background: var(--frame-surface); border-bottom: 1px solid var(--frame-divider); font-weight: 600; color: var(--frame-text-primary); }
+.discord-messages { flex: 1; padding: 16px; background: var(--frame-bg); }
 .discord-message { display: flex; gap: 12px; margin-bottom: 16px; }
 .discord-message-dim { opacity: 0.6; }
-.discord-msg-avatar { width: 32px; height: 32px; background: #5865f2; border-radius: 50%; flex-shrink: 0; }
-.discord-light .discord-msg-avatar { background: #ddd; }
+.discord-msg-avatar { width: 32px; height: 32px; background: var(--frame-accent); border-radius: 50%; flex-shrink: 0; }
 .discord-msg-content { flex: 1; }
-.discord-msg-author { font-weight: 600; font-size: 14px; }
-.discord-dark .discord-msg-author { color: #f2f3f5; }
-.discord-light .discord-msg-author { color: #000; }
-.discord-msg-time { font-size: 11px; margin-left: 8px; }
-.discord-dark .discord-msg-time { color: #96989d; }
-.discord-light .discord-msg-time { color: #888; }
-.discord-msg-content p { margin: 4px 0; }
-.discord-dark .discord-msg-content { color: #dbdee1; }
-.discord-light .discord-msg-content { color: #333; }
-.discord-link-preview { padding: 10px; margin-top: 8px; background: #2b2d31; border-radius: 4px; }
-.discord-light .discord-link-preview { background: #f2f3f5; }
-.discord-site { font-size: 11px; font-weight: 600; margin-bottom: 4px; text-transform: uppercase; }
-.discord-dark .discord-site { color: #b5bac1; }
-.discord-light .discord-site { color: #4e5058; }
-.discord-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
-.discord-dark .discord-title { color: #00aff4; }
-.discord-light .discord-title { color: #0066cc; }
-.discord-desc { font-size: 13px; margin-bottom: 8px; line-height: 1.4; }
-.discord-dark .discord-desc { color: #dbdee1; }
-.discord-light .discord-desc { color: #4e5058; }
+.discord-msg-author { font-weight: 600; font-size: 14px; color: var(--frame-text-primary); }
+.discord-msg-time { font-size: 11px; margin-left: 8px; color: var(--frame-text-secondary); }
+.discord-msg-content p { margin: 4px 0; color: var(--frame-text-primary); }
+.discord-link-preview { padding: 10px; margin-top: 8px; background: var(--frame-surface); border-radius: 4px; }
+.discord-site { font-size: 11px; font-weight: 600; margin-bottom: 4px; text-transform: uppercase; color: var(--frame-text-secondary); }
+.discord-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; color: var(--frame-link-color); }
+.discord-desc { font-size: 13px; margin-bottom: 8px; line-height: 1.4; color: var(--frame-text-primary); }
 .discord-image { border-radius: 4px; overflow: hidden; }
 .discord-image img { max-width: 100%; max-height: 180px; }
-.discord-placeholder { height: 140px; background: #1e2028; border-radius: 4px; }
-.discord-light .discord-placeholder { background: #e3e5e8; }
+.discord-placeholder { height: 140px; background: var(--frame-border); border-radius: 4px; }
 
 /* WhatsApp Context */
-.whatsapp-context { max-width: 350px; background: #efeae2; }
-.wa-chat-header { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: #075e54; color: #fff; }
-.wa-back { font-size: 18px; }
-.wa-contact { flex: 1; font-weight: 600; }
-.wa-menu { font-size: 18px; }
-.wa-messages { padding: 12px; background: #e5ddd5; min-height: 200px; }
-.wa-message { display: flex; justify-content: flex-end; margin-bottom: 8px; }
-.wa-message-incoming { justify-content: flex-start; }
-.wa-msg-bubble { max-width: 80%; background: #dcf8c6; border-radius: 8px; padding: 8px 12px; }
-.wa-message-incoming .wa-msg-bubble { background: #fff; }
-.wa-msg-with-link { padding: 0; overflow: hidden; }
-.wa-link-preview { display: flex; background: #fff; border-radius: 8px; overflow: hidden; }
-.wa-link-favicon { width: 40px; display: flex; align-items: center; justify-content: center; background: #f0f0f0; flex-shrink: 0; }
-.wa-link-meta { flex: 1; padding: 10px; }
-.wa-domain { font-size: 11px; color: #667781; }
-.wa-title { font-size: 13px; font-weight: 500; color: #111b21; margin: 2px 0; }
-.wa-desc { font-size: 12px; color: #667781; margin-top: 4px; }
-.wa-link-thumb { width: 68px; height: 68px; object-fit: cover; flex-shrink: 0; }
-.wa-link-thumb-placeholder { width: 68px; height: 68px; background: #f0f2f5; flex-shrink: 0; }
-.wa-msg-time { font-size: 10px; color: #667781; display: block; text-align: right; padding: 4px; }
+.whatsapp-context { max-width: 350px; background: var(--frame-bg); }
+.whatsapp-context .wa-chat-header { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: var(--frame-accent); color: #fff; }
+.whatsapp-context .wa-back { font-size: 18px; }
+.whatsapp-context .wa-contact { flex: 1; font-weight: 600; }
+.whatsapp-context .wa-menu { font-size: 18px; }
+.whatsapp-context .wa-messages { padding: 12px; background: var(--frame-surface); min-height: 200px; }
+.whatsapp-context .wa-message { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+.whatsapp-context .wa-message-incoming { justify-content: flex-start; }
+.whatsapp-context .wa-msg-bubble { max-width: 80%; background: #dcf8c6; border-radius: 8px; padding: 8px 12px; }
+.whatsapp-context .wa-message-incoming .wa-msg-bubble { background: #fff; }
+.whatsapp-context .wa-msg-with-link { padding: 0; overflow: hidden; }
+.whatsapp-context .wa-link-preview { display: flex; background: #fff; border-radius: 8px; overflow: hidden; }
+.whatsapp-context .wa-link-favicon { width: 40px; display: flex; align-items: center; justify-content: center; background: #f0f0f0; flex-shrink: 0; }
+.whatsapp-context .wa-link-meta { flex: 1; padding: 10px; }
+.whatsapp-context .wa-site { font-size: 11px; font-weight: 600; color: var(--frame-accent); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+.whatsapp-context .wa-domain { font-size: 11px; color: var(--frame-text-secondary); }
+.whatsapp-context .wa-title { font-size: 13px; font-weight: 500; color: var(--frame-text-primary); margin: 2px 0; }
+.whatsapp-context .wa-desc { font-size: 12px; color: var(--frame-text-secondary); margin-top: 4px; }
+.whatsapp-context .wa-link-thumb { width: 68px; height: 68px; object-fit: cover; flex-shrink: 0; }
+.whatsapp-context .wa-link-thumb-placeholder { width: 68px; height: 68px; background: var(--frame-border); flex-shrink: 0; }
+.whatsapp-context .wa-link-image img { width: 100%; max-height: 200px; object-fit: cover; }
+.whatsapp-context .wa-link-placeholder { width: 100%; height: 120px; background: var(--frame-border); }
+.whatsapp-context .wa-msg-time { font-size: 10px; color: var(--frame-text-secondary); display: block; text-align: right; padding: 4px; }
 
 /* iMessage Context */
-.imessage-context { max-width: 320px; background: #e5e1e5; }
-.im-chat-header { display: flex; align-items: center; justify-content: center; gap: 16px; padding: 12px; background: #f9f9f9; border-bottom: 1px solid #c6c6c8; }
-.im-back { color: #007aff; font-size: 16px; }
-.im-contact-name { font-weight: 600; color: #000; }
-.im-video { color: #007aff; }
-.im-messages { padding: 12px; min-height: 200px; }
-.im-message { display: flex; justify-content: flex-end; margin-bottom: 8px; }
-.im-message-incoming { justify-content: flex-start; }
-.im-bubble { max-width: 75%; background: #e5e1e5; border-radius: 18px; padding: 8px 12px; }
-.im-message-outgoing .im-bubble { background: #007aff; color: #fff; }
-.im-bubble-with-link { padding: 0; overflow: hidden; border-radius: 12px; }
-.im-link-preview { background: #fff; border-radius: 12px; overflow: hidden; }
-.im-link-image img { width: 100%; height: 140px; object-fit: cover; }
-.im-link-placeholder { width: 100%; height: 140px; background: #e5e5ea; }
-.im-link-meta { padding: 10px 12px; }
-.im-message-outgoing .im-link-meta { background: #f0f0f0; }
-.im-title { font-size: 13px; font-weight: 600; color: #000; margin-bottom: 2px; }
-.im-domain { font-size: 11px; color: #8e8e93; }
-.im-time { font-size: 10px; display: block; text-align: right; padding: 4px; color: #8e8e93; }
-.im-message-outgoing .im-time { color: rgba(255,255,255,0.8); }
+.imessage-context { max-width: 320px; background: var(--frame-bg); }
+.imessage-context .im-chat-header { display: flex; align-items: center; justify-content: center; gap: 16px; padding: 12px; background: var(--frame-surface); border-bottom: 1px solid var(--frame-border); }
+.imessage-context .im-back { color: var(--frame-accent); font-size: 16px; }
+.imessage-context .im-contact-name { font-weight: 600; color: var(--frame-text-primary); }
+.imessage-context .im-video { color: var(--frame-accent); }
+.imessage-context .im-messages { padding: 12px; min-height: 200px; }
+.imessage-context .im-message { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+.imessage-context .im-message-incoming { justify-content: flex-start; }
+.imessage-context .im-bubble { max-width: 75%; background: var(--frame-surface); border-radius: 18px; padding: 8px 12px; color: var(--frame-text-primary); }
+.imessage-context .im-message-outgoing .im-bubble { background: var(--frame-accent); color: #fff; }
+.imessage-context .im-bubble-with-link { padding: 0; overflow: hidden; border-radius: 12px; }
+.imessage-context .im-link-preview { background: #fff; border-radius: 12px; overflow: hidden; }
+.imessage-context .im-link-image img { width: 100%; height: 140px; object-fit: cover; }
+.imessage-context .im-link-placeholder { width: 100%; height: 140px; background: var(--frame-border); }
+.imessage-context .im-link-meta { padding: 10px 12px; }
+.imessage-context .im-message-outgoing .im-link-meta { background: #f0f0f0; }
+.imessage-context .im-site { font-size: 11px; font-weight: 600; color: var(--frame-text-secondary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+.imessage-context .im-title { font-size: 13px; font-weight: 600; color: var(--frame-text-primary); margin-bottom: 2px; }
+.imessage-context .im-domain { font-size: 11px; color: var(--frame-text-secondary); }
+.imessage-context .im-time { font-size: 10px; display: block; text-align: right; padding: 4px; color: var(--frame-text-secondary); }
+.imessage-context .im-message-outgoing .im-time { color: rgba(255,255,255,0.8); }
 
 /* Telegram Context */
-.telegram-context { max-width: 350px; }
-.telegram-dark { background: #17212b; }
-.telegram-light { background: #fff; border: 1px solid #ddd; }
-.tg-chat-header { display: flex; align-items: center; gap: 12px; padding: 10px 16px; }
-.telegram-dark .tg-chat-header { background: #17212b; color: #fff; border-bottom: 1px solid #0e1621; }
-.telegram-light .tg-chat-header { background: #fff; color: #000; border-bottom: 1px solid #ddd; }
-.tg-back { font-size: 18px; }
-.tg-contact { flex: 1; font-weight: 600; }
-.tg-menu { font-size: 18px; }
-.tg-messages { padding: 12px; min-height: 200px; }
-.telegram-dark .tg-messages { background: #0e1621; }
-.telegram-light .tg-messages { background: #f5f5f5; }
-.tg-message { display: flex; gap: 8px; margin-bottom: 12px; }
-.tg-msg-avatar { width: 36px; height: 36px; background: #2b5278; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; flex-shrink: 0; }
-.telegram-light .tg-msg-avatar { background: #ddd; }
-.tg-bubble { max-width: 80%; background: #182533; border-radius: 12px; padding: 8px 12px; }
-.telegram-light .tg-bubble { background: #fff; }
-.telegram-dark .tg-bubble { color: #fff; }
-.tg-bubble p { margin: 4px 0; }
-.tg-link-preview { margin-top: 8px; background: #242f3d; border-radius: 8px; overflow: hidden; }
-.telegram-light .tg-link-preview { background: #f0f0f0; }
-.tg-link-image img { width: 100%; max-height: 150px; object-fit: cover; }
-.tg-link-placeholder { width: 100%; height: 120px; background: #1b2736; }
-.telegram-light .tg-link-placeholder { background: #e0e0e0; }
-.tg-link-meta { padding: 10px 12px; }
-.tg-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
-.telegram-dark .tg-title { color: #fff; }
-.telegram-light .tg-title { color: #000; }
-.tg-desc { font-size: 13px; margin-bottom: 4px; }
-.telegram-dark .tg-desc { color: #aaa; }
-.telegram-light .tg-desc { color: #666; }
-.tg-domain { font-size: 12px; }
-.telegram-dark .tg-domain { color: #61a8de; }
-.telegram-light .tg-domain { color: #007aff; }
-.tg-time { font-size: 10px; display: block; text-align: right; }
-.telegram-dark .tg-time { color: #666; }
-.telegram-light .tg-time { color: #999; }
+.telegram-context { max-width: 350px; background: var(--frame-bg); border: 1px solid var(--frame-border); }
+.telegram-context .tg-chat-header { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: var(--frame-surface); color: var(--frame-text-primary); border-bottom: 1px solid var(--frame-divider); }
+.telegram-context .tg-back { font-size: 18px; }
+.telegram-context .tg-contact { flex: 1; font-weight: 600; }
+.telegram-context .tg-menu { font-size: 18px; }
+.telegram-context .tg-messages { padding: 12px; min-height: 200px; background: var(--frame-bg); }
+.telegram-context .tg-message { display: flex; gap: 8px; margin-bottom: 12px; }
+.telegram-context .tg-msg-avatar { width: 36px; height: 36px; background: var(--frame-accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; flex-shrink: 0; }
+.telegram-context .tg-bubble { max-width: 80%; background: var(--frame-surface); border-radius: 12px; padding: 8px 12px; color: var(--frame-text-primary); }
+.telegram-context .tg-bubble p { margin: 4px 0; }
+.telegram-context .tg-link-preview { margin-top: 8px; background: var(--frame-surface); border-radius: 8px; overflow: hidden; }
+.telegram-context .tg-link-image img { width: 100%; max-height: 150px; object-fit: cover; }
+.telegram-context .tg-link-placeholder { width: 100%; height: 120px; background: var(--frame-border); }
+.telegram-context .tg-link-meta { padding: 10px 12px; }
+.telegram-context .tg-site { font-size: 11px; font-weight: 600; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--frame-link-color); }
+.telegram-context .tg-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; color: var(--frame-text-primary); }
+.telegram-context .tg-desc { font-size: 13px; margin-bottom: 4px; color: var(--frame-text-secondary); }
+.telegram-context .tg-domain { font-size: 12px; color: var(--frame-link-color); }
+.telegram-context .tg-time { font-size: 10px; display: block; text-align: right; color: var(--frame-text-secondary); }
 
 /* Signal Context */
-.signal-context { max-width: 350px; background: #f6f6f6; }
-.signal-chat-header { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: #fff; border-bottom: 1px solid #ddd; }
-.signal-back { font-size: 18px; color: #007aff; }
-.signal-contact { flex: 1; font-weight: 600; color: #000; }
-.signal-video { color: #007aff; }
-.signal-messages { padding: 12px; min-height: 200px; }
-.signal-message { display: flex; justify-content: flex-end; margin-bottom: 8px; }
-.signal-bubble { max-width: 80%; background: #3a76f0; border-radius: 18px; padding: 8px 12px; color: #fff; }
-.signal-link-preview { display: flex; background: #fff; border-radius: 12px; overflow: hidden; margin-top: 4px; }
-.signal-link-thumb { width: 76px; height: 76px; object-fit: cover; flex-shrink: 0; }
-.signal-link-thumb-placeholder { width: 76px; height: 76px; background: #e0e0e0; flex-shrink: 0; }
-.signal-link-meta { flex: 1; padding: 10px; }
-.signal-title { font-size: 13px; font-weight: 600; color: #000; margin-bottom: 2px; }
-.signal-desc { font-size: 12px; color: #666; margin-top: 4px; }
-.signal-domain { font-size: 11px; color: #3a76f0; }
-.signal-time { font-size: 10px; display: block; text-align: right; padding-top: 4px; }
+.signal-context { max-width: 350px; background: var(--frame-bg); }
+.signal-context .signal-chat-header { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: var(--frame-surface); border-bottom: 1px solid var(--frame-divider); }
+.signal-context .signal-back { font-size: 18px; color: var(--frame-accent); }
+.signal-context .signal-contact { flex: 1; font-weight: 600; color: var(--frame-text-primary); }
+.signal-context .signal-video { color: var(--frame-accent); }
+.signal-context .signal-messages { padding: 12px; min-height: 200px; }
+.signal-context .signal-message { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+.signal-context .signal-bubble { max-width: 80%; background: var(--frame-accent); border-radius: 18px; padding: 8px 12px; color: #fff; }
+.signal-context .signal-link-preview { display: flex; background: #fff; border-radius: 12px; overflow: hidden; margin-top: 4px; }
+.signal-context .signal-link-thumb { width: 76px; height: 76px; object-fit: cover; flex-shrink: 0; }
+.signal-context .signal-link-thumb-placeholder { width: 76px; height: 76px; background: var(--frame-border); flex-shrink: 0; }
+.signal-context .signal-link-meta { flex: 1; padding: 10px; }
+.signal-context .signal-title { font-size: 13px; font-weight: 600; color: #000; margin-bottom: 2px; }
+.signal-context .signal-desc { font-size: 12px; color: #666; margin-top: 4px; }
+.signal-context .signal-domain { font-size: 11px; color: var(--frame-accent); }
+.signal-context .signal-time { font-size: 10px; display: block; text-align: right; padding-top: 4px; color: rgba(255,255,255,0.8); }
 
 /* Teams Context */
 .teams-context { display: flex; min-height: 300px; }

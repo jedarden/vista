@@ -547,6 +547,279 @@ const PLATFORM_FRAMES = {
     },
   },
 
+  // Messaging Platforms
+  imessage: {
+    name: 'iMessage',
+    category: 'messaging',
+    hasThemeSupport: true,
+    aspectRatio: 'variable',
+    chrome: `
+      <div class="im-chat-header">
+        <span class="im-back">‹</span>
+        <span class="im-contact-name">John Appleseed</span>
+        <span class="im-video">▤</span>
+      </div>
+      <div class="im-messages">
+        <div class="im-message im-message-incoming">
+          <div class="im-bubble">Hey! Check this out 👀</div>
+        </div>
+        <div class="im-message im-message-incoming">
+          <div class="im-bubble">This looks really interesting</div>
+        </div>
+        {{userMessage}}
+      </div>
+    `,
+    neutralContent: `
+      <div class="im-message im-message-outgoing">
+        <div class="im-bubble im-bubble-with-link">
+          <div class="im-link-preview">
+            {{siteSection}}
+            <div class="im-title">{{title}}</div>
+            {{imageSection}}
+          </div>
+        </div>
+      </div>
+    `,
+    themeVars: {
+      dark: {
+        '--frame-bg': '#000000',
+        '--frame-surface': '#1c1c1e',
+        '--frame-border': '#2c2c2e',
+        '--frame-text-primary': '#ffffff',
+        '--frame-text-secondary': '#a1a1a6',
+        '--frame-text-muted': '#636366',
+        '--frame-accent': '#007aff',
+        '--frame-accent-bg': '#007aff',
+        '--frame-link-color': '#007aff',
+        '--frame-divider': '#2c2c2e',
+        '--frame-input-bg': '#1c1c1e',
+        '--frame-overlay': 'rgba(0, 0, 0, 0.5)',
+      },
+      light: {
+        '--frame-bg': '#e5e1e5',
+        '--frame-surface': '#f9f9f9',
+        '--frame-border': '#c6c6c8',
+        '--frame-text-primary': '#000000',
+        '--frame-text-secondary': '#6e6e73',
+        '--frame-text-muted': '#aeaeb2',
+        '--frame-accent': '#007aff',
+        '--frame-accent-bg': '#e5f1ff',
+        '--frame-link-color': '#007aff',
+        '--frame-divider': '#d1d1d6',
+        '--frame-input-bg': '#ffffff',
+        '--frame-overlay': 'rgba(0, 0, 0, 0.1)',
+      },
+    },
+  },
+
+  whatsapp: {
+    name: 'WhatsApp',
+    category: 'messaging',
+    hasThemeSupport: true,
+    aspectRatio: 'variable',
+    chrome: `
+      <div class="wa-chat-header">
+        <span class="wa-back">‹</span>
+        <span class="wa-contact">Sarah Wilson</span>
+        <span class="wa-menu">⋮</span>
+      </div>
+      <div class="wa-messages">
+        <div class="wa-message wa-message-incoming">
+          <div class="wa-msg-bubble">Did you see this? 🤔</div>
+        </div>
+        <div class="wa-message wa-message-incoming">
+          <div class="wa-msg-bubble">Thought you might be interested</div>
+        </div>
+        {{userMessage}}
+      </div>
+    `,
+    neutralContent: `
+      <div class="wa-message">
+        <div class="wa-msg-bubble wa-msg-with-link">
+          <div class="wa-link-preview">
+            {{siteSection}}
+            <div class="wa-title">{{title}}</div>
+            <div class="wa-desc">{{description}}</div>
+            {{imageSection}}
+          </div>
+        </div>
+      </div>
+    `,
+    themeVars: {
+      dark: {
+        '--frame-bg': '#0b141a',
+        '--frame-surface': '#0b141a',
+        '--frame-border': '#1f2c34',
+        '--frame-text-primary': '#e9edef',
+        '--frame-text-secondary': '#8696a0',
+        '--frame-text-muted': '#54656f',
+        '--frame-accent': '#00a884',
+        '--frame-accent-bg': '#00a884',
+        '--frame-link-color': '#53bdeb',
+        '--frame-divider': '#1f2c34',
+        '--frame-input-bg': '#1f2c34',
+        '--frame-overlay': 'rgba(0, 0, 0, 0.6)',
+      },
+      light: {
+        '--frame-bg': '#efeae2',
+        '--frame-surface': '#ffffff',
+        '--frame-border': '#d1d7db',
+        '--frame-text-primary': '#111b21',
+        '--frame-text-secondary': '#54656f',
+        '--frame-text-muted': '#8696a0',
+        '--frame-accent': '#00a884',
+        '--frame-accent-bg': '#dcf8c6',
+        '--frame-link-color': '#53bdeb',
+        '--frame-divider': '#d1d7db',
+        '--frame-input-bg': '#ffffff',
+        '--frame-overlay': 'rgba(0, 0, 0, 0.1)',
+      },
+    },
+  },
+
+  telegram: {
+    name: 'Telegram',
+    category: 'messaging',
+    hasThemeSupport: true,
+    aspectRatio: 'variable',
+    chrome: `
+      <div class="tg-chat-header">
+        <span class="tg-back">‹</span>
+        <span class="tg-contact">Tech Updates Channel</span>
+        <span class="tg-menu">⋮</span>
+      </div>
+      <div class="tg-messages">
+        <div class="tg-message">
+          <div class="tg-msg-avatar">TC</div>
+          <div class="tg-bubble">
+            <p>Breaking news everyone! 📢</p>
+          </div>
+        </div>
+        <div class="tg-message">
+          <div class="tg-msg-avatar">TC</div>
+          <div class="tg-bubble">
+            <p>Check this out</p>
+          </div>
+        </div>
+        {{userMessage}}
+      </div>
+    `,
+    neutralContent: `
+      <div class="tg-message">
+        <div class="tg-msg-avatar">Y</div>
+        <div class="tg-bubble">
+          <p>Thanks for sharing!</p>
+          <div class="tg-link-preview">
+            {{siteSection}}
+            <div class="tg-title">{{title}}</div>
+            <div class="tg-desc">{{description}}</div>
+            {{imageSection}}
+          </div>
+        </div>
+      </div>
+    `,
+    themeVars: {
+      dark: {
+        '--frame-bg': '#17212b',
+        '--frame-surface': '#0e1621',
+        '--frame-border': '#0e1621',
+        '--frame-text-primary': '#ffffff',
+        '--frame-text-secondary': '#aaaaaa',
+        '--frame-text-muted': '#777777',
+        '--frame-accent': '#2b5278',
+        '--frame-accent-bg': '#2b5278',
+        '--frame-link-color': '#64b5ef',
+        '--frame-divider': '#0e1621',
+        '--frame-input-bg': '#242f3d',
+        '--frame-overlay': 'rgba(0, 0, 0, 0.6)',
+      },
+      light: {
+        '--frame-bg': '#ffffff',
+        '--frame-surface': '#f5f5f5',
+        '--frame-border': '#e0e0e0',
+        '--frame-text-primary': '#000000',
+        '--frame-text-secondary': '#666666',
+        '--frame-text-muted': '#999999',
+        '--frame-accent': '#3390ec',
+        '--frame-accent-bg': '#e0f0ff',
+        '--frame-link-color': '#007aff',
+        '--frame-divider': '#e0e0e0',
+        '--frame-input-bg': '#ffffff',
+        '--frame-overlay': 'rgba(0, 0, 0, 0.1)',
+      },
+    },
+  },
+
+  signal: {
+    name: 'Signal',
+    category: 'messaging',
+    hasThemeSupport: true,
+    aspectRatio: 'variable',
+    chrome: `
+      <div class="signal-chat-header">
+        <span class="signal-back">‹</span>
+        <span class="signal-contact">Alex Chen</span>
+        <span class="signal-video">▤</span>
+      </div>
+      <div class="signal-messages">
+        <div class="signal-message">
+          <div class="signal-bubble">Have you seen this yet?</div>
+          <div class="signal-time">10:30 AM</div>
+        </div>
+        <div class="signal-message">
+          <div class="signal-bubble">Pretty interesting stuff</div>
+          <div class="signal-time">10:31 AM</div>
+        </div>
+        {{userMessage}}
+      </div>
+    `,
+    neutralContent: `
+      <div class="signal-message">
+        <div class="signal-bubble">
+          <div class="signal-link-preview">
+            {{imageSection}}
+            <div class="signal-link-meta">
+              <div class="signal-title">{{title}}</div>
+              {{descriptionSection}}
+              <div class="signal-domain">{{domain}}</div>
+            </div>
+          </div>
+        </div>
+        <div class="signal-time">Just now</div>
+      </div>
+    `,
+    themeVars: {
+      dark: {
+        '--frame-bg': '#1c1c1e',
+        '--frame-surface': '#2c2c2e',
+        '--frame-border': '#3a3a3c',
+        '--frame-text-primary': '#ffffff',
+        '--frame-text-secondary': '#a1a1a6',
+        '--frame-text-muted': '#636366',
+        '--frame-accent': '#3a76f0',
+        '--frame-accent-bg': '#3a76f0',
+        '--frame-link-color': '#0a84ff',
+        '--frame-divider': '#3a3a3c',
+        '--frame-input-bg': '#2c2c2e',
+        '--frame-overlay': 'rgba(0, 0, 0, 0.6)',
+      },
+      light: {
+        '--frame-bg': '#f6f6f6',
+        '--frame-surface': '#ffffff',
+        '--frame-border': '#e0e0e0',
+        '--frame-text-primary': '#000000',
+        '--frame-text-secondary': '#616161',
+        '--frame-text-muted': '#9e9e9e',
+        '--frame-accent': '#3a76f0',
+        '--frame-accent-bg': '#e8f0ff',
+        '--frame-link-color': '#007aff',
+        '--frame-divider': '#e0e0e0',
+        '--frame-input-bg': '#ffffff',
+        '--frame-overlay': 'rgba(0, 0, 0, 0.1)',
+      },
+    },
+  },
+
   // Video Content
   tiktok: {
     name: 'TikTok',
@@ -1002,6 +1275,49 @@ function buildLinkPreviewHTML(platformId, content, theme = 'dark') {
       return `
         <div class="yt-link-preview">
           ${image ? `<div class="yt-context-image img-loading-container"><img src="${esc(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" /></div>` : '<div class="yt-context-placeholder"></div>'}
+        </div>
+      `;
+
+    case 'imessage':
+      return `
+        <div class="im-link-preview">
+          ${site ? `<div class="im-site">${esc(trunc(site, 30))}</div>` : ''}
+          <div class="im-title">${esc(trunc(title, 50))}</div>
+          ${image ? `<div class="im-link-image img-loading-container"><img src="${esc(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" /></div>` : ''}
+        </div>
+      `;
+
+    case 'whatsapp':
+      return `
+        <div class="wa-link-preview">
+          ${site ? `<div class="wa-site">${esc(trunc(site, 25))}</div>` : ''}
+          <div class="wa-title">${esc(trunc(title, 60))}</div>
+          ${description ? `<div class="wa-desc">${esc(trunc(description, 100))}</div>` : ''}
+          ${image ? `<div class="wa-link-image img-loading-container"><img src="${esc(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" /></div>` : '<div class="wa-link-placeholder"></div>'}
+        </div>
+      `;
+
+    case 'telegram':
+      return `
+        <div class="tg-link-preview">
+          ${image ? `<div class="tg-link-image img-loading-container"><img src="${esc(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" /></div>` : '<div class="tg-link-placeholder"></div>'}
+          ${site ? `<div class="tg-site">${esc(trunc(site, 30))}</div>` : ''}
+          <div class="tg-title">${esc(trunc(title, 60))}</div>
+          ${description ? `<div class="tg-desc">${esc(trunc(description, 120))}</div>` : ''}
+        </div>
+      `;
+
+    case 'signal':
+      const signalImage = image ? `<img src="${esc(image)}" class="signal-link-thumb" alt="" onerror="this.style.display='none'" loading="lazy" />` : '<div class="signal-link-thumb-placeholder"></div>';
+      const signalDesc = description ? `<div class="signal-desc">${esc(trunc(description, 100))}</div>` : '';
+      return `
+        <div class="signal-link-preview">
+          ${signalImage}
+          <div class="signal-link-meta">
+            <div class="signal-title">${esc(trunc(title, 60))}</div>
+            ${signalDesc}
+            <div class="signal-domain">${esc(trunc(domain || site, 30))}</div>
+          </div>
         </div>
       `;
 

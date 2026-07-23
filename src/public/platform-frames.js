@@ -2503,22 +2503,39 @@ const PLATFORM_FRAMES = {
     hasThemeSupport: true,
     aspectRatio: 'variable',
     chrome: `
+      <div class="vs-activity-bar">
+        <div class="vs-activity-icon vs-activity-active">📁</div>
+        <div class="vs-activity-icon">🔍</div>
+        <div class="vs-activity-icon">⎇</div>
+        <div class="vs-activity-icon">🐛</div>
+      </div>
       <div class="vs-sidebar">
         <div class="vs-explorer">Explorer</div>
         <div class="vs-file vs-file-active">{{fileName}}</div>
         <div class="vs-file">README.md</div>
+        <div class="vs-file">package.json</div>
       </div>
-      <div class="vs-editor">
-        <div class="vs-tab-bar">
-          <div class="vs-tab vs-tab-active">{{fileName}}</div>
-        </div>
-        <div class="vs-content">
-          <div class="vs-comment vs-comment-dim">
-            <span class="vs-comment-author">Dev</span>
-            <span class="vs-comment-time">{{timeAgo}}</span>
-            <div class="vs-comment-body">// TODO: Review this code</div>
+      <div class="vs-main-area">
+        <div class="vs-editor">
+          <div class="vs-tab-bar">
+            <div class="vs-tab vs-tab-active">{{fileName}}</div>
+            <div class="vs-tab">README.md</div>
           </div>
-          {{userComment}}
+          <div class="vs-content">
+            <div class="vs-comment vs-comment-dim">
+              <span class="vs-comment-author">Dev</span>
+              <span class="vs-comment-time">{{timeAgo}}</span>
+              <div class="vs-comment-body">// TODO: Review this code</div>
+            </div>
+            {{userComment}}
+          </div>
+        </div>
+        <div class="vs-terminal-panel">
+          <div class="vs-terminal-header">Terminal</div>
+          <div class="vs-terminal-content">
+            <div class="vs-terminal-line">$ npm test</div>
+            <div class="vs-terminal-line vs-terminal-success">✓ Tests passed</div>
+          </div>
         </div>
       </div>
     `,
@@ -2568,22 +2585,45 @@ const PLATFORM_FRAMES = {
     aspectRatio: 'variable',
     chrome: `
       <div class="jb-sidebar">
-        <div class="jb-project">{{projectName}}</div>
-        <div class="jb-explorer">Project Files</div>
-        <div class="jb-file jb-file-active">{{fileName}}</div>
-        <div class="jb-file">README.md</div>
-      </div>
-      <div class="jb-editor">
-        <div class="jb-tab-bar">
-          <div class="jb-tab jb-tab-active">{{fileName}}</div>
-        </div>
-        <div class="jb-content">
-          <div class="jb-comment jb-comment-dim">
-            <span class="jb-comment-author">Developer</span>
-            <span class="jb-comment-time">{{timeAgo}}</span>
-            <div class="jb-comment-body">// TODO: Review this implementation</div>
+        <div class="jb-project-header">{{projectName}}</div>
+        <div class="jb-explorer">Project</div>
+        <div class="jb-file-tree">
+          <div class="jb-folder">
+            <div class="jb-folder-name">src</div>
+            <div class="jb-file jb-file-active">{{fileName}}</div>
+            <div class="jb-file">App.java</div>
           </div>
-          {{userComment}}
+          <div class="jb-folder">
+            <div class="jb-folder-name">test</div>
+            <div class="jb-file">Test.java</div>
+          </div>
+        </div>
+      </div>
+      <div class="jb-main-area">
+        <div class="jb-editor">
+          <div class="jb-tab-bar">
+            <div class="jb-tab jb-tab-active">{{fileName}}</div>
+            <div class="jb-tab">README.md</div>
+          </div>
+          <div class="jb-content">
+            <div class="jb-comment jb-comment-dim">
+              <span class="jb-comment-author">Developer</span>
+              <span class="jb-comment-time">{{timeAgo}}</span>
+              <div class="jb-comment-body">// TODO: Review this implementation</div>
+            </div>
+            {{userComment}}
+          </div>
+        </div>
+        <div class="jb-status-bar">
+          <div class="jb-status-left">
+            <span class="jb-status-item">✓</span>
+            <span class="jb-status-item">JUnit: OK</span>
+          </div>
+          <div class="jb-status-right">
+            <span class="jb-status-item">Line 42</span>
+            <span class="jb-status-item">UTF-8</span>
+            <span class="jb-status-item">4 spaces</span>
+          </div>
         </div>
       </div>
     `,

@@ -5324,13 +5324,17 @@ html[data-theme='light'] .image-diff-slider-handle {
 
 /* VS Code Context (platform-frames.js - .vs- prefix) */
 .vscode-context { display: flex; min-height: 400px; background: var(--frame-bg); border-radius: 8px; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-.vs-sidebar { width: 200px; background: var(--frame-surface); border-right: 1px solid var(--frame-border); padding: 8px 0; flex-shrink: 0; }
+.vs-activity-bar { width: 48px; background: #333333; display: flex; flex-direction: column; align-items: center; padding-top: 8px; flex-shrink: 0; }
+.vs-activity-icon { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; font-size: 24px; opacity: 0.6; cursor: pointer; border-left: 2px solid transparent; }
+.vs-activity-active { opacity: 1; border-left-color: var(--frame-accent); }
+.vs-sidebar { width: 200px; background: var(--frame-surface); border-right: 1px solid var(--frame-border); padding: 8px 0; flex-shrink: 0; overflow-y: auto; }
 .vs-explorer { font-size: 11px; font-weight: 600; color: var(--frame-text-secondary); text-transform: uppercase; padding: 8px 16px 4px; letter-spacing: 0.5px; }
 .vs-file { padding: 6px 16px; font-size: 13px; color: var(--frame-text-primary); cursor: pointer; display: flex; align-items: center; gap: 8px; }
 .vs-file:before { content: '📄'; font-size: 14px; }
 .vs-file-active { background: var(--frame-accent-bg); color: var(--frame-accent); }
-.vs-editor { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-.vs-tab-bar { display: flex; background: var(--frame-surface); border-bottom: 1px solid var(--frame-border); overflow-x: auto; }
+.vs-main-area { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.vs-editor { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+.vs-tab-bar { display: flex; background: var(--frame-surface); border-bottom: 1px solid var(--frame-border); overflow-x: auto; flex-shrink: 0; }
 .vs-tab { padding: 8px 16px; font-size: 13px; color: var(--frame-text-secondary); background: var(--frame-surface); border-right: 1px solid var(--frame-border); cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
 .vs-tab:before { content: '📄'; font-size: 12px; }
 .vs-tab-active { background: var(--frame-bg); color: var(--frame-text-primary); border-bottom: 1px solid var(--frame-bg); margin-bottom: -1px; }
@@ -5340,17 +5344,27 @@ html[data-theme='light'] .image-diff-slider-handle {
 .vs-comment-author { font-weight: 600; color: var(--frame-accent); font-size: 13px; }
 .vs-comment-time { color: var(--frame-text-muted); font-size: 12px; margin-left: 8px; }
 .vs-comment-body { margin-top: 8px; color: var(--frame-text-primary); font-size: 13px; font-family: 'Consolas', 'Monaco', monospace; line-height: 1.5; }
+.vs-terminal-panel { height: 120px; background: var(--frame-surface); border-top: 1px solid var(--frame-border); display: flex; flex-direction: column; flex-shrink: 0; }
+.vs-terminal-header { padding: 8px 16px; font-size: 12px; font-weight: 600; color: var(--frame-text-primary); background: var(--frame-surface); border-bottom: 1px solid var(--frame-border); }
+.vs-terminal-content { flex: 1; padding: 8px 16px; overflow-y: auto; font-family: 'Consolas', 'Monaco', monospace; font-size: 13px; }
+.vs-terminal-line { margin-bottom: 4px; color: var(--frame-text-primary); }
+.vs-terminal-success { color: #6a9955; }
 
 /* JetBrains IDE Context (platform-frames.js - .jb- prefix) */
 .jetbrains-context { display: flex; min-height: 400px; background: var(--frame-bg); border-radius: 8px; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-.jb-sidebar { width: 200px; background: var(--frame-surface); border-right: 1px solid var(--frame-border); padding: 8px 0; flex-shrink: 0; }
-.jb-project { font-size: 12px; font-weight: 600; color: var(--frame-text-primary); padding: 8px 16px 4px; border-bottom: 1px solid var(--frame-border); }
+.jb-sidebar { width: 200px; background: var(--frame-surface); border-right: 1px solid var(--frame-border); padding: 8px 0; flex-shrink: 0; overflow-y: auto; }
+.jb-project-header { font-size: 12px; font-weight: 600; color: var(--frame-text-primary); padding: 8px 16px 4px; border-bottom: 1px solid var(--frame-border); }
 .jb-explorer { font-size: 11px; font-weight: 600; color: var(--frame-text-secondary); text-transform: uppercase; padding: 8px 16px 4px; letter-spacing: 0.5px; }
-.jb-file { padding: 6px 16px; font-size: 13px; color: var(--frame-text-primary); cursor: pointer; display: flex; align-items: center; gap: 8px; }
+.jb-file-tree { padding-left: 0; }
+.jb-folder { margin-bottom: 8px; }
+.jb-folder-name { padding: 4px 16px; font-size: 13px; color: var(--frame-text-primary); font-weight: 500; display: flex; align-items: center; gap: 6px; }
+.jb-folder-name:before { content: '📁'; font-size: 14px; }
+.jb-file { padding: 6px 16px 6px 32px; font-size: 13px; color: var(--frame-text-primary); cursor: pointer; display: flex; align-items: center; gap: 8px; }
 .jb-file:before { content: '📄'; font-size: 14px; }
 .jb-file-active { background: var(--frame-accent-bg); color: var(--frame-accent); }
-.jb-editor { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-.jb-tab-bar { display: flex; background: var(--frame-surface); border-bottom: 1px solid var(--frame-border); overflow-x: auto; }
+.jb-main-area { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.jb-editor { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+.jb-tab-bar { display: flex; background: var(--frame-surface); border-bottom: 1px solid var(--frame-border); overflow-x: auto; flex-shrink: 0; }
 .jb-tab { padding: 8px 16px; font-size: 13px; color: var(--frame-text-secondary); background: var(--frame-surface); border-right: 1px solid var(--frame-border); cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
 .jb-tab:before { content: '☕'; font-size: 12px; }
 .jb-tab-active { background: var(--frame-bg); color: var(--frame-text-primary); border-bottom: 1px solid var(--frame-bg); margin-bottom: -1px; }
@@ -5360,3 +5374,6 @@ html[data-theme='light'] .image-diff-slider-handle {
 .jb-comment-author { font-weight: 600; color: var(--frame-accent); font-size: 13px; }
 .jb-comment-time { color: var(--frame-text-muted); font-size: 12px; margin-left: 8px; }
 .jb-comment-body { margin-top: 8px; color: var(--frame-text-primary); font-size: 13px; font-family: 'Consolas', 'Monaco', monospace; line-height: 1.5; }
+.jb-status-bar { height: 24px; background: var(--frame-surface); border-top: 1px solid var(--frame-border); display: flex; align-items: center; justify-content: space-between; padding: 0 12px; font-size: 11px; flex-shrink: 0; }
+.jb-status-left, .jb-status-right { display: flex; align-items: center; gap: 12px; }
+.jb-status-item { color: var(--frame-text-secondary); display: flex; align-items: center; gap: 4px; }

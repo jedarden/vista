@@ -2113,7 +2113,7 @@ function updateCardHeader(pid) {
  * - SHORT: Thumbnail on left, content on right
  * - TEXT_ONLY: No image, content only
  */
-function renderPlatformCard(pid, meta, imageProbe, baseUrl, dominantColor) {
+function renderPlatformCard(pid, meta, imageProbe, baseUrl, dominantColor, diff = null) {
   const ogTitle = meta.og.title || meta.title || '';
   const ogDesc = meta.og.description || meta.description || '';
   const ogImage = meta.og.image || meta.twitter.image || '';
@@ -2129,27 +2129,47 @@ function renderPlatformCard(pid, meta, imageProbe, baseUrl, dominantColor) {
   const skeletonType = getSkeletonType(pid);
   const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
 
+  // Diff highlighting helpers
+  const changedFields = diff?.changedFields || [];
+  const missingTags = diff?.missingTags || [];
+  const highlight = (text, fieldPath) => {
+    if (typeof window.platformDiff?.highlightChangedText === 'function') {
+      return window.platformDiff.highlightChangedText(text, changedFields, fieldPath);
+    }
+    return text;
+  };
+  const renderBadges = () => {
+    if (typeof window.platformDiff?.renderMissingTagsBadges === 'function') {
+      return window.platformDiff.renderMissingTagsBadges(missingTags);
+    }
+    return '';
+  };
+
   // Special case: Google is text-only with breadcrumb
   if (pid === 'google') {
+    const badges = renderBadges();
     return `<div class="google-card">
       <div class="google-breadcrumb">
         <span class="google-favicon">${faviconUrl ? `<img src="${escHtml(faviconUrl)}" alt="" onerror="this.parentElement.style.background='#ddd'" loading="lazy" />` : ''}</span>
-        <span class="google-domain">${escHtml(domain)}</span>
+        <span class="google-domain">${escHtml(highlight(domain, 'meta.og.site_name'))}</span>
       </div>
-      <div class="google-title">${escHtml(trunc(meta.title || ogTitle, 60))}</div>
-      <div class="google-desc">${escHtml(trunc(meta.description || ogDesc, 158))}</div>
+      <div class="google-title">${highlight(meta.title || ogTitle, 'meta.title')}</div>
+      <div class="google-desc">${highlight(meta.description || ogDesc, 'meta.og.description')}</div>
+      ${badges ? `<div class="google-badges">${badges}</div>` : ''}
     </div>`;
   }
 
   // Special case: Twitter has summary vs large image variants
   if (pid === 'twitter') {
     const isLarge = twitterCard === 'summary_large_image';
+    const badges = renderBadges();
     return `<div class="tw-card${isLarge ? '' : ' tw-summary'}">
       <div class="mock-image tw-image${isLarge ? '' : ' square'}">${renderImageHtml(ogImage, dominantColor, 'tw-image')}</div>
       <div class="tw-meta">
-        <div class="tw-title">${escHtml(trunc(twTitle, 70))}</div>
-        ${twDesc ? `<div class="tw-desc">${escHtml(trunc(twDesc, 200))}</div>` : ''}
-        <div class="tw-domain">${escHtml(domain)}</div>
+        <div class="tw-title">${highlight(twTitle, 'meta.twitter.title')}</div>
+        ${twDesc ? `<div class="tw-desc">${highlight(twDesc, 'meta.twitter.description')}</div>` : ''}
+        <div class="tw-domain">${escHtml(highlight(domain, 'meta.og.site_name'))}</div>
+        ${badges ? `<div class="tw-badges">${badges}</div>` : ''}
       </div>
     </div>`;
   }
@@ -2158,47 +2178,55 @@ function renderPlatformCard(pid, meta, imageProbe, baseUrl, dominantColor) {
   if (pid === 'discord' || pid === 'slack') {
     const cardClass = pid === 'discord' ? 'discord-card' : 'slack-card';
     const styleAttr = pid === 'discord' ? `border-left-color:${escHtml(themeColor)}` : '';
+    const badges = renderBadges();
     return `<div class="${cardClass}" style="${styleAttr}">
-      ${ogSite ? `<div class="${pid}-site">${escHtml(ogSite || domain)}</div>` : ''}
-      <div class="${pid}-title">${escHtml(trunc(ogTitle, pid === 'discord' ? 256 : 80))}</div>
-      ${ogDesc ? `<div class="${pid}-desc">${escHtml(trunc(ogDesc, pid === 'discord' ? 300 : 150))}</div>` : ''}
+      ${ogSite ? `<div class="${pid}-site">${escHtml(highlight(ogSite || domain, 'meta.og.site_name'))}</div>` : ''}
+      <div class="${pid}-title">${highlight(trunc(ogTitle, pid === 'discord' ? 256 : 80), 'meta.og.title')}</div>
+      ${ogDesc ? `<div class="${pid}-desc">${highlight(trunc(ogDesc, pid === 'discord' ? 300 : 150), 'meta.og.description')}</div>` : ''}
       ${ogImage ? `<div class="${pid}-image"><div class="mock-image" style="height:${pid === 'discord' ? 180 : 160}px;aspect-ratio:auto;background:${pid === 'discord' ? '#1e2028' : 'transparent'}">${renderImageHtml(ogImage, dominantColor, pid + '-image')}</div></div>` : ''}
+      ${badges ? `<div class="${pid}-badges">${badges}</div>` : ''}
     </div>`;
   }
 
   // Special case: Tumblr has square thumbnail
   if (pid === 'tumblr') {
+    const badges = renderBadges();
     return `<div class="tumblr-card">
       <div class="mock-image tumblr-image square" style="width:130px;flex-shrink:0;background:#2c3e50">${renderImageHtml(ogImage, dominantColor, 'tumblr-image')}</div>
       <div class="tumblr-meta">
-        <div class="tumblr-title">${escHtml(trunc(ogTitle, 60))}</div>
-        ${ogDesc ? `<div class="tumblr-desc">${escHtml(trunc(ogDesc, 120))}</div>` : ''}
-        <div class="tumblr-domain">${escHtml(domain)}</div>
+        <div class="tumblr-title">${highlight(trunc(ogTitle, 60), 'meta.og.title')}</div>
+        ${ogDesc ? `<div class="tumblr-desc">${highlight(trunc(ogDesc, 120), 'meta.og.description')}</div>` : ''}
+        <div class="tumblr-domain">${escHtml(highlight(domain, 'meta.og.site_name'))}</div>
+        ${badges ? `<div class="tumblr-badges">${badges}</div>` : ''}
       </div>
     </div>`;
   }
 
   // Special case: Pinterest has vertical image
   if (pid === 'pinterest') {
+    const badges = renderBadges();
     return `<div class="pinterest-card">
       <div class="mock-image pinterest-image vertical">${renderImageHtml(ogImage, dominantColor, 'pinterest-image')}</div>
       <div class="pinterest-meta">
-        <div class="pinterest-title">${escHtml(trunc(ogTitle, 60))}</div>
-        ${ogDesc ? `<div class="pinterest-desc">${escHtml(trunc(ogDesc, 100))}</div>` : ''}
-        <div class="pinterest-domain">${escHtml(domain)}</div>
+        <div class="pinterest-title">${highlight(trunc(ogTitle, 60), 'meta.og.title')}</div>
+        ${ogDesc ? `<div class="pinterest-desc">${highlight(trunc(ogDesc, 100), 'meta.og.description')}</div>` : ''}
+        <div class="pinterest-domain">${escHtml(highlight(domain, 'meta.og.site_name'))}</div>
+        ${badges ? `<div class="pinterest-badges">${badges}</div>` : ''}
       </div>
     </div>`;
   }
 
   // Special case: WhatsApp has custom image cell structure
   if (pid === 'whatsapp') {
+    const badges = renderBadges();
     return `<div class="wa-card">
       <div class="wa-card-inner">
         <div class="wa-img-cell">${ogImage ? `<img src="${escHtml(ogImage)}" alt="" onerror="this.style.display='none'" loading="lazy" class="img-loading" style="width:68px;height:68px;object-fit:cover" onload="this.classList.add('loaded');this.classList.remove('img-loading')" />` : ''}</div>
         <div class="wa-meta">
-          <div class="wa-domain">${escHtml(domain)}</div>
-          <div class="wa-title">${escHtml(trunc(ogTitle, 80))}</div>
-          ${ogDesc ? `<div class="wa-desc">${escHtml(trunc(ogDesc, 120))}</div>` : ''}
+          <div class="wa-domain">${escHtml(highlight(domain, 'meta.og.site_name'))}</div>
+          <div class="wa-title">${highlight(trunc(ogTitle, 80), 'meta.og.title')}</div>
+          ${ogDesc ? `<div class="wa-desc">${highlight(trunc(ogDesc, 120), 'meta.og.description')}</div>` : ''}
+          ${badges ? `<div class="wa-badges">${badges}</div>` : ''}
         </div>
       </div>
     </div>`;
@@ -2206,30 +2234,34 @@ function renderPlatformCard(pid, meta, imageProbe, baseUrl, dominantColor) {
 
   // Special case: Signal has custom image cell structure
   if (pid === 'signal') {
+    const badges = renderBadges();
     return `<div class="signal-card">
       <div class="signal-img-cell">${ogImage ? `<img src="${escHtml(ogImage)}" alt="" onerror="this.style.display='none'" loading="lazy" class="img-loading" style="width:76px;height:76px;object-fit:cover" onload="this.classList.add('loaded');this.classList.remove('img-loading')" />` : ''}</div>
       <div class="signal-meta">
-        <div class="signal-title">${escHtml(trunc(ogTitle, 80))}</div>
-        ${ogDesc ? `<div class="signal-desc">${escHtml(trunc(ogDesc, 120))}</div>` : ''}
-        <div class="signal-domain">${escHtml(domain)}</div>
+        <div class="signal-title">${highlight(trunc(ogTitle, 80), 'meta.og.title')}</div>
+        ${ogDesc ? `<div class="signal-desc">${highlight(trunc(ogDesc, 120), 'meta.og.description')}</div>` : ''}
+        <div class="signal-domain">${escHtml(highlight(domain, 'meta.og.site_name'))}</div>
+        ${badges ? `<div class="signal-badges">${badges}</div>` : ''}
       </div>
     </div>`;
   }
 
   // Special case: Feedly has "just now" timestamp
   if (pid === 'feedly') {
+    const badges = renderBadges();
     return `<div class="feedly-card">
       <div class="feedly-img-cell">${ogImage ? `<img src="${escHtml(ogImage)}" alt="" onerror="this.style.display='none'" loading="lazy" />` : ''}</div>
       <div class="feedly-meta">
-        <div class="feedly-title">${escHtml(trunc(ogTitle, 80))}</div>
-        ${ogDesc ? `<div class="feedly-desc">${escHtml(trunc(ogDesc, 120))}</div>` : ''}
-        <div class="feedly-source">${escHtml(domain)} &bull; just now</div>
+        <div class="feedly-title">${highlight(trunc(ogTitle, 80), 'meta.og.title')}</div>
+        ${ogDesc ? `<div class="feedly-desc">${highlight(trunc(ogDesc, 120), 'meta.og.description')}</div>` : ''}
+        <div class="feedly-source">${escHtml(highlight(domain, 'meta.og.site_name'))} &bull; just now</div>
+        ${badges ? `<div class="feedly-badges">${badges}</div>` : ''}
       </div>
     </div>`;
   }
 
   // Generic rendering based on skeleton type
-  return renderCardBySkeletonType(pid, skeletonType, ogTitle, ogDesc, ogImage, ogSite, domain, dominantColor, trunc);
+  return renderCardBySkeletonType(pid, skeletonType, ogTitle, ogDesc, ogImage, ogSite, domain, dominantColor, trunc, highlight, renderBadges);
 }
 
 /**
@@ -2246,22 +2278,32 @@ function renderImageHtml(imageUrl, dominantColor, imgClass) {
  * Render card HTML based on skeleton type.
  * This is the core function that wires skeleton types to DOM structure.
  */
-function renderCardBySkeletonType(pid, skeletonType, title, desc, image, site, domain, dominantColor, trunc) {
+function renderCardBySkeletonType(pid, skeletonType, title, desc, image, site, domain, dominantColor, trunc, highlight = null, renderBadges = null) {
   // Platform-specific class prefix (e.g., 'facebook', 'linkedin', etc.)
   const prefix = pid;
 
   // TEXT_ONLY skeleton: No image, content only
   // (Currently no platforms use this except Google, which is handled separately above)
   if (skeletonType === 'text-only') {
+    const badges = typeof renderBadges === 'function' ? renderBadges() : '';
+    const titleHtml = highlight ? highlight(title, 'meta.og.title') : escHtml(trunc(title, 80));
+    const descHtml = desc ? (highlight ? highlight(desc, 'meta.og.description') : escHtml(trunc(desc, 160))) : '';
+    const domainHtml = highlight ? highlight(domain, 'meta.og.site_name') : escHtml(domain);
     return `<div class="${prefix}-card">
-      <div class="${prefix}-title">${escHtml(trunc(title, 80))}</div>
-      ${desc ? `<div class="${prefix}-desc">${escHtml(trunc(desc, 160))}</div>` : ''}
-      <div class="${prefix}-domain">${escHtml(domain)}</div>
+      <div class="${prefix}-title">${titleHtml}</div>
+      ${desc ? `<div class="${prefix}-desc">${descHtml}</div>` : ''}
+      <div class="${prefix}-domain">${domainHtml}</div>
+      ${badges ? `<div class="${prefix}-badges">${badges}</div>` : ''}
     </div>`;
   }
 
   // SHORT skeleton: Thumbnail on left, content on right
   if (skeletonType === 'short') {
+    const badges = typeof renderBadges === 'function' ? renderBadges() : '';
+    const titleHtml = highlight ? highlight(title, 'meta.og.title') : escHtml(trunc(title, 80));
+    const descHtml = desc ? (highlight ? highlight(desc, 'meta.og.description') : escHtml(trunc(desc, 120))) : '';
+    const domainHtml = highlight ? highlight(domain, 'meta.og.site_name') : escHtml(domain);
+
     // Check if platform uses custom image cell structure (notion, jira, trello, figma, outlook, gmail, feedly)
     const usesCustomImgCell = ['notion', 'jira', 'trello', 'figma', 'outlook', 'gmail'].includes(pid);
 
@@ -2269,9 +2311,10 @@ function renderCardBySkeletonType(pid, skeletonType, title, desc, image, site, d
       return `<div class="${prefix}-card">
         <div class="${prefix}-img-cell">${image ? `<img src="${escHtml(image)}" alt="" onerror="this.style.display='none'" loading="lazy" class="img-loading" onload="this.classList.add('loaded');this.classList.remove('img-loading')" />` : ''}</div>
         <div class="${prefix}-meta">
-          <div class="${prefix}-title">${escHtml(trunc(title, 80))}</div>
-          ${desc ? `<div class="${prefix}-desc">${escHtml(trunc(desc, 120))}</div>` : ''}
-          <div class="${prefix}-domain">${escHtml(domain)}</div>
+          <div class="${prefix}-title">${titleHtml}</div>
+          ${desc ? `<div class="${prefix}-desc">${descHtml}</div>` : ''}
+          <div class="${prefix}-domain">${domainHtml}</div>
+          ${badges ? `<div class="${prefix}-badges">${badges}</div>` : ''}
         </div>
       </div>`;
     }
@@ -2280,35 +2323,47 @@ function renderCardBySkeletonType(pid, skeletonType, title, desc, image, site, d
     return `<div class="${prefix}-card">
       <div class="mock-image ${prefix}-image">${renderImageHtml(image, dominantColor, prefix + '-image')}</div>
       <div class="${prefix}-meta">
-        <div class="${prefix}-title">${escHtml(trunc(title, 80))}</div>
-        ${desc ? `<div class="${prefix}-desc">${escHtml(trunc(desc, 160))}</div>` : ''}
-        <div class="${prefix}-domain">${escHtml(domain)}</div>
+        <div class="${prefix}-title">${titleHtml}</div>
+        ${desc ? `<div class="${prefix}-desc">${descHtml}</div>` : ''}
+        <div class="${prefix}-domain">${domainHtml}</div>
+        ${badges ? `<div class="${prefix}-badges">${badges}</div>` : ''}
       </div>
     </div>`;
   }
 
   // TALL skeleton: Image on top, content below (default)
   if (skeletonType === 'tall') {
+    const badges = typeof renderBadges === 'function' ? renderBadges() : '';
     // Special case: Threads and Facebook use domain.toUpperCase()
     const displayDomain = (pid === 'threads' || pid === 'facebook') ? domain.toUpperCase() : domain;
+    const titleHtml = highlight ? highlight(title, 'meta.og.title') : escHtml(trunc(title, 60));
+    const descHtml = desc ? (highlight ? highlight(desc, 'meta.og.description') : escHtml(trunc(desc, 160))) : '';
+    const domainHtml = highlight ? highlight(displayDomain, 'meta.og.site_name') : escHtml(displayDomain);
 
     return `<div class="${prefix}-card">
       <div class="mock-image ${prefix}-image">${renderImageHtml(image, dominantColor, prefix + '-image')}</div>
       <div class="${prefix}-meta">
-        <div class="${prefix}-domain">${escHtml(displayDomain)}</div>
-        <div class="${prefix}-title">${escHtml(trunc(title, 60))}</div>
-        ${desc ? `<div class="${prefix}-desc">${escHtml(trunc(desc, 160))}</div>` : ''}
+        <div class="${prefix}-domain">${domainHtml}</div>
+        <div class="${prefix}-title">${titleHtml}</div>
+        ${desc ? `<div class="${prefix}-desc">${descHtml}</div>` : ''}
+        ${badges ? `<div class="${prefix}-badges">${badges}</div>` : ''}
       </div>
     </div>`;
   }
 
   // Fallback: Generic card structure
+  const badges = typeof renderBadges === 'function' ? renderBadges() : '';
+  const titleHtml = highlight ? highlight(title, 'meta.og.title') : escHtml(trunc(title, 80));
+  const descHtml = desc ? (highlight ? highlight(desc, 'meta.og.description') : escHtml(trunc(desc, 160))) : '';
+  const domainHtml = highlight ? highlight(domain, 'meta.og.site_name') : escHtml(domain);
+
   return `<div class="generic-card">
     <div class="mock-image generic-image">${renderImageHtml(image, dominantColor, 'generic-image')}</div>
     <div class="generic-meta">
-      <div class="generic-title">${escHtml(trunc(title, 80))}</div>
-      ${desc ? `<div class="generic-desc">${escHtml(trunc(desc, 160))}</div>` : ''}
-      <div class="generic-domain">${escHtml(domain)}</div>
+      <div class="generic-title">${titleHtml}</div>
+      ${desc ? `<div class="generic-desc">${descHtml}</div>` : ''}
+      <div class="generic-domain">${domainHtml}</div>
+      ${badges ? `<div class="generic-badges">${badges}</div>` : ''}
     </div>
   </div>`;
 }

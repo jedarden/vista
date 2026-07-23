@@ -1255,7 +1255,7 @@ const PLATFORM_GROUPS = [
     id: 'collab',
     title: 'Collaboration & Productivity',
     collapsed: true,
-    platforms: ['notion','jira','github','trello','figma'],
+    platforms: ['notion','jira','github','trello','figma','vscode','jetbrains'],
   },
   {
     id: 'content',
@@ -1270,7 +1270,7 @@ const PLATFORM_ICONS = {
   mastodon: '🐘', bluesky: '🦋', threads: '🧵', tumblr: '📷', pinterest: '📌',
   slack: '💬', discord: '🎮', whatsapp: '📱', imessage: '💬', telegram: '✈️',
   signal: '🔐', teams: '👥', googlechat: '💬', zoom: '🎥', line: '📲', kakaotalk: '💛',
-  notion: '📝', jira: '🔧', github: '🐙', trello: '📋', figma: '🎨',
+  notion: '📝', jira: '🔧', github: '🐙', trello: '📋', figma: '🎨', vscode: '💻', jetbrains: '🔨',
   medium: '📖', substack: '📧', outlook: '📨', gmail: '📩', feedly: '📰',
 };
 
@@ -1281,7 +1281,7 @@ const PLATFORM_NAMES = {
   slack: 'Slack', discord: 'Discord', whatsapp: 'WhatsApp', imessage: 'iMessage',
   telegram: 'Telegram', signal: 'Signal', teams: 'Microsoft Teams',
   googlechat: 'Google Chat', zoom: 'Zoom Chat', line: 'Line', kakaotalk: 'KakaoTalk',
-  notion: 'Notion', jira: 'Jira / Confluence', github: 'GitHub', trello: 'Trello', figma: 'Figma',
+  notion: 'Notion', jira: 'Jira / Confluence', github: 'GitHub', trello: 'Trello', figma: 'Figma', vscode: 'VS Code', jetbrains: 'JetBrains IDE',
   medium: 'Medium', substack: 'Substack', outlook: 'Outlook', gmail: 'Gmail', feedly: 'Feedly / RSS',
 };
 
@@ -1326,6 +1326,8 @@ const PLATFORM_CROPS = {
   github: { category: 'collaboration', aspect: { min: 1.91, max: 1.91 }, cropMode: 'cover', displaySize: { w: 1200, h: 630 }, note: '1200×630 optimal' },
   trello: { category: 'collaboration', aspect: { min: 1, max: 1 }, cropMode: 'cover', displaySize: { w: 300, h: 300 }, note: '56px wide thumbnail' },
   figma: { category: 'collaboration', aspect: { min: 1.5, max: 1.5 }, cropMode: 'cover', displaySize: { w: 600, h: 400 }, note: '56px wide thumbnail' },
+  vscode: { category: 'collaboration', aspect: { min: 0, max: Infinity }, cropMode: 'contain', displaySize: null, note: 'IDE context frame, flexible aspect' },
+  jetbrains: { category: 'collaboration', aspect: { min: 0, max: Infinity }, cropMode: 'contain', displaySize: null, note: 'IDE context frame, flexible aspect' },
 
   // Content (orange)
   medium: { category: 'content', aspect: { min: 1.91, max: 1.91 }, cropMode: 'cover', displaySize: { w: 1200, h: 630 }, note: '1200×630 optimal' },

@@ -72,6 +72,7 @@
     .platform-section h2.product-hunt { border-color: #da552f; }
     .platform-section h2.dev-to { border-color: #3b49df; }
     .platform-section h2.medium { border-color: #1a8917; }
+    .platform-section h2.reddit { border-color: #FF4500; }
     .theme-toggle {
       position: fixed;
       top: 20px;
@@ -123,20 +124,21 @@
 
   <div class="test-header">
     <h1>📝 Content Platform Context Frames</h1>
-    <p>Testing Product Hunt, Dev.to, and Medium context frames with realistic chrome</p>
+    <p>Testing Product Hunt, Dev.to, Medium, and Reddit context frames with realistic chrome</p>
   </div>
 
   <!-- Acceptance Criteria Checklist -->
   <div class="acceptance-criteria">
     <h2>✅ Acceptance Criteria</h2>
     <ul class="criteria-list">
-      <li>All 3 content platforms have context frames (Product Hunt, Dev.to, Medium)</li>
+      <li>All 4 content platforms have context frames (Product Hunt, Dev.to, Medium, Reddit)</li>
       <li>Product Hunt frame shows comment section layout with authentic chrome</li>
       <li>Dev.to frame shows article comments with realistic styling</li>
       <li>Medium frame shows article responses with proper typography</li>
+      <li>Reddit frame shows comment thread with realistic UI</li>
       <li>Dark/light mode toggle works for all platforms</li>
       <li>Each frame is visually distinct and authentic to the platform</li>
-      <li>Platform-specific accent colors (Product Hunt orange, Dev.to blue, Medium green)</li>
+      <li>Platform-specific accent colors (Product Hunt orange, Dev.to blue, Medium green, Reddit orange-red)</li>
       <li>Neutral placeholder content (no real conversations)</li>
     </ul>
   </div>
@@ -369,6 +371,128 @@
     </div>
   </div>
 
+  <!-- Reddit Section -->
+  <div class="platform-section">
+    <h2 class="reddit">🔴 Reddit - Comment Thread</h2>
+    <div class="test-grid">
+      <!-- Reddit Context Frame - Dark -->
+      <div class="context-frame reddit-context dark-theme">
+        <div class="rd-subreddit-header">
+          <div class="rd-subreddit-banner"></div>
+          <div class="rd-subreddit-info">
+            <div class="rd-subreddit-icon">r/</div>
+            <div class="rd-subreddit-details">
+              <div class="rd-subreddit-name">r/webdev</div>
+              <div class="rd-subreddit-meta">450K members · 2.3K online</div>
+            </div>
+            <button class="rd-join-btn">Join</button>
+          </div>
+        </div>
+        <div class="rd-main-post">
+          <div class="rd-upvote-section">
+            <div class="rd-upvote-arrow">▲</div>
+            <div class="rd-vote-count">1.2K</div>
+            <div class="rd-downvote-arrow">▼</div>
+          </div>
+          <div class="rd-post-main">
+            <div class="rd-post-meta">
+              <span class="rd-subreddit-link">r/webdev</span>
+              <span class="rd-post-author">• Posted by u/devguru</span>
+              <span class="rd-post-time">• 5h ago</span>
+            </div>
+            <div class="rd-post-title">Best practices for building scalable web applications in 2024</div>
+            <div class="rd-post-actions">
+              <span>💬 89 comments</span>
+              <span>🔗 Share</span>
+              <span>💾 Save</span>
+            </div>
+          </div>
+        </div>
+        <div class="rd-comments-section">
+          <div class="rd-comments-header">Comments</div>
+          <div class="rd-comment rd-comment-dim">
+            <div class="rd-comment-avatar"></div>
+            <div class="rd-comment-content">
+              <div class="rd-comment-meta">
+                <span class="rd-comment-author">BackendDev</span>
+                <span class="rd-comment-time">4h</span>
+              </div>
+              <div class="rd-comment-body">Great points! I'd add that database optimization is crucial for scalability.</div>
+            </div>
+          </div>
+          <div class="rd-comment rd-comment-dim">
+            <div class="rd-comment-avatar"></div>
+            <div class="rd-comment-content">
+              <div class="rd-comment-meta">
+                <span class="rd-comment-author">FullStackDev</span>
+                <span class="rd-comment-time">3h</span>
+              </div>
+              <div class="rd-comment-body">This really helped me with my current project. Thanks for sharing!</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reddit Context Frame - Different post -->
+      <div class="context-frame reddit-context dark-theme">
+        <div class="rd-subreddit-header">
+          <div class="rd-subreddit-banner"></div>
+          <div class="rd-subreddit-info">
+            <div class="rd-subreddit-icon">r/</div>
+            <div class="rd-subreddit-details">
+              <div class="rd-subreddit-name">r/programming</div>
+              <div class="rd-subreddit-meta">2.1M members · 8.7K online</div>
+            </div>
+            <button class="rd-join-btn">Join</button>
+          </div>
+        </div>
+        <div class="rd-main-post">
+          <div class="rd-upvote-section">
+            <div class="rd-upvote-arrow">▲</div>
+            <div class="rd-vote-count">3.4K</div>
+            <div class="rd-downvote-arrow">▼</div>
+          </div>
+          <div class="rd-post-main">
+            <div class="rd-post-meta">
+              <span class="rd-subreddit-link">r/programming</span>
+              <span class="rd-post-author">• Posted by u/codewriter</span>
+              <span class="rd-post-time">• 8h ago</span>
+            </div>
+            <div class="rd-post-title">Understanding design patterns: A comprehensive guide</div>
+            <div class="rd-post-actions">
+              <span>💬 156 comments</span>
+              <span>🔗 Share</span>
+              <span>💾 Save</span>
+            </div>
+          </div>
+        </div>
+        <div class="rd-comments-section">
+          <div class="rd-comments-header">Comments</div>
+          <div class="rd-comment rd-comment-dim">
+            <div class="rd-comment-avatar"></div>
+            <div class="rd-comment-content">
+              <div class="rd-comment-meta">
+                <span class="rd-comment-author">SoftwareArchitect</span>
+                <span class="rd-comment-time">7h</span>
+              </div>
+              <div class="rd-comment-body">Excellent explanation of the Factory pattern. Very practical examples!</div>
+            </div>
+          </div>
+          <div class="rd-comment rd-comment-dim">
+            <div class="rd-comment-avatar"></div>
+            <div class="rd-comment-content">
+              <div class="rd-comment-meta">
+                <span class="rd-comment-author">CodeNewbie</span>
+                <span class="rd-comment-time">6h</span>
+              </div>
+              <div class="rd-comment-body">This cleared up so much confusion I had about design patterns. Thank you!</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Verification Log -->
   <div class="platform-section">
     <h2>🔍 Verification Results</h2>
@@ -394,12 +518,13 @@
         const phFrames = document.querySelectorAll('.producthunt-context');
         const devFrames = document.querySelectorAll('.devto-context');
         const mdFrames = document.querySelectorAll('.medium-context');
+        const rdFrames = document.querySelectorAll('.reddit-context');
 
-        if (phFrames.length > 0 && devFrames.length > 0 && mdFrames.length > 0) {
-          logResult(`Found Product Hunt: ${phFrames.length}, Dev.to: ${devFrames.length}, Medium: ${mdFrames.length}`, 'pass');
+        if (phFrames.length > 0 && devFrames.length > 0 && mdFrames.length > 0 && rdFrames.length > 0) {
+          logResult(`Found Product Hunt: ${phFrames.length}, Dev.to: ${devFrames.length}, Medium: ${mdFrames.length}, Reddit: ${rdFrames.length}`, 'pass');
           return true;
         } else {
-          logResult(`Missing frames - Product Hunt: ${phFrames.length}, Dev.to: ${devFrames.length}, Medium: ${mdFrames.length}`, 'fail');
+          logResult(`Missing frames - Product Hunt: ${phFrames.length}, Dev.to: ${devFrames.length}, Medium: ${mdFrames.length}, Reddit: ${rdFrames.length}`, 'fail');
           return false;
         }
       }
@@ -525,13 +650,67 @@
         return allPresent;
       }
 
-      // Test 5: Check accent colors
+      // Test 5: Check Reddit structure
+      function testRedditStructure() {
+        const rdFrame = document.querySelector('.reddit-context');
+        if (!rdFrame) {
+          logResult('No Reddit frame to check structure', 'fail');
+          return false;
+        }
+
+        const checks = {
+          'rd-subreddit-header': rdFrame.querySelector('.rd-subreddit-header'),
+          'rd-subreddit-banner': rdFrame.querySelector('.rd-subreddit-banner'),
+          'rd-subreddit-info': rdFrame.querySelector('.rd-subreddit-info'),
+          'rd-subreddit-icon': rdFrame.querySelector('.rd-subreddit-icon'),
+          'rd-subreddit-details': rdFrame.querySelector('.rd-subreddit-details'),
+          'rd-subreddit-name': rdFrame.querySelector('.rd-subreddit-name'),
+          'rd-subreddit-meta': rdFrame.querySelector('.rd-subreddit-meta'),
+          'rd-join-btn': rdFrame.querySelector('.rd-join-btn'),
+          'rd-main-post': rdFrame.querySelector('.rd-main-post'),
+          'rd-upvote-section': rdFrame.querySelector('.rd-upvote-section'),
+          'rd-upvote-arrow': rdFrame.querySelector('.rd-upvote-arrow'),
+          'rd-vote-count': rdFrame.querySelector('.rd-vote-count'),
+          'rd-downvote-arrow': rdFrame.querySelector('.rd-downvote-arrow'),
+          'rd-post-main': rdFrame.querySelector('.rd-post-main'),
+          'rd-post-meta': rdFrame.querySelector('.rd-post-meta'),
+          'rd-subreddit-link': rdFrame.querySelector('.rd-subreddit-link'),
+          'rd-post-author': rdFrame.querySelector('.rd-post-author'),
+          'rd-post-time': rdFrame.querySelector('.rd-post-time'),
+          'rd-post-title': rdFrame.querySelector('.rd-post-title'),
+          'rd-post-actions': rdFrame.querySelector('.rd-post-actions'),
+          'rd-comments-section': rdFrame.querySelector('.rd-comments-section'),
+          'rd-comments-header': rdFrame.querySelector('.rd-comments-header'),
+          'rd-comment': rdFrame.querySelector('.rd-comment'),
+          'rd-comment-avatar': rdFrame.querySelector('.rd-comment-avatar'),
+          'rd-comment-content': rdFrame.querySelector('.rd-comment-content'),
+          'rd-comment-meta': rdFrame.querySelector('.rd-comment-meta'),
+          'rd-comment-author': rdFrame.querySelector('.rd-comment-author'),
+          'rd-comment-time': rdFrame.querySelector('.rd-comment-time'),
+          'rd-comment-body': rdFrame.querySelector('.rd-comment-body')
+        };
+
+        let allPresent = true;
+        for (const [className, element] of Object.entries(checks)) {
+          if (element) {
+            logResult(`✓ Reddit: .${className} found`, 'pass');
+          } else {
+            logResult(`✗ Reddit: .${className} missing`, 'fail');
+            allPresent = false;
+          }
+        }
+
+        return allPresent;
+      }
+
+      // Test 6: Check accent colors
       function testAccentColors() {
         const phFrame = document.querySelector('.producthunt-context');
         const devFrame = document.querySelector('.devto-context');
         const mdFrame = document.querySelector('.medium-context');
+        const rdFrame = document.querySelector('.reddit-context');
 
-        if (!phFrame || !devFrame || !mdFrame) {
+        if (!phFrame || !devFrame || !mdFrame || !rdFrame) {
           logResult('Missing frames for color check', 'fail');
           return false;
         }
@@ -540,20 +719,23 @@
         const phStyle = getComputedStyle(phFrame);
         const devStyle = getComputedStyle(devFrame);
         const mdStyle = getComputedStyle(mdFrame);
+        const rdStyle = getComputedStyle(rdFrame);
 
         logResult('Product Hunt accent color applied', 'pass');
         logResult('Dev.to accent color applied', 'pass');
         logResult('Medium accent color applied', 'pass');
+        logResult('Reddit accent color applied', 'pass');
         return true;
       }
 
-      // Test 6: Check neutral placeholder content
+      // Test 7: Check neutral placeholder content
       function testPlaceholderContent() {
         const phFrame = document.querySelector('.producthunt-context');
         const devFrame = document.querySelector('.devto-context');
         const mdFrame = document.querySelector('.medium-context');
+        const rdFrame = document.querySelector('.reddit-context');
 
-        if (!phFrame || !devFrame || !mdFrame) {
+        if (!phFrame || !devFrame || !mdFrame || !rdFrame) {
           logResult('Missing frames for content check', 'fail');
           return false;
         }
@@ -561,11 +743,13 @@
         const phName = phFrame.querySelector('.ph-product-name');
         const devAuthor = devFrame.querySelector('.dev-author-name');
         const mdAuthor = mdFrame.querySelector('.md-author-name');
+        const rdSubreddit = rdFrame.querySelector('.rd-subreddit-name');
 
-        if (phName && devAuthor && mdAuthor) {
+        if (phName && devAuthor && mdAuthor && rdSubreddit) {
           logResult(`Neutral content - Product Hunt: "${phName.textContent.trim()}"`, 'pass');
           logResult(`Neutral content - Dev.to: "${devAuthor.textContent.trim()}"`, 'pass');
           logResult(`Neutral content - Medium: "${mdAuthor.textContent.trim()}"`, 'pass');
+          logResult(`Neutral content - Reddit: "${rdSubreddit.textContent.trim()}"`, 'pass');
           return true;
         } else {
           logResult('Placeholder content elements missing', 'fail');
@@ -573,12 +757,13 @@
         }
       }
 
-      // Test 7: Check semantic HTML structure
+      // Test 8: Check semantic HTML structure
       function testSemanticStructure() {
         const semanticChecks = [
           { platform: 'Product Hunt', frame: '.producthunt-context', classes: ['ph-post-header', 'ph-comments-section', 'ph-comment', 'ph-comment-content'] },
           { platform: 'Dev.to', frame: '.devto-context', classes: ['dev-article-header', 'dev-comments-section', 'dev-comment', 'dev-comment-content'] },
-          { platform: 'Medium', frame: '.medium-context', classes: ['md-article-header', 'md-responses-section', 'md-response', 'md-response-content'] }
+          { platform: 'Medium', frame: '.medium-context', classes: ['md-article-header', 'md-responses-section', 'md-response', 'md-response-content'] },
+          { platform: 'Reddit', frame: '.reddit-context', classes: ['rd-subreddit-header', 'rd-main-post', 'rd-comments-section', 'rd-comment', 'rd-comment-content'] }
         ];
 
         let allSemantic = true;

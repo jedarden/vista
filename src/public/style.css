@@ -4571,6 +4571,96 @@ html[data-theme='light'] .pin-image-placeholder {
   --frame-overlay: rgba(0, 0, 0, 0.1);
 }
 
+/* Product Hunt Theme Variables */
+.producthunt-context.dark-theme {
+  --frame-bg: #1a1a1a;
+  --frame-surface: #2a2a2a;
+  --frame-border: #3a3a3a;
+  --frame-text-primary: #ffffff;
+  --frame-text-secondary: #999999;
+  --frame-text-muted: #666666;
+  --frame-accent: #da552f;
+  --frame-accent-bg: rgba(218, 85, 47, 0.15);
+  --frame-link-color: #da552f;
+  --frame-divider: #3a3a3a;
+  --frame-input-bg: #2a2a2a;
+  --frame-overlay: rgba(0, 0, 0, 0.6);
+}
+.producthunt-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #f8f8f8;
+  --frame-border: #e8e8e8;
+  --frame-text-primary: #21293c;
+  --frame-text-secondary: #5f6b7c;
+  --frame-text-muted: #9ea7b5;
+  --frame-accent: #da552f;
+  --frame-accent-bg: rgba(218, 85, 47, 0.1);
+  --frame-link-color: #da552f;
+  --frame-divider: #e8e8e8;
+  --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* Dev.to Theme Variables */
+.devto-context.dark-theme {
+  --frame-bg: #1a1a1a;
+  --frame-surface: #242424;
+  --frame-border: #3a3a3a;
+  --frame-text-primary: #e1e1e1;
+  --frame-text-secondary: #a3a3a3;
+  --frame-text-muted: #7a7a7a;
+  --frame-accent: #3b49df;
+  --frame-accent-bg: rgba(59, 73, 223, 0.15);
+  --frame-link-color: #3b49df;
+  --frame-divider: #3a3a3a;
+  --frame-input-bg: #2a2a2a;
+  --frame-overlay: rgba(0, 0, 0, 0.6);
+}
+.devto-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #f9f9f9;
+  --frame-border: #e6e6e6;
+  --frame-text-primary: #171717;
+  --frame-text-secondary: #575757;
+  --frame-text-muted: #9e9e9e;
+  --frame-accent: #3b49df;
+  --frame-accent-bg: rgba(59, 73, 223, 0.1);
+  --frame-link-color: #3b49df;
+  --frame-divider: #e6e6e6;
+  --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* Medium Theme Variables */
+.medium-context.dark-theme {
+  --frame-bg: #000000;
+  --frame-surface: #1a1a1a;
+  --frame-border: #2a2a2a;
+  --frame-text-primary: #ffffff;
+  --frame-text-secondary: #a0a0a0;
+  --frame-text-muted: #6a6a6a;
+  --frame-accent: #1a8917;
+  --frame-accent-bg: rgba(26, 137, 23, 0.15);
+  --frame-link-color: #1a8917;
+  --frame-divider: #2a2a2a;
+  --frame-input-bg: #1a1a1a;
+  --frame-overlay: rgba(0, 0, 0, 0.6);
+}
+.medium-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #f9f9f9;
+  --frame-border: #e0e0e0;
+  --frame-text-primary: #242424;
+  --frame-text-secondary: #6b6b6b;
+  --frame-text-muted: #9e9e9e;
+  --frame-accent: #1a8917;
+  --frame-accent-bg: rgba(26, 137, 23, 0.1);
+  --frame-link-color: #1a8917;
+  --frame-divider: #e0e0e0;
+  --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
 /* TikTok Theme Variables */
 .tiktok-context.dark-theme {
   --frame-bg: #000000;

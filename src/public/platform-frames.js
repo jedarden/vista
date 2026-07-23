@@ -1550,12 +1550,7 @@ const PLATFORM_FRAMES = {
           <button class="rd-join-btn">Join</button>
         </div>
       </div>
-      <div class="rd-post-list">
-        {{postList}}
-      </div>
-    `,
-    neutralContent: `
-      <div class="rd-post-item">
+      <div class="rd-main-post">
         <div class="rd-upvote-section">
           <div class="rd-upvote-arrow">▲</div>
           <div class="rd-vote-count">{{upvotes}}</div>
@@ -1574,6 +1569,32 @@ const PLATFORM_FRAMES = {
             <span>🔗 Share</span>
             <span>💾 Save</span>
           </div>
+        </div>
+      </div>
+      <div class="rd-comments-section">
+        <div class="rd-comments-header">Comments</div>
+        <div class="rd-comment rd-comment-dim">
+          <div class="rd-comment-avatar"></div>
+          <div class="rd-comment-content">
+            <div class="rd-comment-meta">
+              <span class="rd-comment-author">Redditor</span>
+              <span class="rd-comment-time">{{timeAgo}}</span>
+            </div>
+            <div class="rd-comment-body">Great discussion topic! Thanks for posting.</div>
+          </div>
+        </div>
+        {{userComment}}
+      </div>
+    `,
+    neutralContent: `
+      <div class="rd-comment">
+        <div class="rd-comment-avatar"></div>
+        <div class="rd-comment-content">
+          <div class="rd-comment-meta">
+            <span class="rd-comment-author">You</span>
+            <span class="rd-comment-time">Just now</span>
+          </div>
+          <div class="rd-comment-body">{{comment}}</div>
         </div>
       </div>
     `,

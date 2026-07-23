@@ -545,6 +545,7 @@ html[data-theme='light'] .theme-icon-dark { display: inline; }
   opacity: 0;
   transform: translateY(4px);
   pointer-events: none;
+  transition: opacity 150ms ease, transform 150ms ease;
 }
 
 .skeleton-fade-in {
@@ -566,6 +567,7 @@ html[data-theme='light'] .theme-icon-dark { display: inline; }
 @media (prefers-reduced-motion: reduce) {
   /* Disable all skeleton animations */
   .platform-skeleton-card,
+  .skeleton-fade-out,
   .skeleton-fade-in,
   .skeleton-icon, .skeleton-title, .skeleton-badge,
   .skeleton-tall-img, .skeleton-tall-domain, .skeleton-tall-title, .skeleton-tall-desc, .skeleton-tall-desc-short,

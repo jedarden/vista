@@ -3,7 +3,10 @@
  * Compares two /api/compare response objects and returns structured diff results.
  */
 
-const { isIdentical, changedFields, missingTags } = require('./index.js');
+const { isIdentical } = require('./isIdentical.js');
+const changedFieldsModule = require('./changedFields.js');
+const changedFields = changedFieldsModule.changedFields;
+const { missingTags } = require('./missingTags.js');
 
 /**
  * Transform a PlatformScore object into PlatformMetadata format.
@@ -24,7 +27,8 @@ function toPlatformMetadata(platformScore) {
 
   const { platform, grade, score, issues, fixes } = platformScore;
 
-  if (!platform) {
+  // Check if platform is a valid object (not null, not array, not primitive)
+  if (!platform || typeof platform !== 'object' || Array.isArray(platform)) {
     return null;
   }
 
@@ -78,7 +82,7 @@ function extractPlatformScores(response) {
  * @param {Object} responseB - Second /api/compare response object
  * @returns {Object} Structured diff object with:
  *   - identicalPlatforms: Set<string> - Platform IDs with no changes
- *   - changedFields: Map<string, string[]> - Platform ID -> array of changed field paths
+ *   - changedFields: Map<string, string[]> - Platform ID -> array of changed field paths (named changedFields internally)
  *   - missingTags: Map<string, string[]> - Platform ID -> array of missing tag names
  */
 function computeCompareDiff(responseA, responseB) {
@@ -94,7 +98,7 @@ function computeCompareDiff(responseA, responseB) {
 
   // Initialize result structures
   const identicalPlatforms = new Set();
-  const changedFields = new Map();
+  const changedFieldsMap = new Map();
   const missingTagsMap = new Map();
 
   // Compare each platform
@@ -113,7 +117,7 @@ function computeCompareDiff(responseA, responseB) {
       // Get changed fields for this platform
       const fields = changedFields(metaA, metaB);
       if (fields.length > 0) {
-        changedFields.set(platformId, fields);
+        changedFieldsMap.set(platformId, fields);
       }
 
       // Get missing tags for this platform
@@ -127,7 +131,7 @@ function computeCompareDiff(responseA, responseB) {
   // Return structured diff object
   return {
     identicalPlatforms,
-    changedFields,
+    changedFields: changedFieldsMap,
     missingTags: missingTagsMap
   };
 }

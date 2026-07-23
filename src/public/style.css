@@ -3188,15 +3188,44 @@ html[data-theme='dark'] .pin-saver-name {
 
 /* Platform comparison grid */
 .compare-platforms { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; }
-.platform-comparison-grid { display: flex; flex-direction: column; gap: 12px; }
-.platform-comparison-row { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; padding: 12px; background: var(--bg3); border-radius: var(--radius); }
-.platform-comparison-name { font-size: 14px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 8px; }
-.platform-comparison-score { text-align: center; }
+.platform-comparison-grid { display: flex; flex-direction: column; gap: 16px; }
+.platform-comparison-row { display: flex; flex-direction: column; gap: 12px; padding: 16px; background: var(--bg3); border-radius: var(--radius-lg); }
+.platform-comparison-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+.platform-comparison-name { font-size: 16px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 8px; }
+.platform-comparison-score { display: flex; align-items: center; gap: 12px; }
 .platform-comparison-grade { font-size: 18px; font-weight: 700; padding: 4px 12px; border-radius: 6px; display: inline-block; }
-.platform-comparison-change { font-size: 12px; color: var(--text2); }
+.platform-comparison-change { font-size: 12px; color: var(--text2); font-weight: 500; }
 .platform-comparison-change.improved { color: var(--green); }
 .platform-comparison-change.degraded { color: var(--red); }
 .platform-comparison-change.unchanged { color: var(--text3); }
+.platform-comparison-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.platform-comparison-card { display: flex; flex-direction: column; }
+.platform-comparison-card.before-card { position: relative; }
+.platform-comparison-card.after-card { position: relative; }
+.platform-comparison-card.before-card::before {
+  content: 'Before';
+  position: absolute;
+  top: -8px;
+  left: 8px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  z-index: 1;
+}
+.platform-comparison-card.after-card::before {
+  content: 'After';
+  position: absolute;
+  top: -8px;
+  left: 8px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  z-index: 1;
+}
 
 /* Platform diff markers */
 .platform-comparison-diff-fields {
@@ -3267,7 +3296,8 @@ html[data-theme='dark'] .pin-saver-name {
   .compare-divider { display: none; }
   .score-comparison-grid { grid-template-columns: 1fr; gap: 12px; }
   .score-vs-divider { display: none; }
-  .platform-comparison-row { grid-template-columns: 1fr; gap: 8px; }
+  .platform-comparison-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .platform-comparison-cards { grid-template-columns: 1fr; gap: 12px; }
 }
 
 /* ── Sitemap Mode ── */

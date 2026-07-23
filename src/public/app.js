@@ -5418,7 +5418,7 @@ function renderComparisonResults() {
   renderMetaTagDiff(data1.meta, data2.meta);
 
   // Render platform comparison
-  renderPlatformComparison(data1.scoring.scores, data2.scoring.scores);
+  renderPlatformComparison(data1, data2);
 }
 
 function renderScoreComparison(data1, data2) {
@@ -5515,11 +5515,14 @@ function renderMetaTagDiff(meta1, meta2) {
   }
 }
 
-function renderPlatformComparison(scores1, scores2) {
+function renderPlatformComparison(data1, data2) {
   const grid = document.getElementById('platformComparisonGrid');
   if (!grid) return;
 
   grid.innerHTML = '';
+
+  const scores1 = data1.scoring.scores;
+  const scores2 = data2.scoring.scores;
 
   // Compute platform diff data
   const platformDiffs = window.platformDiff && window.platformDiff.computePlatformDiff
@@ -5557,45 +5560,52 @@ function renderPlatformComparison(scores1, scores2) {
     // Get diff data for this platform
     const diff = platformDiffs[pid] || { changedFields: [], missingTags: [], identical: true };
 
-    // Build changed fields HTML
-    let changedFieldsHtml = '';
-    if (diff.changedFields && diff.changedFields.length > 0) {
-      changedFieldsHtml = '<div class="platform-comparison-diff-fields">';
-      diff.changedFields.forEach(field => {
-        const prettyField = field.replace(/(platformName|grade|score|issues|fixes)/g, '').replace(/^\.+/, '') || field;
-        changedFieldsHtml += `<span class="diff-field-changed">${escHtml(prettyField)}</span>`;
-      });
-      changedFieldsHtml += '</div>';
-    }
-
-    // Build missing tags HTML
-    let missingTagsHtml = '';
-    if (diff.missingTags && diff.missingTags.length > 0) {
-      missingTagsHtml = '<div class="platform-comparison-missing-tags">';
-      diff.missingTags.forEach(tag => {
-        missingTagsHtml += `<span class="diff-tag-missing" title="Missing in after: ${escHtml(tag)}">${escHtml(tag)}</span>`;
-      });
-      missingTagsHtml += '</div>';
-    }
+    // Extract platform-specific data from both datasets
+    const meta1 = data1.meta || {};
+    const meta2 = data2.meta || {};
+    const imageProbe1 = data1.imageProbe;
+    const imageProbe2 = data2.imageProbe;
+    const finalUrl1 = data1.finalUrl;
+    const finalUrl2 = data2.finalUrl;
+    const dominantColor1 = data1.dominantColor;
+    const dominantColor2 = data2.dominantColor;
 
     const row = document.createElement('div');
     row.className = 'platform-comparison-row';
-    row.innerHTML = `
+
+    // Create header with platform name and change indicator
+    const header = document.createElement('div');
+    header.className = 'platform-comparison-header';
+    header.innerHTML = `
       <div class="platform-comparison-name">
         <span>${PLATFORM_ICONS[pid] || '🌐'}</span>
         <span>${escHtml(PLATFORM_NAMES[pid] || pid)}</span>
-        ${changedFieldsHtml}
-        ${missingTagsHtml}
       </div>
       <div class="platform-comparison-score">
         <span class="platform-comparison-grade ${gradeClass(grade1)}">${grade1}</span>
         <span class="platform-comparison-change ${changeClass}">${changeText}</span>
-      </div>
-      <div class="platform-comparison-score">
         <span class="platform-comparison-grade ${gradeClass(grade2)}">${grade2}</span>
       </div>
     `;
+    row.appendChild(header);
 
+    // Create cards container
+    const cardsContainer = document.createElement('div');
+    cardsContainer.className = 'platform-comparison-cards';
+
+    // Render "before" card (with diff highlighting applied)
+    const beforeCard = document.createElement('div');
+    beforeCard.className = 'platform-comparison-card before-card';
+    beforeCard.innerHTML = renderPlatformCard(pid, meta1, imageProbe1, finalUrl1, dominantColor1, diff);
+    cardsContainer.appendChild(beforeCard);
+
+    // Render "after" card (with diff highlighting applied)
+    const afterCard = document.createElement('div');
+    afterCard.className = 'platform-comparison-card after-card';
+    afterCard.innerHTML = renderPlatformCard(pid, meta2, imageProbe2, finalUrl2, dominantColor2, diff);
+    cardsContainer.appendChild(afterCard);
+
+    row.appendChild(cardsContainer);
     grid.appendChild(row);
   });
 }

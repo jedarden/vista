@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mastodon - Dark Mode Frame</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+      background: #191b22;
+      color: #d9e1e8;
+    }
+
+    .mastodon-context {
+      display: flex;
+      flex-direction: column;
+      min-height: 400px;
+      background: #191b22;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .md-post-header {
+      padding: 12px 16px;
+      background: #191b22;
+      border-bottom: 1px solid #2f3442;
+    }
+
+    .md-post-author {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .md-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #6364ff 0%, #563acc 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .md-author-info {
+      flex: 1;
+    }
+
+    .md-author-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: #d9e1e8;
+    }
+
+    .md-author-handle {
+      font-size: 13px;
+      color: #9baec8;
+    }
+
+    .md-post-time {
+      font-size: 12px;
+      color: #9baec8;
+    }
+
+    .md-post-content {
+      padding: 12px 16px;
+    }
+
+    .md-post-text {
+      font-size: 15px;
+      line-height: 1.5;
+      color: #d9e1e8;
+      margin-bottom: 12px;
+    }
+
+    .md-link-card {
+      background: #242736;
+      border: 1px solid #2f3442;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .md-link-image {
+      width: 100%;
+      height: 160px;
+      background: linear-gradient(135deg, #6364ff 0%, #563acc 100%);
+    }
+
+    .md-link-info {
+      padding: 12px;
+      background: #242736;
+    }
+
+    .md-link-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #d9e1e8;
+      margin-bottom: 4px;
+    }
+
+    .md-link-domain {
+      font-size: 12px;
+      color: #9baec8;
+    }
+
+    .md-actions {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-top: 1px solid #2f3442;
+    }
+
+    .md-action {
+      font-size: 13px;
+      color: #9baec8;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="mastodon-context">
+    <div class="md-post-header">
+      <div class="md-post-author">
+        <div class="md-avatar">JD</div>
+        <div class="md-author-info">
+          <div class="md-author-name">John Doe</div>
+          <div class="md-author-handle">@johndoe@mastodon.social</div>
+        </div>
+        <div class="md-post-time">2h</div>
+      </div>
+    </div>
+
+    <div class="md-post-content">
+      <div class="md-post-text">Excellent resource on modern web development best practices. Definitely worth checking out!</div>
+      <div class="md-link-card">
+        <div class="md-link-image"></div>
+        <div class="md-link-info">
+          <div class="md-link-title">Best Practices for Modern Web Development</div>
+          <div class="md-link-domain">website.com</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="md-actions">
+      <div class="md-action">💬 8</div>
+      <div class="md-action">🔄 12</div>
+      <div class="md-action">⭐ 24</div>
+    </div>
+  </div>
+</body>
+</html>

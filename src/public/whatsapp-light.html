@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhatsApp - Light Mode Frame</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+      background: #efeae2;
+      color: #111b21;
+    }
+
+    .whatsapp-context {
+      display: flex;
+      flex-direction: column;
+      min-height: 400px;
+      background: #efeae2;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .wa-chat {
+      flex: 1;
+      padding: 16px 20px;
+      overflow-y: auto;
+      background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d1d7db' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+
+    .wa-message {
+      display: flex;
+      margin-bottom: 12px;
+    }
+
+    .wa-message-dim {
+      opacity: 0.6;
+    }
+
+    .wa-message-received {
+      justify-content: flex-start;
+    }
+
+    .wa-message-sent {
+      justify-content: flex-end;
+    }
+
+    .wa-bubble {
+      max-width: 80%;
+      padding: 10px 14px;
+      border-radius: 8px;
+    }
+
+    .wa-bubble-received {
+      background: #ffffff;
+      color: #111b21;
+    }
+
+    .wa-bubble-sent {
+      background: #d9fdd3;
+      color: #111b21;
+    }
+
+    .wa-sender-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: #025144;
+      margin-bottom: 4px;
+    }
+
+    .wa-message-body {
+      font-size: 14px;
+      line-height: 1.4;
+      color: #111b21;
+    }
+
+    .wa-link-preview {
+      margin-top: 8px;
+      background: #f0f0f0;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .wa-link-image {
+      width: 100%;
+      height: 120px;
+      background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+    }
+
+    .wa-link-info {
+      padding: 8px 10px;
+    }
+
+    .wa-link-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #111b21;
+    }
+
+    .wa-link-domain {
+      font-size: 11px;
+      color: #667781;
+    }
+  </style>
+</head>
+<body>
+  <div class="whatsapp-context">
+    <div class="wa-chat">
+      <div class="wa-message wa-message-received wa-message-dim">
+        <div class="wa-bubble wa-bubble-received">
+          <div class="wa-sender-name">Project Manager</div>
+          <div class="wa-message-body">You should see this resource I found for the project.</div>
+        </div>
+      </div>
+
+      <div class="wa-message wa-message-sent">
+        <div class="wa-bubble wa-bubble-sent">
+          <div class="wa-message-body">Thanks! Let me check it out.</div>
+        </div>
+      </div>
+
+      <div class="wa-message wa-message-sent">
+        <div class="wa-bubble wa-bubble-sent">
+          <div class="wa-link-preview">
+            <div class="wa-link-image"></div>
+            <div class="wa-link-info">
+              <div class="wa-link-title">Best Practices for Modern Web Development</div>
+              <div class="wa-link-domain">website.com</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

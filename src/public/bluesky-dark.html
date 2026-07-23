@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bluesky - Dark Mode Frame</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+      background: #000000;
+      color: #e5e7eb;
+    }
+
+    .bluesky-context {
+      display: flex;
+      flex-direction: column;
+      min-height: 400px;
+      background: #000000;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .bs-post-header {
+      padding: 12px 16px;
+      background: #000000;
+      border-bottom: 1px solid #1f2937;
+    }
+
+    .bs-post-author {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .bs-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0085ff 0%, #0066cc 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .bs-author-info {
+      flex: 1;
+    }
+
+    .bs-author-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: #e5e7eb;
+    }
+
+    .bs-author-handle {
+      font-size: 13px;
+      color: #9ca3af;
+    }
+
+    .bs-post-time {
+      font-size: 12px;
+      color: #9ca3af;
+    }
+
+    .bs-post-content {
+      padding: 12px 16px;
+    }
+
+    .bs-post-text {
+      font-size: 15px;
+      line-height: 1.5;
+      color: #e5e7eb;
+      margin-bottom: 12px;
+    }
+
+    .bs-link-card {
+      background: #111827;
+      border: 1px solid #1f2937;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .bs-link-image {
+      width: 100%;
+      height: 160px;
+      background: linear-gradient(135deg, #0085ff 0%, #0066cc 100%);
+    }
+
+    .bs-link-info {
+      padding: 12px;
+      background: #111827;
+    }
+
+    .bs-link-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #e5e7eb;
+      margin-bottom: 4px;
+    }
+
+    .bs-link-domain {
+      font-size: 12px;
+      color: #9ca3af;
+    }
+
+    .bs-actions {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-top: 1px solid #1f2937;
+    }
+
+    .bs-action {
+      font-size: 13px;
+      color: #9ca3af;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="bluesky-context">
+    <div class="bs-post-header">
+      <div class="bs-post-author">
+        <div class="bs-avatar">JD</div>
+        <div class="bs-author-info">
+          <div class="bs-author-name">John Doe</div>
+          <div class="bs-author-handle">@johndoe.bsky.social</div>
+        </div>
+        <div class="bs-post-time">2h</div>
+      </div>
+    </div>
+
+    <div class="bs-post-content">
+      <div class="bs-post-text">Great resource on modern web development practices. Worth checking out!</div>
+      <div class="bs-link-card">
+        <div class="bs-link-image"></div>
+        <div class="bs-link-info">
+          <div class="bs-link-title">Best Practices for Modern Web Development</div>
+          <div class="bs-link-domain">website.com</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bs-actions">
+      <div class="bs-action">💬 6</div>
+      <div class="bs-action">🔄 8</div>
+      <div class="bs-action">❤️ 18</div>
+    </div>
+  </div>
+</body>
+</html>

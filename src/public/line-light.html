@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LINE - Light Mode Frame</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+      background: #ffffff;
+      color: #000000;
+    }
+
+    .line-context {
+      display: flex;
+      flex-direction: column;
+      min-height: 400px;
+      background: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .ln-chat {
+      flex: 1;
+      padding: 12px 16px;
+      overflow-y: auto;
+    }
+
+    .ln-message {
+      display: flex;
+      margin-bottom: 10px;
+    }
+
+    .ln-message-dim {
+      opacity: 0.6;
+    }
+
+    .ln-message-received {
+      justify-content: flex-start;
+    }
+
+    .ln-message-sent {
+      justify-content: flex-end;
+    }
+
+    .ln-bubble {
+      max-width: 80%;
+      padding: 10px 14px;
+      border-radius: 16px;
+    }
+
+    .ln-bubble-received {
+      background: #f0f0f0;
+      color: #000000;
+    }
+
+    .ln-bubble-sent {
+      background: #06c755;
+      color: #ffffff;
+    }
+
+    .ln-sender-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: #000000;
+      margin-bottom: 4px;
+    }
+
+    .ln-message-body {
+      font-size: 14px;
+      line-height: 1.4;
+      color: #000000;
+    }
+
+    .ln-link-preview {
+      margin-top: 8px;
+      background: #f5f5f5;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .ln-link-image {
+      width: 100%;
+      height: 100px;
+      background: linear-gradient(135deg, #06c755 0%, #05a045 100%);
+    }
+
+    .ln-link-info {
+      padding: 8px 10px;
+    }
+
+    .ln-link-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #000000;
+    }
+
+    .ln-link-domain {
+      font-size: 11px;
+      color: #666666;
+    }
+  </style>
+</head>
+<body>
+  <div class="line-context">
+    <div class="ln-chat">
+      <div class="ln-message ln-message-received ln-message-dim">
+        <div class="ln-bubble ln-bubble-received">
+          <div class="ln-sender-name">Project Manager</div>
+          <div class="ln-message-body">You should see this resource I found for the project.</div>
+        </div>
+      </div>
+
+      <div class="ln-message ln-message-sent">
+        <div class="ln-bubble ln-bubble-sent">
+          <div class="ln-message-body">Thanks! Let me check it out.</div>
+        </div>
+      </div>
+
+      <div class="ln-message ln-message-sent">
+        <div class="ln-bubble ln-bubble-sent">
+          <div class="ln-link-preview">
+            <div class="ln-link-image"></div>
+            <div class="ln-link-info">
+              <div class="ln-link-title">Best Practices for Modern Web Development</div>
+              <div class="ln-link-domain">website.com</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

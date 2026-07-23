@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reddit - Light Mode Frame</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+      background: #dae0e6;
+      color: #1c1c1c;
+    }
+
+    .reddit-context {
+      display: flex;
+      flex-direction: column;
+      min-height: 400px;
+      background: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .rd-post-header {
+      padding: 12px 16px;
+      background: #ffffff;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .rd-subreddit {
+      font-size: 12px;
+      font-weight: 700;
+      color: #1c1c1c;
+      margin-bottom: 8px;
+    }
+
+    .rd-post-author {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .rd-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ff4500 0%, #cc3700 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: #ffffff;
+    }
+
+    .rd-author-name {
+      font-size: 14px;
+      color: #7c7c7c;
+    }
+
+    .rd-post-time {
+      font-size: 13px;
+      color: #7c7c7c;
+    }
+
+    .rd-post-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1c1c1c;
+      margin-bottom: 8px;
+    }
+
+    .rd-post-content {
+      padding: 12px 16px;
+    }
+
+    .rd-post-text {
+      font-size: 14px;
+      line-height: 1.5;
+      color: #1c1c1c;
+      margin-bottom: 12px;
+    }
+
+    .rd-link-card {
+      background: #f6f7f8;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .rd-link-image {
+      width: 100%;
+      height: 140px;
+      background: linear-gradient(135deg, #ff4500 0%, #cc3700 100%);
+    }
+
+    .rd-link-info {
+      padding: 10px 12px;
+      background: #f6f7f8;
+    }
+
+    .rd-link-domain {
+      font-size: 12px;
+      color: #7c7c7c;
+      margin-bottom: 4px;
+    }
+
+    .rd-link-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1c1c1c;
+    }
+
+    .rd-actions {
+      display: flex;
+      gap: 16px;
+      padding: 8px 16px;
+      border-top: 1px solid #ccc;
+    }
+
+    .rd-action {
+      font-size: 12px;
+      color: #7c7c7c;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="reddit-context">
+    <div class="rd-post-header">
+      <div class="rd-subreddit">r/webdev</div>
+      <div class="rd-post-author">
+        <div class="rd-avatar">JD</div>
+        <div class="rd-author-name">u/johndoe • 3h ago</div>
+      </div>
+      <div class="rd-post-title">Found this great resource on modern web development practices</div>
+    </div>
+
+    <div class="rd-post-content">
+      <div class="rd-post-text">Just came across this and thought it might be helpful for everyone here.</div>
+      <div class="rd-link-card">
+        <div class="rd-link-image"></div>
+        <div class="rd-link-info">
+          <div class="rd-link-domain">website.com</div>
+          <div class="rd-link-title">Best Practices for Modern Web Development</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rd-actions">
+      <div class="rd-action">↑ 342 ↓</div>
+      <div class="rd-action">💬 45 comments</div>
+      <div class="rd-action">share</div>
+    </div>
+  </div>
+</body>
+</html>

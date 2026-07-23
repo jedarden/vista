@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hacker News - Dark Mode Frame</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Verdana, Geneva, sans-serif;
+      background: #1a1a1a;
+      color: #dddddd;
+    }
+
+    .hackernews-context {
+      display: flex;
+      flex-direction: column;
+      min-height: 400px;
+      background: #1a1a1a;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .hn-post-header {
+      display: flex;
+      gap: 16px;
+      padding: 16px 20px;
+      background: #1a1a1a;
+      border-bottom: 1px solid #3a3a3a;
+    }
+
+    .hn-upvote {
+      font-size: 20px;
+      color: #ff6600;
+      cursor: pointer;
+      min-width: 20px;
+    }
+
+    .hn-post-main {
+      flex: 1;
+    }
+
+    .hn-post-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #dddddd;
+      margin-bottom: 8px;
+    }
+
+    .hn-post-title a {
+      color: #dddddd;
+      text-decoration: none;
+    }
+
+    .hn-post-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #828282;
+      flex-wrap: wrap;
+    }
+
+    .hn-domain {
+      color: #828282;
+    }
+
+    .hn-points, .hn-author, .hn-time, .hn-comments {
+      color: #828282;
+    }
+
+    .hn-comments-list {
+      flex: 1;
+      padding: 16px 20px;
+      overflow-y: auto;
+    }
+
+    .hn-comment {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .hn-comment-dim {
+      opacity: 0.6;
+    }
+
+    .hn-comment-vote {
+      font-size: 16px;
+      color: #ff6600;
+      cursor: pointer;
+      min-width: 16px;
+    }
+
+    .hn-comment-content {
+      flex: 1;
+    }
+
+    .hn-comment-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .hn-comment-author {
+      color: #dddddd;
+      font-weight: 600;
+    }
+
+    .hn-comment-time {
+      color: #828282;
+    }
+
+    .hn-comment-body {
+      font-size: 13px;
+      line-height: 1.5;
+      color: #dddddd;
+    }
+
+    .hn-reply-link {
+      font-size: 11px;
+      color: #ff6600;
+      margin-top: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="hackernews-context">
+    <div class="hn-post-header">
+      <div class="hn-upvote">▲</div>
+      <div class="hn-post-main">
+        <div class="hn-post-title"><a href="#">Show HN: I built a tool to visualize code complexity in real-time</a></div>
+        <div class="hn-post-meta">
+          <span class="hn-domain">github.com</span>
+          <span class="hn-points">234 points</span>
+          <span class="hn-author">by builder_dev</span>
+          <span class="hn-time">3 hours ago</span>
+          <span class="hn-comments">89 comments</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hn-comments-list">
+      <div class="hn-comment hn-comment-dim">
+        <div class="hn-comment-vote">▲</div>
+        <div class="hn-comment-content">
+          <div class="hn-comment-meta">
+            <span class="hn-comment-author">hacker_user42</span>
+            <span class="hn-comment-time">2 hours ago</span>
+          </div>
+          <div class="hn-comment-body">This is really interesting! I've been looking for something like this for my team.</div>
+          <div class="hn-reply-link">reply</div>
+        </div>
+      </div>
+
+      <div class="hn-comment hn-comment-dim">
+        <div class="hn-comment-vote">▲</div>
+        <div class="hn-comment-content">
+          <div class="hn-comment-meta">
+            <span class="hn-comment-author">sysprog</span>
+            <span class="hn-comment-time">1 hour ago</span>
+          </div>
+          <div class="hn-comment-body">Great work! The visualization is clear and actionable.</div>
+          <div class="hn-reply-link">reply</div>
+        </div>
+      </div>
+
+      <div class="hn-comment">
+        <div class="hn-comment-vote">▲</div>
+        <div class="hn-comment-content">
+          <div class="hn-comment-meta">
+            <span class="hn-comment-author">You</span>
+            <span class="hn-comment-time">Just now</span>
+          </div>
+          <div class="hn-comment-body">Thanks for the feedback! I'm planning to add support for more languages soon.</div>
+          <div class="hn-reply-link">reply</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

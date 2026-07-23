@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tumblr - Dark Mode Frame</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+      background: #001021;
+      color: #ffffff;
+    }
+
+    .tumblr-context {
+      display: flex;
+      flex-direction: column;
+      min-height: 400px;
+      background: #001021;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .tm-post-header {
+      padding: 16px;
+      background: #001021;
+    }
+
+    .tm-post-author {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .tm-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #00b8ff 0%, #0095d9 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .tm-author-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .tm-post-time {
+      font-size: 12px;
+      color: #a9a9a9;
+    }
+
+    .tm-post-content {
+      padding: 0 16px 16px;
+    }
+
+    .tm-post-text {
+      font-size: 15px;
+      line-height: 1.5;
+      color: #ffffff;
+      margin-bottom: 12px;
+    }
+
+    .tm-link-card {
+      background: #0a1a2a;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .tm-link-image {
+      width: 100%;
+      height: 200px;
+      background: linear-gradient(135deg, #00b8ff 0%, #0095d9 100%);
+    }
+
+    .tm-link-info {
+      padding: 12px;
+      background: #0a1a2a;
+    }
+
+    .tm-link-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #ffffff;
+      margin-bottom: 4px;
+    }
+
+    .tm-link-domain {
+      font-size: 12px;
+      color: #a9a9a9;
+    }
+
+    .tm-tags {
+      padding: 12px 16px;
+      border-top: 1px solid #1a2a3a;
+    }
+
+    .tm-tag {
+      display: inline-block;
+      font-size: 13px;
+      color: #00b8ff;
+      margin-right: 8px;
+      cursor: pointer;
+    }
+
+    .tm-actions {
+      display: flex;
+      gap: 16px;
+      padding: 12px 16px;
+      border-top: 1px solid #1a2a3a;
+    }
+
+    .tm-action {
+      font-size: 13px;
+      color: #a9a9a9;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="tumblr-context">
+    <div class="tm-post-header">
+      <div class="tm-post-author">
+        <div class="tm-avatar">JD</div>
+        <div class="tm-author-name">johndoe</div>
+        <div class="tm-post-time">2 hours ago</div>
+      </div>
+    </div>
+
+    <div class="tm-post-content">
+      <div class="tm-post-text">Check out this great resource on web development!</div>
+      <div class="tm-link-card">
+        <div class="tm-link-image"></div>
+        <div class="tm-link-info">
+          <div class="tm-link-title">Best Practices for Modern Web Development</div>
+          <div class="tm-link-domain">website.com</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tm-tags">
+      <span class="tm-tag">#webdev</span>
+      <span class="tm-tag">#programming</span>
+      <span class="tm-tag">#learning</span>
+    </div>
+
+    <div class="tm-actions">
+      <div class="tm-action">💬 4</div>
+      <div class="tm-action">❤️ 28</div>
+      <div class="tm-action">🔄 12</div>
+    </div>
+  </div>
+</body>
+</html>

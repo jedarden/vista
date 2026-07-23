@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Substack - Dark Mode Frame</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+      background: #111111;
+      color: #e0e0e0;
+    }
+
+    .substack-context {
+      display: flex;
+      flex-direction: column;
+      min-height: 400px;
+      background: #111111;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .ss-post {
+      flex: 1;
+      padding: 20px 24px;
+      overflow-y: auto;
+    }
+
+    .ss-post-header {
+      margin-bottom: 16px;
+    }
+
+    .ss-author {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .ss-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ff6719 0%, #cc5214 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .ss-author-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: #e0e0e0;
+    }
+
+    .ss-post-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #e0e0e0;
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+
+    .ss-post-excerpt {
+      font-size: 15px;
+      line-height: 1.6;
+      color: #a0a0a0;
+      margin-bottom: 16px;
+    }
+
+    .ss-link-preview {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .ss-link-image {
+      width: 100%;
+      height: 160px;
+      background: linear-gradient(135deg, #ff6719 0%, #cc5214 100%);
+    }
+
+    .ss-link-info {
+      padding: 12px 16px;
+    }
+
+    .ss-link-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #e0e0e0;
+      margin-bottom: 4px;
+    }
+
+    .ss-link-domain {
+      font-size: 12px;
+      color: #a0a0a0;
+    }
+
+    .ss-actions {
+      display: flex;
+      gap: 16px;
+      padding: 12px 20px;
+      border-top: 1px solid #2a2a2a;
+    }
+
+    .ss-action {
+      font-size: 13px;
+      color: #a0a0a0;
+    }
+  </style>
+</head>
+<body>
+  <div class="substack-context">
+    <div class="ss-post">
+      <div class="ss-post-header">
+        <div class="ss-author">
+          <div class="ss-avatar">JD</div>
+          <div class="ss-author-name">John Doe</div>
+        </div>
+        <div class="ss-post-title">Best Practices for Modern Web Development</div>
+        <div class="ss-post-excerpt">A comprehensive guide to building scalable and maintainable web applications in today's development landscape.</div>
+      </div>
+
+      <div class="ss-link-preview">
+        <div class="ss-link-image"></div>
+        <div class="ss-link-info">
+          <div class="ss-link-title">Best Practices for Modern Web Development</div>
+          <div class="ss-link-domain">website.com</div>
+        </div>
+      </div>
+
+      <div class="ss-actions">
+        <div class="ss-action">❤️ 142 likes</div>
+        <div class="ss-action">💬 28 comments</div>
+        <div class="ss-action">🔄 12 restacks</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

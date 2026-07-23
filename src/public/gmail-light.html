@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gmail - Light Mode Frame</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #ffffff;
+      color: #202124;
+    }
+
+    .gmail-context {
+      display: flex;
+      flex-direction: column;
+      min-height: 400px;
+      background: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .gmail-thread-header {
+      padding: 16px 20px;
+      background: #ffffff;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .gmail-subject {
+      font-size: 18px;
+      font-weight: 600;
+      color: #202124;
+      margin-bottom: 12px;
+    }
+
+    .gmail-thread-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      color: #5f6368;
+    }
+
+    .gmail-from, .gmail-to, .gmail-time {
+      color: #5f6368;
+    }
+
+    .gmail-messages {
+      flex: 1;
+      padding: 16px 20px;
+      overflow-y: auto;
+    }
+
+    .gmail-message {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .gmail-message-dim {
+      opacity: 0.6;
+    }
+
+    .gmail-sender-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0b57d0 0%, #0745a3 100%);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: #ffffff;
+    }
+
+    .gmail-message-content {
+      flex: 1;
+    }
+
+    .gmail-sender-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .gmail-sender-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #202124;
+    }
+
+    .gmail-sender-email {
+      font-size: 12px;
+      color: #5f6368;
+    }
+
+    .gmail-message-time {
+      font-size: 12px;
+      color: #5f6368;
+      margin-left: auto;
+    }
+
+    .gmail-message-body {
+      font-size: 14px;
+      line-height: 1.5;
+      color: #202124;
+    }
+
+    .gmail-link-preview {
+      margin-top: 12px;
+      padding: 12px;
+      background: #f2f2f2;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+    }
+
+    .gmail-title-section {
+      font-size: 14px;
+      font-weight: 600;
+      color: #0b57d0;
+      margin-bottom: 4px;
+    }
+
+    .gmail-domain {
+      font-size: 12px;
+      color: #5f6368;
+    }
+  </style>
+</head>
+<body>
+  <div class="gmail-context">
+    <div class="gmail-thread-header">
+      <div class="gmail-subject">Check out this interesting article!</div>
+      <div class="gmail-thread-meta">
+        <span class="gmail-from">from: colleague@company.com</span>
+        <span class="gmail-to">to: you@company.com</span>
+        <span class="gmail-time">10:30 AM</span>
+      </div>
+    </div>
+
+    <div class="gmail-messages">
+      <div class="gmail-message gmail-message-dim">
+        <div class="gmail-sender-avatar">C</div>
+        <div class="gmail-message-content">
+          <div class="gmail-sender-info">
+            <span class="gmail-sender-name">Colleague</span>
+            <span class="gmail-sender-email">&lt;colleague@company.com&gt;</span>
+            <span class="gmail-message-time">10:30 AM (2 hours ago)</span>
+          </div>
+          <div class="gmail-message-body">Hey! Check out this link I found - it's really relevant to our current project.</div>
+        </div>
+      </div>
+
+      <div class="gmail-message">
+        <div class="gmail-sender-avatar">Y</div>
+        <div class="gmail-message-content">
+          <div class="gmail-sender-info">
+            <span class="gmail-sender-name">You</span>
+            <span class="gmail-sender-email">&lt;you@company.com&gt;</span>
+            <span class="gmail-message-time">Just now</span>
+          </div>
+          <div class="gmail-link-preview">
+            <div class="gmail-title-section">Project Documentation and Best Practices</div>
+            <div class="gmail-domain">docs.company.com</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

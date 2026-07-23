@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Feedly - Dark Mode Frame</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+      background: #1e1e1e;
+      color: #e0e0e0;
+    }
+
+    .feedly-context {
+      display: flex;
+      flex-direction: column;
+      min-height: 400px;
+      background: #1e1e1e;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .fd-feed {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+    }
+
+    .fd-feed-item {
+      display: flex;
+      gap: 12px;
+      padding: 12px;
+      background: #2c2c2c;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+
+    .fd-feed-item-dim {
+      opacity: 0.6;
+    }
+
+    .fd-feed-thumb {
+      width: 100px;
+      height: 100px;
+      background: linear-gradient(135deg, #2bc48a 0%, #22a072 100%);
+      border-radius: 6px;
+      flex-shrink: 0;
+    }
+
+    .fd-feed-content {
+      flex: 1;
+    }
+
+    .fd-feed-source {
+      font-size: 12px;
+      color: #888888;
+      margin-bottom: 4px;
+    }
+
+    .fd-feed-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #e0e0e0;
+      margin-bottom: 6px;
+      line-height: 1.4;
+    }
+
+    .fd-feed-excerpt {
+      font-size: 13px;
+      line-height: 1.4;
+      color: #a0a0a0;
+      margin-bottom: 8px;
+    }
+
+    .fd-feed-meta {
+      font-size: 12px;
+      color: #888888;
+    }
+
+    .fd-feed-item.highlight {
+      background: #3c3c3c;
+      border-left: 3px solid #2bc48a;
+    }
+  </style>
+</head>
+<body>
+  <div class="feedly-context">
+    <div class="fd-feed">
+      <div class="fd-feed-item fd-feed-item-dim">
+        <div class="fd-feed-thumb" style="background: linear-gradient(135deg, #4a90a4 0%, #3a7a94 100%);"></div>
+        <div class="fd-feed-content">
+          <div class="fd-feed-source">Tech Weekly • 2 hours ago</div>
+          <div class="fd-feed-title">Understanding Modern Frameworks</div>
+          <div class="fd-feed-excerpt">A look at the current landscape of web development frameworks and their trade-offs...</div>
+        </div>
+      </div>
+
+      <div class="fd-feed-item highlight">
+        <div class="fd-feed-thumb"></div>
+        <div class="fd-feed-content">
+          <div class="fd-feed-source">Web Dev Blog • Just now</div>
+          <div class="fd-feed-title">Best Practices for Modern Web Development</div>
+          <div class="fd-feed-excerpt">Essential techniques for building scalable, maintainable applications...</div>
+          <div class="fd-feed-meta">website.com</div>
+        </div>
+      </div>
+
+      <div class="fd-feed-item fd-feed-item-dim">
+        <div class="fd-feed-thumb" style="background: linear-gradient(135deg, #7c68a8 0%, #635488 100%);"></div>
+        <div class="fd-feed-content">
+          <div class="fd-feed-source">Code & Design • Yesterday</div>
+          <div class="fd-feed-title">Performance Optimization Strategies</div>
+          <div class="fd-feed-excerpt">Tips and tricks for making your web applications faster and more efficient...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

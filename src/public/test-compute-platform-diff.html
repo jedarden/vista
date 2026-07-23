@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test computePlatformDiff Function</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 0 20px;
+      background: #0d1117;
+      color: #c9d1d9;
+    }
+    h1 {
+      color: #58a6ff;
+      border-bottom: 1px solid #30363d;
+      padding-bottom: 10px;
+    }
+    h2 {
+      color: #79c0ff;
+      margin-top: 30px;
+    }
+    .test-section {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    .test-result {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 15px;
+      margin: 10px 0;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+    .pass {
+      color: #3fb950;
+      font-weight: bold;
+    }
+    .fail {
+      color: #f85149;
+      font-weight: bold;
+    }
+    .info {
+      color: #8b949e;
+    }
+    .criteria {
+      background: #21262d;
+      border-left: 3px solid #58a6ff;
+      padding: 10px 15px;
+      margin: 10px 0;
+      border-radius: 4px;
+    }
+    .criteria strong {
+      color: #58a6ff;
+    }
+    code {
+      background: #21262d;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧪 Test computePlatformDiff Function</h1>
+
+  <div class="test-section">
+    <h2>Acceptance Criteria</h2>
+    <div class="criteria">
+      <strong>1.</strong> computePlatformDiff returns object with platform IDs as keys<br>
+      <strong>2.</strong> Each platform diff contains <code>changedFields</code> array with field paths<br>
+      <strong>3.</strong> Each platform diff contains <code>missingTags</code> array with tag names<br>
+      <strong>4.</strong> <code>identical</code> flag is false when changes are detected
+    </div>
+  </div>
+
+  <div id="results"></div>
+
+  <script src="platform-diff.js"></script>
+  <script>
+    const results = document.getElementById('results');
+    let testsPassed = 0;
+    let testsFailed = 0;
+
+    function addSection(title) {
+      const section = document.createElement('div');
+      section.className = 'test-section';
+      section.innerHTML = `<h2>${title}</h2>`;
+      results.appendChild(section);
+      return section;
+    }
+
+    function addResult(section, passed, message) {
+      const div = document.createElement('div');
+      div.className = 'test-result';
+      const status = passed ? '<span class="pass">✓ PASS</span>' : '<span class="fail">✗ FAIL</span>';
+      div.innerHTML = `${status} ${message}`;
+      section.appendChild(div);
+      if (passed) testsPassed++;
+      else testsFailed++;
+    }
+
+    // Test 1: Empty input
+    const section1 = addSection('Test 1: Empty input');
+    const emptyResult = window.platformDiff.computePlatformDiff({}, {});
+    addResult(section1,
+      typeof emptyResult === 'object' && Object.keys(emptyResult).length === 0,
+      'Empty inputs return empty object: ' + JSON.stringify(emptyResult)
+    );
+
+    // Test 2: Single platform with no changes
+    const section2 = addSection('Test 2: Single platform with identical data');
+    const scores2a = {
+      'platform1': {
+        platform: { id: 'platform1', name: 'Test Platform' },
+        grade: 'A',
+        score: 95,
+        issues: [],
+        fixes: []
+      }
+    };
+    const scores2b = {
+      'platform1': {
+        platform: { id: 'platform1', name: 'Test Platform' },
+        grade: 'A',
+        score: 95,
+        issues: [],
+        fixes: []
+      }
+    };
+    const result2 = window.platformDiff.computePlatformDiff(scores2a, scores2b);
+
+    addResult(section2,
+      'platform1' in result2,
+      '✓ Criterion 1: Platform ID "platform1" is a key in result'
+    );
+    addResult(section2,
+      Array.isArray(result2.platform1?.changedFields),
+      '✓ Criterion 2: changedFields is an array'
+    );
+    addResult(section2,
+      Array.isArray(result2.platform1?.missingTags),
+      '✓ Criterion 3: missingTags is an array'
+    );
+    addResult(section2,
+      result2.platform1?.identical === true,
+      '✓ Criterion 4: identical is true for identical data'
+    );
+
+    // Test 3: Platform with changed score and grade
+    const section3 = addSection('Test 3: Platform with changed fields');
+    const scores3a = {
+      'platform2': {
+        platform: { id: 'platform2', name: 'Platform Two' },
+        grade: 'B',
+        score: 85,
+        issues: [],
+        fixes: []
+      }
+    };
+    const scores3b = {
+      'platform2': {
+        platform: { id: 'platform2', name: 'Platform Two' },
+        grade: 'A',
+        score: 95,
+        issues: [],
+        fixes: []
+      }
+    };
+    const result3 = window.platformDiff.computePlatformDiff(scores3a, scores3b);
+
+    addResult(section3,
+      'platform2' in result3,
+      '✓ Criterion 1: Platform ID "platform2" is a key in result'
+    );
+    addResult(section3,
+      Array.isArray(result3.platform2?.changedFields),
+      '✓ Criterion 2: changedFields is an array'
+    );
+    addResult(section3,
+      result3.platform2?.changedFields.includes('grade') && result3.platform2?.changedFields.includes('score'),
+      '✓ Criterion 2a: changedFields includes "grade" and "score": ' + JSON.stringify(result3.platform2?.changedFields)
+    );
+    addResult(section3,
+      Array.isArray(result3.platform2?.missingTags),
+      '✓ Criterion 3: missingTags is an array: ' + JSON.stringify(result3.platform2?.missingTags)
+    );
+    addResult(section3,
+      result3.platform2?.identical === false,
+      '✓ Criterion 4: identical is false when changes detected'
+    );
+
+    // Test 4: Platform with missing tags
+    const section4 = addSection('Test 4: Platform with missing tags');
+    const scores4a = {
+      'platform3': {
+        platform: { id: 'platform3', name: 'Platform Three' },
+        grade: 'C',
+        score: 75,
+        issues: ['og:title missing', 'twitter:card missing'],
+        fixes: []
+      }
+    };
+    const scores4b = {
+      'platform3': {
+        platform: { id: 'platform3', name: 'Platform Three' },
+        grade: 'C',
+        score: 75,
+        issues: [],
+        fixes: []
+      }
+    };
+    const result4 = window.platformDiff.computePlatformDiff(scores4a, scores4b);
+
+    addResult(section4,
+      'platform3' in result4,
+      '✓ Criterion 1: Platform ID "platform3" is a key in result'
+    );
+    addResult(section4,
+      Array.isArray(result4.platform3?.missingTags),
+      '✓ Criterion 3: missingTags is an array: ' + JSON.stringify(result4.platform3?.missingTags)
+    );
+    addResult(section4,
+      result4.platform3?.missingTags.includes('og:title') && result4.platform3?.missingTags.includes('twitter:card'),
+      '✓ Criterion 3a: missingTags includes "og:title" and "twitter:card"'
+    );
+    addResult(section4,
+      result4.platform3?.identical === false,
+      '✓ Criterion 4: identical is false when issues differ'
+    );
+
+    // Test 5: Multiple platforms
+    const section5 = addSection('Test 5: Multiple platforms');
+    const scores5a = {
+      'platformA': {
+        platform: { id: 'platformA', name: 'Platform A' },
+        grade: 'A',
+        score: 100,
+        issues: [],
+        fixes: []
+      },
+      'platformB': {
+        platform: { id: 'platformB', name: 'Platform B' },
+        grade: 'B',
+        score: 80,
+        issues: ['meta:description missing'],
+        fixes: []
+      }
+    };
+    const scores5b = {
+      'platformA': {
+        platform: { id: 'platformA', name: 'Platform A' },
+        grade: 'A',
+        score: 100,
+        issues: [],
+        fixes: []
+      },
+      'platformB': {
+        platform: { id: 'platformB', name: 'Platform B' },
+        grade: 'C',
+        score: 70,
+        issues: [],
+        fixes: []
+      }
+    };
+    const result5 = window.platformDiff.computePlatformDiff(scores5a, scores5b);
+
+    addResult(section5,
+      'platformA' in result5 && 'platformB' in result5,
+      '✓ Criterion 1: Both platform IDs are keys in result'
+    );
+    addResult(section5,
+      result5.platformA?.identical === true && result5.platformB?.identical === false,
+      '✓ Criterion 4: Platform A identical (true), Platform B has changes (false)'
+    );
+    addResult(section5,
+      result5.platformB?.changedFields.includes('grade') && result5.platformB?.changedFields.includes('score'),
+      '✓ Criterion 2: Platform B changedFields includes grade and score: ' + JSON.stringify(result5.platformB?.changedFields)
+    );
+    addResult(section5,
+      result5.platformB?.missingTags.includes('meta:description'),
+      '✓ Criterion 3: Platform B missingTags includes meta:description: ' + JSON.stringify(result5.platformB?.missingTags)
+    );
+
+    // Test 6: Platform only in one set (should be skipped)
+    const section6 = addSection('Test 6: Platform only in one scores set (should be skipped)');
+    const scores6a = {
+      'platformX': {
+        platform: { id: 'platformX', name: 'Platform X' },
+        grade: 'A',
+        score: 90,
+        issues: [],
+        fixes: []
+      }
+    };
+    const scores6b = {
+      'platformY': {
+        platform: { id: 'platformY', name: 'Platform Y' },
+        grade: 'B',
+        score: 80,
+        issues: [],
+        fixes: []
+      }
+    };
+    const result6 = window.platformDiff.computePlatformDiff(scores6a, scores6b);
+
+    addResult(section6,
+      Object.keys(result6).length === 0,
+      '✓ Platforms not in both sets are skipped (empty result): ' + JSON.stringify(result6)
+    );
+
+    // Summary
+    const summarySection = addSection('📊 Summary');
+    addResult(summarySection,
+      testsFailed === 0,
+      `Tests passed: ${testsPassed}/${testsPassed + testsFailed}`
+    );
+
+    if (testsFailed === 0) {
+      const successMsg = document.createElement('div');
+      successMsg.className = 'test-result pass';
+      successMsg.style.fontSize = '16px';
+      successMsg.innerHTML = '🎉 All acceptance criteria verified successfully!';
+      summarySection.appendChild(successMsg);
+    }
+  </script>
+</body>
+</html>

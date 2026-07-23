@@ -5102,3 +5102,123 @@ html[data-theme='light'] .image-diff-slider-handle {
     animation: none;
   }
 }
+
+/* ============================================================================
+   DEVELOPER PLATFORM CONTEXTS
+   ============================================================================ */
+
+/* GitHub Context */
+.github-context { background: var(--frame-bg); border-radius: 6px; overflow: hidden; }
+.gh-issue-header { padding: 16px; background: var(--frame-surface); border-bottom: 1px solid var(--frame-border); }
+.gh-issue-meta { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
+.gh-issue-number { font-size: 12px; font-weight: 600; color: var(--frame-accent); }
+.gh-issue-status { padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; background: #238636; color: #fff; }
+.gh-issue-title { font-size: 16px; font-weight: 600; color: var(--frame-text-primary); margin-bottom: 8px; }
+.gh-issue-author { display: flex; gap: 8px; align-items: center; font-size: 13px; }
+.gh-avatar { width: 20px; height: 20px; background: var(--frame-text-muted); border-radius: 50%; }
+.gh-author-name { font-weight: 600; color: var(--frame-text-primary); }
+.gh-issue-time { color: var(--frame-text-secondary); }
+.gh-comments-list { padding: 16px; }
+.gh-comment { display: flex; gap: 12px; margin-bottom: 16px; }
+.gh-comment-dim { opacity: 0.6; }
+.gh-comment-avatar { width: 32px; height: 32px; background: var(--frame-text-muted); border-radius: 50%; flex-shrink: 0; }
+.gh-comment-content { flex: 1; }
+.gh-comment-meta { display: flex; gap: 8px; align-items: center; margin-bottom: 4px; }
+.gh-comment-author { font-weight: 600; color: var(--frame-text-primary); font-size: 13px; }
+.gh-comment-time { color: var(--frame-text-secondary); font-size: 12px; }
+.gh-comment-body { color: var(--frame-text-primary); font-size: 14px; line-height: 1.5; }
+.gh-comment-actions { display: flex; gap: 16px; margin-top: 8px; }
+.gh-reaction-btn, .gh-reply-btn { font-size: 12px; color: var(--frame-text-secondary); cursor: pointer; }
+.gh-reaction-btn:hover, .gh-reply-btn:hover { color: var(--frame-accent); }
+
+/* GitLab Context */
+.gitlab-context { background: var(--frame-bg); border-radius: 6px; overflow: hidden; }
+.gl-mr-header { padding: 16px; background: var(--frame-surface); border-bottom: 1px solid var(--frame-border); }
+.gl-mr-meta { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
+.gl-mr-number { font-size: 12px; font-weight: 600; color: var(--frame-accent); }
+.gl-mr-status { padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; background: #108548; color: #fff; }
+.gl-mr-title { font-size: 16px; font-weight: 600; color: var(--frame-text-primary); margin-bottom: 8px; }
+.gl-mr-author { display: flex; gap: 8px; align-items: center; font-size: 13px; }
+.gl-avatar { width: 20px; height: 20px; background: var(--frame-text-muted); border-radius: 50%; }
+.gl-author-name { font-weight: 600; color: var(--frame-text-primary); }
+.gl-mr-time { color: var(--frame-text-secondary); }
+.gl-discussion-list { padding: 16px; }
+.gl-comment { display: flex; gap: 12px; margin-bottom: 16px; }
+.gl-comment-dim { opacity: 0.6; }
+.gl-comment-avatar { width: 32px; height: 32px; background: var(--frame-text-muted); border-radius: 50%; flex-shrink: 0; }
+.gl-comment-content { flex: 1; }
+.gl-comment-meta { display: flex; gap: 8px; align-items: center; margin-bottom: 4px; }
+.gl-comment-author { font-weight: 600; color: var(--frame-text-primary); font-size: 13px; }
+.gl-comment-time { color: var(--frame-text-secondary); font-size: 12px; }
+.gl-comment-body { color: var(--frame-text-primary); font-size: 14px; line-height: 1.5; }
+.gl-comment-actions { display: flex; gap: 16px; margin-top: 8px; }
+.gl-reaction-btn, .gl-reply-btn { font-size: 12px; color: var(--frame-text-secondary); cursor: pointer; }
+.gl-reaction-btn:hover, .gl-reply-btn:hover { color: var(--frame-accent); }
+
+/* Stack Overflow Context */
+.stackoverflow-context { background: var(--frame-bg); border-radius: 6px; overflow: hidden; }
+.so-question-header { display: flex; gap: 16px; padding: 16px; background: var(--frame-surface); border-bottom: 1px solid var(--frame-border); }
+.so-votes { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 40px; }
+.so-upvote, .so-downvote { color: var(--frame-text-muted); font-size: 18px; cursor: pointer; }
+.so-upvote:hover, .so-downvote:hover { color: var(--frame-accent); }
+.so-vote-count { font-size: 18px; font-weight: 700; color: var(--frame-text-primary); }
+.so-question-main { flex: 1; }
+.so-question-title { font-size: 17px; font-weight: 600; color: var(--frame-text-primary); margin-bottom: 8px; }
+.so-question-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.so-tags { display: flex; gap: 4px; }
+.so-tags span { padding: 2px 6px; background: var(--frame-accent-bg); color: var(--frame-accent); border-radius: 3px; font-size: 11px; }
+.so-author { color: var(--frame-text-secondary); font-size: 12px; }
+.so-answers-list { padding: 16px; }
+.so-answer { display: flex; gap: 16px; margin-bottom: 16px; padding: 12px; background: var(--frame-surface); border-radius: 4px; border: 1px solid var(--frame-border); }
+.so-answer-dim { opacity: 0.6; }
+.so-answer-votes { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 40px; }
+.so-check { color: var(--frame-accent); font-size: 18px; }
+.so-answer-content { flex: 1; }
+.so-answer-body { color: var(--frame-text-primary); font-size: 14px; line-height: 1.5; margin-bottom: 8px; }
+.so-answer-meta { color: var(--frame-text-secondary); font-size: 12px; }
+
+/* Hacker News Context */
+.hackernews-context { background: var(--frame-bg); border-radius: 6px; overflow: hidden; }
+.hn-post-header { display: flex; gap: 12px; padding: 12px; background: var(--frame-surface); border-bottom: 1px solid var(--frame-border); }
+.hn-upvote { color: var(--frame-accent); font-size: 14px; cursor: pointer; min-width: 20px; }
+.hn-post-main { flex: 1; }
+.hn-post-title { font-size: 14px; font-weight: 600; color: var(--frame-text-primary); margin-bottom: 4px; }
+.hn-post-title a { color: var(--frame-text-primary); text-decoration: none; }
+.hn-post-title a:hover { text-decoration: underline; }
+.hn-post-meta { display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px; color: var(--frame-text-secondary); }
+.hn-domain { color: var(--frame-text-secondary); }
+.hn-points { color: var(--frame-text-secondary); }
+.hn-author { color: var(--frame-text-secondary); }
+.hn-time { color: var(--frame-text-secondary); }
+.hn-comments { color: var(--frame-text-secondary); }
+.hn-comments-list { padding: 12px; }
+.hn-comment { display: flex; gap: 8px; margin-bottom: 12px; }
+.hn-comment-dim { opacity: 0.6; }
+.hn-comment-vote { color: var(--frame-text-muted); font-size: 12px; cursor: pointer; min-width: 15px; }
+.hn-comment-content { flex: 1; }
+.hn-comment-meta { margin-bottom: 2px; }
+.hn-comment-author { font-weight: 600; color: var(--frame-text-primary); font-size: 12px; }
+.hn-comment-time { color: var(--frame-text-secondary); font-size: 11px; }
+.hn-comment-body { color: var(--frame-text-primary); font-size: 13px; line-height: 1.4; }
+
+/* Dev.to Context */
+.devto-context { background: var(--frame-bg); border-radius: 6px; overflow: hidden; }
+.dev-article-header { padding: 16px; background: var(--frame-surface); border-bottom: 1px solid var(--frame-border); }
+.dev-article-meta { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.dev-author-avatar { width: 40px; height: 40px; background: var(--frame-text-muted); border-radius: 50%; }
+.dev-author-details { flex: 1; display: flex; flex-direction: column; }
+.dev-author-name { font-weight: 600; color: var(--frame-text-primary); font-size: 14px; }
+.dev-post-time { color: var(--frame-text-secondary); font-size: 12px; }
+.dev-follow-btn { padding: 6px 12px; background: var(--frame-accent); color: #fff; border: none; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer; }
+.dev-article-title { font-size: 20px; font-weight: 700; color: var(--frame-text-primary); margin-bottom: 8px; }
+.dev-tags { display: flex; gap: 6px; margin-bottom: 12px; }
+.dev-tag { padding: 4px 8px; background: var(--frame-surface); color: var(--frame-text-secondary); border-radius: 12px; font-size: 11px; }
+.dev-reactions { font-size: 13px; color: var(--frame-text-secondary); }
+.dev-comments-section { padding: 16px; }
+.dev-comment { display: flex; gap: 12px; margin-bottom: 16px; }
+.dev-comment-dim { opacity: 0.6; }
+.dev-comment-avatar { width: 32px; height: 32px; background: var(--frame-text-muted); border-radius: 50%; flex-shrink: 0; }
+.dev-comment-content { flex: 1; }
+.dev-comment-author { font-weight: 600; color: var(--frame-text-primary); font-size: 13px; margin-bottom: 2px; }
+.dev-comment-time { color: var(--frame-text-secondary); font-size: 11px; margin-bottom: 4px; }
+.dev-comment-body { color: var(--frame-text-primary); font-size: 14px; line-height: 1.5; }

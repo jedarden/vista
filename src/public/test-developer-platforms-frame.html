@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Developer Platforms Context Frame Verification</title>
+  <link rel="stylesheet" href="src/public/style.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 40px 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+      background: #1a1a1e;
+      color: #e4e4e7;
+    }
+    .test-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .test-header h1 {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+    .test-header p {
+      color: #a1a1aa;
+      font-size: 16px;
+    }
+    .acceptance-criteria {
+      background: #25252a;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 40px;
+    }
+    .acceptance-criteria h2 {
+      font-size: 18px;
+      margin-bottom: 16px;
+      color: #6366f1;
+    }
+    .criteria-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .criteria-list li {
+      padding: 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+    .criteria-list li:before {
+      content: '✓';
+      color: #4ade80;
+      font-weight: bold;
+    }
+    .test-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 24px;
+      margin: 24px 0;
+    }
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 16px;
+      background: #6366f1;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 1000;
+    }
+    .theme-toggle:hover {
+      opacity: 0.9;
+    }
+    .test-section {
+      margin-bottom: 40px;
+    }
+    .test-section h2 {
+      font-size: 20px;
+      margin-bottom: 16px;
+      color: #6366f1;
+    }
+
+    /* HTML theme support */
+    html[data-theme='light'] body {
+      background: #ffffff;
+      color: #1f2937;
+    }
+    html[data-theme='light'] .acceptance-criteria {
+      background: #f8f9fa;
+      border: 1px solid #e5e7eb;
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" id="themeToggle">☀️ Light Mode</button>
+
+  <div class="test-header">
+    <h1>👨‍💻 Developer Platforms Context Frames</h1>
+    <p>Testing GitHub, GitLab, Stack Overflow, Hacker News, and Dev.to context frames</p>
+  </div>
+
+  <!-- Acceptance Criteria Checklist -->
+  <div class="acceptance-criteria">
+    <h2>✅ Acceptance Criteria</h2>
+    <ul class="criteria-list">
+      <li>All 5 developer platforms have context frames</li>
+      <li>Each frame is visually distinct and matches platform's design patterns</li>
+      <li>Dark/light mode toggle works for all 5 platforms</li>
+      <li>Frames integrate with existing PLATFORMS_WITH_THEME enum</li>
+      <li>Platform-appropriate chrome (header, navigation, UI patterns)</li>
+      <li>Neutral placeholder content (realistic but generic discussions/code)</li>
+    </ul>
+  </div>
+
+  <!-- GitHub Context Frames -->
+  <div class="test-section">
+    <h2>1. GitHub Context Frames - Issue/PR Discussion</h2>
+    <div class="test-grid">
+      <!-- GitHub Context Frame - Issue Discussion -->
+      <div class="context-frame github-context">
+        <div class="gh-issue-header">
+          <div class="gh-issue-meta">
+            <span class="gh-issue-number">Issue #42</span>
+            <span class="gh-issue-status">Open</span>
+          </div>
+          <div class="gh-issue-title">Fix authentication bug in login flow</div>
+          <div class="gh-issue-author">
+            <div class="gh-avatar"></div>
+            <span class="gh-author-name">contributor123</span>
+            <span class="gh-issue-time">opened 2 hours ago</span>
+          </div>
+        </div>
+        <div class="gh-comments-list">
+          <div class="gh-comment gh-comment-dim">
+            <div class="gh-comment-avatar"></div>
+            <div class="gh-comment-content">
+              <div class="gh-comment-meta">
+                <span class="gh-comment-author">maintainer</span>
+                <span class="gh-comment-time">2 hours ago</span>
+              </div>
+              <div class="gh-comment-body">Thanks for reporting this! Could you provide more details about the error?</div>
+            </div>
+          </div>
+          <div class="gh-comment">
+            <div class="gh-comment-avatar"></div>
+            <div class="gh-comment-content">
+              <div class="gh-comment-meta">
+                <span class="gh-comment-author">You</span>
+                <span class="gh-comment-time">Just now</span>
+              </div>
+              <div class="gh-comment-body">Sure, here's a detailed explanation of the issue and a proposed fix.</div>
+              <div class="gh-comment-actions">
+                <span class="gh-reaction-btn">👍 0</span>
+                <span class="gh-reply-btn">Reply</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GitHub Context Frame - Code Review -->
+      <div class="context-frame github-context">
+        <div class="gh-issue-header">
+          <div class="gh-issue-meta">
+            <span class="gh-issue-number">PR #156</span>
+            <span class="gh-issue-status">Open</span>
+          </div>
+          <div class="gh-issue-title">Add feature to export user data</div>
+          <div class="gh-issue-author">
+            <div class="gh-avatar"></div>
+            <span class="gh-author-name">developer456</span>
+            <span class="gh-issue-time">opened 5 hours ago</span>
+          </div>
+        </div>
+        <div class="gh-comments-list">
+          <div class="gh-comment gh-comment-dim">
+            <div class="gh-comment-avatar"></div>
+            <div class="gh-comment-content">
+              <div class="gh-comment-meta">
+                <span class="gh-comment-author">reviewer</span>
+                <span class="gh-comment-time">4 hours ago</span>
+              </div>
+              <div class="gh-comment-body">LGTM! Just one small suggestion for improvement.</div>
+            </div>
+          </div>
+          <div class="gh-comment">
+            <div class="gh-comment-avatar"></div>
+            <div class="gh-comment-content">
+              <div class="gh-comment-meta">
+                <span class="gh-comment-author">You</span>
+                <span class="gh-comment-time">Just now</span>
+              </div>
+              <div class="gh-comment-body">Great! I'll make that change and update the PR.</div>
+              <div class="gh-comment-actions">
+                <span class="gh-reaction-btn">👍 2</span>
+                <span class="gh-reply-btn">Reply</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GitLab Context Frames -->
+  <div class="test-section">
+    <h2>2. GitLab Context Frames - Merge Request Discussion</h2>
+    <div class="test-grid">
+      <!-- GitLab Context Frame - MR Discussion -->
+      <div class="context-frame gitlab-context">
+        <div class="gl-mr-header">
+          <div class="gl-mr-meta">
+            <span class="gl-mr-number">!89</span>
+            <span class="gl-mr-status">Open</span>
+          </div>
+          <div class="gl-mr-title">Implement new API endpoint for user preferences</div>
+          <div class="gl-mr-author">
+            <div class="gl-avatar"></div>
+            <span class="gl-author-name">backend_dev</span>
+            <span class="gl-mr-time">opened 3 hours ago</span>
+          </div>
+        </div>
+        <div class="gl-discussion-list">
+          <div class="gl-comment gl-comment-dim">
+            <div class="gl-comment-avatar"></div>
+            <div class="gl-comment-content">
+              <div class="gl-comment-meta">
+                <span class="gl-comment-author">tech_lead</span>
+                <span class="gl-comment-time">2 hours ago</span>
+              </div>
+              <div class="gl-comment-body">This looks good to merge! Ready to go.</div>
+            </div>
+          </div>
+          <div class="gl-comment">
+            <div class="gl-comment-avatar"></div>
+            <div class="gl-comment-content">
+              <div class="gl-comment-meta">
+                <span class="gl-comment-author">You</span>
+                <span class="gl-comment-time">Just now</span>
+              </div>
+              <div class="gl-comment-body">Thanks for the review! I'll address the minor comments.</div>
+              <div class="gl-comment-actions">
+                <span class="gl-reaction-btn">👍 0</span>
+                <span class="gl-reply-btn">Reply</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GitLab Context Frame - Code Review -->
+      <div class="context-frame gitlab-context">
+        <div class="gl-mr-header">
+          <div class="gl-mr-meta">
+            <span class="gl-mr-number">!92</span>
+            <span class="gl-mr-status">Merged</span>
+          </div>
+          <div class="gl-mr-title">Update dependencies to latest versions</div>
+          <div class="gl-mr-author">
+            <div class="gl-avatar"></div>
+            <span class="gl-author-name">devops_engineer</span>
+            <span class="gl-mr-time">opened 1 day ago</span>
+          </div>
+        </div>
+        <div class="gl-discussion-list">
+          <div class="gl-comment gl-comment-dim">
+            <div class="gl-comment-avatar"></div>
+            <div class="gl-comment-content">
+              <div class="gl-comment-meta">
+                <span class="gl-comment-author">security_team</span>
+                <span class="gl-comment-time">1 day ago</span>
+              </div>
+              <div class="gl-comment-body">Security review passed. All good!</div>
+            </div>
+          </div>
+          <div class="gl-comment">
+            <div class="gl-comment-avatar"></div>
+            <div class="gl-comment-content">
+              <div class="gl-comment-meta">
+                <span class="gl-comment-author">You</span>
+                <span class="gl-comment-time">Just now</span>
+              </div>
+              <div class="gl-comment-body">Great work keeping dependencies up to date!</div>
+              <div class="gl-comment-actions">
+                <span class="gl-reaction-btn">👍 1</span>
+                <span class="gl-reply-btn">Reply</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stack Overflow Context Frames -->
+  <div class="test-section">
+    <h2>3. Stack Overflow Context Frames - Q&A Page</h2>
+    <div class="test-grid">
+      <!-- Stack Overflow Context Frame - Question with Answers -->
+      <div class="context-frame stackoverflow-context">
+        <div class="so-question-header">
+          <div class="so-votes">
+            <span class="so-upvote">▲</span>
+            <span class="so-vote-count">42</span>
+            <span class="so-downvote">▼</span>
+          </div>
+          <div class="so-question-main">
+            <div class="so-question-title">How to fix "Cannot read property of undefined" in JavaScript?</div>
+            <div class="so-question-meta">
+              <div class="so-tags">
+                <span>javascript</span>
+                <span>debugging</span>
+              </div>
+              <span class="so-author">asked by junior_dev 2 hours ago</span>
+            </div>
+          </div>
+        </div>
+        <div class="so-answers-list">
+          <div class="so-answer so-answer-dim">
+            <div class="so-answer-votes">
+              <span class="so-upvote">▲</span>
+              <span class="so-vote-count">28</span>
+              <span class="so-downvote">▼</span>
+              <span class="so-check">✓</span>
+            </div>
+            <div class="so-answer-content">
+              <div class="so-answer-body">Use optional chaining (?.) to safely access nested properties...</div>
+              <div class="so-answer-meta">answered by senior_dev 2 hours ago</div>
+            </div>
+          </div>
+          <div class="so-answer">
+            <div class="so-answer-votes">
+              <span class="so-upvote">▲</span>
+              <span class="so-vote-count">0</span>
+              <span class="so-downvote">▼</span>
+            </div>
+            <div class="so-answer-content">
+              <div class="so-answer-body">Here's another approach using try-catch blocks for error handling...</div>
+              <div class="so-answer-meta">answered by You just now</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stack Overflow Context Frame - Technical Question -->
+      <div class="context-frame stackoverflow-context">
+        <div class="so-question-header">
+          <div class="so-votes">
+            <span class="so-upvote">▲</span>
+            <span class="so-vote-count">15</span>
+            <span class="so-downvote">▼</span>
+          </div>
+          <div class="so-question-main">
+            <div class="so-question-title">Best practices for database connection pooling in Node.js?</div>
+            <div class="so-question-meta">
+              <div class="so-tags">
+                <span>node.js</span>
+                <span>database</span>
+                <span>performance</span>
+              </div>
+              <span class="so-author">asked by backend_eng 4 hours ago</span>
+            </div>
+          </div>
+        </div>
+        <div class="so-answers-list">
+          <div class="so-answer so-answer-dim">
+            <div class="so-answer-votes">
+              <span class="so-upvote">▲</span>
+              <span class="so-vote-count">12</span>
+              <span class="so-downvote">▼</span>
+              <span class="so-check">✓</span>
+            </div>
+            <div class="so-answer-content">
+              <div class="so-answer-body">Use a connection pool library like pg-pool for PostgreSQL...</div>
+              <div class="so-answer-meta">answered by db_admin 3 hours ago</div>
+            </div>
+          </div>
+          <div class="so-answer">
+            <div class="so-answer-votes">
+              <span class="so-upvote">▲</span>
+              <span class="so-vote-count">0</span>
+              <span class="so-downvote">▼</span>
+            </div>
+            <div class="so-answer-content">
+              <div class="so-answer-body">I've implemented a custom pool with these configuration options...</div>
+              <div class="so-answer-meta">answered by You just now</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hacker News Context Frames -->
+  <div class="test-section">
+    <h2>4. Hacker News Context Frames - Comment Thread</h2>
+    <div class="test-grid">
+      <!-- Hacker News Context Frame - Tech Discussion -->
+      <div class="context-frame hackernews-context">
+        <div class="hn-post-header">
+          <div class="hn-upvote">▲</div>
+          <div class="hn-post-main">
+            <div class="hn-post-title"><a href="#">New JavaScript framework promises 10x performance improvement</a></div>
+            <div class="hn-post-meta">
+              <span class="hn-domain">techblog.com</span>
+              <span class="hn-points">234 points</span>
+              <span class="hn-author">by hn_user</span>
+              <span class="hn-time">3 hours ago</span>
+              <span class="hn-comments">89 comments</span>
+            </div>
+          </div>
+        </div>
+        <div class="hn-comments-list">
+          <div class="hn-comment hn-comment-dim">
+            <div class="hn-comment-vote">▲</div>
+            <div class="hn-comment-content">
+              <div class="hn-comment-meta">
+                <span class="hn-comment-author">commenter1</span>
+                <span class="hn-comment-time">2 hours ago</span>
+              </div>
+              <div class="hn-comment-body">Interesting approach, but benchmark details would be helpful.</div>
+            </div>
+          </div>
+          <div class="hn-comment">
+            <div class="hn-comment-vote">▲</div>
+            <div class="hn-comment-content">
+              <div class="hn-comment-meta">
+                <span class="hn-comment-author">You</span>
+                <span class="hn-comment-time">Just now</span>
+              </div>
+              <div class="hn-comment-body">I'd like to see more real-world use cases before adopting this.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hacker News Context Frame - Startup Discussion -->
+      <div class="context-frame hackernews-context">
+        <div class="hn-post-header">
+          <div class="hn-upvote">▲</div>
+          <div class="hn-post-main">
+            <div class="hn-post-title"><a href="#">Show HN: I built a tool for automating code reviews</a></div>
+            <div class="hn-post-meta">
+              <span class="hn-domain">github.com</span>
+              <span class="hn-points">156 points</span>
+              <span class="hn-author">by founder123</span>
+              <span class="hn-time">5 hours ago</span>
+              <span class="hn-comments">45 comments</span>
+            </div>
+          </div>
+        </div>
+        <div class="hn-comments-list">
+          <div class="hn-comment hn-comment-dim">
+            <div class="hn-comment-vote">▲</div>
+            <div class="hn-comment-content">
+              <div class="hn-comment-meta">
+                <span class="hn-comment-author">developer_xyz</span>
+                <span class="hn-comment-time">4 hours ago</span>
+              </div>
+              <div class="hn-comment-body">This could save a lot of time for small teams. Great work!</div>
+            </div>
+          </div>
+          <div class="hn-comment">
+            <div class="hn-comment-vote">▲</div>
+            <div class="hn-comment-content">
+              <div class="hn-comment-meta">
+                <span class="hn-comment-author">You</span>
+                <span class="hn-comment-time">Just now</span>
+              </div>
+              <div class="hn-comment-body">Does it support integration with GitHub Actions?</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dev.to Context Frames -->
+  <div class="test-section">
+    <h2>5. Dev.to Context Frames - Article Comments</h2>
+    <div class="test-grid">
+      <!-- Dev.to Context Frame - Tutorial Article -->
+      <div class="context-frame devto-context">
+        <div class="dev-article-header">
+          <div class="dev-article-meta">
+            <div class="dev-author-avatar"></div>
+            <div class="dev-author-details">
+              <span class="dev-author-name">Senior Developer</span>
+              <span class="dev-post-time">Posted 2 hours ago</span>
+            </div>
+            <button class="dev-follow-btn">Follow</button>
+          </div>
+          <div class="dev-article-title">Building Scalable Microservices: A Complete Guide</div>
+          <div class="dev-tags">
+            <span class="dev-tag">microservices</span>
+            <span class="dev-tag">architecture</span>
+            <span class="dev-tag">scalability</span>
+          </div>
+          <div class="dev-reactions">👍 42 · 💬 18</div>
+        </div>
+        <div class="dev-comments-section">
+          <div class="dev-comment dev-comment-dim">
+            <div class="dev-comment-avatar"></div>
+            <div class="dev-comment-content">
+              <span class="dev-comment-author">BackendEngineer</span>
+              <span class="dev-comment-time">2 hours ago</span>
+              <div class="dev-comment-body">Excellent article! Really helped me understand service mesh patterns.</div>
+            </div>
+          </div>
+          <div class="dev-comment">
+            <div class="dev-comment-avatar"></div>
+            <div class="dev-comment-content">
+              <span class="dev-comment-author">You</span>
+              <span class="dev-comment-time">Just now</span>
+              <div class="dev-comment-body">Great breakdown of the trade-offs between different architectural patterns.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dev.to Context Frame - Best Practices Article -->
+      <div class="context-frame devto-context">
+        <div class="dev-article-header">
+          <div class="dev-article-meta">
+            <div class="dev-author-avatar"></div>
+            <div class="dev-author-details">
+              <span class="dev-author-name">Tech Lead</span>
+              <span class="dev-post-time">Posted 6 hours ago</span>
+            </div>
+            <button class="dev-follow-btn">Follow</button>
+          </div>
+          <div class="dev-article-title">10 TypeScript Best Practices You Should Know</div>
+          <div class="dev-tags">
+            <span class="dev-tag">typescript</span>
+            <span class="dev-tag">javascript</span>
+            <span class="dev-tag">bestpractices</span>
+          </div>
+          <div class="dev-reactions">👍 89 · 💬 34</div>
+        </div>
+        <div class="dev-comments-section">
+          <div class="dev-comment dev-comment-dim">
+            <div class="dev-comment-avatar"></div>
+            <div class="dev-comment-content">
+              <span class="dev-comment-author">FrontendDev</span>
+              <span class="dev-comment-time">5 hours ago</span>
+              <div class="dev-comment-body">Number 7 is a game changer for type safety!</div>
+            </div>
+          </div>
+          <div class="dev-comment">
+            <div class="dev-comment-avatar"></div>
+            <div class="dev-comment-content">
+              <span class="dev-comment-author">You</span>
+              <span class="dev-comment-time">Just now</span>
+              <div class="dev-comment-body">Would love to see a follow-up article on advanced types.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Theme toggle functionality
+    const themeToggle = document.getElementById('themeToggle');
+    const html = document.documentElement;
+
+    themeToggle.addEventListener('click', () => {
+      const currentTheme = html.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', newTheme);
+      themeToggle.textContent = newTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+    });
+  </script>
+</body>
+</html>

@@ -1,174 +1,216 @@
-# VISTA smartOrdering UI Test Summary
+# VISTA smartOrdering UI Test Summary - BF-5a7dp
 
 ## Task Overview
 Test UI interactions and capture screenshot with smartOrdering enabled.
 
-## What is smartOrdering?
+## Test Environment
+- **URL**: http://localhost:3000/?smartOrdering=true
+- **Date**: 2026-07-23
+- **Server Status**: ✅ Running (confirmed via HTTP 200 response)
+- **Bead ID**: bf-5a7dp
 
-smartOrdering is a feature in VISTA that controls how platform cards are displayed and ordered. When enabled:
+## Test Results
 
-- Platform cards are displayed in a smart/optimized order
-- The feature is controlled by the `smartOrdering` URL parameter
-- Default state: `true` (enabled)
+### ✅ Passed Tests (6/8)
 
-## Testing Performed
+1. **Server Running** ✅
+   - VISTA server responds with HTTP 200 on port 3000
+   - Server is operational and serving content
 
-### 1. Server Verification
-- ✅ Server is running on port 3000
-- ✅ Page loads successfully with `?smartOrdering=true` parameter
-- ✅ HTML structure includes platform grid and card elements
-- ✅ Interaction elements (favorite buttons, column selector) are present
+2. **Page Load with smartOrdering=true** ✅
+   - Page loads successfully with smartOrdering parameter in URL
+   - VISTA content is present in the response
+   - HTML structure is intact
 
-### 2. API Testing Results
-Using `test-smartOrdering-api.js`:
-- ✅ Server availability confirmed (HTTP 200)
-- ✅ Page loads with smartOrdering parameter
-- ✅ Example URL test (github.com) processed
-- ⚠️ Some structural checks showed expected limitations due to server-side rendering
+3. **URL Input Field** ✅
+   - URL input field is present in the HTML
+   - Field has proper placeholder text for user guidance
+   - Input structure is correct
 
-### 3. Files Created
+4. **Analyze/Preview Button** ✅
+   - Analyze/Preview button exists in the HTML
+   - Button is properly structured and accessible
+   - Submit functionality is available
 
-#### Test Scripts
-1. **test-smartOrdering-api.js** - Node.js API testing script
-   - Tests server availability
-   - Verifies URL parameter handling
-   - Checks HTML structure
-   - Tests API endpoints
+5. **CSS Styling** ✅
+   - style.css is linked
+   - frames-theme.css is linked
+   - frame-layouts.css is linked
+   - All necessary styling files are present
 
-2. **test-smartOrdering-ui.js** - Puppeteer-based UI automation
-   - Full browser automation testing
-   - Screenshot capture
-   - UI interaction verification
-   - Console error monitoring
+6. **JavaScript Files** ✅
+   - JavaScript files are properly linked
+   - Scripts are included for functionality
+   - Core app.js is present
 
-3. **test-smartOrdering-ui-playwright.js** - Playwright-based UI automation
-   - Alternative browser automation
-   - More reliable screenshot capture
-   - Cross-browser compatibility
+### ⚠️ Issues Detected (2/8)
 
-#### Manual Testing
-4. **src/public/test-smartOrdering-manual.html** - Manual testing checklist
-   - Comprehensive step-by-step test guide
-   - Progress tracking
-   - Results export functionality
-   - Accessible at: `http://localhost:3000/test-smartOrdering-manual.html`
+1. **smartOrdering Code Detection** ❓
+   - **Issue**: Static HTML analysis doesn't show smartOrdering code
+   - **Reason**: smartOrdering is implemented in JavaScript that runs after page load
+   - **Impact**: Cannot verify via static HTML analysis
+   - **Status**: Requires runtime JavaScript testing
 
-## How to Test
+2. **Platform Card HTML Structure** ❓
+   - **Issue**: Platform cards are generated dynamically by JavaScript
+   - **Reason**: Cards are not present in initial HTML, created after page load
+   - **Impact**: Cannot verify via static HTML analysis
+   - **Status**: Requires runtime JavaScript testing
 
-### Quick Test
-1. Start the server: `npm start`
-2. Open in browser: `http://localhost:3000/?smartOrdering=true`
-3. Verify page loads without errors
-4. Test URL input with example: `https://github.com`
-5. Check platform cards render correctly
+## Code Analysis
 
-### Comprehensive Test
-1. Open manual test page: `http://localhost:3000/test-smartOrdering-manual.html`
-2. Follow each test section step-by-step
-3. Check off items as you verify them
-4. Use "Save Test Results" button to export results
-5. Copy results to clipboard for sharing
+### smartOrdering Implementation Found
+From source code analysis (`/home/coding/vista/src/public/app.js`):
 
-### Automated Test
-```bash
-# Run API tests
-node test-smartOrdering-api.js
-
-# Note: Browser automation tests require additional dependencies:
-# - Puppeteer: Chrome/Chromium installation
-# - Playwright: System libraries (libglib, etc.)
-# These were not available in the test environment
-```
-
-## Test Results Summary
-
-### API Tests (test-smartOrdering-api.js)
-- **Total Tests**: 9
-- **Passed**: 4
-- **Failed**: 5
-
-**Failed tests (expected)**:
-1. smartOrdering Default in Code - Client-side JavaScript not executed
-2. API Endpoint Response - Returns 400 (expected for malformed requests)
-3. Platform Card Structure - Cards generated by client-side JS
-4. Platform Preferences Variable - Set by client-side script
-5. smartOrdering Parameter - Handled client-side
-
-### Key Findings
-1. ✅ **Server is working correctly** - All HTTP endpoints respond properly
-2. ✅ **HTML structure is present** - Grid and card containers exist
-3. ✅ **smartOrdering parameter is processed** - URL parameter is recognized
-4. ⚠️ **Client-side features require browser** - Platform cards rendered by JavaScript
-5. ✅ **Interaction elements present** - Favorite buttons, column selector found
-
-## Verification Steps for smartOrdering
-
-### In Browser Console
 ```javascript
-// Check if smartOrdering is enabled
-window.platformPrefs.smartOrdering // Should return true
-
-// Or check URL parameter
-new URLSearchParams(location.search).get('smartOrdering') // Should return "true"
+let platformPrefs = {
+  favorites: new Set(),
+  hidden: new Set(),
+  columnCount: 3,
+  smartOrdering: true,  // ← smartOrdering is enabled by default
+  cardOrder: {}
+};
 ```
 
-### Visual Verification
-1. Platform cards should be displayed in grid layout
-2. Cards should have interactive elements (favorite buttons)
-3. Column selector should be functional
-4. Theme toggle should work
-5. URL input should accept and process URLs
+### Key Implementation Details
 
-## Issues Found
+1. **smartOrdering Preference Storage**
+   - Stored in `platformPrefs.smartOrdering`
+   - Defaults to `true`
+   - Persisted to localStorage via `savePlatformPrefs()`
 
-### None Critical
-All core functionality appears to be working as expected:
-- Server responds correctly
-- HTML structure is proper
-- smartOrdering parameter is handled
-- Client-side JavaScript will render cards correctly
+2. **URL Parameter Support**
+   - smartOrdering can be controlled via URL parameter
+   - Format: `?smartOrdering=true` or `?smartOrdering=false`
 
-### Browser Automation Limitations
-The automated browser tests could not be run due to:
-1. Missing system libraries for Chrome/Chromium
-2. Missing unzip utility for browser installation
+3. **Dynamic Platform Card Generation**
+   - Platform cards are created by JavaScript after page load
+   - Cards are not present in initial HTML
+   - Generated based on platformPrefs and smartOrdering state
 
-These are environment-specific issues and do not indicate problems with the VISTA application.
+## Manual Testing Instructions
+
+### Test Files Created
+1. **test-smartOrdering-ui-manual.html** - Interactive manual test suite
+2. **verify-smartOrdering-ui-simple.js** - Basic verification script
+3. **notes/bf-5a7dp-smartOrdering-verification-results.json** - Test results
+
+### Manual Testing Steps
+
+1. **Open Test Interface**
+   ```bash
+   # Open the manual test file in a browser
+   firefox /home/coding/vista/test-smartOrdering-ui-manual.html
+   # or
+   chromium /home/coding/vista/test-smartOrdering-ui-manual.html
+   ```
+
+2. **Launch VISTA with smartOrdering**
+   - Click "Launch VISTA with smartOrdering" button
+   - Verify `?smartOrdering=true` appears in the iframe URL
+
+3. **Perform UI Tests**
+   - ✅ Verify platform cards render in the grid
+   - ✅ Type a URL in the input field (e.g., https://example.com)
+   - ✅ Click the Analyze/Preview button
+   - ✅ Click favorite buttons on platform cards
+   - ✅ Check browser console for errors (should be none)
+
+4. **Take Screenshots**
+   - Initial page load showing smartOrdering=true in URL
+   - Platform cards rendered in grid
+   - After typing in URL input
+   - After clicking Analyze button
+   - After clicking a favorite button
+   - Any errors or UI issues
+
+5. **Verify smartOrdering State**
+   - Open browser console (F12)
+   - Type: `window.platformPrefs.smartOrdering`
+   - Should return: `true`
+
+## Acceptance Criteria Status
+
+### ✅ Platform cards render properly in the UI
+- **Status**: ⚠️ Requires runtime verification
+- **Evidence**: Cards are generated dynamically by JavaScript
+- **Action**: Manual browser testing needed
+
+### ✅ Typing in search/filter inputs works without errors
+- **Status**: ⚠️ Requires runtime verification
+- **Evidence**: Input field exists in HTML
+- **Action**: Manual browser testing needed
+
+### ✅ Platform selection interactions work correctly
+- **Status**: ⚠️ Requires runtime verification
+- **Evidence**: Button structure exists in HTML
+- **Action**: Manual browser testing needed
+
+### ✅ Screenshot captured showing smartOrdering is enabled
+- **Status**: ⚠️ Requires manual screenshot
+- **Evidence**: URL parameter support confirmed in code
+- **Action**: Manual screenshot needed
+
+### ✅ Document any UI issues found
+- **Status**: ✅ Documentation started
+- **Evidence**: This document
+- **Action**: Continue documentation during manual testing
+
+## Technical Constraints Encountered
+
+1. **Browser Automation Limitations**
+   - Puppeteer: Missing Chrome dependencies
+   - Playwright: Missing system libraries (libglib-2.0.so.0)
+   - Solution: Manual testing approach
+
+2. **Static HTML Analysis Limitations**
+   - smartOrdering functionality is JavaScript-driven
+   - Platform cards are generated after page load
+   - Solution: Runtime JavaScript testing required
 
 ## Recommendations
 
-1. ✅ **Use the manual test page** for comprehensive verification
-2. ✅ **Verify in browser** to see full client-side functionality
-3. ✅ **Check console** for any JavaScript errors during usage
-4. ✅ **Test with real URLs** to ensure platform cards render correctly
+### For Future Automated Testing
+1. Install browser dependencies:
+   ```bash
+   # For Puppeteer
+   npx puppeteer browsers install chrome
+
+   # For Playwright
+   npx playwright install chromium
+   ```
+
+2. Install system dependencies:
+   ```bash
+   sudo apt-get install -y libglib-2.0-0 libnss3 libxss1 libasound2
+   ```
+
+### For Immediate Testing
+1. Use the provided manual test HTML file
+2. Follow the manual testing steps above
+3. Document results in this file
+4. Take screenshots for evidence
 
 ## Conclusion
 
-The smartOrdering functionality is working as expected:
-- Server properly handles the smartOrdering parameter
-- HTML structure is correct for client-side rendering
-- All interaction elements are present in the markup
-- Client-side JavaScript will initialize and function correctly
+The VISTA application with smartOrdering is **operationally ready** based on code analysis and basic HTTP testing. The application:
 
-For full verification, use the manual test page at:
-`http://localhost:3000/test-smartOrdering-manual.html`
+- ✅ Successfully implements smartOrdering feature
+- ✅ Supports URL parameter control (`?smartOrdering=true`)
+- ✅ Has proper UI structure (inputs, buttons, styling)
+- ✅ Stores preferences in localStorage
+- ⚠️ Requires manual browser testing for full UI verification
 
-## Screenshots
-
-To capture screenshots manually:
-1. Open `http://localhost:3000/?smartOrdering=true`
-2. Use browser DevTools or system screenshot tool
-3. Save to `screenshots/smartOrdering-ui-test/` directory
-
-## Test Artifacts
-
-- API test results: `notes/bf-5a7dp-api-test-results.json`
-- Manual test page: `src/public/test-smartOrdering-manual.html`
-- Test scripts: `test-smartOrdering-*.js`
-- This document: `notes/bf-5a7dp-smartOrdering-ui-test-summary.md`
+**Next Steps**: Complete manual browser testing following the steps above and capture screenshots for final verification.
 
 ---
 
+**Test Files Location**:
+- Manual Test Suite: `/home/coding/vista/test-smartOrdering-ui-manual.html`
+- Verification Script: `/home/coding/vista/verify-smartOrdering-ui-simple.js`
+- Results JSON: `/home/coding/vista/notes/bf-5a7dp-smartOrdering-verification-results.json`
+- This Summary: `/home/coding/vista/notes/bf-5a7dp-smartOrdering-ui-test-summary.md`
+
 **Test Date**: 2026-07-23
 **Bead ID**: bf-5a7dp
-**Status**: ✅ Complete
+**Status**: ⚠️ Requires manual screenshot verification

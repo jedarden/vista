@@ -1,0 +1,17 @@
+🧪 Starting Context Frame Toggle Functionality Test...
+
+Testing 32 platforms
+
+  Using chrome-headless-shell at /home/coding/.cache/puppeteer/chrome-headless-shell/linux-152.0.7967.0/chrome-headless-shell-linux64/chrome-headless-shell
+  Chrome-headless-shell failed: Failed to launch the browser process:  Code: 127
+
+stderr:
+/home/coding/.cache/puppeteer/chrome-headless-shell/linux-152.0.7967.0/chrome-headless-shell-linux64/chrome-headless-shell: error while loading shared libraries: libglib-2.0.so.0: cannot open shared object file: No such file or directory
+
+TROUBLESHOOTING: https://pptr.dev/troubleshooting
+
+  Trying system chromium...
+  System chromium failed: Could not find Google Chrome executable for channel 'undefined' at:.
+Fatal error: Error: No browser available
+    at setupBrowser (/home/coding/vista/test-context-frame-toggle.js:86:13)
+    at async runAllToggleTests (/home/coding/vista/test-context-frame-toggle.js:418:19)

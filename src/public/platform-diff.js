@@ -270,6 +270,24 @@ function computePlatformDiff(scores1, scores2) {
 }
 
 // =============================================================================
+// HTML escaping utility
+// =============================================================================
+
+/**
+ * HTML-escape a string for safe interpolation into innerHTML.
+ * @param {string} [str]
+ * @returns {string}
+ */
+function escHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// =============================================================================
 // highlightChangedText - Wrap changed field text in green highlight spans
 // =============================================================================
 
@@ -293,6 +311,38 @@ function highlightChangedText(text, changedFields, fieldPath) {
 }
 
 // =============================================================================
+// renderMissingTagsBadges - Render red badges for missing tags
+// =============================================================================
+
+/**
+ * Render red badges for tags that are missing in one URL compared to another.
+ *
+ * Returns an HTML string with red badge spans for each missing tag. Each badge
+ * includes the tag name and a tooltip indicating the tag is missing in the
+ * comparison target.
+ *
+ * @param {string[]} missingTags - Array of tag names that are missing (e.g., ['og:title', 'twitter:card'])
+ * @returns {string} HTML string with red badge spans (empty string if no missing tags)
+ *
+ * @example
+ * renderMissingTagsBadges(['og:title', 'twitter:card']);
+ * // Returns: '<span class="diff-tag-missing" title="Missing in after: og:title">og:title</span><span class="diff-tag-missing" title="Missing in after: twitter:card">twitter:card</span>'
+ *
+ * @example
+ * renderMissingTagsBadges([]);
+ * // Returns: ''
+ */
+function renderMissingTagsBadges(missingTags) {
+  if (!Array.isArray(missingTags) || missingTags.length === 0) {
+    return '';
+  }
+
+  return missingTags
+    .map(tag => `<span class="diff-tag-missing" title="Missing in after: ${escHtml(tag)}">${escHtml(tag)}</span>`)
+    .join('');
+}
+
+// =============================================================================
 // Browser exports
 // =============================================================================
 
@@ -302,7 +352,9 @@ if (typeof window !== 'undefined') {
     changedFields,
     missingTags,
     computePlatformDiff,
-    highlightChangedText
+    highlightChangedText,
+    renderMissingTagsBadges,
+    escHtml
   };
 }
 
@@ -316,6 +368,8 @@ if (typeof module !== 'undefined' && module.exports) {
     changedFields,
     missingTags,
     computePlatformDiff,
-    highlightChangedText
+    highlightChangedText,
+    renderMissingTagsBadges,
+    escHtml
   };
 }

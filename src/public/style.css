@@ -1491,21 +1491,21 @@ body.has-results { padding-bottom: 48px; }
 .twitter-light .tw-post-actions { color: #536471; }
 
 /* LinkedIn Context */
-.linkedin-context { max-width: 500px; background: #f3f2ef; }
-.li-post-header { display: flex; gap: 10px; padding: 12px; background: #fff; }
-.li-avatar { width: 40px; height: 40px; background: #ddd; border-radius: 50%; flex-shrink: 0; }
+.linkedin-context { max-width: 500px; background: var(--frame-bg); }
+.li-post-header { display: flex; gap: 10px; padding: 12px; background: var(--frame-surface); }
+.li-avatar { width: 40px; height: 40px; background: var(--frame-text-muted); border-radius: 50%; flex-shrink: 0; }
 .li-post-meta { display: flex; flex-direction: column; }
-.li-author-name { font-weight: 600; color: #000; font-size: 14px; }
-.li-post-headline { font-size: 12px; color: #666; }
-.li-post-time { font-size: 12px; color: #666; }
-.li-post-content { padding: 8px 12px; background: #fff; color: #000; }
-.li-link-preview { background: #eef3f8; border-radius: 8px; overflow: hidden; margin: 8px 12px; }
+.li-author-name { font-weight: 600; color: var(--frame-text-primary); font-size: 14px; }
+.li-post-headline { font-size: 12px; color: var(--frame-text-secondary); }
+.li-post-time { font-size: 12px; color: var(--frame-text-secondary); }
+.li-post-content { padding: 8px 12px; background: var(--frame-surface); color: var(--frame-text-primary); }
+.li-link-preview { background: var(--frame-accent-bg); border-radius: 8px; overflow: hidden; margin: 8px 12px; }
 .li-context-image img { width: 100%; aspect-ratio: 1.91/1; object-fit: cover; }
-.li-context-placeholder { width: 100%; aspect-ratio: 1.91/1; background: #e0e7ed; }
+.li-context-placeholder { width: 100%; aspect-ratio: 1.91/1; background: var(--frame-border); }
 .li-context-meta { padding: 10px 12px; }
-.li-context-title { font-weight: 600; color: #000; font-size: 14px; margin-bottom: 2px; }
-.li-context-domain { font-size: 12px; color: #666; }
-.li-post-stats { display: flex; gap: 16px; padding: 8px 12px; background: #fff; color: #666; font-size: 13px; }
+.li-context-title { font-weight: 600; color: var(--frame-text-primary); font-size: 14px; margin-bottom: 2px; }
+.li-context-domain { font-size: 12px; color: var(--frame-text-secondary); }
+.li-post-stats { display: flex; gap: 16px; padding: 8px 12px; background: var(--frame-surface); color: var(--frame-text-secondary); font-size: 13px; }
 
 /* Reddit Context */
 .reddit-context { max-width: 500px; background: #fff; }

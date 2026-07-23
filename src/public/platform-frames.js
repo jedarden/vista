@@ -2154,27 +2154,39 @@ const PLATFORM_FRAMES = {
     hasThemeSupport: true,
     aspectRatio: 'variable',
     chrome: `
-      <div class="gmail-thread-header">
-        <div class="gmail-subject">{{subject}}</div>
-        <div class="gmail-thread-meta">
-          <span class="gmail-from">{{from}}</span>
-          <span class="gmail-to">to {{to}}</span>
-          <span class="gmail-time">{{time}}</span>
+      <div class="gmail-sidebar">
+        <div class="gmail-compose">
+          <div class="gmail-compose-icon">✏️</div>
+          <span class="gmail-compose-text">Compose</span>
         </div>
+        <div class="gmail-nav-item gmail-nav-active">📥 Inbox</div>
+        <div class="gmail-nav-item">⭐ Starred</div>
+        <div class="gmail-nav-item">📤 Sent</div>
+        <div class="gmail-nav-item">📝 Drafts</div>
       </div>
-      <div class="gmail-messages">
-        <div class="gmail-message gmail-message-dim">
-          <div class="gmail-sender-avatar"></div>
-          <div class="gmail-message-content">
-            <div class="gmail-sender-info">
-              <span class="gmail-sender-name">{{senderName}}</span>
-              <span class="gmail-sender-email">&lt;{{senderEmail}}&gt;</span>
-              <span class="gmail-message-time">{{timeAgo}}</span>
-            </div>
-            <div class="gmail-message-body">Check out this link I found!</div>
+      <div class="gmail-main">
+        <div class="gmail-thread-header">
+          <div class="gmail-subject">{{subject}}</div>
+          <div class="gmail-thread-meta">
+            <span class="gmail-from">{{from}}</span>
+            <span class="gmail-to">to {{to}}</span>
+            <span class="gmail-time">{{time}}</span>
           </div>
         </div>
-        {{userMessage}}
+        <div class="gmail-messages">
+          <div class="gmail-message gmail-message-dim">
+            <div class="gmail-sender-avatar"></div>
+            <div class="gmail-message-content">
+              <div class="gmail-sender-info">
+                <span class="gmail-sender-name">{{senderName}}</span>
+                <span class="gmail-sender-email">&lt;{{senderEmail}}&gt;</span>
+                <span class="gmail-message-time">{{timeAgo}}</span>
+              </div>
+              <div class="gmail-message-body">Check out this link I found!</div>
+            </div>
+          </div>
+          {{userMessage}}
+        </div>
       </div>
     `,
     neutralContent: `
@@ -2231,26 +2243,38 @@ const PLATFORM_FRAMES = {
     hasThemeSupport: true,
     aspectRatio: 'variable',
     chrome: `
-      <div class="ol-thread-header">
-        <div class="ol-subject">{{subject}}</div>
-        <div class="ol-thread-meta">
-          <span class="ol-from">{{from}}</span>
-          <span class="ol-time">{{time}}</span>
+      <div class="ol-sidebar">
+        <div class="ol-compose">
+          <div class="ol-compose-icon">✉️</div>
+          <span class="ol-compose-text">New mail</span>
         </div>
+        <div class="ol-nav-item ol-nav-active">📥 Inbox</div>
+        <div class="ol-nav-item">⭐ Important</div>
+        <div class="ol-nav-item">📤 Sent</div>
+        <div class="ol-nav-item">📝 Drafts</div>
       </div>
-      <div class="ol-messages">
-        <div class="ol-message ol-message-dim">
-          <div class="ol-sender-avatar"></div>
-          <div class="ol-message-content">
-            <div class="ol-sender-info">
-              <span class="ol-sender-name">{{senderName}}</span>
-              <span class="ol-sender-email">{{senderEmail}}</span>
-              <span class="ol-message-time">{{timeAgo}}</span>
-            </div>
-            <div class="ol-message-body">You should see this resource!</div>
+      <div class="ol-main">
+        <div class="ol-thread-header">
+          <div class="ol-subject">{{subject}}</div>
+          <div class="ol-thread-meta">
+            <span class="ol-from">{{from}}</span>
+            <span class="ol-time">{{time}}</span>
           </div>
         </div>
-        {{userMessage}}
+        <div class="ol-messages">
+          <div class="ol-message ol-message-dim">
+            <div class="ol-sender-avatar"></div>
+            <div class="ol-message-content">
+              <div class="ol-sender-info">
+                <span class="ol-sender-name">{{senderName}}</span>
+                <span class="ol-sender-email">{{senderEmail}}</span>
+                <span class="ol-message-time">{{timeAgo}}</span>
+              </div>
+              <div class="ol-message-body">You should see this resource!</div>
+            </div>
+          </div>
+          {{userMessage}}
+        </div>
       </div>
     `,
     neutralContent: `

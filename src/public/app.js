@@ -2391,19 +2391,10 @@ function renderPlatformWithContext(pid, meta, imageProbe, baseUrl, theme = 'dark
     themeColor: themeColor,
   };
 
-  // Use new platform-frames module for platforms with structured frames
+  // Use new platform-frames module for all platforms with structured frames
   if (typeof buildContextFrame === 'function') {
-    switch (pid) {
-      case 'twitter':
-      case 'slack':
-      case 'discord':
-        // Proof of concept: use new structured frame generation
-        return buildContextFrame(pid, contentData, theme);
-
-      // Other platforms still use legacy renderers (to be migrated)
-      default:
-        return renderPlatformWithContextLegacy(pid, ogTitle, ogDesc, ogImage, domain, ogSite, theme, dominantColor, meta, imageProbe, baseUrl);
-    }
+    // All platforms in platform-frames.js now use the new system
+    return buildContextFrame(pid, contentData, theme);
   } else {
     // Fallback if platform-frames module not loaded
     return renderPlatformWithContextLegacy(pid, ogTitle, ogDesc, ogImage, domain, ogSite, theme, dominantColor, meta, imageProbe, baseUrl);

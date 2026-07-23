@@ -48,7 +48,7 @@ async function fetchPlatformConfig() {
  * - Output array after reordering
  * - localStorage save operations
  */
-let DEBUG_SMART_ORDERING = false; // Set to true to enable smart ordering debug logs
+let DEBUG_SMART_ORDERING = true; // Set to true to enable smart ordering debug logs
 
 // ── Keyboard Navigation State ──
 let focusedCardIndex = -1; // Index of currently focused card in preview grid

@@ -17,7 +17,10 @@ const PLATFORMS_WITH_THEME = [
   'discord',
   'tiktok',
   'pinterest',
-  'reddit'
+  'reddit',
+  'jira',
+  'trello',
+  'asana'
 ];
 
 // Test data

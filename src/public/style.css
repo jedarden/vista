@@ -250,7 +250,7 @@ html[data-theme='light'] .theme-icon-dark { display: inline; }
 .cards-row { display: grid; grid-template-columns: repeat(auto-fill,minmax(300px,1fr)); gap: 18px; }
 
 /* Platform card */
-.platform-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; display: flex; flex-direction: column; transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition), border-left-color 300ms ease; animation: cardIn 0.3s ease both; }
+.platform-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; display: flex; flex-direction: column; transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition), border-left-color 300ms ease; animation: cardIn 0.3s ease both; animation-delay: var(--stagger-delay, 0ms); }
 .platform-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
 .platform-card.focused { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(91, 141, 238, 0.3); transform: translateY(-2px); }
 @keyframes cardIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
@@ -554,6 +554,7 @@ html[data-theme='light'] .theme-icon-dark { display: inline; }
 
 .skeleton-fade-in {
   animation: contentFadeIn var(--skeleton-crossfade-duration) var(--skeleton-crossfade-easing) forwards;
+  animation-delay: var(--stagger-delay, 0ms);
 }
 
 @keyframes contentFadeIn {

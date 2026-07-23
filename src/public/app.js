@@ -1554,11 +1554,8 @@ function renderSkeletons() {
       card.dataset.groupId = group.id;
 
       // Stagger animation: 50ms delay per card (unless reduced motion preferred)
-      if (!prefersReducedMotion()) {
-        card.style.animationDelay = (globalIndex * 50) + 'ms';
-      } else {
-        card.style.animationDelay = '0ms';
-      }
+      const animDelay = !prefersReducedMotion() ? globalIndex * 50 : 0;
+      card.style.setProperty('--stagger-delay', animDelay + 'ms');
 
       card.innerHTML = getSkeletonHtml(pid);
       row.appendChild(card);
@@ -1728,7 +1725,6 @@ function renderTextPreviewsOnly(data) {
           // Add fade-in animation
           if (!reducedMotion) {
             textCard.classList.add('skeleton-fade-in');
-            textCard.style.animationDelay = animDelay + 'ms';
           }
 
           existingSkeleton.replaceWith(textCard);
@@ -1756,7 +1752,7 @@ function renderTextPreviewsOnly(data) {
 function buildTextOnlyCard(pid, scoreData, data, animDelay, groupId) {
   const card = document.createElement('div');
   card.className = `platform-card ${gradeClass(scoreData.grade)}`;
-  card.style.animationDelay = animDelay + 'ms';
+  card.style.setProperty('--stagger-delay', animDelay + 'ms');
   card.dataset.pid = pid;
   card.dataset.groupId = groupId;
   card.dataset.loadingImages = 'true';
@@ -1925,7 +1921,7 @@ function updatePreviewsWithImages(data) {
 function buildCard(pid, scoreData, data, animDelay, groupId) {
   const card = document.createElement('div');
   card.className = `platform-card ${gradeClass(scoreData.grade)}`;
-  card.style.animationDelay = animDelay + 'ms';
+  card.style.setProperty('--stagger-delay', animDelay + 'ms');
   card.dataset.pid = pid;
   card.dataset.groupId = groupId;
   card.tabIndex = -1; // Make focusable but not tab-focused by default

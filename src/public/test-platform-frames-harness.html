@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Platform Context Frames Testing Harness</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="frames-theme.css">
+  <link rel="stylesheet" href="frame-layouts.css">
+  <style>
+    .test-container {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .test-controls {
+      position: sticky;
+      top: 10px;
+      background: #1a1a1a;
+      padding: 15px;
+      border-radius: 8px;
+      z-index: 1000;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .test-controls.light-mode {
+      background: #f5f5f5;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .test-controls h1 {
+      margin: 0;
+      font-size: 1.2rem;
+      margin-right: 20px;
+    }
+    .test-btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+    .test-btn:hover {
+      opacity: 0.8;
+      transform: translateY(-1px);
+    }
+    .btn-theme {
+      background: #007bff;
+      color: white;
+    }
+    .btn-card-only {
+      background: #ffc107;
+      color: black;
+    }
+    .btn-context {
+      background: #17a2b8;
+      color: white;
+    }
+    .btn-screenshot {
+      background: #28a745;
+      color: white;
+    }
+    .btn-export {
+      background: #6f42c1;
+      color: white;
+    }
+    .test-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .platform-test-item {
+      border: 2px solid #333;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #1a1a1a;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .platform-test-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .light-mode .platform-test-item {
+      background: #ffffff;
+      border-color: #ddd;
+    }
+    .platform-header {
+      padding: 12px;
+      background: #2a2a2a;
+      color: white;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .light-mode .platform-header {
+      background: #f0f0f0;
+      color: black;
+      border-bottom: 1px solid #ddd;
+    }
+    .platform-controls {
+      display: flex;
+      gap: 5px;
+    }
+    .platform-controls button {
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      background: #3a3a3a;
+      color: white;
+    }
+    .platform-controls button:hover {
+      background: #4a4a4a;
+    }
+    .light-mode .platform-controls button {
+      background: #e0e0e0;
+      color: black;
+    }
+    .light-mode .platform-controls button:hover {
+      background: #d0d0d0;
+    }
+    .platform-card-wrapper {
+      position: relative;
+      min-height: 220px;
+      padding: 10px;
+    }
+    .test-status {
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      text-align: center;
+      background: #333;
+      color: #888;
+      font-weight: 500;
+    }
+    .light-mode .test-status {
+      background: #f9f9f9;
+      color: #666;
+    }
+    .status-working { color: #28a745; }
+    .status-failed { color: #dc3545; }
+    .status-pending { color: #ffc107; }
+
+    .test-summary {
+      background: #2a2a2a;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .light-mode .test-summary {
+      background: #f0f0f0;
+    }
+    .test-summary h3 {
+      margin: 0 0 15px 0;
+    }
+    .summary-stats {
+      display: flex;
+      gap: 25px;
+      flex-wrap: wrap;
+    }
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .stat-label {
+      font-weight: bold;
+    }
+    .console-output {
+      background: #0d1117;
+      color: #c9d1d9;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 20px;
+      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+      font-size: 0.85rem;
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #30363d;
+    }
+    .console-output.light-mode {
+      background: #f6f8fa;
+      color: #24292f;
+      border-color: #d0d7de;
+    }
+    .console-entry {
+      margin: 4px 0;
+      padding: 4px 0;
+      border-bottom: 1px solid #21262d;
+    }
+    .light-mode .console-entry {
+      border-bottom-color: #d8d8d8;
+    }
+    .console-entry.error { color: #ff7b72; }
+    .console-entry.success { color: #7ee787; }
+    .console-entry.info { color: #79c0ff; }
+    .console-entry.warn { color: #f2cc60; }
+    .light-mode .console-entry.error { color: #cf222e; }
+    .light-mode .console-entry.success { color: #1a7f37; }
+    .light-mode .console-entry.info { color: #0969da; }
+    .light-mode .console-entry.warn { color: #9a6700; }
+    .console-time {
+      color: #8b949e;
+      margin-right: 8px;
+      font-size: 0.75rem;
+    }
+    .light-mode .console-time {
+      color: #57606a;
+    }
+
+    /* Screenshot overlay */
+    .screenshot-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+    }
+    .screenshot-preview {
+      max-width: 90%;
+      max-height: 90%;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      position: relative;
+    }
+    .screenshot-preview img {
+      max-width: 100%;
+      max-height: 80vh;
+      border: 1px solid #ddd;
+    }
+    .screenshot-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #dc3545;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body class="dark-mode">
+  <div class="test-container">
+    <div class="test-controls" id="testControls">
+      <h1>🧪 Platform Frames Test Harness</h1>
+      <button class="test-btn btn-theme" id="themeToggle">🌙 Dark Mode</button>
+      <button class="test-btn btn-card-only" id="cardOnlyAll">📄 Card Only</button>
+      <button class="test-btn btn-context" id="contextAll">🖼️ In Context</button>
+      <button class="test-btn btn-screenshot" id="screenshotAll">📸 Screenshot All</button>
+      <button class="test-btn btn-export" id="exportResults">📊 Export Results</button>
+      <span style="margin-left: auto; font-size: 0.85rem;" id="platformCount">Loading platforms...</span>
+    </div>
+
+    <div class="test-summary">
+      <h3>Test Summary</h3>
+      <div class="summary-stats">
+        <div class="stat-item">
+          <span class="stat-label">Total:</span>
+          <span id="totalStat">0</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Working:</span>
+          <span id="workingStat" class="status-working">0</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Failed:</span>
+          <span id="failedStat" class="status-failed">0</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Pending:</span>
+          <span id="pendingStat" class="status-pending">0</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Theme Support:</span>
+          <span id="themeSupportStat">0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="console-output" id="consoleOutput">
+      <div class="console-entry info">
+        <span class="console-time">System</span>
+        Platform Frames Testing Harness initialized...
+      </div>
+    </div>
+
+    <div class="test-grid" id="testGrid"></div>
+  </div>
+
+  <!-- Screenshot preview overlay -->
+  <div class="screenshot-overlay" id="screenshotOverlay">
+    <div class="screenshot-preview">
+      <button class="screenshot-close" id="closeScreenshot">✕ Close</button>
+      <div id="screenshotImageContainer"></div>
+    </div>
+  </div>
+
+  <script src="platform-frames.js"></script>
+  <script>
+    // ============================================================================
+    // CONSOLE LOGGING SYSTEM
+    // ============================================================================
+
+    class TestConsole {
+      constructor(outputElement) {
+        this.outputElement = outputElement;
+        this.entries = [];
+      }
+
+      log(message, type = 'info') {
+        const entry = {
+          message,
+          type,
+          timestamp: new Date().toISOString()
+        };
+        this.entries.push(entry);
+        this.render(entry);
+
+        // Also log to browser console for debugging
+        console.log(`[TestHarness ${type.toUpperCase()}]`, message);
+      }
+
+      render(entry) {
+        const div = document.createElement('div');
+        div.className = `console-entry ${entry.type}`;
+
+        const time = document.createElement('span');
+        time.className = 'console-time';
+        time.textContent = new Date(entry.timestamp).toLocaleTimeString();
+
+        div.appendChild(time);
+        div.appendChild(document.createTextNode(entry.message));
+
+        this.outputElement.appendChild(div);
+        this.outputElement.scrollTop = this.outputElement.scrollHeight;
+      }
+
+      getEntries() {
+        return this.entries;
+      }
+
+      export() {
+        return this.entries.map(e =>
+          `[${e.timestamp}] [${e.type.toUpperCase()}] ${e.message}`
+        ).join('\n');
+      }
+
+      clear() {
+        this.entries = [];
+        this.outputElement.innerHTML = '';
+        this.log('Console cleared', 'info');
+      }
+    }
+
+    // ============================================================================
+    // SCREENSHOT HELPER
+    // ============================================================================
+
+    class ScreenshotHelper {
+      constructor() {
+        this.html2canvas = null;
+        this.loaded = false;
+      }
+
+      async load() {
+        if (this.loaded) return true;
+
+        try {
+          // Try to load html2canvas from CDN
+          const script = document.createElement('script');
+          script.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+
+          await new Promise((resolve, reject) => {
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+          });
+
+          this.html2canvas = window.html2canvas;
+          this.loaded = true;
+          return true;
+        } catch (error) {
+          console.error('Failed to load html2canvas:', error);
+          return false;
+        }
+      }
+
+      async captureElement(element, options = {}) {
+        if (!this.loaded) {
+          await this.load();
+        }
+
+        if (!this.html2canvas) {
+          throw new Error('html2canvas not available');
+        }
+
+        const defaultOptions = {
+          backgroundColor: null,
+          scale: 2, // Higher resolution
+          logging: false,
+          useCORS: true,
+          allowTaint: true
+        };
+
+        return await this.html2canvas(element, { ...defaultOptions, ...options });
+      }
+
+      async downloadScreenshot(canvas, filename) {
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      }
+
+      async previewScreenshot(canvas) {
+        const img = document.createElement('img');
+        img.src = canvas.toDataURL('image/png');
+
+        const container = document.getElementById('screenshotImageContainer');
+        container.innerHTML = '';
+        container.appendChild(img);
+
+        document.getElementById('screenshotOverlay').style.display = 'flex';
+      }
+    }
+
+    // ============================================================================
+    // TEST HARNESS
+    // ============================================================================
+
+    class PlatformFrameTestHarness {
+      constructor() {
+        this.platforms = this.getPlatforms();
+        this.testResults = {
+          total: this.platforms.length,
+          working: 0,
+          failed: 0,
+          pending: this.platforms.length,
+          failures: {},
+          themeSupportCount: 0
+        };
+        this.viewMode = 'context'; // 'card' or 'context'
+        this.currentTheme = 'dark';
+
+        this.console = new TestConsole(document.getElementById('consoleOutput'));
+        this.screenshot = new ScreenshotHelper();
+
+        this.initializeUI();
+        this.initializeEventListeners();
+
+        this.console.log(`Initialized with ${this.platforms.length} platforms`, 'success');
+      }
+
+      getPlatforms() {
+        return [
+          { id: 'google', name: 'Google Search', category: 'social' },
+          { id: 'facebook', name: 'Facebook', category: 'social' },
+          { id: 'twitter', name: 'X (Twitter)', category: 'social' },
+          { id: 'linkedin', name: 'LinkedIn', category: 'social' },
+          { id: 'instagram', name: 'Instagram', category: 'social' },
+          { id: 'youtube', name: 'YouTube', category: 'social' },
+          { id: 'slack', name: 'Slack', category: 'messaging' },
+          { id: 'discord', name: 'Discord', category: 'messaging' },
+          { id: 'imessage', name: 'iMessage', category: 'messaging' },
+          { id: 'whatsapp', name: 'WhatsApp', category: 'messaging' },
+          { id: 'telegram', name: 'Telegram', category: 'messaging' },
+          { id: 'signal', name: 'Signal', category: 'messaging' },
+          { id: 'microsoft-teams', name: 'Microsoft Teams', category: 'messaging' },
+          { id: 'google-chat', name: 'Google Chat', category: 'messaging' },
+          { id: 'zoom-chat', name: 'Zoom Chat', category: 'messaging' },
+          { id: 'line', name: 'Line', category: 'messaging' },
+          { id: 'kakaotalk', name: 'KakaoTalk', category: 'messaging' },
+          { id: 'tiktok', name: 'TikTok', category: 'social' },
+          { id: 'pinterest', name: 'Pinterest', category: 'social' },
+          { id: 'bluesky', name: 'Bluesky', category: 'social' },
+          { id: 'mastodon', name: 'Mastodon', category: 'social' },
+          { id: 'threads', name: 'Threads', category: 'social' },
+          { id: 'tumblr', name: 'Tumblr', category: 'social' },
+          { id: 'reddit', name: 'Reddit', category: 'social' },
+          { id: 'github', name: 'GitHub', category: 'devtools' },
+          { id: 'gitlab', name: 'GitLab', category: 'devtools' },
+          { id: 'stackoverflow', name: 'Stack Overflow', category: 'devtools' },
+          { id: 'hackernews', name: 'Hacker News', category: 'devtools' },
+          { id: 'producthunt', name: 'Product Hunt', category: 'content' },
+          { id: 'devto', name: 'Dev.to', category: 'content' },
+          { id: 'medium', name: 'Medium', category: 'content' },
+          { id: 'gmail', name: 'Gmail', category: 'email' },
+          { id: 'outlook', name: 'Outlook', category: 'email' },
+          { id: 'feedly', name: 'Feedly', category: 'rss' },
+          { id: 'notion', name: 'Notion', category: 'productivity' },
+          { id: 'evernote', name: 'Evernote', category: 'productivity' },
+          { id: 'vscode', name: 'VS Code', category: 'productivity' },
+          { id: 'jetbrains-ide', name: 'JetBrains IDE', category: 'productivity' },
+          { id: 'jira', name: 'Jira', category: 'productivity' },
+          { id: 'trello', name: 'Trello', category: 'productivity' },
+          { id: 'asana', name: 'Asana', category: 'productivity' },
+          { id: 'figma', name: 'Figma', category: 'productivity' },
+          { id: 'substack', name: 'Substack', category: 'content' },
+          { id: 'generic', name: 'Generic Platform', category: 'other' }
+        ];
+      }
+
+      initializeUI() {
+        document.getElementById('platformCount').textContent = `Testing ${this.platforms.length} platforms`;
+        this.updateStats();
+        this.initTestGrid();
+      }
+
+      initializeEventListeners() {
+        // Theme toggle
+        document.getElementById('themeToggle').addEventListener('click', () => {
+          this.toggleTheme();
+        });
+
+        // Card only mode
+        document.getElementById('cardOnlyAll').addEventListener('click', () => {
+          this.setViewMode('card');
+        });
+
+        // Context mode
+        document.getElementById('contextAll').addEventListener('click', () => {
+          this.setViewMode('context');
+        });
+
+        // Screenshot all
+        document.getElementById('screenshotAll').addEventListener('click', () => {
+          this.screenshotAll();
+        });
+
+        // Export results
+        document.getElementById('exportResults').addEventListener('click', () => {
+          this.exportResults();
+        });
+
+        // Close screenshot overlay
+        document.getElementById('closeScreenshot').addEventListener('click', () => {
+          document.getElementById('screenshotOverlay').style.display = 'none';
+        });
+      }
+
+      initTestGrid() {
+        const testGrid = document.getElementById('testGrid');
+        testGrid.innerHTML = '';
+
+        this.platforms.forEach(platform => {
+          const testItem = this.createTestItem(platform);
+          testGrid.appendChild(testItem);
+
+          // Test each platform asynchronously
+          setTimeout(() => this.testPlatform(platform), 100);
+        });
+      }
+
+      createTestItem(platform) {
+        const testItem = document.createElement('div');
+        testItem.className = 'platform-test-item';
+        testItem.id = `test-${platform.id}`;
+
+        testItem.innerHTML = `
+          <div class="platform-header">
+            <span>${platform.name}</span>
+            <div class="platform-controls">
+              <span style="font-size: 0.75rem; opacity: 0.7;">${platform.category}</span>
+              <button onclick="harness.screenshotPlatform('${platform.id}')" title="Capture screenshot">📸</button>
+              <button onclick="harness.togglePlatformMode('${platform.id}')" title="Toggle card/context">🔄</button>
+            </div>
+          </div>
+          <div class="platform-card-wrapper" id="wrapper-${platform.id}">
+            <div class="test-status status-pending" id="status-${platform.id}">Testing...</div>
+          </div>
+        `;
+
+        return testItem;
+      }
+
+      async testPlatform(platform) {
+        const wrapper = document.getElementById(`wrapper-${platform.id}`);
+        const statusEl = document.getElementById(`status-${platform.id}`);
+
+        try {
+          this.console.log(`Testing ${platform.name} (${platform.id})...`, 'info');
+
+          // Check if platform frame exists
+          if (typeof PLATFORM_FRAMES === 'undefined') {
+            throw new Error('PLATFORM_FRAMES not defined');
+          }
+
+          if (!PLATFORM_FRAMES[platform.id]) {
+            throw new Error('Platform frame not defined in platform-frames.js');
+          }
+
+          const frameData = PLATFORM_FRAMES[platform.id];
+
+          // Verify frame data structure
+          if (!frameData.chrome) {
+            throw new Error('Missing chrome template');
+          }
+
+          if (!frameData.themeVars) {
+            throw new Error('Missing theme variables');
+          }
+
+          // Check theme support
+          if (frameData.hasThemeSupport) {
+            this.testResults.themeSupportCount++;
+          }
+
+          // Create sample card and render
+          const sampleCard = this.createSampleCard(platform);
+          wrapper.innerHTML = this.renderPlatformCard(platform.id, sampleCard, true);
+
+          // Update status to working
+          statusEl.className = 'test-status status-working';
+          statusEl.textContent = '✓ Working';
+
+          this.testResults.working++;
+          this.testResults.pending--;
+
+          this.console.log(`${platform.name} rendered successfully`, 'success');
+
+        } catch (error) {
+          // Error during rendering
+          this.console.log(`${platform.name} failed: ${error.message}`, 'error');
+
+          statusEl.className = 'test-status status-failed';
+          statusEl.textContent = `✗ ${error.message.substring(0, 40)}...`;
+
+          this.testResults.failed++;
+          this.testResults.pending--;
+          this.testResults.failures[platform.id] = error.message;
+        }
+
+        this.updateStats();
+      }
+
+      createSampleCard(platform) {
+        return {
+          title: `Test: ${platform.name} Link Preview`,
+          description: `This is a sample link preview to test the ${platform.name} platform context frame rendering with dark/light mode support.`,
+          url: `https://example.com/test-${platform.id}`,
+          domain: 'example.com',
+          image: `https://picsum.photos/800/600?random=${platform.id}`,
+          favicon: '🌐',
+          author: 'Test User',
+          handle: '@testuser',
+          timestamp: '2h ago',
+          site: platform.name
+        };
+      }
+
+      renderPlatformCard(platformId, cardData, withContext) {
+        if (typeof PLATFORM_FRAMES === 'undefined' || !PLATFORM_FRAMES[platformId]) {
+          return `<div style="padding: 20px; text-align: center; color: #888;">Platform frame not found</div>`;
+        }
+
+        const frameData = PLATFORM_FRAMES[platformId];
+        const cardHtml = this.renderSimpleCard(cardData);
+
+        if (!withContext || this.viewMode === 'card') {
+          return cardHtml;
+        }
+
+        // Apply theme vars
+        const isDarkMode = document.body.classList.contains('dark-mode');
+        const theme = isDarkMode ? 'dark' : 'light';
+        const themeVars = frameData.themeVars[theme] || frameData.themeVars.dark;
+        const themeStyle = Object.entries(themeVars)
+          .map(([key, value]) => `${key}: ${value};`)
+          .join(' ');
+
+        // Build link preview HTML
+        let linkPreview = '';
+        try {
+          linkPreview = this.buildLinkPreviewHTML(platformId, cardData, theme);
+        } catch (e) {
+          this.console.log(`Link preview build failed for ${platformId}: ${e.message}`, 'warn');
+        }
+
+        // Replace placeholders in chrome
+        const chrome = frameData.chrome
+          .replace('{{mainResult}}', cardHtml)
+          .replace('{{linkPreview}}', linkPreview)
+          .replace('{{linkCard}}', linkPreview)
+          .replace('{{cardContent}}', cardHtml);
+
+        const neutralContent = frameData.neutralContent
+          .replace('{{title}}', cardData.title)
+          .replace('{{description}}', cardData.description)
+          .replace('{{domain}}', cardData.domain)
+          .replace('{{url}}', cardData.url)
+          .replace('{{site}}', cardData.site)
+          .replace('{{imageSection}}', cardData.image ? `<div class="platform-image"><img src="${cardData.image}" alt=""></div>` : '')
+          .replace('{{userMessage}}', neutralContent || '')
+          .replace('{{userComment}}', neutralContent || '');
+
+        return `
+          <div class="${platformId}-context platform-context-frame" style="${themeStyle}">
+            ${chrome.replace('{{userMessage}}', neutralContent).replace('{{userComment}}', neutralContent).replace('{{userArticle}}', neutralContent).replace('{{userBlock}}', neutralContent).replace('{{userCard}}', neutralContent).replace('{{userResponse}}', neutralContent).replace('{{userAnswer}}', neutralContent).replace('{{userNote}}', neutralContent)}
+          </div>
+        `;
+      }
+
+      renderSimpleCard(cardData) {
+        const isDark = document.body.classList.contains('dark-mode');
+        const bgColor = isDark ? '#252525' : '#ffffff';
+        const textColor = isDark ? '#e0e0e0' : '#1a1a1a';
+        const mutedColor = isDark ? '#888' : '#666';
+        const borderColor = isDark ? '#333' : '#ddd';
+
+        return `
+          <div class="simple-card" style="
+            padding: 12px;
+            border: 1px solid ${borderColor};
+            border-radius: 8px;
+            background: ${bgColor};
+            color: ${textColor};
+          ">
+            <div style="display: flex; gap: 12px; align-items: flex-start;">
+              ${cardData.favicon ? `<div style="font-size: 24px;">${cardData.favicon}</div>` : ''}
+              <div style="flex: 1; min-width: 0;">
+                <div style="font-weight: 600; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis;">${cardData.title}</div>
+                ${cardData.description ? `<div style="font-size: 0.85rem; color: ${mutedColor}; margin-bottom: 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${cardData.description}</div>` : ''}
+                <div style="font-size: 0.75rem; color: ${mutedColor};">${cardData.domain}</div>
+              </div>
+              ${cardData.image ? `<div style="width: 80px; height: 60px; background: #f0f0f0; border-radius: 4px; overflow: hidden;"><img src="${cardData.image}" style="width: 100%; height: 100%; object-fit: cover;" alt=""></div>` : ''}
+            </div>
+          </div>
+        `;
+      }
+
+      buildLinkPreviewHTML(platformId, content, theme) {
+        // Simplified link preview builder for testing
+        const { title, description, image, domain } = content;
+        const esc = (str) => String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
+
+        return `
+          <div class="platform-link-preview">
+            ${image ? `<div class="platform-preview-image"><img src="${esc(image)}" alt="" onerror="this.style.display='none'" loading="lazy"></div>` : ''}
+            <div class="platform-preview-meta">
+              <div class="platform-preview-title">${esc(trunc(title, 70))}</div>
+              ${description ? `<div class="platform-preview-desc">${esc(trunc(description, 120))}</div>` : ''}
+              <div class="platform-preview-domain">${esc(domain)}</div>
+            </div>
+          </div>
+        `;
+      }
+
+      updateStats() {
+        document.getElementById('totalStat').textContent = this.testResults.total;
+        document.getElementById('workingStat').textContent = this.testResults.working;
+        document.getElementById('failedStat').textContent = this.testResults.failed;
+        document.getElementById('pendingStat').textContent = this.testResults.pending;
+        document.getElementById('themeSupportStat').textContent = this.testResults.themeSupportCount;
+      }
+
+      toggleTheme() {
+        document.body.classList.toggle('dark-mode');
+        document.body.classList.toggle('light-mode');
+        document.getElementById('testControls').classList.toggle('light-mode');
+
+        const isDarkMode = document.body.classList.contains('dark-mode');
+        this.currentTheme = isDarkMode ? 'dark' : 'light';
+        document.getElementById('themeToggle').textContent = isDarkMode ? '🌙 Dark Mode' : '☀️ Light Mode';
+
+        this.console.log(`Switched to ${this.currentTheme} mode`, 'info');
+
+        // Re-render all working cards with new theme
+        this.platforms.forEach(platform => {
+          const statusEl = document.getElementById(`status-${platform.id}`);
+          if (statusEl && statusEl.classList.contains('status-working')) {
+            const wrapper = document.getElementById(`wrapper-${platform.id}`);
+            const cardData = this.createSampleCard(platform);
+            wrapper.innerHTML = this.renderPlatformCard(platform.id, cardData, true);
+          }
+        });
+      }
+
+      setViewMode(mode) {
+        this.viewMode = mode;
+        this.console.log(`Set view mode to: ${mode}`, 'info');
+
+        this.platforms.forEach(platform => {
+          const statusEl = document.getElementById(`status-${platform.id}`);
+          if (statusEl && statusEl.classList.contains('status-working')) {
+            const wrapper = document.getElementById(`wrapper-${platform.id}`);
+            const cardData = this.createSampleCard(platform);
+            wrapper.innerHTML = this.renderPlatformCard(platform.id, cardData, mode === 'context');
+          }
+        });
+      }
+
+      async screenshotPlatform(platformId) {
+        const element = document.getElementById(`test-${platformId}`);
+        if (!element) return;
+
+        this.console.log(`Capturing screenshot for ${platformId}...`, 'info');
+
+        try {
+          await this.screenshot.load();
+          const canvas = await this.screenshot.captureElement(element);
+          await this.screenshot.downloadScreenshot(canvas, `platform-frame-${platformId}-${this.currentTheme}.png`);
+          await this.screenshot.previewScreenshot(canvas);
+
+          this.console.log(`Screenshot captured for ${platformId}`, 'success');
+        } catch (error) {
+          this.console.log(`Screenshot failed for ${platformId}: ${error.message}`, 'error');
+        }
+      }
+
+      async screenshotAll() {
+        this.console.log('Starting batch screenshot capture...', 'info');
+
+        for (const platform of this.platforms) {
+          await this.screenshotPlatform(platform.id);
+          await new Promise(resolve => setTimeout(resolve, 500)); // Delay between captures
+        }
+
+        this.console.log('Batch screenshot capture complete', 'success');
+      }
+
+      exportResults() {
+        const results = {
+          timestamp: new Date().toISOString(),
+          theme: this.currentTheme,
+          viewMode: this.viewMode,
+          stats: this.testResults,
+          failures: this.testResults.failures,
+          consoleLog: this.console.export(),
+          platforms: this.platforms.map(p => ({
+            id: p.id,
+            name: p.name,
+            category: p.category,
+            hasFrame: !!PLATFORM_FRAMES[p.id],
+            hasThemeSupport: PLATFORM_FRAMES[p.id]?.hasThemeSupport || false
+          }))
+        };
+
+        const blob = new Blob([JSON.stringify(results, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `platform-frames-test-results-${Date.now()}.json`;
+        link.click();
+        URL.revokeObjectURL(url);
+
+        this.console.log('Test results exported', 'success');
+      }
+    }
+
+    // Initialize the harness
+    const harness = new PlatformFrameTestHarness();
+  </script>
+</body>
+</html>

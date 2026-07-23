@@ -5684,6 +5684,27 @@ html[data-theme='light'] .image-diff-slider-handle {
 .as-desc { color: var(--frame-text-secondary); font-size: 13px; margin-bottom: 6px; }
 .as-domain { color: var(--frame-link-color); font-size: 12px; }
 
+/* Notion Context (platform-frames.js - .no- prefix) */
+.notion-context { display: flex; flex-direction: column; min-height: 300px; background: var(--frame-bg); border-radius: 8px; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+.no-page-header { padding: 20px 24px; background: var(--frame-surface); border-bottom: 1px solid var(--frame-border); }
+.no-page-icon { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background: var(--frame-accent-bg); border-radius: 12px; font-size: 24px; margin-bottom: 12px; }
+.no-page-title { font-size: 24px; font-weight: 700; color: var(--frame-text-primary); margin-bottom: 8px; line-height: 1.3; }
+.no-page-meta { display: flex; gap: 12px; align-items: center; font-size: 13px; }
+.no-author { color: var(--frame-text-secondary); font-weight: 500; }
+.no-time { color: var(--frame-text-muted); }
+.no-content { flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 12px; }
+.no-block { padding: 12px 0; }
+.no-block-dim { opacity: 0.6; }
+.no-block-text { color: var(--frame-text-primary); font-size: 14px; line-height: 1.6; }
+.no-block-callout { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: var(--frame-surface); border-left: 3px solid var(--frame-accent); border-radius: 4px; }
+.no-emoji { font-size: 16px; }
+.no-callout-text { color: var(--frame-text-primary); font-size: 14px; font-weight: 500; }
+.no-link-preview { padding: 12px; background: var(--frame-surface); border: 1px solid var(--frame-border); border-radius: 6px; margin-top: 8px; }
+.no-link-image { width: 100%; height: 120px; object-fit: cover; border-radius: 4px; margin-bottom: 8px; overflow: hidden; background: var(--frame-bg); }
+.no-link-image img { width: 100%; height: 100%; object-fit: cover; }
+.no-link-title { font-size: 14px; font-weight: 600; color: var(--frame-text-primary); margin-bottom: 4px; }
+.no-link-domain { font-size: 12px; color: var(--frame-text-secondary); }
+
 /* Evernote Context (platform-frames.js - .ev- prefix) */
 .evernote-context { display: flex; flex-direction: column; min-height: 400px; background: var(--frame-bg); border-radius: 8px; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
 .ev-notebook-header { display: flex; align-items: center; gap: 12px; padding: 16px 20px; background: var(--frame-surface); border-bottom: 1px solid var(--frame-border); }

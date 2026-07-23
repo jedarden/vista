@@ -1,0 +1,98 @@
+{
+  "tests": [
+    {
+      "test": "Server Running",
+      "passed": true,
+      "details": "Status: 200",
+      "timestamp": "2026-07-23T20:08:54.326Z"
+    },
+    {
+      "test": "Page Load with smartOrdering",
+      "passed": true,
+      "details": "HTML loaded successfully",
+      "timestamp": "2026-07-23T20:08:54.328Z"
+    },
+    {
+      "test": "smartOrdering Default in Code",
+      "passed": false,
+      "details": "smartOrdering default not found",
+      "timestamp": "2026-07-23T20:08:54.328Z"
+    },
+    {
+      "test": "API Endpoint Response",
+      "passed": false,
+      "details": "Status: 400",
+      "timestamp": "2026-07-23T20:08:54.337Z"
+    },
+    {
+      "test": "Platform Card Structure",
+      "passed": false,
+      "details": "Grid: true, Card class: false",
+      "timestamp": "2026-07-23T20:08:54.339Z"
+    },
+    {
+      "test": "Platform Preferences Variable",
+      "passed": false,
+      "details": "platformPrefs not found",
+      "timestamp": "2026-07-23T20:08:54.339Z"
+    },
+    {
+      "test": "smartOrdering Parameter in Response",
+      "passed": false,
+      "details": "Parameter not explicitly found",
+      "timestamp": "2026-07-23T20:08:54.340Z"
+    },
+    {
+      "test": "Interaction Elements Found",
+      "passed": true,
+      "details": "Favorite: true, Column: true, Search: false",
+      "timestamp": "2026-07-23T20:08:54.341Z"
+    },
+    {
+      "test": "Example URL Test",
+      "passed": true,
+      "details": "Status: 400, URL: https://github.com",
+      "timestamp": "2026-07-23T20:08:54.342Z"
+    }
+  ],
+  "errors": [
+    {
+      "test": "smartOrdering Default in Code",
+      "passed": false,
+      "details": "smartOrdering default not found",
+      "timestamp": "2026-07-23T20:08:54.328Z"
+    },
+    {
+      "test": "API Endpoint Response",
+      "passed": false,
+      "details": "Status: 400",
+      "timestamp": "2026-07-23T20:08:54.337Z"
+    },
+    {
+      "test": "Platform Card Structure",
+      "passed": false,
+      "details": "Grid: true, Card class: false",
+      "timestamp": "2026-07-23T20:08:54.339Z"
+    },
+    {
+      "test": "Platform Preferences Variable",
+      "passed": false,
+      "details": "platformPrefs not found",
+      "timestamp": "2026-07-23T20:08:54.339Z"
+    },
+    {
+      "test": "smartOrdering Parameter in Response",
+      "passed": false,
+      "details": "Parameter not explicitly found",
+      "timestamp": "2026-07-23T20:08:54.340Z"
+    }
+  ],
+  "startTime": "2026-07-23T20:08:54.314Z",
+  "endTime": "2026-07-23T20:08:54.342Z",
+  "summary": {
+    "total": 9,
+    "passed": 4,
+    "failed": 5,
+    "errors": 5
+  }
+}

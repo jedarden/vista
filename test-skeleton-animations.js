@@ -41,63 +41,70 @@ function test(name, condition, details = '') {
 
 // Test 1: Staggered entrance in JS (50ms delay per card)
 console.log('\n📋 Test 1: Staggered entrance (50ms delay per card)');
-const hasStaggerDelay = js.includes('card.style.animationDelay = (globalIndex * 50)');
-const hasReducedMotionCheck = js.includes('if (!prefersReducedMotion())') && js.includes('card.style.animationDelay');
+const hasStaggerDelay = js.includes('globalIndex * 50') && js.includes('--stagger-delay');
+const hasReducedMotionCheck = js.includes('reducedMotion ? 0 :') && js.includes('globalIndex * 50');
 test(
-  'JS sets animationDelay with globalIndex * 50ms pattern',
+  'JS sets --stagger-delay with globalIndex * 50ms pattern',
   hasStaggerDelay && hasReducedMotionCheck,
-  'Found: card.style.animationDelay = (globalIndex * 50) + \'ms\''
+  'Found: card.style.setProperty(\'--stagger-delay\', animDelay + \'ms\') with animDelay = reducedMotion ? 0 : globalIndex * 50'
 );
 
 // Test 2: 150ms crossfade transition in CSS
 console.log('\n📋 Test 2: Skeleton→content crossfade (150ms transition)');
+const hasCrossfadeVars = css.includes('--skeleton-crossfade-duration: 150ms') &&
+  css.includes('--skeleton-crossfade-distance: 4px');
 const hasCrossfadeTransition = css.includes('.skeleton-fade-out') &&
-  css.includes('transition: opacity 150ms ease, transform 150ms ease');
+  css.includes('transition: opacity var(--skeleton-crossfade-duration)');
 test(
-  'CSS .skeleton-fade-out has 150ms transition for opacity and transform',
-  hasCrossfadeTransition,
-  'Found: transition: opacity 150ms ease, transform 150ms ease'
+  'CSS uses 150ms/4px skeleton crossfade variables',
+  hasCrossfadeVars && hasCrossfadeTransition,
+  'Found: --skeleton-crossfade-duration: 150ms, --skeleton-crossfade-distance: 4px with CSS var references'
 );
 
 // Test 3: Crossfade combines opacity + translateY 4px
 console.log('\n📋 Test 3: Crossfade combines opacity change with translateY 4px lift');
-const hasOpacityAndTransform = css.match(/\.skeleton-fade-out\s*{[^}]*opacity:\s*0[^}]*transform:\s*translateY\(4px\)/);
+const hasOpacityAndTransform = css.includes('.skeleton-fade-out') &&
+  css.includes('opacity: 0') &&
+  css.includes('transform: translateY(var(--skeleton-crossfade-distance))');
+const hasDistanceVar = css.includes('--skeleton-crossfade-distance: 4px');
 test(
-  'CSS .skeleton-fade-out has opacity: 0 and transform: translateY(4px)',
-  hasOpacityAndTransform,
-  'Found both opacity: 0 and transform: translateY(4px) in .skeleton-fade-out'
+  'CSS .skeleton-fade-out has opacity: 0 and transform: translateY(var(--skeleton-crossfade-distance)) with 4px value',
+  hasOpacityAndTransform && hasDistanceVar,
+  'Found opacity: 0, transform: translateY(var(--skeleton-crossfade-distance)), and --skeleton-crossfade-distance: 4px'
 );
 
 // Test 4: prefers-reduced-motion disables animations
 console.log('\n📋 Test 4: prefers-reduced-motion disables stagger and crossfade');
 const hasReducedMotionMediaQuery = css.includes('@media (prefers-reduced-motion: reduce)');
-const hasSkeletonFadeOutInMediaQuery = css.match(/@media.*prefers-reduced-motion.*reduce.*{[^}]*\.skeleton-fade-out/s);
-const hasTransitionNoneInMediaQuery = css.match(/@media.*prefers-reduced-motion.*{[^}]*transition:\s*none\s*!important/s);
+const hasZeroDurationVar = css.match(/@media.*prefers-reduced-motion.*{[^}]*--skeleton-crossfade-duration:\s*0ms/s);
+const hasZeroDistanceVar = css.match(/@media.*prefers-reduced-motion.*{[^}]*--skeleton-crossfade-distance:\s*0px/s);
+const hasTransitionNone = css.includes('@media (prefers-reduced-motion: reduce)') &&
+  css.match(/@media[\s\S]*?transition:\s*none\s*!important/s);
 test(
-  'prefers-reduced-motion media query disables skeleton animations',
-  hasReducedMotionMediaQuery && hasSkeletonFadeOutInMediaQuery && hasTransitionNoneInMediaQuery,
-  'Found @media (prefers-reduced-motion: reduce) with .skeleton-fade-out and transition: none !important'
+  'prefers-reduced-motion media query disables stagger and crossfade',
+  hasReducedMotionMediaQuery && hasZeroDurationVar && hasZeroDistanceVar && hasTransitionNone,
+  'Found @media (prefers-reduced-motion: reduce) with CSS vars set to 0ms/0px and transition: none !important'
 );
 
 // Test 5: Animation timing is consistent (uses globalIndex, not per-card hardcoding)
 console.log('\n📋 Test 5: Animation timing uses consistent pattern');
 const usesGlobalIndex = js.includes('globalIndex * 50') && js.includes('globalIndex++');
-const noPerCardHardcoding = !js.match(/animationDelay:\s*\d+/); // No hardcoded numbers like "50" or "100"
+const usesCssVar = js.includes('card.style.setProperty(\'--stagger-delay\'');
 test(
-  'Animation timing uses globalIndex pattern, not per-card hardcoding',
-  usesGlobalIndex,
-  'Found: card.style.animationDelay = (globalIndex * 50) + \'ms\''
+  'Animation timing uses globalIndex pattern and CSS variable',
+  usesGlobalIndex && usesCssVar,
+  'Found: globalIndex * 50 pattern with --stagger-delay CSS variable'
 );
 
 // Test 6: contentFadeIn animation uses 150ms
 console.log('\n📋 Test 6: contentFadeIn animation timing');
-const hasContentFadeIn = css.includes('@keyframes contentFadeIn') &&
-  css.includes('.skeleton-fade-in') &&
-  css.includes('animation: contentFadeIn 150ms ease');
+const hasContentFadeInKeyframe = css.includes('@keyframes contentFadeIn');
+const hasSkeletonFadeIn = css.includes('.skeleton-fade-in') &&
+  css.includes('animation: contentFadeIn var(--skeleton-crossfade-duration)');
 test(
-  'CSS contentFadeIn animation uses 150ms duration',
-  hasContentFadeIn,
-  'Found: animation: contentFadeIn 150ms ease'
+  'CSS contentFadeIn animation uses CSS variable for duration',
+  hasContentFadeInKeyframe && hasSkeletonFadeIn,
+  'Found: @keyframes contentFadeIn and .skeleton-fade-in with animation: contentFadeIn var(--skeleton-crossfade-duration)'
 );
 
 // Summary
@@ -115,10 +122,11 @@ if (tests.failed.length > 0) {
 } else {
   console.log('\n✅ All skeleton card animation tests passed!');
   console.log('\n📝 Implementation Summary:');
-  console.log('  • Cards stagger with 50ms delay between each');
-  console.log('  • Skeleton→content crossfade uses 150ms transition');
+  console.log('  • Cards stagger with 50ms delay between each (via --stagger-delay CSS variable)');
+  console.log('  • Skeleton→content crossfade uses 150ms/4px transition (via CSS variables)');
   console.log('  • Crossfade combines opacity change with translateY 4px lift');
-  console.log('  • prefers-reduced-motion properly disables all animations');
+  console.log('  • prefers-reduced-motion sets CSS variables to 0ms/0px and disables animations');
   console.log('  • Animation timing is consistent using globalIndex pattern');
+  console.log('  • Reduced motion mode is instant (no animation)');
   process.exit(0);
 }

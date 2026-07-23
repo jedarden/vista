@@ -5276,3 +5276,48 @@ html[data-theme='light'] .image-diff-slider-handle {
 .fl-article-preview { font-size: 13px; color: var(--frame-text-secondary); line-height: 1.4; margin-bottom: 8px; }
 .fl-article-time { font-size: 11px; color: var(--frame-text-muted); }
 .fl-article-mark { font-size: 12px; color: var(--frame-accent); margin-top: 8px; }
+
+/* Gmail Context (platform-frames.js - .gmail- prefix) */
+.gmail-context { background: var(--frame-bg); border-radius: 8px; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+.gmail-thread-header { padding: 16px; background: var(--frame-surface); border-bottom: 1px solid var(--frame-border); }
+.gmail-subject { font-size: 20px; font-weight: 600; color: var(--frame-text-primary); margin-bottom: 8px; }
+.gmail-thread-meta { display: flex; gap: 16px; font-size: 13px; color: var(--frame-text-secondary); }
+.gmail-from { font-weight: 600; color: var(--frame-text-primary); }
+.gmail-to { color: var(--frame-text-secondary); }
+.gmail-time { color: var(--frame-text-muted); }
+.gmail-messages { padding: 16px; }
+.gmail-message { display: flex; gap: 12px; margin-bottom: 16px; }
+.gmail-message-dim { opacity: 0.6; }
+.gmail-sender-avatar { width: 40px; height: 40px; background: var(--frame-accent); border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px; font-weight: 600; }
+.gmail-message-content { flex: 1; }
+.gmail-sender-info { display: flex; gap: 8px; align-items: baseline; margin-bottom: 6px; }
+.gmail-sender-name { font-weight: 600; color: var(--frame-text-primary); font-size: 14px; }
+.gmail-sender-email { color: var(--frame-text-secondary); font-size: 13px; }
+.gmail-message-time { color: var(--frame-text-muted); font-size: 12px; margin-left: auto; }
+.gmail-message-body { color: var(--frame-text-primary); font-size: 14px; line-height: 1.5; }
+.gmail-link-preview { margin-top: 12px; padding: 12px; background: var(--frame-surface); border-radius: 8px; border: 1px solid var(--frame-border); }
+.gmail-title-section { font-size: 14px; font-weight: 600; color: var(--frame-text-primary); margin-bottom: 4px; }
+.gmail-domain { font-size: 12px; color: var(--frame-link-color); }
+.gmail-context { min-height: 400px; max-width: 800px; }
+
+/* Outlook Context (platform-frames.js - .ol- prefix) */
+.outlook-context { background: var(--frame-bg); border-radius: 8px; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+.ol-thread-header { padding: 16px; background: var(--frame-surface); border-bottom: 1px solid var(--frame-border); }
+.ol-subject { font-size: 18px; font-weight: 600; color: var(--frame-text-primary); margin-bottom: 8px; }
+.ol-thread-meta { display: flex; gap: 16px; font-size: 13px; color: var(--frame-text-secondary); }
+.ol-from { font-weight: 600; color: var(--frame-text-primary); }
+.ol-time { color: var(--frame-text-muted); }
+.ol-messages { padding: 16px; }
+.ol-message { display: flex; gap: 12px; margin-bottom: 16px; }
+.ol-message-dim { opacity: 0.6; }
+.ol-sender-avatar { width: 40px; height: 40px; background: var(--frame-accent); border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px; font-weight: 600; }
+.ol-message-content { flex: 1; }
+.ol-sender-info { display: flex; gap: 8px; align-items: baseline; margin-bottom: 6px; }
+.ol-sender-name { font-weight: 600; color: var(--frame-text-primary); font-size: 14px; }
+.ol-sender-email { color: var(--frame-text-secondary); font-size: 13px; }
+.ol-message-time { color: var(--frame-text-muted); font-size: 12px; margin-left: auto; }
+.ol-message-body { color: var(--frame-text-primary); font-size: 14px; line-height: 1.5; }
+.ol-link-preview { margin-top: 12px; padding: 12px; background: var(--frame-surface); border-radius: 6px; border: 1px solid var(--frame-border); }
+.ol-title-section { font-size: 14px; font-weight: 600; color: var(--frame-text-primary); margin-bottom: 4px; }
+.ol-domain { font-size: 12px; color: var(--frame-link-color); }
+.outlook-context { min-height: 400px; max-width: 800px; }

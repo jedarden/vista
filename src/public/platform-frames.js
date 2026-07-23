@@ -3352,6 +3352,18 @@ function buildLinkPreviewHTML(platformId, content, theme = 'dark') {
         </div>
       `;
 
+    case 'gmail':
+      return `
+        <div class="gmail-title-section">${esc(trunc(title, 70))}</div>
+        <div class="gmail-domain">${esc(domain)}</div>
+      `;
+
+    case 'outlook':
+      return `
+        <div class="ol-title-section">${esc(trunc(title, 70))}</div>
+        <div class="ol-domain">${esc(domain)}</div>
+      `;
+
     default:
       // Generic link preview
       return `

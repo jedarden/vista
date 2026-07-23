@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manual Platform Context Frames Verification</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      padding: 20px;
+      line-height: 1.5;
+      transition: background 0.3s, color 0.3s;
+    }
+    html[data-theme='light'] body {
+      background: #f8f9fa;
+      color: #212529;
+    }
+    h1 { color: #4ade80; margin-bottom: 10px; }
+    html[data-theme='light'] h1 { color: #22c55e; }
+    .subtitle { color: #888; margin-bottom: 30px; font-size: 0.9em; }
+    html[data-theme='light'] .subtitle { color: #495057; }
+
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 1000;
+    }
+
+    .test-section {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    html[data-theme='light'] .test-section {
+      background: rgba(0, 0, 0, 0.02);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    .test-controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .test-btn {
+      padding: 10px 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #e0e0e0;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+    html[data-theme='light'] .test-btn {
+      background: rgba(0, 0, 0, 0.05);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      color: #212529;
+    }
+    .test-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-1px);
+    }
+    html[data-theme='light'] .test-btn:hover {
+      background: rgba(0, 0, 0, 0.1);
+    }
+
+    .test-status {
+      margin: 15px 0;
+      padding: 15px;
+      border-radius: 8px;
+      background: rgba(74, 222, 128, 0.1);
+      border: 1px solid rgba(74, 222, 128, 0.3);
+    }
+    html[data-theme='light'] .test-status {
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 8px 0;
+    }
+    .status-passed { color: #4ade80; }
+    html[data-theme='light'] .status-passed { color: #22c55e; }
+    .status-failed { color: #ef4444; }
+
+    .instructions {
+      background: rgba(74, 222, 128, 0.1);
+      border: 1px solid rgba(74, 222, 128, 0.3);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 30px;
+    }
+    html[data-theme='light'] .instructions {
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+    .instructions h2 {
+      color: #4ade80;
+      margin-bottom: 15px;
+      font-size: 18px;
+    }
+    html[data-theme='light'] .instructions h2 { color: #22c55e; }
+    .instructions ul {
+      list-style: none;
+      padding: 0;
+    }
+    .instructions li {
+      padding: 8px 0;
+      font-size: 14px;
+    }
+    .instructions li:before {
+      content: "✅ ";
+      margin-right: 8px;
+    }
+
+    .embed-container {
+      margin: 20px 0;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    html[data-theme='light'] .embed-container {
+      border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .embed-header {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 10px 15px;
+      font-size: 12px;
+      color: #888;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    html[data-theme='light'] .embed-header {
+      background: rgba(0, 0, 0, 0.05);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    iframe {
+      width: 100%;
+      height: 600px;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" id="themeToggle">☀️ Light Mode</button>
+
+  <h1>🧪 Manual Platform Context Frames Verification</h1>
+  <p class="subtitle">Interactive testing of platform context frame functionality</p>
+
+  <div class="instructions">
+    <h2>📋 Verification Instructions</h2>
+    <ul>
+      <li>Use theme toggle button (top right) to switch between dark/light modes</li>
+      <li>Click the test buttons below to load different platform tests</li>
+      <li>Each embedded page allows you to test platform context frames</li>
+      <li>Verify that toggle buttons work smoothly without visual glitches</li>
+      <li>Check that theme changes apply to both card and context frame</li>
+      <li>Confirm all platforms render correctly in both modes</li>
+    </ul>
+  </div>
+
+  <div class="test-section">
+    <h2>🎯 Test Controls</h2>
+    <div class="test-controls">
+      <button class="test-btn" id="loadMainApp">Load Main App</button>
+      <button class="test-btn" id="loadVerificationPage">Load Verification Page</button>
+      <button class="test-btn" id="loadTestTwitter">Test Twitter Frame</button>
+      <button class="test-btn" id="loadTestReddit">Test Reddit Frame</button>
+      <button class="test-btn" id="runBasicTests">Run Basic Tests</button>
+    </div>
+
+    <div class="test-status" id="testStatus">
+      <div class="status-item">
+        <span class="status-passed">✓ Ready for testing</span>
+      </div>
+      <div class="status-item">
+        <span>Status: Click a test button above to begin</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="embed-container" id="embedContainer" style="display: none;">
+    <div class="embed-header" id="embedHeader">Loaded: main app</div>
+    <iframe id="testFrame" src="about:blank"></iframe>
+  </div>
+
+  <script src="platform-frames.js"></script>
+  <script>
+    const themeToggle = document.getElementById('themeToggle');
+    const testFrame = document.getElementById('testFrame');
+    const embedContainer = document.getElementById('embedContainer');
+    const embedHeader = document.getElementById('embedHeader');
+    const testStatus = document.getElementById('testStatus');
+    let currentTheme = 'dark';
+
+    // Theme toggle functionality
+    themeToggle.addEventListener('click', () => {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      themeToggle.textContent = currentTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+      updateTestStatus(`Theme switched to ${currentTheme} mode`);
+    });
+
+    function updateTestStatus(message, passed = true) {
+      const statusClass = passed ? 'status-passed' : 'status-failed';
+      const statusIcon = passed ? '✓' : '❌';
+      testStatus.innerHTML = `
+        <div class="status-item">
+          <span class="${statusClass}">${statusIcon} ${message}</span>
+        </div>
+        <div class="status-item">
+          <span>Timestamp: ${new Date().toLocaleTimeString()}</span>
+        </div>
+      `;
+    }
+
+    function loadFrame(src, title) {
+      embedContainer.style.display = 'block';
+      testFrame.src = src;
+      embedHeader.textContent = `Loaded: ${title}`;
+      updateTestStatus(`Loaded ${title}`, true);
+    }
+
+    document.getElementById('loadMainApp').addEventListener('click', () => {
+      loadFrame('/', 'Main App - URL Inspector');
+    });
+
+    document.getElementById('loadVerificationPage').addEventListener('click', () => {
+      loadFrame('/verify-all-43-platforms-complete.html', 'Verification Page - All 43 Platforms');
+    });
+
+    document.getElementById('loadTestTwitter').addEventListener('click', () => {
+      loadFrame('/test-twitter-frame.html', 'Twitter Frame Test');
+    });
+
+    document.getElementById('loadTestReddit').addEventListener('click', () => {
+      loadFrame('/test-reddit-frame.html', 'Reddit Frame Test');
+    });
+
+    document.getElementById('runBasicTests').addEventListener('click', () => {
+      updateTestStatus('Running basic structure tests...');
+
+      const testResults = [];
+
+      // Test 1: Check platform-frames.js structure
+      if (typeof PLATFORM_FRAMES === 'object' && PLATFORM_FRAMES !== null) {
+        const platformCount = Object.keys(PLATFORM_FRAMES).length;
+        testResults.push({ test: 'Platform frames structure', passed: true, details: `${platformCount} platforms defined` });
+      } else {
+        testResults.push({ test: 'Platform frames structure', passed: false, details: 'PLATFORM_FRAMES not found' });
+      }
+
+      // Test 2: Check theme variables
+      let themeVarTests = 0;
+      let themeVarTestsPassed = 0;
+      for (const [platformId, platform] of Object.entries(PLATFORM_FRAMES || {})) {
+        if (platform.themeVars && platform.themeVars.dark && platform.themeVars.light) {
+          themeVarTestsPassed++;
+        }
+        themeVarTests++;
+      }
+      testResults.push({
+        test: 'Theme variables',
+        passed: themeVarTestsPassed === themeVarTests,
+        details: `${themeVarTestsPassed}/${themeVarTests} platforms have theme variables`
+      });
+
+      // Test 3: Check chrome templates
+      let chromeTests = 0;
+      let chromeTestsPassed = 0;
+      for (const [platformId, platform] of Object.entries(PLATFORM_FRAMES || {})) {
+        if (platform.chrome && typeof platform.chrome === 'string') {
+          chromeTestsPassed++;
+        }
+        chromeTests++;
+      }
+      testResults.push({
+        test: 'Chrome templates',
+        passed: chromeTestsPassed === chromeTests,
+        details: `${chromeTestsPassed}/${chromeTests} platforms have chrome templates`
+      });
+
+      // Display results
+      const allPassed = testResults.every(r => r.passed);
+      const statusHtml = testResults.map(r => {
+        const statusClass = r.passed ? 'status-passed' : 'status-failed';
+        const statusIcon = r.passed ? '✓' : '❌';
+        return `<div class="status-item">
+          <span class="${statusClass}">${statusIcon} ${r.test}: ${r.details}</span>
+        </div>`;
+      }).join('');
+
+      testStatus.innerHTML = statusHtml + `
+        <div class="status-item">
+          <span class="${allPassed ? 'status-passed' : 'status-failed'}">
+            ${allPassed ? '✅ All basic tests passed' : '❌ Some tests failed'}
+          </span>
+        </div>
+      `;
+
+      if (allPassed) {
+        console.log('✅ Basic structure tests passed');
+      } else {
+        console.error('❌ Some basic tests failed');
+      }
+    });
+
+    console.log('✅ Manual verification page loaded');
+    console.log('📊 Platform frames available:', Object.keys(PLATFORM_FRAMES || {}).length);
+  </script>
+</body>
+</html>

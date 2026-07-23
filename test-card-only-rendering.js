@@ -21,7 +21,7 @@ const CHROME_EXECUTABLE = '/nix/store/7xr3qnq93srn4dgak7qw74dw836wpp1y-chromium-
 const PLATFORMS_TO_TEST = [
   'google', 'facebook', 'twitter', 'linkedin', 'instagram', 'youtube',
   'slack', 'discord', 'imessage', 'whatsapp', 'telegram', 'signal',
-  'microsoft-teams', 'google-chat', 'zoom-chat', 'line', 'kakaotalk',
+  'microsoft-teams', 'google-chat', 'zoom-chat', 'line', 'kakao',
   'tiktok', 'pinterest', 'bluesky', 'mastodon', 'threads', 'tumblr',
   'reddit', 'github', 'gitlab', 'stackoverflow', 'hackernews',
   'producthunt', 'devto', 'medium'

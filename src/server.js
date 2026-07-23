@@ -130,7 +130,12 @@ app.post('/api/preview', async (req, res) => {
  * GET /api/platforms — return the list of supported platforms
  */
 app.get('/api/platforms', (req, res) => {
-  res.json({ platforms: PLATFORMS });
+  const { SKELETON_TYPES, PLATFORM_SKELETON_MAP } = require('./skeleton-types');
+  res.json({
+    platforms: PLATFORMS,
+    skeletonTypes: SKELETON_TYPES,
+    platformSkeletonMap: PLATFORM_SKELETON_MAP
+  });
 });
 
 /**
@@ -1642,6 +1647,19 @@ async function buildHeadersPreviewResult({ html, baseUrl, redirectChain, respons
   // Performance assessment
   const performanceAssessment = assessPerformanceHeaders(responseHeaders);
 
+  // Diagnostics — the full /api/preview endpoint computes detectMistakes()
+  // with html+meta+imageProbe+responseHeaders+redirectChain. The split /headers
+  // endpoint has everything EXCEPT the probed image (which lives in /images),
+  // so it computes the text/header/redirect diagnostics with imageProbe=null.
+  // This populates the Diagnostics tab at ~600ms — before image probing
+  // (1–3s) finishes — matching the plan's progressive loading sequence. The
+  // image-dimension findings are layered in later by /images, whose diagnostics
+  // mergeData prefers as a superset. Without this, the progressive flow always
+  // rendered an empty diagnostics tab ([] from mergeData's default). (bf-59t)
+  const diagnostics = detectMistakes(html, meta, null, responseHeaders, redirectChain);
+  const scoring = scoreAll(meta, null);
+  const autoFixes = buildAutoFixes(meta, diagnostics, scoring);
+
   return {
     url: sourceUrl,
     finalUrl: baseUrl,
@@ -1687,6 +1705,17 @@ async function buildHeadersPreviewResult({ html, baseUrl, redirectChain, respons
     },
     // Full analysis from header-analyzer
     analysis: headerAnalysis,
+    // Exposed under both keys: `analysis` is this endpoint's own label,
+    // `headerAnalysis` is the key the full /api/preview endpoint and the
+    // client's renderRedirects() read. (bf-59t)
+    headerAnalysis,
+    // Raw response headers — renderRedirects() and the redirect-chain view
+    // consume data.responseHeaders; previously absent in the progressive flow.
+    responseHeaders,
+    // Diagnostics (text/header/redirect; imageProbe=null) + derived fixes,
+    // so the Diagnostics tab and Fix buttons populate at the headers step.
+    diagnostics,
+    autoFixes,
     redirectChain,
   };
 }
@@ -1847,10 +1876,38 @@ async function buildImagePreviewResult({ html, baseUrl, redirectChain, responseH
   // Build card-specific recommendations
   const cardRecommendations = buildCardRecommendations(meta, results);
 
+  // imageProbe — the full /api/preview endpoint returns a single probe of the
+  // og:image under `imageProbe`, and the client reads data.imageProbe in ~12
+  // places (renderPlatformCard, renderImageInfo, post-edit re-scoring via
+  // scoreAll(modifiedMeta, currentData.imageProbe), screenshots). The split
+  // /images endpoint exposes that same probe under images.og — but with an
+  // extra cropRatios field. Strip it so the shape matches the full endpoint
+  // exactly, then surface it at the top level so mergeData() can bridge it.
+  // Previously mergeData read imagesData.imageProbe (always undefined), so the
+  // probed dimensions were fetched then discarded and cards never filled in.
+  // (bf-59t)
+  let imageProbe = null;
+  if (results.ogImage) {
+    const { cropRatios, ...probeWithoutRatios } = results.ogImage;
+    imageProbe = probeWithoutRatios;
+  }
+
+  // Diagnostics computed WITH the real imageProbe (image dimensions, file
+  // size, response time, content-type findings) plus responseHeaders and
+  // redirectChain — a superset of the /headers diagnostics. mergeData prefers
+  // this when available so the Diagnostics tab gains image findings once
+  // probing completes. (bf-59t)
+  const diagnostics = detectMistakes(html, meta, imageProbe, responseHeaders, redirectChain);
+  const scoring = scoreAll(meta, imageProbe);
+  const autoFixes = buildAutoFixes(meta, diagnostics, scoring);
+
   return {
     url: sourceUrl,
     finalUrl: baseUrl,
     statusCode,
+    // Top-level imageProbe bridges to the client's existing data.imageProbe
+    // contract (same shape as the full /api/preview endpoint).
+    imageProbe,
     // Image probe results
     images: {
       og: results.ogImage,
@@ -1861,6 +1918,10 @@ async function buildImagePreviewResult({ html, baseUrl, redirectChain, responseH
     },
     // Card-specific recommendations based on image dimensions
     recommendations: cardRecommendations,
+    // Full diagnostics (with imageProbe) + derived fixes, layered in once
+    // image probing completes.
+    diagnostics,
+    autoFixes,
     redirectChain,
   };
 }

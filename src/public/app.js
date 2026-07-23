@@ -11,6 +11,25 @@ let isFreshFetch = true; // Track whether current inspection is a fresh fetch (v
 let currentTab = 'previews'; // Active tab state for hash encoding
 let pendingWhatIfTags = null; // Store pending What If tags from hash before data loads
 
+// ── Platform Config (fetched from server) ──
+let PLATFORM_SKELETON_TYPES = null; // Will be fetched from /api/platforms
+
+/**
+ * Fetch platform configuration from the server
+ * This ensures the client uses the same platform→skeleton-type mapping as the server
+ */
+async function fetchPlatformConfig() {
+  try {
+    const response = await fetch('/api/platforms');
+    const data = await response.json();
+    PLATFORM_SKELETON_TYPES = data.platformSkeletonMap;
+  } catch (err) {
+    console.error('Failed to fetch platform config:', err);
+    // Fallback to minimal mapping if fetch fails
+    PLATFORM_SKELETON_TYPES = { google: 'text-only' };
+  }
+}
+
 // ── Debug Flags ──
 /**
  * DEBUG_SMART_ORDERING: Enable detailed logging for smart ordering functionality
@@ -1255,47 +1274,11 @@ const PLATFORM_NAMES = {
 };
 
 // ── Platform Skeleton Types ──
-// Defines which skeleton layout each platform uses during loading state
+// Fetched from /api/platforms endpoint
 // 'tall': Image on top (Facebook, Twitter, LinkedIn, Reddit, etc.)
 // 'short': Thumbnail on left (WhatsApp, Slack, Notion, etc.)
 // 'text-only': No image region (Google search results)
-const PLATFORM_SKELETON_TYPES = {
-  // Social & Microblogging
-  google: 'text-only',
-  facebook: 'tall',
-  twitter: 'tall',
-  linkedin: 'tall',
-  reddit: 'tall',
-  mastodon: 'tall',
-  bluesky: 'tall',
-  threads: 'tall',
-  tumblr: 'tall',
-  pinterest: 'tall',
-  // Messaging
-  slack: 'short',
-  discord: 'tall',
-  whatsapp: 'short',
-  imessage: 'short',
-  telegram: 'tall',
-  signal: 'short',
-  teams: 'tall',
-  googlechat: 'tall',
-  zoom: 'tall',
-  line: 'tall',
-  kakaotalk: 'tall',
-  // Collaboration & Productivity
-  notion: 'short',
-  jira: 'short',
-  github: 'tall',
-  trello: 'short',
-  figma: 'short',
-  // Content, Email & RSS
-  medium: 'tall',
-  substack: 'tall',
-  outlook: 'short',
-  gmail: 'short',
-  feedly: 'short',
-};
+// PLATFORM_SKELETON_TYPES is populated by fetchPlatformConfig() from server
 
 // ── Platform Crop Specifications ──
 // Each platform has: aspect ratio (min/max), crop mode (center/cover/contain), display size

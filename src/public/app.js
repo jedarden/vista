@@ -1577,6 +1577,8 @@ function showSkeletonCards() {
 
 function renderPreviews(data) {
   previewGrid.innerHTML = '';
+  let globalIndex = 0; // Global index for stagger delay calculation
+
   PLATFORM_GROUPS.forEach((group, gi) => {
     const groupEl = document.createElement('div');
     groupEl.className = 'platform-group' + (group.collapsed ? ' collapsed' : '');
@@ -1617,9 +1619,11 @@ function renderPreviews(data) {
       const scoreData = data.scoring.scores[pid];
       if (!scoreData) return;
       // Respect prefers-reduced-motion for staggered animation delay
-      const animDelay = prefersReducedMotion() ? 0 : i * 60;
+      // 50ms delay per card using global index (not per-group index)
+      const animDelay = prefersReducedMotion() ? 0 : globalIndex * 50;
       const card = buildCard(pid, scoreData, data, animDelay, group.id);
       row.appendChild(card);
+      globalIndex++;
     });
 
     groupEl.appendChild(row);
@@ -1719,7 +1723,7 @@ function renderTextPreviewsOnly(data) {
 
         // After fade-out, replace with text-only card
         setTimeout(() => {
-          const textCard = buildTextOnlyCard(pid, scoreData, data, reducedMotion ? 0 : i * 60, group.id);
+          const textCard = buildTextOnlyCard(pid, scoreData, data, animDelay, group.id);
 
           // Add fade-in animation
           if (!reducedMotion) {
@@ -1731,7 +1735,7 @@ function renderTextPreviewsOnly(data) {
         }, reducedMotion ? 0 : 150 + animDelay);
       } else {
         // No skeleton found, directly add text-only card
-        const textCard = buildTextOnlyCard(pid, scoreData, data, reducedMotion ? 0 : i * 60, group.id);
+        const textCard = buildTextOnlyCard(pid, scoreData, data, animDelay, group.id);
 
         if (!reducedMotion) {
           textCard.classList.add('skeleton-fade-in');

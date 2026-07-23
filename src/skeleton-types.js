@@ -62,6 +62,34 @@ const PLATFORM_SKELETON_MAP = {
 
   // RSS - thumbnail-left for feed readers
   'feedly': SKELETON_TYPES.SHORT,
+
+  // Productivity & Project Management - thumbnail-left
+  'asana': SKELETON_TYPES.SHORT,
+  'evernote': SKELETON_TYPES.SHORT,
+
+  // Content Platforms - tall for article/blog content
+  'devto': SKELETON_TYPES.TALL,
+
+  // Code Repositories - thumbnail-left
+  'gitlab': SKELETON_TYPES.SHORT,
+
+  // Social & Discussion - tall for content-heavy feeds
+  'hackernews': SKELETON_TYPES.TALL,
+
+  // Image & Video Platforms - tall for media content
+  'instagram': SKELETON_TYPES.TALL,
+  'tiktok': SKELETON_TYPES.TALL,
+  'youtube': SKELETON_TYPES.TALL,
+
+  // Development Tools - thumbnail-left
+  'jetbrains': SKELETON_TYPES.SHORT,
+  'vscode': SKELETON_TYPES.SHORT,
+
+  // Product Discovery - tall for product cards
+  'producthunt': SKELETON_TYPES.TALL,
+
+  // Q&A - thumbnail-left for text-focused content
+  'stackoverflow': SKELETON_TYPES.SHORT,
 };
 
 /**

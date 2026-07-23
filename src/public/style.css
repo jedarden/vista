@@ -5351,7 +5351,11 @@ html[data-theme='light'] .image-diff-slider-handle {
 .vs-terminal-success { color: #6a9955; }
 
 /* JetBrains IDE Context (platform-frames.js - .jb- prefix) */
-.jetbrains-context { display: flex; min-height: 400px; background: var(--frame-bg); border-radius: 8px; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+.jetbrains-context { display: flex; flex-direction: column; min-height: 400px; background: var(--frame-bg); border-radius: 8px; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+.jb-navigation-bar { height: 28px; background: var(--frame-surface); border-bottom: 1px solid var(--frame-border); display: flex; align-items: center; padding: 0 8px; gap: 4px; flex-shrink: 0; overflow-x: auto; }
+.jb-menu-item { padding: 4px 12px; font-size: 12px; color: var(--frame-text-primary); cursor: pointer; white-space: nowrap; border-radius: 4px; }
+.jb-menu-item:hover { background: var(--frame-accent-bg); color: var(--frame-accent); }
+.jb-content-area { flex: 1; display: flex; min-height: 0; }
 .jb-sidebar { width: 200px; background: var(--frame-surface); border-right: 1px solid var(--frame-border); padding: 8px 0; flex-shrink: 0; overflow-y: auto; }
 .jb-project-header { font-size: 12px; font-weight: 600; color: var(--frame-text-primary); padding: 8px 16px 4px; border-bottom: 1px solid var(--frame-border); }
 .jb-explorer { font-size: 11px; font-weight: 600; color: var(--frame-text-secondary); text-transform: uppercase; padding: 8px 16px 4px; letter-spacing: 0.5px; }

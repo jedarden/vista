@@ -222,26 +222,62 @@
       <div>
         <div class="platform-label">JetBrains IDE</div>
         <div class="jetbrains-context dark-theme" style="--frame-bg: #2b2b2b; --frame-surface: #313335; --frame-border: #4e5254; --frame-text-primary: #a9b7c6; --frame-text-secondary: #808080; --frame-text-muted: #6e6e6e; --frame-accent: #6c8eba; --frame-accent-bg: #4e6a91; --frame-link-color: #589df6; --frame-divider: #4e5254; --frame-input-bg: #3c3f41; --frame-overlay: rgba(0, 0, 0, 0.6);">
-          <div class="jb-sidebar">
-            <div class="jb-project">MyProject</div>
-            <div class="jb-explorer">Project Files</div>
-            <div class="jb-file jb-file-active">Main.java</div>
-            <div class="jb-file">README.md</div>
+          <div class="jb-navigation-bar">
+            <span class="jb-menu-item">File</span>
+            <span class="jb-menu-item">Edit</span>
+            <span class="jb-menu-item">View</span>
+            <span class="jb-menu-item">Navigate</span>
+            <span class="jb-menu-item">Code</span>
+            <span class="jb-menu-item">Refactor</span>
+            <span class="jb-menu-item">Build</span>
+            <span class="jb-menu-item">Run</span>
+            <span class="jb-menu-item">Tools</span>
           </div>
-          <div class="jb-editor">
-            <div class="jb-tab-bar">
-              <div class="jb-tab jb-tab-active">Main.java</div>
-            </div>
-            <div class="jb-content">
-              <div class="jb-comment jb-comment-dim">
-                <span class="jb-comment-author">Developer</span>
-                <span class="jb-comment-time">2 hours ago</span>
-                <div class="jb-comment-body">// TODO: Review this implementation</div>
+          <div class="jb-content-area">
+            <div class="jb-sidebar">
+              <div class="jb-project-header">MyProject</div>
+              <div class="jb-explorer">Project</div>
+              <div class="jb-file-tree">
+                <div class="jb-folder">
+                  <div class="jb-folder-name">src</div>
+                  <div class="jb-file jb-file-active">Main.java</div>
+                  <div class="jb-file">App.java</div>
+                </div>
+                <div class="jb-folder">
+                  <div class="jb-folder-name">test</div>
+                  <div class="jb-file">Test.java</div>
+                </div>
               </div>
-              <div class="jb-comment">
-                <span class="jb-comment-author">You</span>
-                <span class="jb-comment-time">Just now</span>
-                <div class="jb-comment-body">// Updated the algorithm for better performance</div>
+            </div>
+            <div class="jb-main-area">
+              <div class="jb-editor">
+                <div class="jb-tab-bar">
+                  <div class="jb-tab jb-tab-active">Main.java</div>
+                  <div class="jb-tab">README.md</div>
+                </div>
+                <div class="jb-content">
+                  <div class="jb-comment jb-comment-dim">
+                    <span class="jb-comment-author">Developer</span>
+                    <span class="jb-comment-time">2 hours ago</span>
+                    <div class="jb-comment-body">// TODO: Review this implementation</div>
+                  </div>
+                  <div class="jb-comment">
+                    <span class="jb-comment-author">You</span>
+                    <span class="jb-comment-time">Just now</span>
+                    <div class="jb-comment-body">// Updated the algorithm for better performance</div>
+                  </div>
+                </div>
+              </div>
+              <div class="jb-status-bar">
+                <div class="jb-status-left">
+                  <span class="jb-status-item">✓</span>
+                  <span class="jb-status-item">JUnit: OK</span>
+                </div>
+                <div class="jb-status-right">
+                  <span class="jb-status-item">Line 42</span>
+                  <span class="jb-status-item">UTF-8</span>
+                  <span class="jb-status-item">4 spaces</span>
+                </div>
               </div>
             </div>
           </div>

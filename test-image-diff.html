@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Image Diff Component</title>
+  <link rel="stylesheet" href="src/public/style.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: var(--bg);
+    }
+
+    .test-section {
+      margin: 40px 0;
+    }
+
+    .test-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 15px;
+      color: var(--text);
+    }
+
+    .test-description {
+      color: var(--text2);
+      margin-bottom: 20px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .test-result {
+      padding: 12px 16px;
+      border-radius: 6px;
+      margin: 10px 0;
+      font-size: 14px;
+    }
+
+    .test-result.pass {
+      background: rgba(34,197,94,0.15);
+      color: #22c55e;
+      border: 1px solid rgba(34,197,94,0.4);
+    }
+
+    .test-result.fail {
+      background: rgba(239,68,68,0.15);
+      color: #ef4444;
+      border: 1px solid rgba(239,68,68,0.4);
+    }
+
+    .test-result.info {
+      background: rgba(91,141,238,0.15);
+      color: #5b8dee;
+      border: 1px solid rgba(91,141,238,0.4);
+    }
+
+    .manual-controls {
+      display: flex;
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .manual-controls button {
+      padding: 8px 16px;
+      border-radius: 6px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .manual-controls button:hover {
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+  <h1>Image Diff Component Test Suite</h1>
+  <p>This page tests the image diff overlay comparison functionality.</p>
+
+  <!-- Test 1: Basic component creation -->
+  <div class="test-section">
+    <div class="test-title">Test 1: Basic Component Creation</div>
+    <div class="test-description">
+      Verify that the imageDiff.create function exists and can create a component with valid parameters.
+    </div>
+    <div id="test1-result" class="test-result info">Running...</div>
+  </div>
+
+  <!-- Test 2: Component with test images -->
+  <div class="test-section">
+    <div class="test-title">Test 2: Component with Test Images</div>
+    <div class="test-description">
+      Create a component with colored placeholder images and verify it renders correctly.
+    </div>
+    <div id="test2-container"></div>
+    <div id="test2-result" class="test-result info">Running...</div>
+  </div>
+
+  <!-- Test 3: Mode switching -->
+  <div class="test-section">
+    <div class="test-title">Test 3: Mode Switching</div>
+    <div class="test-description">
+      Verify that the component can switch between overlay, side-by-side, and slider modes.
+    </div>
+    <div id="test3-container"></div>
+    <div class="manual-controls">
+      <button onclick="switchMode('overlay')">Switch to Overlay</button>
+      <button onclick="switchMode('side-by-side')">Switch to Side-by-Side</button>
+      <button onclick="switchMode('slider')">Switch to Slider</button>
+    </div>
+    <div id="test3-result" class="test-result info">Running...</div>
+  </div>
+
+  <!-- Test 4: Slider interaction -->
+  <div class="test-section">
+    <div class="test-title">Test 4: Slider Interaction</div>
+    <div class="test-description">
+      Verify that the slider can be dragged and updates the clip-path correctly.
+    </div>
+    <div id="test4-container"></div>
+    <div id="test4-result" class="test-result info">Running...</div>
+  </div>
+
+  <!-- Test 5: Responsive behavior -->
+  <div class="test-section">
+    <div class="test-title">Test 5: Responsive Behavior</div>
+    <div class="test-description">
+      Verify that the component works correctly on different screen sizes.
+    </div>
+    <div id="test5-container"></div>
+    <div id="test5-result" class="test-result info">Resize browser window and verify component adapts</div>
+  </div>
+
+  <script src="src/public/image-diff.js"></script>
+  <script>
+    // Create test SVG images with different colors
+    function createTestSvg(color, text) {
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300">
+        <rect width="100%" height="100%" fill="${color}"/>
+        <text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="white" font-size="24" font-family="sans-serif">${text}</text>
+      </svg>`;
+      return `data:image/svg+xml;base64,${btoa(svg)}`;
+    }
+
+    const testImages = {
+      before: createTestSvg('#3b82f6', 'BEFORE'),
+      after: createTestSvg('#10b981', 'AFTER')
+    };
+
+    // Test 1: Basic component creation
+    function test1() {
+      const result = document.getElementById('test1-result');
+
+      try {
+        if (typeof window.imageDiff === 'undefined') {
+          result.className = 'test-result fail';
+          result.textContent = 'FAIL: window.imageDiff is not defined';
+          return;
+        }
+
+        if (typeof window.imageDiff.create !== 'function') {
+          result.className = 'test-result fail';
+          result.textContent = 'FAIL: imageDiff.create is not a function';
+          return;
+        }
+
+        // Try to create a component
+        const component = window.imageDiff.create({
+          before: testImages.before,
+          after: testImages.after,
+          platformId: 'test',
+          platformName: 'Test Platform'
+        });
+
+        if (!component) {
+          result.className = 'test-result fail';
+          result.textContent = 'FAIL: create returned null';
+          return;
+        }
+
+        if (!(component instanceof HTMLElement)) {
+          result.className = 'test-result fail';
+          result.textContent = 'FAIL: create did not return an HTMLElement';
+          return;
+        }
+
+        result.className = 'test-result pass';
+        result.textContent = 'PASS: Component created successfully';
+      } catch (e) {
+        result.className = 'test-result fail';
+        result.textContent = `FAIL: Error - ${e.message}`;
+      }
+    }
+
+    // Test 2: Component rendering
+    function test2() {
+      const result = document.getElementById('test2-result');
+      const container = document.getElementById('test2-container');
+
+      try {
+        const component = window.imageDiff.create({
+          before: testImages.before,
+          after: testImages.after,
+          platformId: 'test-render',
+          platformName: 'Test Platform Rendering'
+        });
+
+        container.appendChild(component);
+
+        // Check for expected elements
+        const header = component.querySelector('.image-diff-header');
+        const overlayView = component.querySelector('.image-diff-overlay');
+        const sideBySideView = component.querySelector('.image-diff-side-by-side');
+        const toggles = component.querySelectorAll('.image-diff-toggle');
+
+        if (!header) {
+          result.className = 'test-result fail';
+          result.textContent = 'FAIL: Missing header element';
+          return;
+        }
+
+        if (!overlayView) {
+          result.className = 'test-result fail';
+          result.textContent = 'FAIL: Missing overlay view';
+          return;
+        }
+
+        if (!sideBySideView) {
+          result.className = 'test-result fail';
+          result.textContent = 'FAIL: Missing side-by-side view';
+          return;
+        }
+
+        if (toggles.length !== 3) {
+          result.className = 'test-result fail';
+          result.textContent = `FAIL: Expected 3 toggles, got ${toggles.length}`;
+          return;
+        }
+
+        result.className = 'test-result pass';
+        result.textContent = 'PASS: Component rendered with all expected elements';
+      } catch (e) {
+        result.className = 'test-result fail';
+        result.textContent = `FAIL: Error - ${e.message}`;
+      }
+    }
+
+    // Test 3: Mode switching
+    let test3Component;
+
+    function test3() {
+      const result = document.getElementById('test3-result');
+      const container = document.getElementById('test3-container');
+
+      try {
+        test3Component = window.imageDiff.create({
+          before: testImages.before,
+          after: testImages.after,
+          platformId: 'test-modes',
+          platformName: 'Test Platform Modes'
+        });
+
+        container.appendChild(test3Component);
+
+        result.className = 'test-result pass';
+        result.textContent = 'PASS: Component created for mode testing. Use buttons above to test mode switching.';
+      } catch (e) {
+        result.className = 'test-result fail';
+        result.textContent = `FAIL: Error - ${e.message}`;
+      }
+    }
+
+    function switchMode(mode) {
+      if (!test3Component) return;
+
+      const toggles = test3Component.querySelectorAll('.image-diff-toggle');
+      const targetToggle = Array.from(toggles).find(t => t.dataset.mode === mode);
+
+      if (targetToggle) {
+        targetToggle.click();
+        document.getElementById('test3-result').textContent = `Switched to ${mode} mode`;
+      }
+    }
+
+    // Test 4: Slider interaction
+    function test4() {
+      const result = document.getElementById('test4-result');
+      const container = document.getElementById('test4-container');
+
+      try {
+        const component = window.imageDiff.create({
+          before: testImages.before,
+          after: testImages.after,
+          platformId: 'test-slider',
+          platformName: 'Test Platform Slider',
+          mode: 'slider',
+          initialPosition: 50
+        });
+
+        container.appendChild(component);
+
+        // Find slider elements
+        const slider = component.querySelector('.image-diff-slider');
+        const sliderHandle = component.querySelector('.image-diff-slider-handle');
+        const afterImage = component.querySelector('.image-diff-after');
+
+        if (!slider) {
+          result.className = 'test-result fail';
+          result.textContent = 'FAIL: Missing slider element';
+          return;
+        }
+
+        if (!sliderHandle) {
+          result.className = 'test-result fail';
+          result.textContent = 'FAIL: Missing slider handle';
+          return;
+        }
+
+        if (!afterImage) {
+          result.className = 'test-result fail';
+          result.textContent = 'FAIL: Missing after image';
+          return;
+        }
+
+        result.className = 'test-result pass';
+        result.textContent = 'PASS: Slider component rendered. Try dragging the slider handle!';
+      } catch (e) {
+        result.className = 'test-result fail';
+        result.textContent = `FAIL: Error - ${e.message}`;
+      }
+    }
+
+    // Test 5: Responsive behavior
+    function test5() {
+      const result = document.getElementById('test5-result');
+      const container = document.getElementById('test5-container');
+
+      try {
+        const component = window.imageDiff.create({
+          before: testImages.before,
+          after: testImages.after,
+          platformId: 'test-responsive',
+          platformName: 'Test Platform Responsive'
+        });
+
+        container.appendChild(component);
+
+        result.className = 'test-result pass';
+        result.textContent = 'PASS: Component rendered. Resize window to test responsive behavior.';
+      } catch (e) {
+        result.className = 'test-result fail';
+        result.textContent = `FAIL: Error - ${e.message}`;
+      }
+    }
+
+    // Run tests
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(test1, 100);
+      setTimeout(test2, 200);
+      setTimeout(test3, 300);
+      setTimeout(test4, 400);
+      setTimeout(test5, 500);
+    });
+  </script>
+</body>
+</html>

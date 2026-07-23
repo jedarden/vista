@@ -5515,6 +5515,67 @@ function renderMetaTagDiff(meta1, meta2) {
   }
 }
 
+/**
+ * Generate screenshot data URLs for platform comparison
+ * Creates data URLs from the rendered platform card HTML
+ * @param {string} pid - Platform ID
+ * @param {Object} data1 - Before data
+ * @param {Object} data2 - After data
+ * @returns {Object} Object with before and after screenshot data URLs
+ */
+function generatePlatformScreenshotUrls(pid, data1, data2) {
+  // Render platform cards as HTML
+  const beforeCardHtml = renderPlatformCard(
+    pid,
+    data1.meta || {},
+    data1.imageProbe,
+    data1.finalUrl,
+    data1.dominantColor
+  );
+
+  const afterCardHtml = renderPlatformCard(
+    pid,
+    data2.meta || {},
+    data2.imageProbe,
+    data2.finalUrl,
+    data2.dominantColor
+  );
+
+  // Create simple SVG data URLs with embedded HTML
+  const beforeDataUrl = createHtmlDataUrl(beforeCardHtml, data1.dominantColor || '#5865f2');
+  const afterDataUrl = createHtmlDataUrl(afterCardHtml, data2.dominantColor || '#5865f2');
+
+  return {
+    before: beforeDataUrl,
+    after: afterDataUrl
+  };
+}
+
+/**
+ * Create a data URL from HTML content using SVG foreignObject
+ * @param {string} html - HTML content to embed
+ * @param {string} backgroundColor - Background color
+ * @returns {string} SVG data URL
+ */
+function createHtmlDataUrl(html, backgroundColor = '#5865f2') {
+  // Escape the HTML for use in SVG foreignObject
+  const escapedHtml = html
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+  // Create SVG with embedded HTML
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300">
+    <foreignObject width="100%" height="100%">
+      <div xmlns="http://www.w3.org/1999/xhtml" style="background:${backgroundColor};width:100%;height:100%;padding:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#e8eaf0;box-sizing:border-box;">
+        ${html}
+      </div>
+    </foreignObject>
+  </svg>`;
+
+  return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svg)))}`;
+}
+
 function renderPlatformComparison(data1, data2) {
   const grid = document.getElementById('platformComparisonGrid');
   if (!grid) return;
@@ -5606,6 +5667,25 @@ function renderPlatformComparison(data1, data2) {
     cardsContainer.appendChild(afterCard);
 
     row.appendChild(cardsContainer);
+
+    // Add screenshot comparison if imageDiff module is available
+    if (window.imageDiff && typeof window.imageDiff.create === 'function') {
+      const screenshotUrls = generatePlatformScreenshotUrls(pid, data1, data2);
+      if (screenshotUrls.before && screenshotUrls.after) {
+        const imageDiffContainer = window.imageDiff.create({
+          before: screenshotUrls.before,
+          after: screenshotUrls.after,
+          platformId: pid,
+          platformName: PLATFORM_NAMES[pid] || pid,
+          mode: 'overlay',
+          initialPosition: 50
+        });
+        if (imageDiffContainer) {
+          row.appendChild(imageDiffContainer);
+        }
+      }
+    }
+
     grid.appendChild(row);
   });
 }

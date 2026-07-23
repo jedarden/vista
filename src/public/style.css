@@ -21,6 +21,10 @@
   --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'SF Mono', 'Fira Code', Consolas, monospace;
   --transition: 0.18s ease;
+  /* Skeleton crossfade transition utilities */
+  --skeleton-crossfade-duration: 150ms;
+  --skeleton-crossfade-distance: 4px;
+  --skeleton-crossfade-easing: ease-out;
 }
 
 /* Light mode theme */
@@ -310,7 +314,7 @@ html[data-theme='light'] .theme-icon-dark { display: inline; }
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  transition: opacity 150ms ease, transform 150ms ease;
+  transition: opacity var(--skeleton-crossfade-duration) var(--skeleton-crossfade-easing), transform var(--skeleton-crossfade-duration) var(--skeleton-crossfade-easing);
 }
 
 /* Skeleton header */
@@ -543,19 +547,19 @@ html[data-theme='light'] .theme-icon-dark { display: inline; }
 /* Skeleton to content crossfade */
 .skeleton-fade-out {
   opacity: 0;
-  transform: translateY(4px);
+  transform: translateY(var(--skeleton-crossfade-distance));
   pointer-events: none;
-  transition: opacity 150ms ease, transform 150ms ease;
+  transition: opacity var(--skeleton-crossfade-duration) var(--skeleton-crossfade-easing), transform var(--skeleton-crossfade-duration) var(--skeleton-crossfade-easing);
 }
 
 .skeleton-fade-in {
-  animation: contentFadeIn 150ms ease forwards;
+  animation: contentFadeIn var(--skeleton-crossfade-duration) var(--skeleton-crossfade-easing) forwards;
 }
 
 @keyframes contentFadeIn {
   from {
     opacity: 0;
-    transform: translateY(4px);
+    transform: translateY(var(--skeleton-crossfade-distance));
   }
   to {
     opacity: 1;
@@ -565,6 +569,11 @@ html[data-theme='light'] .theme-icon-dark { display: inline; }
 
 /* Respect prefers-reduced-motion */
 @media (prefers-reduced-motion: reduce) {
+  :root {
+    --skeleton-crossfade-duration: 0ms;
+    --skeleton-crossfade-distance: 0px;
+    --skeleton-crossfade-easing: linear;
+  }
   /* Disable all skeleton animations */
   .platform-skeleton-card,
   .skeleton-fade-out,
@@ -3187,6 +3196,44 @@ html[data-theme='dark'] .pin-saver-name {
 .platform-comparison-change.improved { color: var(--green); }
 .platform-comparison-change.degraded { color: var(--red); }
 .platform-comparison-change.unchanged { color: var(--text3); }
+
+/* Platform diff markers */
+.platform-comparison-diff-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-left: 8px;
+  align-items: center;
+}
+.diff-field-changed {
+  background: rgba(34,197,94,0.15);
+  color: var(--green);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+.platform-comparison-missing-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+  margin-left: 28px;
+  align-items: center;
+}
+.diff-tag-missing {
+  background: rgba(239,68,68,0.12);
+  color: var(--red);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid rgba(239,68,68,0.4);
+  cursor: help;
+  white-space: nowrap;
+}
 
 /* Responsive adjustments for compare mode */
 @media (max-width: 768px) {

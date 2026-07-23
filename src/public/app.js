@@ -5466,6 +5466,11 @@ function renderPlatformComparison(scores1, scores2) {
 
   grid.innerHTML = '';
 
+  // Compute platform diff data
+  const platformDiffs = window.platformDiff && window.platformDiff.computePlatformDiff
+    ? window.platformDiff.computePlatformDiff(scores1, scores2)
+    : {};
+
   // Get all platform IDs
   const allPids = new Set([...Object.keys(scores1), ...Object.keys(scores2)]);
 
@@ -5494,12 +5499,38 @@ function renderPlatformComparison(scores1, scores2) {
       changeText = '↓ Degraded';
     }
 
+    // Get diff data for this platform
+    const diff = platformDiffs[pid] || { changedFields: [], missingTags: [], identical: true };
+
+    // Build changed fields HTML
+    let changedFieldsHtml = '';
+    if (diff.changedFields && diff.changedFields.length > 0) {
+      changedFieldsHtml = '<div class="platform-comparison-diff-fields">';
+      diff.changedFields.forEach(field => {
+        const prettyField = field.replace(/(platformName|grade|score|issues|fixes)/g, '').replace(/^\.+/, '') || field;
+        changedFieldsHtml += `<span class="diff-field-changed">${escHtml(prettyField)}</span>`;
+      });
+      changedFieldsHtml += '</div>';
+    }
+
+    // Build missing tags HTML
+    let missingTagsHtml = '';
+    if (diff.missingTags && diff.missingTags.length > 0) {
+      missingTagsHtml = '<div class="platform-comparison-missing-tags">';
+      diff.missingTags.forEach(tag => {
+        missingTagsHtml += `<span class="diff-tag-missing" title="Missing in after: ${escHtml(tag)}">${escHtml(tag)}</span>`;
+      });
+      missingTagsHtml += '</div>';
+    }
+
     const row = document.createElement('div');
     row.className = 'platform-comparison-row';
     row.innerHTML = `
       <div class="platform-comparison-name">
         <span>${PLATFORM_ICONS[pid] || '🌐'}</span>
         <span>${escHtml(PLATFORM_NAMES[pid] || pid)}</span>
+        ${changedFieldsHtml}
+        ${missingTagsHtml}
       </div>
       <div class="platform-comparison-score">
         <span class="platform-comparison-grade ${gradeClass(grade1)}">${grade1}</span>

@@ -2012,6 +2012,53 @@ html[data-theme='dark'] .ig-post-actions span:hover {
   background: #262626;
 }
 
+/* Instagram theme class support (for class-based theme toggle) */
+.instagram-context.dark-theme {
+  background: var(--frame-bg);
+}
+.instagram-context.dark-theme .ig-post-header,
+.instagram-context.dark-theme .ig-post-content,
+.instagram-context.dark-theme .ig-post-actions {
+  background: var(--frame-surface);
+}
+.instagram-context.dark-theme .ig-username,
+.instagram-context.dark-theme .ig-caption,
+.instagram-context.dark-theme .ig-menu {
+  color: var(--frame-text-primary);
+}
+.instagram-context.dark-theme .ig-post-time {
+  color: var(--frame-text-secondary);
+}
+.instagram-context.dark-theme .ig-hashtags {
+  color: var(--frame-link-color);
+}
+.instagram-context.dark-theme .ig-post-actions span:hover {
+  background: var(--frame-border);
+}
+
+.instagram-context.light-theme {
+  background: var(--frame-bg);
+}
+.instagram-context.light-theme .ig-post-header,
+.instagram-context.light-theme .ig-post-content,
+.instagram-context.light-theme .ig-post-actions {
+  background: var(--frame-surface);
+}
+.instagram-context.light-theme .ig-username,
+.instagram-context.light-theme .ig-caption,
+.instagram-context.light-theme .ig-menu {
+  color: var(--frame-text-primary);
+}
+.instagram-context.light-theme .ig-post-time {
+  color: var(--frame-text-secondary);
+}
+.instagram-context.light-theme .ig-hashtags {
+  color: var(--frame-link-color);
+}
+.instagram-context.light-theme .ig-post-actions span:hover {
+  background: var(--frame-border);
+}
+
 /* YouTube Context */
 .youtube-context {
   max-width: 600px;
@@ -2281,6 +2328,73 @@ html[data-theme='dark'] .yt-context-placeholder {
   display: block;
 }
 
+/* YouTube theme class support (for class-based theme toggle) */
+.youtube-context.dark-theme {
+  background: var(--frame-bg);
+}
+.youtube-context.dark-theme .yt-video-header,
+.youtube-context.dark-theme .yt-video-meta,
+.youtube-context.dark-theme .yt-comments-section {
+  background: var(--frame-surface);
+}
+.youtube-context.dark-theme .yt-channel-name,
+.youtube-context.dark-theme .yt-video-title,
+.youtube-context.dark-theme .yt-comment-header,
+.youtube-context.dark-theme .yt-comment-author,
+.youtube-context.dark-theme .yt-comment-text {
+  color: var(--frame-text-primary);
+}
+.youtube-context.dark-theme .yt-subscriber-count,
+.youtube-context.dark-theme .yt-video-stats,
+.youtube-context.dark-theme .yt-comment-time,
+.youtube-context.dark-theme .yt-comment-actions {
+  color: var(--frame-text-secondary);
+}
+.youtube-context.dark-theme .yt-channel-avatar {
+  background: #cc0000;
+}
+.youtube-context.dark-theme .yt-context-placeholder,
+.youtube-context.dark-theme .yt-comment-actions span:hover {
+  background: var(--frame-surface);
+}
+.youtube-context.dark-theme .yt-subscribe-btn {
+  background: var(--frame-text-primary);
+  color: var(--frame-bg);
+}
+
+.youtube-context.light-theme {
+  background: var(--frame-bg);
+}
+.youtube-context.light-theme .yt-video-header,
+.youtube-context.light-theme .yt-video-meta,
+.youtube-context.light-theme .yt-comments-section {
+  background: var(--frame-surface);
+}
+.youtube-context.light-theme .yt-channel-name,
+.youtube-context.light-theme .yt-video-title,
+.youtube-context.light-theme .yt-comment-header,
+.youtube-context.light-theme .yt-comment-author,
+.youtube-context.light-theme .yt-comment-text {
+  color: var(--frame-text-primary);
+}
+.youtube-context.light-theme .yt-subscriber-count,
+.youtube-context.light-theme .yt-video-stats,
+.youtube-context.light-theme .yt-comment-time,
+.youtube-context.light-theme .yt-comment-actions {
+  color: var(--frame-text-secondary);
+}
+.youtube-context.light-theme .yt-channel-avatar {
+  background: #ff0000;
+}
+.youtube-context.light-theme .yt-context-placeholder,
+.youtube-context.light-theme .yt-comment-actions span:hover {
+  background: var(--frame-surface);
+}
+.youtube-context.light-theme .yt-subscribe-btn {
+  background: var(--frame-text-primary);
+  color: var(--frame-bg);
+}
+
 /* TikTok Context */
 .tiktok-context {
   max-width: 350px;
@@ -2423,30 +2537,20 @@ html[data-theme='light'] .tt-music {
 /* Pinterest Context */
 .pinterest-context {
   max-width: 350px;
-  background: #fff;
+  background: var(--frame-bg, #fff);
   border-radius: 16px;
   overflow: hidden;
-  transition: background-color 0.3s ease;
-}
-
-/* Dark mode for Pinterest context */
-html[data-theme='dark'] .pinterest-context {
-  background: #1a1a1a;
-  border: 1px solid #333;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+  border: 1px solid var(--frame-border, transparent);
 }
 
 /* Pin card */
 .pin-card {
-  background: #fff;
+  background: var(--frame-bg, #fff);
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  box-shadow: var(--frame-shadow, 0 2px 8px rgba(0,0,0,0.15));
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-html[data-theme='dark'] .pin-card {
-  background: #242424;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
 /* Pin image container */
@@ -2475,7 +2579,7 @@ html[data-theme='light'] .pin-image-placeholder {
   top: 12px;
   right: 12px;
   padding: 10px 18px;
-  background: #E60023;
+  background: var(--frame-accent, #E60023);
   color: #fff;
   border: none;
   border-radius: 24px;
@@ -2485,60 +2589,40 @@ html[data-theme='light'] .pin-image-placeholder {
   transition: background-color 0.3s ease;
 }
 
-html[data-theme='dark'] .pin-save-btn {
-  background: #E60023;
-}
-
 .pin-save-btn:hover {
-  background: #ad081b;
+  opacity: 0.85;
 }
 
 /* Pin metadata */
 .pin-meta {
   padding: 12px;
-  background: #fff;
+  background: var(--frame-surface, #fff);
   transition: background-color 0.3s ease;
-}
-
-html[data-theme='dark'] .pin-meta {
-  background: #242424;
 }
 
 .pin-title {
   font-size: 14px;
   font-weight: 700;
-  color: #111;
+  color: var(--frame-text-primary, #111);
   margin-bottom: 4px;
   line-height: 1.3;
   transition: color 0.3s ease;
 }
 
-html[data-theme='dark'] .pin-title {
-  color: #e0e0e0;
-}
-
 .pin-desc {
   font-size: 12px;
-  color: #767676;
+  color: var(--frame-text-secondary, #767676);
   margin-bottom: 6px;
   line-height: 1.4;
   transition: color 0.3s ease;
 }
 
-html[data-theme='dark'] .pin-desc {
-  color: #999;
-}
-
 .pin-domain {
   font-size: 11px;
-  color: #767676;
+  color: var(--frame-text-secondary, #767676);
   text-transform: uppercase;
   font-weight: 600;
   transition: color 0.3s ease;
-}
-
-html[data-theme='dark'] .pin-domain {
-  color: #888;
 }
 
 /* Pin footer with saver info */
@@ -2546,14 +2630,9 @@ html[data-theme='dark'] .pin-domain {
   display: flex;
   align-items: center;
   padding: 10px 12px;
-  background: #fff;
-  border-top: 1px solid #f0f0f0;
+  background: var(--frame-surface, #fff);
+  border-top: 1px solid var(--frame-divider, #f0f0f0);
   transition: background-color 0.3s ease, border-color 0.3s ease;
-}
-
-html[data-theme='dark'] .pin-footer {
-  background: #242424;
-  border-top-color: #333;
 }
 
 .pin-saver {
@@ -2565,7 +2644,7 @@ html[data-theme='dark'] .pin-footer {
 .pin-saver-avatar {
   width: 24px;
   height: 24px;
-  background: #E60023;
+  background: var(--frame-accent, #E60023);
   border-radius: 50%;
   flex-shrink: 0;
   display: flex;
@@ -2577,19 +2656,11 @@ html[data-theme='dark'] .pin-footer {
   transition: background-color 0.3s ease;
 }
 
-html[data-theme='dark'] .pin-saver-avatar {
-  background: #E60023;
-}
-
 .pin-saver-name {
   font-size: 12px;
   font-weight: 600;
-  color: #111;
+  color: var(--frame-text-primary, #111);
   transition: color 0.3s ease;
-}
-
-html[data-theme='dark'] .pin-saver-name {
-  color: #e0e0e0;
 }
 
 /* Slack Context */
@@ -2903,19 +2974,136 @@ html[data-theme='dark'] .pin-saver-name {
 .tumblr-post-actions { display: flex; gap: 16px; padding: 8px 12px; color: #9fb4c7; font-size: 13px; }
 
 /* Pinterest Context */
-.pinterest-context { max-width: 400px; background: #fff; }
+.pinterest-context {
+  max-width: 400px;
+  background: #fff;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Pinterest Theme Variables - Dark Mode (default) */
+html[data-theme='dark'] .pinterest-context {
+  --pinterest-bg: #1a1a1a;
+  --pinterest-surface: #242424;
+  --pinterest-border: #333333;
+  --pinterest-text-primary: #e0e0e0;
+  --pinterest-text-secondary: #999999;
+  --pinterest-text-muted: #666666;
+  --pinterest-accent: #E60023;
+  --pinterest-accent-bg: #E60023;
+  --pinterest-link-color: #E60023;
+  --pinterest-divider: #333333;
+  --pinterest-input-bg: #242424;
+  --pinterest-overlay: rgba(0, 0, 0, 0.6);
+  --pinterest-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Pinterest Theme Variables - Light Mode */
+html[data-theme='light'] .pinterest-context {
+  --pinterest-bg: #ffffff;
+  --pinterest-surface: #f8f8f8;
+  --pinterest-border: #e5e5e5;
+  --pinterest-text-primary: #111111;
+  --pinterest-text-secondary: #767676;
+  --pinterest-text-muted: #999999;
+  --pinterest-accent: #E60023;
+  --pinterest-accent-bg: #E60023;
+  --pinterest-link-color: #E60023;
+  --pinterest-divider: #e5e5e5;
+  --pinterest-input-bg: #f8f8f8;
+  --pinterest-overlay: rgba(0, 0, 0, 0.1);
+  --pinterest-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Apply Pinterest theme variables */
+.pinterest-context {
+  background: var(--pinterest-bg, #ffffff);
+  border: 1px solid var(--pinterest-border, transparent);
+}
+
 .pin-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; padding: 16px; }
-.pin-item { aspect-ratio: 0.67; background: #f0f0f0; border-radius: 16px; }
+.pin-item { aspect-ratio: 0.67; background: var(--pinterest-surface, #f0f0f0); border-radius: 16px; transition: background-color 0.3s ease; }
 .pin-item-dim { opacity: 0.5; }
 .pin-overlay { position: relative; }
-.pin-card { background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.15); position: relative; z-index: 1; }
+.pin-card {
+  background: var(--pinterest-bg, #fff);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--pinterest-shadow, 0 4px 16px rgba(0,0,0,0.15));
+  position: relative;
+  z-index: 1;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
 .pin-image img { width: 100%; aspect-ratio: 0.67; object-fit: cover; }
-.pin-image-placeholder { width: 100%; aspect-ratio: 0.67; background: #f0f0f0; }
-.pin-meta { padding: 10px 12px; }
-.pin-title { font-size: 13px; font-weight: 700; color: #1a1a1a; margin-bottom: 4px; }
-.pin-desc { font-size: 12px; color: #767676; margin-bottom: 4px; }
-.pin-domain { font-size: 11px; color: #767676; }
-.pin-actions { display: flex; justify-content: space-between; padding: 8px 12px; border-top: 1px solid #f0f0f0; font-size: 16px; }
+.pin-image-placeholder {
+  width: 100%;
+  aspect-ratio: 0.67;
+  background: var(--pinterest-surface, #f0f0f0);
+  transition: background-color 0.3s ease;
+}
+.pin-meta {
+  padding: 10px 12px;
+  background: var(--pinterest-surface, #fff);
+  transition: background-color 0.3s ease;
+}
+.pin-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--pinterest-text-primary, #1a1a1a);
+  margin-bottom: 4px;
+  transition: color 0.3s ease;
+}
+.pin-desc {
+  font-size: 12px;
+  color: var(--pinterest-text-secondary, #767676);
+  margin-bottom: 4px;
+  transition: color 0.3s ease;
+}
+.pin-domain {
+  font-size: 11px;
+  color: var(--pinterest-text-secondary, #767676);
+  transition: color 0.3s ease;
+}
+.pin-actions {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-top: 1px solid var(--pinterest-divider, #f0f0f0);
+  font-size: 16px;
+  background: var(--pinterest-surface, #fff);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Pinterest class-based theme support (for card-specific theme toggle) */
+.pinterest-context.dark-theme {
+  --pinterest-bg: #1a1a1a;
+  --pinterest-surface: #242424;
+  --pinterest-border: #333333;
+  --pinterest-text-primary: #e0e0e0;
+  --pinterest-text-secondary: #999999;
+  --pinterest-text-muted: #666666;
+  --pinterest-accent: #E60023;
+  --pinterest-accent-bg: #E60023;
+  --pinterest-link-color: #E60023;
+  --pinterest-divider: #333333;
+  --pinterest-input-bg: #242424;
+  --pinterest-overlay: rgba(0, 0, 0, 0.6);
+  --pinterest-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+.pinterest-context.light-theme {
+  --pinterest-bg: #ffffff;
+  --pinterest-surface: #f8f8f8;
+  --pinterest-border: #e5e5e5;
+  --pinterest-text-primary: #111111;
+  --pinterest-text-secondary: #767676;
+  --pinterest-text-muted: #999999;
+  --pinterest-accent: #E60023;
+  --pinterest-accent-bg: #E60023;
+  --pinterest-link-color: #E60023;
+  --pinterest-divider: #e5e5e5;
+  --pinterest-input-bg: #f8f8f8;
+  --pinterest-overlay: rgba(0, 0, 0, 0.1);
+  --pinterest-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
 
 /* Notion Context */
 .notion-context { display: flex; min-height: 300px; background: #fff; }
@@ -4366,6 +4554,66 @@ html[data-theme='dark'] .pin-saver-name {
   --frame-overlay: rgba(0, 0, 0, 0.1);
 }
 
+/* Instagram Theme Variables */
+.instagram-context.dark-theme {
+  --frame-bg: #000000;
+  --frame-surface: #121212;
+  --frame-border: #262626;
+  --frame-text-primary: #ffffff;
+  --frame-text-secondary: #a8a8a8;
+  --frame-text-muted: #737373;
+  --frame-accent: #e1306c;
+  --frame-accent-bg: #e1306c;
+  --frame-link-color: #0095f6;
+  --frame-divider: #262626;
+  --frame-input-bg: #262626;
+  --frame-overlay: rgba(0, 0, 0, 0.6);
+}
+.instagram-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #fafafa;
+  --frame-border: #dbdbdb;
+  --frame-text-primary: #000000;
+  --frame-text-secondary: #737373;
+  --frame-text-muted: #a8a8a8;
+  --frame-accent: #e1306c;
+  --frame-accent-bg: #fce4ec;
+  --frame-link-color: #0095f6;
+  --frame-divider: #dbdbdb;
+  --frame-input-bg: #fafafa;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* YouTube Theme Variables */
+.youtube-context.dark-theme {
+  --frame-bg: #0f0f0f;
+  --frame-surface: #1a1a1a;
+  --frame-border: #303030;
+  --frame-text-primary: #ffffff;
+  --frame-text-secondary: #aaaaaa;
+  --frame-text-muted: #666666;
+  --frame-accent: #ff0000;
+  --frame-accent-bg: #ff0000;
+  --frame-link-color: #3ea6ff;
+  --frame-divider: #303030;
+  --frame-input-bg: #1a1a1a;
+  --frame-overlay: rgba(0, 0, 0, 0.7);
+}
+.youtube-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #f9f9f9;
+  --frame-border: #e5e5e5;
+  --frame-text-primary: #0f0f0f;
+  --frame-text-secondary: #606060;
+  --frame-text-muted: #999999;
+  --frame-accent: #ff0000;
+  --frame-accent-bg: #ffe5e5;
+  --frame-link-color: #065fd4;
+  --frame-divider: #e5e5e5;
+  --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
 /* Reddit Theme Variables */
 .reddit-context.dark-theme {
   --frame-bg: #1a1a1b;
@@ -4427,34 +4675,7 @@ html[data-theme='dark'] .pin-saver-name {
 }
 
 /* Pinterest Theme Variables */
-.pinterest-context.dark-theme {
-  --frame-bg: #1a1a1a;
-  --frame-surface: #242424;
-  --frame-border: #333333;
-  --frame-text-primary: #e0e0e0;
-  --frame-text-secondary: #999999;
-  --frame-text-muted: #888888;
-  --frame-accent: #E60023;
-  --frame-accent-bg: rgba(230, 0, 35, 0.15);
-  --frame-link-color: #E60023;
-  --frame-divider: #333333;
-  --frame-input-bg: #242424;
-  --frame-overlay: rgba(0, 0, 0, 0.6);
-}
-.pinterest-context.light-theme {
-  --frame-bg: #ffffff;
-  --frame-surface: #ffffff;
-  --frame-border: #e5e5e5;
-  --frame-text-primary: #111111;
-  --frame-text-secondary: #767676;
-  --frame-text-muted: #999999;
-  --frame-accent: #E60023;
-  --frame-accent-bg: rgba(230, 0, 35, 0.1);
-  --frame-link-color: #E60023;
-  --frame-divider: #f0f0f0;
-  --frame-input-bg: #ffffff;
-  --frame-overlay: rgba(0, 0, 0, 0.1);
-}
+/* Pinterest theme classes are now defined above with proper --pinterest-* variables */
 
 /* Google Theme Variables (no theme toggle, defaults to light) */
 .google-context {

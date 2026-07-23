@@ -1471,34 +1471,22 @@ body.has-results { padding-bottom: 48px; }
 .fb-post-stats { display: flex; gap: 16px; padding: 8px 12px; background: var(--frame-surface); color: var(--frame-text-secondary); font-size: 13px; }
 
 /* Twitter/X Context */
-.twitter-context { max-width: 500px; }
-.twitter-dark { background: #000; }
-.twitter-light { background: #fff; }
+.twitter-context { max-width: 500px; background: var(--frame-bg); }
 .tw-post-header { display: flex; gap: 10px; padding: 12px; }
-.tw-avatar { width: 40px; height: 40px; background: #333; border-radius: 50%; flex-shrink: 0; }
-.twitter-light .tw-avatar { background: #ddd; }
+.tw-avatar { width: 40px; height: 40px; background: var(--frame-text-muted); border-radius: 50%; flex-shrink: 0; }
 .tw-post-meta { display: flex; flex-direction: column; flex: 1; }
-.tw-author-name { font-weight: 700; color: #e7e9ea; font-size: 14px; }
-.twitter-light .tw-author-name { color: #0f1419; }
-.tw-author-handle { color: #71767b; font-size: 13px; }
-.twitter-light .tw-author-handle { color: #536471; }
-.tw-post-time { color: #71767b; font-size: 13px; }
-.twitter-light .tw-post-time { color: #536471; }
-.tw-verified { color: #1d9bf0; font-size: 14px; }
-.tw-post-content { padding: 0 12px 8px; color: #e7e9ea; font-size: 14px; }
-.twitter-light .tw-post-content { color: #0f1419; }
-.tw-link-card { margin: 8px 12px; border-radius: 14px; overflow: hidden; border: 1px solid #2f3336; }
-.twitter-light .tw-link-card { border-color: #cfd9de; background: #f7f9f9; }
+.tw-author-name { font-weight: 700; color: var(--frame-text-primary); font-size: 14px; }
+.tw-author-handle { color: var(--frame-text-secondary); font-size: 13px; }
+.tw-post-time { color: var(--frame-text-secondary); font-size: 13px; }
+.tw-verified { color: var(--frame-accent); font-size: 14px; }
+.tw-post-content { padding: 0 12px 8px; color: var(--frame-text-primary); font-size: 14px; }
+.tw-link-card { margin: 8px 12px; border-radius: 14px; overflow: hidden; border: 1px solid var(--frame-border); background: var(--frame-surface); }
 .tw-context-image img { width: 100%; aspect-ratio: 1.91/1; object-fit: cover; }
-.tw-context-placeholder { width: 100%; aspect-ratio: 1.91/1; background: #2f3336; }
-.twitter-light .tw-context-placeholder { background: #eff1f3; }
+.tw-context-placeholder { width: 100%; aspect-ratio: 1.91/1; background: var(--frame-border); }
 .tw-context-meta { padding: 10px 14px; }
-.tw-context-title { font-weight: 700; color: #e7e9ea; font-size: 15px; margin-bottom: 3px; }
-.twitter-light .tw-context-title { color: #0f1419; }
-.tw-context-domain { color: #71767b; font-size: 13px; }
-.twitter-light .tw-context-domain { color: #536471; }
-.tw-post-actions { display: flex; gap: 16px; padding: 8px 12px; color: #71767b; font-size: 13px; }
-.twitter-light .tw-post-actions { color: #536471; }
+.tw-context-title { font-weight: 700; color: var(--frame-text-primary); font-size: 15px; margin-bottom: 3px; }
+.tw-context-domain { color: var(--frame-text-secondary); font-size: 13px; }
+.tw-post-actions { display: flex; gap: 16px; padding: 8px 12px; color: var(--frame-text-secondary); font-size: 13px; }
 
 /* LinkedIn Context */
 .linkedin-context { max-width: 500px; background: var(--frame-bg); }
@@ -2980,55 +2968,55 @@ html[data-theme='light'] .pin-image-placeholder {
   transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
-/* Pinterest Theme Variables - Dark Mode (default) */
-html[data-theme='dark'] .pinterest-context {
-  --pinterest-bg: #1a1a1a;
-  --pinterest-surface: #242424;
-  --pinterest-border: #333333;
-  --pinterest-text-primary: #e0e0e0;
-  --pinterest-text-secondary: #999999;
-  --pinterest-text-muted: #666666;
-  --pinterest-accent: #E60023;
-  --pinterest-accent-bg: #E60023;
-  --pinterest-link-color: #E60023;
-  --pinterest-divider: #333333;
-  --pinterest-input-bg: #242424;
-  --pinterest-overlay: rgba(0, 0, 0, 0.6);
-  --pinterest-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+/* Pinterest Theme Variables - Dark Mode */
+.pinterest-context.dark-theme {
+  --frame-bg: #1a1a1a;
+  --frame-surface: #242424;
+  --frame-border: #333333;
+  --frame-text-primary: #e0e0e0;
+  --frame-text-secondary: #999999;
+  --frame-text-muted: #666666;
+  --frame-accent: #E60023;
+  --frame-accent-bg: #E60023;
+  --frame-link-color: #E60023;
+  --frame-divider: #333333;
+  --frame-input-bg: #242424;
+  --frame-overlay: rgba(0, 0, 0, 0.6);
+  --frame-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 /* Pinterest Theme Variables - Light Mode */
-html[data-theme='light'] .pinterest-context {
-  --pinterest-bg: #ffffff;
-  --pinterest-surface: #f8f8f8;
-  --pinterest-border: #e5e5e5;
-  --pinterest-text-primary: #111111;
-  --pinterest-text-secondary: #767676;
-  --pinterest-text-muted: #999999;
-  --pinterest-accent: #E60023;
-  --pinterest-accent-bg: #E60023;
-  --pinterest-link-color: #E60023;
-  --pinterest-divider: #e5e5e5;
-  --pinterest-input-bg: #f8f8f8;
-  --pinterest-overlay: rgba(0, 0, 0, 0.1);
-  --pinterest-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+.pinterest-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #f8f8f8;
+  --frame-border: #e5e5e5;
+  --frame-text-primary: #111111;
+  --frame-text-secondary: #767676;
+  --frame-text-muted: #999999;
+  --frame-accent: #E60023;
+  --frame-accent-bg: #E60023;
+  --frame-link-color: #E60023;
+  --frame-divider: #e5e5e5;
+  --frame-input-bg: #f8f8f8;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+  --frame-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 /* Apply Pinterest theme variables */
 .pinterest-context {
-  background: var(--pinterest-bg, #ffffff);
-  border: 1px solid var(--pinterest-border, transparent);
+  background: var(--frame-bg, #ffffff);
+  border: 1px solid var(--frame-border, transparent);
 }
 
 .pin-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; padding: 16px; }
-.pin-item { aspect-ratio: 0.67; background: var(--pinterest-surface, #f0f0f0); border-radius: 16px; transition: background-color 0.3s ease; }
+.pin-item { aspect-ratio: 0.67; background: var(--frame-surface, #f0f0f0); border-radius: 16px; transition: background-color 0.3s ease; }
 .pin-item-dim { opacity: 0.5; }
 .pin-overlay { position: relative; }
 .pin-card {
-  background: var(--pinterest-bg, #fff);
+  background: var(--frame-bg, #fff);
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: var(--pinterest-shadow, 0 4px 16px rgba(0,0,0,0.15));
+  box-shadow: var(--frame-shadow, 0 4px 16px rgba(0,0,0,0.15));
   position: relative;
   z-index: 1;
   transition: background-color 0.3s ease, box-shadow 0.3s ease;

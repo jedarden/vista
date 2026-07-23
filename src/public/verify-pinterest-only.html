@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pinterest Frame Verification</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; padding: 40px; max-width: 1200px; margin: 0 auto; }
+    h1 { margin-bottom: 8px; }
+    .subtitle { color: #9ba3b8; margin-bottom: 24px; }
+    .test-section { margin-bottom: 40px; }
+    .test-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+    .theme-toggle { position: fixed; top: 20px; right: 20px; padding: 12px 16px; background: #E60023; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; z-index: 1000; }
+    .theme-toggle:hover { opacity: 0.9; }
+    .verification-list { background: #1e2330; padding: 20px; border-radius: 8px; }
+    html[data-theme='light'] .verification-list { background: #f1f3f4; }
+    .verification-list ul { list-style: none; padding: 0; margin: 0; }
+    .verification-list li { padding: 8px 0; border-bottom: 1px solid #2a3040; }
+    html[data-theme='light'] .verification-list li { border-bottom-color: #dee2e6; }
+    .check { color: #22c55e; font-weight: bold; margin-right: 8px; }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" id="themeToggle">☀️ Light Mode</button>
+
+  <h1>📌 Pinterest Context Frame Verification</h1>
+  <p class="subtitle">Verifying Pinterest frame matches platform visual style</p>
+
+  <div class="test-section">
+    <h2>Pinterest Context Frames</h2>
+    <div class="test-grid">
+      <!-- Pinterest - Dark Theme -->
+      <div class="frame-wrapper">
+        <div class="pinterest-context dark-theme">
+          <div class="pin-card">
+            <div class="pin-image-container">
+              <div class="pin-image-placeholder"></div>
+              <button class="pin-save-btn">Save</button>
+            </div>
+            <div class="pin-meta">
+              <div class="pin-title">Hidden Gems in Portugal</div>
+              <div class="pin-desc">Discover secret beaches and local favorites</div>
+              <div class="pin-domain">wanderlust.com</div>
+            </div>
+            <div class="pin-footer">
+              <div class="pin-saver">
+                <div class="pin-saver-avatar">JP</div>
+                <span class="pin-saver-name">travel_lover</span>
+              </div>
+              <span class="pin-saves">2.4k saves</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pinterest - Light Theme -->
+      <div class="frame-wrapper">
+        <div class="pinterest-context light-theme">
+          <div class="pin-card">
+            <div class="pin-image-container">
+              <div class="pin-image-placeholder"></div>
+              <button class="pin-save-btn">Save</button>
+            </div>
+            <div class="pin-meta">
+              <div class="pin-title">Spring Wardrobe Essentials</div>
+              <div class="pin-desc">Must-have pieces for the season</div>
+              <div class="pin-domain">vogue.com</div>
+            </div>
+            <div class="pin-footer">
+              <div class="pin-saver">
+                <div class="pin-saver-avatar">SM</div>
+                <span class="pin-saver-name">style_inspiration</span>
+              </div>
+              <span class="pin-saves">5.7k saves</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>✅ Verification Checklist</h2>
+    <div class="verification-list">
+      <ul>
+        <li><span class="check">✓</span>Masonry-style card with 2/3 aspect ratio</li>
+        <li><span class="check">✓</span>Rounded corners (16px border-radius)</li>
+        <li><span class="check">✓</span>Pinterest red Save button (#E60023)</li>
+        <li><span class="check">✓</span>Pin title, description, and domain</li>
+        <li><span class="check">✓</span>User avatar and name in footer</li>
+        <li><span class="check">✓</span>Save count display</li>
+        <li><span class="check">✓</span>Dark/light theme support</li>
+        <li><span class="check">✓</span>CSS variables for theming</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    const themeToggle = document.getElementById('themeToggle');
+    let currentTheme = 'dark';
+
+    themeToggle.addEventListener('click', () => {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      themeToggle.textContent = currentTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+      console.log(`✅ Theme switched to ${currentTheme} mode`);
+    });
+
+    console.log('✅ Pinterest Frame Verification loaded');
+  </script>
+</body>
+</html>

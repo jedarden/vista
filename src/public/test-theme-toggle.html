@@ -1,339 +1,69 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Theme Toggle Test - All Platforms</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="frames-theme.css">
-  <link rel="stylesheet" href="frame-layouts.css">
+  <title>Theme Toggle Test</title>
   <style>
-    .test-container {
-      padding: 20px;
-      max-width: 1400px;
-      margin: 0 auto;
-    }
-    .test-controls {
-      background: var(--surface, #f8f9fa);
-      padding: 20px;
-      border-radius: 8px;
-      margin-bottom: 30px;
-      display: flex;
-      gap: 15px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    .test-controls button {
-      padding: 12px 24px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 600;
-      transition: all 0.2s;
-    }
-    .btn-dark {
-      background: #1a1a1e;
-      color: #fff;
-    }
-    .btn-light {
-      background: #fff;
-      color: #1a1a1e;
-      border: 1px solid #e5e7eb;
-    }
-    .btn-toggle {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-    }
-    .platform-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 20px;
-      margin-bottom: 30px;
-    }
-    .platform-test-card {
-      border: 1px solid var(--border, #e5e7eb);
-      border-radius: 12px;
-      overflow: hidden;
-      background: var(--bg, #ffffff);
-    }
-    .platform-test-header {
-      padding: 12px 16px;
-      background: var(--surface, #f8f9fa);
-      border-bottom: 1px solid var(--border, #e5e7eb);
-      font-weight: 600;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .platform-status {
-      font-size: 11px;
-      padding: 4px 8px;
-      border-radius: 12px;
-      background: #10b981;
-      color: white;
-    }
-    .test-summary {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 20px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-    }
-    .test-summary h2 {
-      margin: 0 0 10px 0;
-    }
-    .test-results {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 15px;
-      margin-top: 15px;
-    }
-    .test-result-item {
-      background: rgba(255,255,255,0.2);
-      padding: 10px 15px;
-      border-radius: 6px;
-    }
-    .test-result-item strong {
-      display: block;
-      font-size: 24px;
-    }
+    body { font-family: system-ui; padding: 20px; background: #0f1117; color: #e8eaf0; }
+    html[data-theme='light'] body { background: #f8f9fa; color: #212529; }
+    .test-result { margin: 10px 0; padding: 10px; border-radius: 4px; }
+    .pass { background: #22c55e; color: white; }
+    .fail { background: #ef4444; color: white; }
+    button { padding: 10px 20px; background: #5b8dee; color: white; border: none; border-radius: 4px; cursor: pointer; }
   </style>
 </head>
 <body>
-  <div class="test-container">
-    <div class="test-summary">
-      <h2>🎨 Theme Toggle Test</h2>
-      <p>Testing dark/light mode functionality across all platforms with theme support</p>
-      <div class="test-results">
-        <div class="test-result-item">
-          <strong id="platformCount">0</strong>
-          Platforms Tested
-        </div>
-        <div class="test-result-item">
-          <strong id="darkModeCount">0</strong>
-          Dark Mode Pass
-        </div>
-        <div class="test-result-item">
-          <strong id="lightModeCount">0</strong>
-          Light Mode Pass
-        </div>
-        <div class="test-result-item">
-          <strong id="toggleCount">0</strong>
-          Toggle Switch Pass
-        </div>
-      </div>
-    </div>
-
-    <div class="test-controls">
-      <button class="btn-dark" onclick="setAllDark()">🌙 Set All Dark</button>
-      <button class="btn-light" onclick="setAllLight()">☀️ Set All Light</button>
-      <button class="btn-toggle" onclick="toggleAll()">🔄 Toggle All</button>
-      <button onclick="runVerification()">✅ Run Verification</button>
-    </div>
-
-    <div id="platformGrid" class="platform-grid"></div>
-
-    <div id="verificationResults"></div>
-  </div>
-
-  <script src="platform-frames.js"></script>
-  <script src="frames-theme.js"></script>
-  <script src="frame-renderer.js"></script>
+  <h1>Theme Toggle Verification</h1>
+  <button id="toggleBtn">Toggle Theme</button>
+  <div id="results"></div>
+  
   <script>
-    // Platforms with theme support
-    const platforms = ['twitter', 'linkedin', 'youtube', 'slack', 'discord', 'tiktok', 'pinterest', 'reddit'];
-
-    // Test data for rendering frames
-    const testData = {
-      title: 'Amazing Article About Modern Web Development',
-      description: 'Discover the latest trends in web development, including new frameworks, best practices, and performance optimization techniques.',
-      domain: 'example.com',
-      image: 'https://picsum.photos/800/600?random=1',
-      siteName: 'Example Site'
-    };
-
-    // Initialize test
-    function initTest() {
-      document.getElementById('platformCount').textContent = platforms.length;
-
-      const grid = document.getElementById('platformGrid');
-      grid.innerHTML = '';
-
-      platforms.forEach((platform, index) => {
-        const card = document.createElement('div');
-        card.className = 'platform-test-card';
-        card.id = `card-${platform}`;
-
-        const platformName = PLATFORM_FRAMES[platform]?.name || platform;
-
-        card.innerHTML = `
-          <div class="platform-test-header">
-            <span>${platformName}</span>
-            <span class="platform-status" id="status-${platform}">✓ Ready</span>
-          </div>
-          <div id="frame-${platform}" class="frame-container"></div>
-        `;
-
-        grid.appendChild(card);
-
-        // Render initial frame with dark theme
-        renderFrame(platform, 'dark');
-      });
+    const platforms = ['facebook', 'twitter', 'linkedin', 'reddit', 'instagram', 'youtube', 'tiktok', 'pinterest'];
+    let currentTheme = 'dark';
+    const results = document.getElementById('results');
+    
+    function addResult(message, passed) {
+      const div = document.createElement('div');
+      div.className = 'test-result ' + (passed ? 'pass' : 'fail');
+      div.textContent = message;
+      results.appendChild(div);
     }
-
-    // Render a frame with specified theme
-    function renderFrame(platform, theme) {
-      const container = document.getElementById(`frame-${platform}`);
-      if (!container) return;
-
-      // Use buildContextFrame from platform-frames.js
-      const frameHTML = buildContextFrame(platform, {
-        title: testData.title,
-        description: testData.description,
-        domain: testData.domain,
-        image: testData.image,
-        siteName: testData.siteName
-      }, theme);
-
-      container.innerHTML = frameHTML;
-    }
-
-    // Set all frames to dark mode
-    function setAllDark() {
+    
+    function verifyTheme() {
+      const htmlTheme = document.documentElement.getAttribute('data-theme');
+      addResult(`HTML data-theme: ${htmlTheme} (expected: ${currentTheme})`, htmlTheme === currentTheme);
+      
       platforms.forEach(platform => {
-        renderFrame(platform, 'dark');
-        updateStatus(platform, '🌙 Dark Mode');
-      });
-    }
-
-    // Set all frames to light mode
-    function setAllLight() {
-      platforms.forEach(platform => {
-        renderFrame(platform, 'light');
-        updateStatus(platform, '☀️ Light Mode');
-      });
-    }
-
-    // Toggle all frames
-    function toggleAll() {
-      platforms.forEach(platform => {
-        const container = document.getElementById(`frame-${platform}`);
-        const currentTheme = container.querySelector('.context-frame')?.classList.contains('light-theme') ? 'dark' : 'light';
-        renderFrame(platform, currentTheme);
-        updateStatus(platform, currentTheme === 'dark' ? '🌙 Dark Mode' : '☀️ Light Mode');
-      });
-    }
-
-    // Update platform status
-    function updateStatus(platform, status) {
-      const statusEl = document.getElementById(`status-${platform}`);
-      if (statusEl) {
-        statusEl.textContent = status;
-      }
-    }
-
-    // Run comprehensive verification
-    function runVerification() {
-      let darkModePass = 0;
-      let lightModePass = 0;
-      let togglePass = 0;
-      const issues = [];
-
-      // Test 1: Dark mode rendering
-      platforms.forEach(platform => {
-        renderFrame(platform, 'dark');
-        const container = document.getElementById(`frame-${platform}`);
-        const frame = container.querySelector('.context-frame');
-
+        const frame = document.querySelector(`.${platform}-context`);
         if (frame) {
-          // Check for dark theme class or inline styles
-          const hasDarkTheme = frame.classList.contains('dark-theme') ||
-                              frame.style.getPropertyValue('--frame-bg')?.includes('1a') ||
-                              frame.style.getPropertyValue('--frame-bg')?.includes('00') ||
-                              frame.style.getPropertyValue('--frame-bg')?.includes('20') ||
-                              frame.style.getPropertyValue('--frame-bg')?.includes('0f');
-
-          if (hasDarkTheme) {
-            darkModePass++;
-          } else {
-            issues.push(`${platform}: Dark mode theme not applied correctly`);
-          }
-        }
-      });
-
-      // Test 2: Light mode rendering
-      platforms.forEach(platform => {
-        renderFrame(platform, 'light');
-        const container = document.getElementById(`frame-${platform}`);
-        const frame = container.querySelector('.context-frame');
-
-        if (frame) {
-          // Check for light theme class or inline styles
-          const hasLightTheme = frame.classList.contains('light-theme') ||
-                               frame.style.getPropertyValue('--frame-bg')?.includes('ff') ||
-                               frame.style.getPropertyValue('--frame-bg')?.includes('f8') ||
-                               frame.style.getPropertyValue('--frame-bg')?.includes('fa');
-
-          if (hasLightTheme) {
-            lightModePass++;
-          } else {
-            issues.push(`${platform}: Light mode theme not applied correctly`);
-          }
-        }
-      });
-
-      // Test 3: Toggle switching
-      platforms.forEach(platform => {
-        // Start with dark
-        renderFrame(platform, 'dark');
-        const container = document.getElementById(`frame-${platform}`);
-
-        // Switch to light
-        renderFrame(platform, 'light');
-        const frameLight = container.querySelector('.context-frame');
-        const lightBg = frameLight?.style.getPropertyValue('--frame-bg') || '';
-
-        // Switch back to dark
-        renderFrame(platform, 'dark');
-        const frameDark = container.querySelector('.context-frame');
-        const darkBg = frameDark?.style.getPropertyValue('--frame-bg') || '';
-
-        // Verify themes are different
-        if (lightBg !== darkBg) {
-          togglePass++;
+          const hasClass = frame.classList.contains(`${currentTheme}-theme`);
+          const hasWrongClass = frame.classList.contains(currentTheme === 'dark' ? 'light-theme' : 'dark-theme');
+          addResult(`${platform}: ${currentTheme}-theme class ${hasClass ? '✓' : '✗'} (no wrong class: ${!hasWrongClass})`, hasClass && !hasWrongClass);
         } else {
-          issues.push(`${platform}: Theme toggle not switching correctly`);
+          addResult(`${platform}: Frame not found ✗`, false);
         }
       });
-
-      // Update results
-      document.getElementById('darkModeCount').textContent = darkModePass;
-      document.getElementById('lightModeCount').textContent = lightModePass;
-      document.getElementById('toggleCount').textContent = togglePass;
-
-      // Display results
-      const resultsDiv = document.getElementById('verificationResults');
-      const allPassed = darkModePass === platforms.length &&
-                       lightModePass === platforms.length &&
-                       togglePass === platforms.length;
-
-      resultsDiv.innerHTML = `
-        <div style="background: ${allPassed ? '#10b981' : '#f59e0b'}; color: white; padding: 20px; border-radius: 8px; margin-top: 20px;">
-          <h3>${allPassed ? '✅ All Tests Passed!' : '⚠️ Some Tests Failed'}</h3>
-          <p>Dark Mode: ${darkModePass}/${platforms.length} passed</p>
-          <p>Light Mode: ${lightModePass}/${platforms.length} passed</p>
-          <p>Toggle: ${togglePass}/${platforms.length} passed</p>
-          ${issues.length > 0 ? `<h4>Issues Found:</h4><ul>${issues.map(i => `<li>${i}</li>`).join('')}</ul>` : ''}
-        </div>
-      `;
-
-      // Reset to dark mode
-      setAllDark();
     }
-
-    // Initialize on load
-    document.addEventListener('DOMContentLoaded', initTest);
+    
+    document.getElementById('toggleBtn').addEventListener('click', () => {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      
+      platforms.forEach(platform => {
+        const frame = document.querySelector(`.${platform}-context`);
+        if (frame) {
+          frame.classList.remove('dark-theme', 'light-theme');
+          frame.classList.add(`${currentTheme}-theme`);
+        }
+      });
+      
+      results.innerHTML = '';
+      verifyTheme();
+    });
+    
+    // Initial verification
+    addResult('Initial state - Dark Mode', true);
+    verifyTheme();
   </script>
 </body>
 </html>

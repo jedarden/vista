@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Medium Platform Frame - Article Layout Test</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+    }
+    .test-container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .test-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .test-header h1 {
+      color: #242424;
+      margin-bottom: 8px;
+    }
+    .test-header p {
+      color: #6b6b6b;
+      margin: 0;
+    }
+    .theme-toggle-container {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .theme-toggle {
+      padding: 12px 24px;
+      background: #1a8917;
+      color: white;
+      border: none;
+      border-radius: 24px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    .theme-toggle:hover {
+      background: #156d12;
+    }
+    .theme-info {
+      margin-top: 12px;
+      font-size: 13px;
+      color: #6b6b6b;
+    }
+    .frame-section {
+      background: white;
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .frame-section h2 {
+      margin-top: 0;
+      color: #242424;
+      font-size: 18px;
+      margin-bottom: 16px;
+    }
+    .medium-demo {
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <div class="test-header">
+      <h1>Medium Article Frame Test</h1>
+      <p>Testing Medium's distinctive article layout with serif typography and dark/light mode support</p>
+    </div>
+
+    <div class="theme-toggle-container">
+      <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme (Current: <span id="current-theme">Light</span>)</button>
+      <div class="theme-info">Click to switch between dark and light modes</div>
+    </div>
+
+    <!-- Medium Article Demo 1: Tech Blog Post -->
+    <div class="frame-section">
+      <h2>Sample 1: Technology Article</h2>
+      <div class="medium-demo" id="medium-demo-1"></div>
+    </div>
+
+    <!-- Medium Article Demo 2: Design Article -->
+    <div class="frame-section">
+      <h2>Sample 2: Design & UX Article</h2>
+      <div class="medium-demo" id="medium-demo-2"></div>
+    </div>
+
+    <!-- Medium Article Demo 3: Productivity Article -->
+    <div class="frame-section">
+      <h2>Sample 3: Productivity Tips</h2>
+      <div class="medium-demo" id="medium-demo-3"></div>
+    </div>
+
+    <!-- Typography Test -->
+    <div class="frame-section">
+      <h2>Typography Details</h2>
+      <div class="medium-demo" id="medium-demo-typography"></div>
+    </div>
+  </div>
+
+  <script src="platform-frames.js"></script>
+  <script>
+    let currentTheme = 'light';
+
+    function toggleTheme() {
+      currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+      document.body.setAttribute('data-theme', currentTheme);
+      document.getElementById('current-theme').textContent =
+        currentTheme === 'light' ? 'Light' : 'Dark';
+      renderAllDemos();
+    }
+
+    function renderMediumDemo(container, content) {
+      container.innerHTML = buildContextFrame('medium', content, currentTheme);
+    }
+
+    function renderDemo1() {
+      const container = document.getElementById('medium-demo-1');
+      const content = {
+        author: 'Sarah Chen',
+        timeAgo: '2 hours ago',
+        title: 'The Future of Content Creation in the AI Era',
+        preview: 'An exploration of how artificial intelligence is reshaping the way we create and consume content, from automated writing to curated feeds.',
+        claps: '234',
+        responses: '18',
+        response: 'Great insights! I particularly appreciated your analysis of the human-AI collaboration aspect.'
+      };
+      renderMediumDemo(container, content);
+    }
+
+    function renderDemo2() {
+      const container = document.getElementById('medium-demo-2');
+      const content = {
+        author: 'Marcus Rodriguez',
+        timeAgo: '5 hours ago',
+        title: 'Designing for Emotion: How to Create Connections',
+        preview: 'Understanding the psychology behind user interface design and how emotional responses drive engagement and loyalty.',
+        claps: '567',
+        responses: '42',
+        response: 'This resonated deeply with me. The examples really illustrate the power of emotional design.'
+      };
+      renderMediumDemo(container, content);
+    }
+
+    function renderDemo3() {
+      const container = document.getElementById('medium-demo-3');
+      const content = {
+        author: 'Emily Thompson',
+        timeAgo: 'Yesterday',
+        title: '10 Productivity Hacks That Actually Work',
+        preview: 'A practical guide to boosting your daily output without burning out. Tested and proven methods for sustainable productivity.',
+        claps: '1.2K',
+        responses: '89',
+        response: 'Finally, productivity tips that are realistic! Number 7 changed my workflow completely.'
+      };
+      renderMediumDemo(container, content);
+    }
+
+    function renderTypographyDemo() {
+      const container = document.getElementById('medium-demo-typography');
+      const content = {
+        author: 'Typography Expert',
+        timeAgo: 'Just now',
+        title: 'The Art of Serif Typography in Digital Publishing',
+        preview: 'This headline uses Georgia serif font with 28px size, 700 weight, and -0.5px letter-spacing to capture Medium\'s distinctive publication style. Notice how the serif font conveys authority and readability.',
+        claps: '999',
+        responses: '1',
+        response: 'Perfect example of Medium\'s signature look!'
+      };
+      renderMediumDemo(container, content);
+    }
+
+    function renderAllDemos() {
+      renderDemo1();
+      renderDemo2();
+      renderDemo3();
+      renderTypographyDemo();
+    }
+
+    // Initial render
+    document.body.setAttribute('data-theme', currentTheme);
+    renderAllDemos();
+  </script>
+</body>
+</html>

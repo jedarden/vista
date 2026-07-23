@@ -108,6 +108,35 @@ export declare function changedFields(
   b: Record<string, any> | null | undefined
 ): string[];
 
+/**
+ * Find tags present in the first platform but missing from the second.
+ *
+ * Returns an array of tag names (strings) that are referenced in the first
+ * platform's issues/fixes but not in the second platform's issues/fixes.
+ * Tag names are extracted from issue/fix strings using patterns like:
+ * - "og:title missing" → "og:title"
+ * - "no twitter:card" → "twitter:card"
+ * - "Add og:title meta tag" → "og:title"
+ *
+ * @param a - First platform metadata object
+ * @param b - Second platform metadata object
+ * @returns Array of tag names missing from the second (empty if none)
+ *
+ * @example
+ * const a = { platformId: 'twitter', issues: ['og:title missing'], fixes: [] };
+ * const b = { platformId: 'twitter', issues: [], fixes: [] };
+ * missingTags(a, b); // ['og:title']
+ *
+ * @example
+ * const objA = { issues: ['no twitter:card', 'og:image missing'], fixes: [] };
+ * const objB = { issues: ['no twitter:card'], fixes: ['Add og:title'] };
+ * missingTags(objA, objB); // ['og:image']
+ */
+export declare function missingTags(
+  a: PlatformMetadata | null | undefined,
+  b: PlatformMetadata | null | undefined
+): string[];
+
 // ============================================================================
 // Extended Types for Batch Comparison
 // ============================================================================

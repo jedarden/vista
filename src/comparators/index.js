@@ -5,8 +5,10 @@
 
 const { isIdentical } = require('./isIdentical.js');
 const { changedFields } = require('./changedFields.js');
+const { missingTags } = require('./missingTags.js');
 
 module.exports = {
   isIdentical,
-  changedFields
+  changedFields,
+  missingTags
 };

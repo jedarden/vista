@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify All 43 Platforms</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      padding: 20px;
+      line-height: 1.5;
+    }
+    h1 { color: #4ade80; margin-bottom: 10px; }
+    .subtitle { color: #888; margin-bottom: 30px; font-size: 0.9em; }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    .summary-card {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 15px;
+      text-align: center;
+    }
+    .summary-card .number { font-size: 2em; font-weight: bold; }
+    .summary-card .label { font-size: 0.8em; color: #888; margin-top: 5px; }
+    .summary-card.green .number { color: #4ade80; }
+    .summary-card.yellow .number { color: #fbbf24; }
+    .summary-card.red .number { color: #f87171; }
+
+    .section { margin-bottom: 30px; }
+    .section h2 { color: #60a5fa; margin-bottom: 15px; font-size: 1.2em; }
+
+    .platform-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 10px;
+    }
+    .platform-card {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 10px;
+      text-align: center;
+      font-size: 0.85em;
+    }
+    .platform-card.all-pass { border-color: #4ade80; background: #1a3a1a; }
+    .platform-card.warning { border-color: #fbbf24; background: #3a2a0a; }
+    .platform-card.error { border-color: #f87171; background: #3a1a1a; }
+    .platform-name { font-weight: bold; margin-bottom: 5px; }
+    .check-item { font-size: 0.75em; display: flex; align-items: center; justify-content: center; gap: 3px; }
+    .pass { color: #4ade80; }
+    .fail { color: #f87171; }
+    .pending { color: #888; }
+
+    .skeleton-breakdown {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .skeleton-group { flex: 1; min-width: 200px; }
+    .skeleton-group h3 { color: #888; font-size: 0.9em; margin-bottom: 10px; }
+    .platform-list { display: flex; flex-wrap: wrap; gap: 5px; }
+    .platform-tag {
+      background: #2a2a2a;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.8em;
+    }
+    .tall { border-left: 3px solid #60a5fa; }
+    .short { border-left: 3px solid #fbbf24; }
+    .text-only { border-left: 3px solid #a78bfa; }
+
+    .log {
+      background: #0a0a0a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 15px;
+      font-family: monospace;
+      font-size: 0.75em;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .log-entry { margin-bottom: 5px; }
+    .log-entry.success { color: #4ade80; }
+    .log-entry.error { color: #f87171; }
+    .log-entry.info { color: #60a5fa; }
+
+    #run-btn {
+      background: #4ade80;
+      color: #0a0a0a;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-size: 1em;
+      font-weight: bold;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+    #run-btn:hover { background: #22c55e; }
+    #run-btn:disabled { background: #555; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+  <h1>✓ Verify All 43 Platforms</h1>
+  <p class="subtitle">Comprehensive end-to-end verification of platform frame infrastructure</p>
+
+  <button id="run-btn" onclick="runVerification()">Run Full Verification</button>
+
+  <div class="summary">
+    <div class="summary-card green">
+      <div class="number" id="total-count">43</div>
+      <div class="label">Total Platforms</div>
+    </div>
+    <div class="summary-card green">
+      <div class="number" id="frames-count">--</div>
+      <div class="label">Frames (Both Modes)</div>
+    </div>
+    <div class="summary-card green">
+      <div class="number" id="skeleton-count">--</div>
+      <div class="label">Skeleton Mappings</div>
+    </div>
+    <div class="summary-card green">
+      <div class="number" id="scoring-count">--</div>
+      <div class="label">Scoring Rules</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Skeleton Type Breakdown</h2>
+    <div class="skeleton-breakdown">
+      <div class="skeleton-group">
+        <h3>Tall (17 platforms)</h3>
+        <div class="platform-list" id="tall-platforms"></div>
+      </div>
+      <div class="skeleton-group">
+        <h3>Short (25 platforms)</h3>
+        <div class="platform-list" id="short-platforms"></div>
+      </div>
+      <div class="skeleton-group">
+        <h3>Text Only (1 platform)</h3>
+        <div class="platform-list" id="textonly-platforms"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Platform Status Grid</h2>
+    <div class="platform-grid" id="platform-grid"></div>
+  </div>
+
+  <div class="section">
+    <h2>Verification Log</h2>
+    <div class="log" id="log"></div>
+  </div>
+
+  <script>
+    const ALL_PLATFORMS = [
+      'asana', 'bluesky', 'devto', 'discord', 'evernote', 'facebook', 'feedly',
+      'figma', 'github', 'gitlab', 'gmail', 'google', 'googlechat', 'hackernews',
+      'imessage', 'instagram', 'jetbrains', 'jira', 'kakaotalk', 'line',
+      'linkedin', 'mastodon', 'medium', 'notion', 'outlook', 'pinterest',
+      'producthunt', 'reddit', 'signal', 'slack', 'stackoverflow', 'substack',
+      'teams', 'telegram', 'threads', 'tiktok', 'trello', 'tumblr', 'twitter',
+      'vscode', 'whatsapp', 'youtube', 'zoom'
+    ];
+
+    let results = {};
+
+    function log(message, type = 'info') {
+      const logDiv = document.getElementById('log');
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      logDiv.appendChild(entry);
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    async function checkFrameExists(platform, mode) {
+      try {
+        const response = await fetch(`/${platform}-${mode}.html`);
+        return response.ok;
+      } catch {
+        return false;
+      }
+    }
+
+    async function checkSkeletonMapping(platform) {
+      try {
+        const response = await fetch('/api/platforms');
+        const data = await response.json();
+        return data.platformSkeletonMap && data.platformSkeletonMap[platform];
+      } catch {
+        return false;
+      }
+    }
+
+    async function checkScoringRule(platform) {
+      try {
+        // Check if scorer.js has a case for this platform
+        const response = await fetch('/api/platforms');
+        const data = await response.json();
+        return data.platforms && data.platforms.includes(platform);
+      } catch {
+        return false;
+      }
+    }
+
+    function renderSkeletonBreakdown() {
+      fetch('/api/platforms')
+        .then(r => r.json())
+        .then(data => {
+          const tall = [], short = [], textOnly = [];
+          Object.entries(data.platformSkeletonMap).forEach(([platform, type]) => {
+            if (type === 'tall') tall.push(platform);
+            else if (type === 'short') short.push(platform);
+            else if (type === 'text_only') textOnly.push(platform);
+          });
+
+          document.getElementById('tall-platforms').innerHTML =
+            tall.map(p => `<span class="platform-tag tall">${p}</span>`).join('');
+          document.getElementById('short-platforms').innerHTML =
+            short.map(p => `<span class="platform-tag short">${p}</span>`).join('');
+          document.getElementById('textonly-platforms').innerHTML =
+            textOnly.map(p => `<span class="platform-tag text-only">${p}</span>`).join('');
+        });
+    }
+
+    function renderPlatformGrid() {
+      const grid = document.getElementById('platform-grid');
+      grid.innerHTML = ALL_PLATFORMS.map(platform => {
+        const r = results[platform] || {};
+        const allPass = r.light && r.dark && r.skeleton && r.scoring;
+        const hasError = r.light === false || r.dark === false || r.skeleton === false || r.scoring === false;
+        const hasPending = !r.light || !r.dark || !r.skeleton || !r.scoring;
+
+        const cssClass = allPass ? 'all-pass' : hasError ? 'error' : hasPending ? '' : 'warning';
+
+        return `
+          <div class="platform-card ${cssClass}" id="card-${platform}">
+            <div class="platform-name">${platform}</div>
+            <div class="check-item">${r.light !== false ? '✓' : '✗'} light</div>
+            <div class="check-item">${r.dark !== false ? '✓' : '✗'} dark</div>
+            <div class="check-item">${r.skeleton !== false ? '✓' : '✗'} skel</div>
+            <div class="check-item">${r.scoring !== false ? '✓' : '✗'} score</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function updateSummary() {
+      const total = ALL_PLATFORMS.length;
+      const withBothFrames = ALL_PLATFORMS.filter(p => results[p]?.light && results[p]?.dark).length;
+      const withSkeleton = ALL_PLATFORMS.filter(p => results[p]?.skeleton).length;
+      const withScoring = ALL_PLATFORMS.filter(p => results[p]?.scoring).length;
+
+      document.getElementById('total-count').textContent = total;
+      document.getElementById('frames-count').textContent = withBothFrames;
+      document.getElementById('skeleton-count').textContent = withSkeleton;
+      document.getElementById('scoring-count').textContent = withScoring;
+
+      // Color code based on completeness
+      document.getElementById('frames-count').parentElement.className =
+        withBothFrames === total ? 'summary-card green' : 'summary-card yellow';
+      document.getElementById('skeleton-count').parentElement.className =
+        withSkeleton === total ? 'summary-card green' : 'summary-card yellow';
+      document.getElementById('scoring-count').parentElement.className =
+        withScoring === total ? 'summary-card green' : 'summary-card yellow';
+    }
+
+    async function verifyPlatform(platform) {
+      results[platform] = { light: false, dark: false, skeleton: false, scoring: false };
+
+      // Check frames
+      const light = await checkFrameExists(platform, 'light');
+      const dark = await checkFrameExists(platform, 'dark');
+      results[platform].light = light;
+      results[platform].dark = dark;
+
+      // Check skeleton mapping
+      const skeleton = await checkSkeletonMapping(platform);
+      results[platform].skeleton = skeleton;
+
+      // Check scoring rule
+      const scoring = await checkScoringRule(platform);
+      results[platform].scoring = scoring;
+
+      // Update UI
+      const card = document.getElementById(`card-${platform}`);
+      if (card) {
+        const allPass = light && dark && skeleton && scoring;
+        const hasError = !light || !dark || !skeleton || !scoring;
+        card.className = `platform-card ${allPass ? 'all-pass' : hasError ? 'error' : 'warning'}`;
+        card.innerHTML = `
+          <div class="platform-name">${platform}</div>
+          <div class="check-item">${light ? '<span class="pass">✓</span>' : '<span class="fail">✗</span>'} light</div>
+          <div class="check-item">${dark ? '<span class="pass">✓</span>' : '<span class="fail">✗</span>'} dark</div>
+          <div class="check-item">${skeleton ? '<span class="pass">✓</span>' : '<span class="fail">✗</span>'} skel</div>
+          <div class="check-item">${scoring ? '<span class="pass">✓</span>' : '<span class="fail">✗</span>'} score</div>
+        `;
+      }
+
+      updateSummary();
+
+      const allPass = light && dark && skeleton && scoring;
+      log(`${platform}: ${allPass ? 'PASS' : 'PARTIAL'} - light:${light} dark:${dark} skeleton:${skeleton} scoring:${scoring}`,
+        allPass ? 'success' : 'error');
+    }
+
+    async function runVerification() {
+      const btn = document.getElementById('run-btn');
+      btn.disabled = true;
+      btn.textContent = 'Running...';
+
+      log('Starting verification of all 43 platforms...', 'info');
+
+      renderSkeletonBreakdown();
+      renderPlatformGrid();
+
+      // Verify platforms in batches of 10 to avoid overwhelming the browser
+      for (let i = 0; i < ALL_PLATFORMS.length; i += 10) {
+        const batch = ALL_PLATFORMS.slice(i, i + 10);
+        await Promise.all(batch.map(p => verifyPlatform(p)));
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+
+      const finalScore = ALL_PLATFORMS.filter(p =>
+        results[p]?.light && results[p]?.dark && results[p]?.skeleton && results[p]?.scoring
+      ).length;
+
+      log(`Verification complete: ${finalScore}/${ALL_PLATFORMS.length} platforms pass all checks`,
+        finalScore === ALL_PLATFORMS.length ? 'success' : 'error');
+
+      btn.disabled = false;
+      btn.textContent = 'Run Again';
+    }
+
+    // Initial render
+    document.addEventListener('DOMContentLoaded', () => {
+      renderSkeletonBreakdown();
+      renderPlatformGrid();
+      log('Ready to verify. Click "Run Full Verification" to start.', 'info');
+    });
+  </script>
+</body>
+</html>

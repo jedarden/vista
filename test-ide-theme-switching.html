@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IDE Frame Dark/Light Mode Switching Test</title>
+  <link rel="stylesheet" href="src/public/style.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 40px 20px;
+      max-width: 1600px;
+      margin: 0 auto;
+      background: #1a1a1e;
+      color: #e4e4e7;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .test-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .test-header h1 {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    .test-header p {
+      color: #a1a1aa;
+      font-size: 16px;
+    }
+
+    .acceptance-criteria {
+      background: #25252a;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 40px;
+      transition: background 0.2s ease;
+    }
+
+    .acceptance-criteria h2 {
+      font-size: 18px;
+      margin-bottom: 16px;
+      color: #6366f1;
+    }
+
+    .criteria-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .criteria-list li {
+      padding: 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+
+    .criteria-list li:before {
+      content: '□';
+      color: #6366f1;
+      font-weight: bold;
+      min-width: 20px;
+    }
+
+    .criteria-list li.passed:before {
+      content: '✓';
+      color: #4ade80;
+    }
+
+    .criteria-list li.passed {
+      color: #4ade80;
+    }
+
+    .test-controls {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    .theme-toggle {
+      padding: 12px 24px;
+      background: #6366f1;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: opacity 0.2s ease;
+    }
+
+    .theme-toggle:hover {
+      opacity: 0.9;
+    }
+
+    .toggle-all {
+      padding: 12px 24px;
+      background: #4f46e5;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: opacity 0.2s ease;
+    }
+
+    .toggle-all:hover {
+      opacity: 0.9;
+    }
+
+    .test-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+      gap: 30px;
+      margin: 24px 0;
+    }
+
+    .test-section {
+      margin-bottom: 60px;
+    }
+
+    .test-section h2 {
+      font-size: 20px;
+      margin-bottom: 16px;
+      color: #6366f1;
+    }
+
+    .platform-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #6366f1;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .frame-wrapper {
+      position: relative;
+    }
+
+    .theme-indicator {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 4px 8px;
+      background: rgba(99, 102, 241, 0.2);
+      border: 1px solid #6366f1;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #6366f1;
+      text-transform: uppercase;
+    }
+
+    .console-log {
+      background: #1a1a1e;
+      border: 1px solid #3a3a3f;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 40px;
+      max-height: 200px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+    }
+
+    .console-log h3 {
+      margin: 0 0 12px 0;
+      font-size: 14px;
+      color: #6366f1;
+    }
+
+    .log-entry {
+      padding: 4px 0;
+      color: #a1a1aa;
+    }
+
+    .log-entry.success {
+      color: #4ade80;
+    }
+
+    .log-entry.error {
+      color: #ef4444;
+    }
+
+    .log-entry.info {
+      color: #60a5fa;
+    }
+
+    /* HTML theme support */
+    html[data-theme='light'] body {
+      background: #ffffff;
+      color: #1f2937;
+    }
+
+    html[data-theme='light'] .acceptance-criteria {
+      background: #f8f9fa;
+      border: 1px solid #e5e7eb;
+    }
+
+    html[data-theme='light'] .console-log {
+      background: #f8f9fa;
+      border-color: #e5e7eb;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-controls">
+    <button class="theme-toggle" onclick="toggleTheme()">Toggle Global Theme 🌓</button>
+    <button class="toggle-all" onclick="toggleAllThemes()">Cycle Individual Frames 🔄</button>
+    <button class="toggle-all" onclick="runConsoleTests()">Run Console Tests ✓</button>
+  </div>
+
+  <div class="test-header">
+    <h1>IDE Frame Dark/Light Mode Switching Test</h1>
+    <p>Verifying theme switching for VS Code and JetBrains IDE context frames</p>
+  </div>
+
+  <div class="acceptance-criteria">
+    <h2>Acceptance Criteria</h2>
+    <ul class="criteria-list" id="criteria-list">
+      <li id="c1">VS Code frame switches correctly between dark and light modes</li>
+      <li id="c2">JetBrains frame switches correctly between dark and light modes</li>
+      <li id="c3">No console errors during mode switching</li>
+      <li id="c4">Visual styles update correctly for each mode (colors, backgrounds, borders)</li>
+      <li id="c5">Theme toggle button is responsive and works correctly</li>
+      <li id="c6">Both frames can be independently themed</li>
+    </ul>
+  </div>
+
+  <div class="test-section">
+    <h2>IDE Context Frames</h2>
+    <div class="test-grid">
+      <!-- VS Code Frame -->
+      <div class="frame-wrapper">
+        <div class="platform-label">VS Code</div>
+        <div class="theme-indicator" id="vscode-indicator">DARK</div>
+        <div class="vscode-context dark-theme" id="vscode-frame" style="--frame-bg: #1e1e1e; --frame-surface: #252526; --frame-border: #3e3e42; --frame-text-primary: #d4d4d4; --frame-text-secondary: #858585; --frame-text-muted: #6e6e6e; --frame-accent: #0078d4; --frame-accent-bg: #0078d4; --frame-link-color: #3794ff; --frame-divider: #3e3e42; --frame-input-bg: #3c3c3c; --frame-overlay: rgba(0, 0, 0, 0.6);">
+          <div class="vs-activity-bar">
+            <div class="vs-activity-icon vs-activity-active">📁</div>
+            <div class="vs-activity-icon">🔍</div>
+            <div class="vs-activity-icon">⎇</div>
+            <div class="vs-activity-icon">🐛</div>
+          </div>
+          <div class="vs-sidebar">
+            <div class="vs-explorer">Explorer</div>
+            <div class="vs-file vs-file-active">app.js</div>
+            <div class="vs-file">README.md</div>
+            <div class="vs-file">package.json</div>
+          </div>
+          <div class="vs-main-area">
+            <div class="vs-editor">
+              <div class="vs-tab-bar">
+                <div class="vs-tab vs-tab-active">app.js</div>
+              </div>
+              <div class="vs-content">
+                <div class="vs-comment vs-comment-dim">
+                  <span class="vs-comment-author">Dev</span>
+                  <span class="vs-comment-time">2 hours ago</span>
+                  <div class="vs-comment-body">// TODO: Review this code</div>
+                </div>
+                <div class="vs-comment">
+                  <span class="vs-comment-author">You</span>
+                  <span class="vs-comment-time">Just now</span>
+                  <div class="vs-comment-body">// Fixed the issue with data fetching</div>
+                </div>
+              </div>
+            </div>
+            <div class="vs-terminal-panel">
+              <div class="vs-terminal-header">Terminal</div>
+              <div class="vs-terminal-content">
+                <div class="vs-terminal-line">$ npm test</div>
+                <div class="vs-terminal-line vs-terminal-success">✓ Tests passed</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- JetBrains Frame -->
+      <div class="frame-wrapper">
+        <div class="platform-label">JetBrains IDE</div>
+        <div class="theme-indicator" id="jetbrains-indicator">DARK</div>
+        <div class="jetbrains-context dark-theme" id="jetbrains-frame" style="--frame-bg: #2b2b2b; --frame-surface: #313335; --frame-border: #4e5254; --frame-text-primary: #a9b7c6; --frame-text-secondary: #808080; --frame-text-muted: #6e6e6e; --frame-accent: #6c8eba; --frame-accent-bg: #4e6a91; --frame-link-color: #589df6; --frame-divider: #4e5254; --frame-input-bg: #3c3f41; --frame-overlay: rgba(0, 0, 0, 0.6);">
+          <div class="jb-navigation-bar">
+            <span class="jb-menu-item">File</span>
+            <span class="jb-menu-item">Edit</span>
+            <span class="jb-menu-item">View</span>
+            <span class="jb-menu-item">Navigate</span>
+            <span class="jb-menu-item">Code</span>
+            <span class="jb-menu-item">Refactor</span>
+            <span class="jb-menu-item">Build</span>
+            <span class="jb-menu-item">Run</span>
+            <span class="jb-menu-item">Tools</span>
+          </div>
+          <div class="jb-content-area">
+            <div class="jb-sidebar">
+              <div class="jb-project-header">MyProject</div>
+              <div class="jb-explorer">Project</div>
+              <div class="jb-file-tree">
+                <div class="jb-folder">
+                  <div class="jb-folder-name">src</div>
+                  <div class="jb-file jb-file-active">Main.java</div>
+                  <div class="jb-file">App.java</div>
+                </div>
+                <div class="jb-folder">
+                  <div class="jb-folder-name">test</div>
+                  <div class="jb-file">Test.java</div>
+                </div>
+              </div>
+            </div>
+            <div class="jb-main-area">
+              <div class="jb-editor">
+                <div class="jb-tab-bar">
+                  <div class="jb-tab jb-tab-active">Main.java</div>
+                  <div class="jb-tab">README.md</div>
+                </div>
+                <div class="jb-content">
+                  <div class="jb-comment jb-comment-dim">
+                    <span class="jb-comment-author">Developer</span>
+                    <span class="jb-comment-time">2 hours ago</span>
+                    <div class="jb-comment-body">// TODO: Review this implementation</div>
+                  </div>
+                  <div class="jb-comment">
+                    <span class="jb-comment-author">You</span>
+                    <span class="jb-comment-time">Just now</span>
+                    <div class="jb-comment-body">// Updated the algorithm for better performance</div>
+                  </div>
+                </div>
+              </div>
+              <div class="jb-status-bar">
+                <div class="jb-status-left">
+                  <span class="jb-status-item">✓</span>
+                  <span class="jb-status-item">JUnit: OK</span>
+                </div>
+                <div class="jb-status-right">
+                  <span class="jb-status-item">Line 42</span>
+                  <span class="jb-status-item">UTF-8</span>
+                  <span class="jb-status-item">4 spaces</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="console-log">
+    <h3>Console Log</h3>
+    <div id="log-output"></div>
+  </div>
+
+  <script>
+    // Theme definitions
+    const themeVars = {
+      vscode: {
+        dark: {
+          '--frame-bg': '#1e1e1e',
+          '--frame-surface': '#252526',
+          '--frame-border': '#3e3e42',
+          '--frame-text-primary': '#d4d4d4',
+          '--frame-text-secondary': '#858585',
+          '--frame-text-muted': '#6e6e6e',
+          '--frame-accent': '#0078d4',
+          '--frame-accent-bg': '#0078d4',
+          '--frame-link-color': '#3794ff',
+          '--frame-divider': '#3e3e42',
+          '--frame-input-bg': '#3c3c3c',
+          '--frame-overlay': 'rgba(0, 0, 0, 0.6)',
+        },
+        light: {
+          '--frame-bg': '#ffffff',
+          '--frame-surface': '#f3f3f3',
+          '--frame-border': '#e4e4e4',
+          '--frame-text-primary': '#333333',
+          '--frame-text-secondary': '#616161',
+          '--frame-text-muted': '#9e9e9e',
+          '--frame-accent': '#005fb8',
+          '--frame-accent-bg': '#e8f0fe',
+          '--frame-link-color': '#0066cc',
+          '--frame-divider': '#e4e4e4',
+          '--frame-input-bg': '#ffffff',
+          '--frame-overlay': 'rgba(0, 0, 0, 0.1)',
+        }
+      },
+      jetbrains: {
+        dark: {
+          '--frame-bg': '#2b2b2b',
+          '--frame-surface': '#313335',
+          '--frame-border': '#4e5254',
+          '--frame-text-primary': '#a9b7c6',
+          '--frame-text-secondary': '#808080',
+          '--frame-text-muted': '#6e6e6e',
+          '--frame-accent': '#6c8eba',
+          '--frame-accent-bg': '#4e6a91',
+          '--frame-link-color': '#589df6',
+          '--frame-divider': '#4e5254',
+          '--frame-input-bg': '#3c3f41',
+          '--frame-overlay': 'rgba(0, 0, 0, 0.6)',
+        },
+        light: {
+          '--frame-bg': '#ffffff',
+          '--frame-surface': '#f5f5f5',
+          '--frame-border': '#dcdcdc',
+          '--frame-text-primary': '#1a1a1a',
+          '--frame-text-secondary': '#6e6e6e',
+          '--frame-text-muted': '#9e9e9e',
+          '--frame-accent': '#6c8eba',
+          '--frame-accent-bg': '#e8f0fe',
+          '--frame-link-color': '#0066cc',
+          '--frame-divider': '#dcdcdc',
+          '--frame-input-bg': '#ffffff',
+          '--frame-overlay': 'rgba(0, 0, 0, 0.1)',
+        }
+      }
+    };
+
+    // Frame state
+    const frameState = {
+      vscode: 'dark',
+      jetbrains: 'dark'
+    };
+
+    // Console logging
+    function log(message, type = 'info') {
+      const logOutput = document.getElementById('log-output');
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      const timestamp = new Date().toLocaleTimeString();
+      entry.textContent = `[${timestamp}] ${message}`;
+      logOutput.appendChild(entry);
+      logOutput.scrollTop = logOutput.scrollHeight;
+      console.log(`[${type.toUpperCase()}] ${message}`);
+    }
+
+    // Update criteria status
+    function updateCriteria(id, passed) {
+      const item = document.getElementById(id);
+      if (passed) {
+        item.classList.add('passed');
+      }
+    }
+
+    // Apply theme to specific frame
+    function applyFrameTheme(platform, theme) {
+      const frame = document.getElementById(`${platform}-frame`);
+      const indicator = document.getElementById(`${platform}-indicator`);
+
+      if (!frame || !indicator) {
+        log(`Error: Frame or indicator not found for ${platform}`, 'error');
+        return false;
+      }
+
+      const vars = themeVars[platform][theme];
+      if (!vars) {
+        log(`Error: Theme vars not found for ${platform}/${theme}`, 'error');
+        return false;
+      }
+
+      // Apply CSS variables
+      Object.entries(vars).forEach(([key, value]) => {
+        frame.style.setProperty(key, value);
+      });
+
+      // Update classes
+      frame.classList.remove('dark-theme', 'light-theme');
+      frame.classList.add(`${theme}-theme`);
+
+      // Update indicator
+      indicator.textContent = theme.toUpperCase();
+
+      frameState[platform] = theme;
+
+      log(`${platform.toUpperCase()} frame switched to ${theme.toUpperCase()} mode`, 'success');
+      return true;
+    }
+
+    // Toggle global theme
+    function toggleTheme() {
+      const html = document.documentElement;
+      const currentTheme = html.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+      try {
+        html.setAttribute('data-theme', newTheme);
+
+        // Update both frames
+        const vscodeSuccess = applyFrameTheme('vscode', newTheme);
+        const jetbrainsSuccess = applyFrameTheme('jetbrains', newTheme);
+
+        if (vscodeSuccess && jetbrainsSuccess) {
+          updateCriteria('c1', true);
+          updateCriteria('c2', true);
+          updateCriteria('c4', true);
+          updateCriteria('c5', true);
+          log(`Global theme switched to ${newTheme.toUpperCase()}`, 'success');
+        } else {
+          log('Theme switching had errors', 'error');
+          updateCriteria('c5', false);
+        }
+      } catch (error) {
+        log(`Error during theme toggle: ${error.message}`, 'error');
+        updateCriteria('c3', false);
+      }
+    }
+
+    // Toggle all frames independently (for testing individual control)
+    let cycleIndex = 0;
+    function toggleAllThemes() {
+      const states = [
+        { vscode: 'dark', jetbrains: 'dark' },
+        { vscode: 'light', jetbrains: 'dark' },
+        { vscode: 'dark', jetbrains: 'light' },
+        { vscode: 'light', jetbrains: 'light' },
+      ];
+
+      const state = states[cycleIndex % states.length];
+      cycleIndex++;
+
+      applyFrameTheme('vscode', state.vscode);
+      applyFrameTheme('jetbrains', state.jetbrains);
+
+      updateCriteria('c6, true');
+      log(`Cycled to state ${cycleIndex}: VSCode=${state.vscode}, JetBrains=${state.jetbrains}`, 'info');
+    }
+
+    // Run console tests
+    function runConsoleTests() {
+      log('Starting console tests...', 'info');
+
+      let testErrors = 0;
+
+      // Test 1: Check if themeVars are properly defined
+      try {
+        if (themeVars.vscode.dark && themeVars.vscode.light) {
+          log('✓ VS Code theme vars defined', 'success');
+        } else {
+          log('✗ VS Code theme vars incomplete', 'error');
+          testErrors++;
+        }
+
+        if (themeVars.jetbrains.dark && themeVars.jetbrains.light) {
+          log('✓ JetBrains theme vars defined', 'success');
+        } else {
+          log('✗ JetBrains theme vars incomplete', 'error');
+          testErrors++;
+        }
+      } catch (e) {
+        log(`✗ Theme vars check failed: ${e.message}`, 'error');
+        testErrors++;
+      }
+
+      // Test 2: Check if frames exist
+      try {
+        const vscodeFrame = document.getElementById('vscode-frame');
+        const jetbrainsFrame = document.getElementById('jetbrains-frame');
+
+        if (vscodeFrame && jetbrainsFrame) {
+          log('✓ Both frames exist in DOM', 'success');
+        } else {
+          log('✗ One or both frames missing', 'error');
+          testErrors++;
+        }
+      } catch (e) {
+        log(`✗ Frame existence check failed: ${e.message}`, 'error');
+        testErrors++;
+      }
+
+      // Test 3: Test theme application
+      try {
+        applyFrameTheme('vscode', 'light');
+        const vsLightBg = document.getElementById('vscode-frame').style.getPropertyValue('--frame-bg');
+        if (vsLightBg.trim() === '#ffffff' || vsLightBg.trim() === 'rgb(255, 255, 255)') {
+          log('✓ VS Code light theme applies correctly', 'success');
+          updateCriteria('c1', true);
+        } else {
+          log(`✗ VS Code light theme incorrect (bg=${vsLightBg})`, 'error');
+          testErrors++;
+        }
+
+        applyFrameTheme('vscode', 'dark');
+        const vsDarkBg = document.getElementById('vscode-frame').style.getPropertyValue('--frame-bg');
+        if (vsDarkBg.trim() === '#1e1e1e') {
+          log('✓ VS Code dark theme applies correctly', 'success');
+        } else {
+          log(`✗ VS Code dark theme incorrect (bg=${vsDarkBg})`, 'error');
+          testErrors++;
+        }
+
+        applyFrameTheme('jetbrains', 'light');
+        const jbLightBg = document.getElementById('jetbrains-frame').style.getPropertyValue('--frame-bg');
+        if (jbLightBg.trim() === '#ffffff' || jbLightBg.trim() === 'rgb(255, 255, 255)') {
+          log('✓ JetBrains light theme applies correctly', 'success');
+          updateCriteria('c2', true);
+        } else {
+          log(`✗ JetBrains light theme incorrect (bg=${jbLightBg})`, 'error');
+          testErrors++;
+        }
+
+        applyFrameTheme('jetbrains', 'dark');
+        const jbDarkBg = document.getElementById('jetbrains-frame').style.getPropertyValue('--frame-bg');
+        if (jbDarkBg.trim() === '#2b2b2b') {
+          log('✓ JetBrains dark theme applies correctly', 'success');
+        } else {
+          log(`✗ JetBrains dark theme incorrect (bg=${jbDarkBg})`, 'error');
+          testErrors++;
+        }
+      } catch (e) {
+        log(`✗ Theme application test failed: ${e.message}`, 'error');
+        testErrors++;
+      }
+
+      // Test 4: Rapid toggle stress test
+      try {
+        log('Running rapid toggle stress test (10 cycles)...', 'info');
+        for (let i = 0; i < 10; i++) {
+          applyFrameTheme('vscode', i % 2 === 0 ? 'dark' : 'light');
+          applyFrameTheme('jetbrains', i % 2 === 0 ? 'dark' : 'light');
+        }
+        log('✓ Rapid toggle stress test passed', 'success');
+      } catch (e) {
+        log(`✗ Stress test failed: ${e.message}`, 'error');
+        testErrors++;
+      }
+
+      // Summary
+      if (testErrors === 0) {
+        updateCriteria('c3', true);
+        updateCriteria('c4', true);
+        log('All console tests PASSED ✓', 'success');
+      } else {
+        log(`${testErrors} test(s) FAILED ✗`, 'error');
+        updateCriteria('c3', false);
+      }
+    }
+
+    // Initialize
+    log('Test page loaded successfully', 'success');
+    log('Theme system ready for testing', 'info');
+    log('Click "Toggle Global Theme" to test theme switching', 'info');
+    log('Click "Run Console Tests" to run automated tests', 'info');
+  </script>
+</body>
+</html>

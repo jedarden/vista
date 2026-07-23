@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Hash on Tab Switch</title>
+    <style>
+        body { font-family: system-ui; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .test-result { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .pass { background: #d4edda; color: #155724; }
+        .fail { background: #f8d7da; color: #721c24; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Test: URL Hash Updates on Tab Switch</h1>
+    <div id="results"></div>
+    <pre id="log"></pre>
+
+    <script>
+        const results = document.getElementById('results');
+        const log = document.getElementById('log');
+        let logMessages = [];
+
+        function logMsg(msg) {
+            logMessages.push(msg);
+            log.textContent = logMessages.join('\n');
+        }
+
+        function addResult(name, passed, details) {
+            const div = document.createElement('div');
+            div.className = `test-result ${passed ? 'pass' : 'fail'}`;
+            div.innerHTML = `<strong>${passed ? '✓' : '✗'} ${name}</strong><br>${details}`;
+            results.appendChild(div);
+        }
+
+        // Test cases
+        async function runTests() {
+            logMsg('Starting hash tab switch tests...');
+
+            // Test 1: Verify switchTab calls updateHash with tab parameter
+            logMsg('\nTest 1: Check if switchTab calls updateHash...');
+            const appJs = await fetch('/app.js').then(r => r.text());
+            const hasSwitchTabUpdateHash = appJs.includes('switchTab(tabId)') &&
+                appJs.match(/switchTab[\s\S]{0,500}updateHash/);
+            addResult(
+                'switchTab calls updateHash',
+                !!hasSwitchTabUpdateHash,
+                'Found updateHash call within switchTab function'
+            );
+            logMsg(`Result: ${!!hasSwitchTabUpdateHash}`);
+
+            // Test 2: Verify updateHash uses history.replaceState (no reload)
+            logMsg('\nTest 2: Check if updateHash uses history.replaceState...');
+            const usesReplaceState = appJs.includes('history.replaceState');
+            addResult(
+                'updateHash uses history.replaceState (no page reload)',
+                usesReplaceState,
+                'Found history.replaceState in updateHash function'
+            );
+            logMsg(`Result: ${usesReplaceState}`);
+
+            // Test 3: Verify tab names match identifiers
+            logMsg('\nTest 3: Check tab identifiers in HTML...');
+            const indexHtml = await fetch('/').then(r => r.text());
+            const tabMatches = indexHtml.match(/data-tab="([^"]+)"/g);
+            const tabIds = tabMatches ? [...new Set(tabMatches.map(m => m.match(/data-tab="([^"]+)"/)[1]))] : [];
+            addResult(
+                'Tab identifiers exist',
+                tabIds.length > 0,
+                `Found ${tabIds.length} tabs: ${tabIds.join(', ')}`
+            );
+            logMsg(`Tab IDs found: ${tabIds.join(', ')}`);
+
+            // Test 4: Verify hash format is #tab=<tab-name>
+            logMsg('\nTest 4: Check hash format in updateHash...');
+            const correctHashFormat = appJs.includes('tab=') &&
+                appJs.includes('parts.push(`tab=${');
+            addResult(
+                'Hash format is #tab=<tab-name>',
+                correctHashFormat,
+                'Uses correct format for encoding tab in hash'
+            );
+            logMsg(`Result: ${correctHashFormat}`);
+
+            // Test 5: Verify hash state restoration
+            logMsg('\nTest 5: Check if hash state is restored on page load...');
+            const hasRestoreLogic = appJs.includes('restoreHashState') ||
+                appJs.includes('getHashState');
+            addResult(
+                'Hash state restoration exists',
+                hasRestoreLogic,
+                'Found restoreHashState or getHashState function'
+            );
+            logMsg(`Result: ${hasRestoreLogic}`);
+
+            // Test 6: Verify no page reload occurs (check for location.href = or location.assign)
+            logMsg('\nTest 6: Verify no direct location assignment...');
+            const noDirectLocation = !appJs.includes('location.href') ||
+                !appJs.match(/location\.href\s*=/);
+            addResult(
+                'No direct location.href assignment (no reload)',
+                noDirectLocation,
+                'updateHash uses replaceState instead of location.href='
+            );
+            logMsg(`Result: ${noDirectLocation}`);
+
+            logMsg('\n\n=== All tests completed ===');
+        }
+
+        runTests().catch(err => {
+            logMsg(`Error: ${err.message}`);
+            addResult('Test execution', false, `Error: ${err.message}`);
+        });
+    </script>
+</body>
+</html>

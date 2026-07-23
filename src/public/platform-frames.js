@@ -277,7 +277,7 @@ const PLATFORM_FRAMES = {
   instagram: {
     name: 'Instagram',
     category: 'social',
-    hasThemeSupport: false,
+    hasThemeSupport: true,
     aspectRatio: '1:1',
     chrome: `
       <div class="ig-post-header">

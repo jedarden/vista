@@ -553,3 +553,35 @@
   --frame-input-bg: var(--generic-input-bg, var(--frame-input-bg-global));
   --frame-overlay: var(--generic-overlay, var(--frame-overlay-global));
 }
+
+/* Reddit Context */
+.reddit-context {
+  --frame-bg: var(--reddit-bg, var(--frame-bg-global));
+  --frame-surface: var(--reddit-surface, var(--frame-surface-global));
+  --frame-border: var(--reddit-border, var(--frame-border-global));
+  --frame-text-primary: var(--reddit-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--reddit-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--reddit-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--reddit-accent, var(--frame-accent-global));
+  --frame-accent-bg: var(--reddit-accent-bg, var(--frame-accent-bg-global));
+  --frame-link-color: var(--reddit-link-color, var(--frame-link-color-global));
+  --frame-divider: var(--reddit-divider, var(--frame-divider-global));
+  --frame-input-bg: var(--reddit-input-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--reddit-overlay, var(--frame-overlay-global));
+}
+
+/* Instagram Context */
+.instagram-context {
+  --frame-bg: var(--instagram-bg, var(--frame-bg-global));
+  --frame-surface: var(--instagram-surface, var(--frame-surface-global));
+  --frame-border: var(--instagram-border, var(--frame-border-global));
+  --frame-text-primary: var(--instagram-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--instagram-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--instagram-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--instagram-accent, var(--frame-accent-global));
+  --frame-accent-bg: var(--instagram-accent-bg, var(--frame-accent-bg-global));
+  --frame-link-color: var(--instagram-link-color, var(--frame-link-color-global));
+  --frame-divider: var(--instagram-divider, var(--frame-divider-global));
+  --frame-input-bg: var(--instagram-input-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--instagram-overlay, var(--frame-overlay-global));
+}

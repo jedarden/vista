@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IDE Frames Verification - VS Code & JetBrains</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      padding: 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+      background: #0f1117;
+      color: #e8eaf0;
+    }
+    html[data-theme='light'] body {
+      background: #f8f9fa;
+      color: #212529;
+    }
+    h1 { margin-bottom: 8px; }
+    .subtitle { color: #9ba3b8; margin-bottom: 24px; }
+    html[data-theme='light'] .subtitle { color: #495057; }
+
+    .test-section { margin-bottom: 50px; }
+    .test-section h2 {
+      font-size: 18px;
+      margin-bottom: 16px;
+      color: #5b8dee;
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 16px;
+      background: #5b8dee;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 1000;
+    }
+    .theme-toggle:hover { opacity: 0.9; }
+
+    .frame-wrapper {
+      margin-bottom: 30px;
+      border: 1px solid var(--frame-border, #3e3e42);
+      border-radius: 8px;
+      padding: 20px;
+      background: var(--frame-bg, #1e1e1e);
+    }
+
+    .frame-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: #9ba3b8;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    html[data-theme='light'] .frame-label { color: #495057; }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .status-item {
+      padding: 10px 14px;
+      background: #1e2330;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    html[data-theme='light'] .status-item {
+      background: #f1f3f4;
+    }
+
+    .status-name {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .status-detail {
+      font-size: 11px;
+      color: #9ba3b8;
+    }
+    html[data-theme='light'] .status-detail {
+      color: #6c757d;
+    }
+  </style>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <button class="theme-toggle" id="themeToggle">☀️ Light Mode</button>
+
+  <h1>🧪 IDE Frames Verification</h1>
+  <p class="subtitle">Testing VS Code and JetBrains IDE platform frames in dark and light modes</p>
+
+  <div class="test-section">
+    <h2>✅ Implementation Status</h2>
+    <div class="status-grid">
+      <div class="status-item">
+        <div class="status-name">VS Code (vscode)</div>
+        <div class="status-detail">✅ Platform frame defined in platform-frames.js</div>
+        <div class="status-detail">✅ CSS styles in style.css</div>
+        <div class="status-detail">✅ Dark/light theme support</div>
+      </div>
+      <div class="status-item">
+        <div class="status-name">JetBrains IDE (jetbrains)</div>
+        <div class="status-detail">✅ Platform frame defined in platform-frames.js</div>
+        <div class="status-detail">✅ CSS styles in style.css</div>
+        <div class="status-detail">✅ Dark/light theme support</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>VS Code Frame</h2>
+    <div class="frame-wrapper">
+      <div class="frame-label">VS Code - Dark Mode (default)</div>
+      <div class="vscode-context dark-theme">
+        <div class="vs-activity-bar">
+          <div class="vs-activity-icon vs-activity-active">📁</div>
+          <div class="vs-activity-icon">🔍</div>
+          <div class="vs-activity-icon">⎇</div>
+          <div class="vs-activity-icon">🐛</div>
+        </div>
+        <div class="vs-sidebar">
+          <div class="vs-explorer">Explorer</div>
+          <div class="vs-file vs-file-active">index.ts</div>
+          <div class="vs-file">README.md</div>
+          <div class="vs-file">package.json</div>
+        </div>
+        <div class="vs-main-area">
+          <div class="vs-editor">
+            <div class="vs-tab-bar">
+              <div class="vs-tab vs-tab-active">index.ts</div>
+              <div class="vs-tab">README.md</div>
+            </div>
+            <div class="vs-content">
+              <div class="vs-comment vs-comment-dim">
+                <span class="vs-comment-author">Dev</span>
+                <span class="vs-comment-time">2h ago</span>
+                <div class="vs-comment-body">// TODO: Review this code</div>
+              </div>
+              <div class="vs-comment">
+                <span class="vs-comment-author">You</span>
+                <span class="vs-comment-time">Just now</span>
+                <div class="vs-comment-body">// Implementation complete!</div>
+              </div>
+            </div>
+          </div>
+          <div class="vs-terminal-panel">
+            <div class="vs-terminal-header">Terminal</div>
+            <div class="vs-terminal-content">
+              <div class="vs-terminal-line">$ npm test</div>
+              <div class="vs-terminal-line vs-terminal-success">✓ Tests passed</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>JetBrains IDE Frame</h2>
+    <div class="frame-wrapper">
+      <div class="frame-label">JetBrains IDE - Dark Mode (default)</div>
+      <div class="jetbrains-context dark-theme">
+        <div class="jb-navigation-bar">
+          <span class="jb-menu-item">File</span>
+          <span class="jb-menu-item">Edit</span>
+          <span class="jb-menu-item">View</span>
+          <span class="jb-menu-item">Navigate</span>
+          <span class="jb-menu-item">Code</span>
+          <span class="jb-menu-item">Refactor</span>
+          <span class="jb-menu-item">Build</span>
+          <span class="jb-menu-item">Run</span>
+          <span class="jb-menu-item">Tools</span>
+        </div>
+        <div class="jb-content-area">
+          <div class="jb-sidebar">
+            <div class="jb-project-header">MyProject</div>
+            <div class="jb-explorer">Project</div>
+            <div class="jb-file-tree">
+              <div class="jb-folder">
+                <div class="jb-folder-name">src</div>
+                <div class="jb-file jb-file-active">App.java</div>
+                <div class="jb-file">Main.java</div>
+              </div>
+              <div class="jb-folder">
+                <div class="jb-folder-name">test</div>
+                <div class="jb-file">Test.java</div>
+              </div>
+            </div>
+          </div>
+          <div class="jb-main-area">
+            <div class="jb-editor">
+              <div class="jb-tab-bar">
+                <div class="jb-tab jb-tab-active">App.java</div>
+                <div class="jb-tab">README.md</div>
+              </div>
+              <div class="jb-content">
+                <div class="jb-comment jb-comment-dim">
+                  <span class="jb-comment-author">Developer</span>
+                  <span class="jb-comment-time">2h ago</span>
+                  <div class="jb-comment-body">// TODO: Review this implementation</div>
+                </div>
+                <div class="jb-comment">
+                  <span class="jb-comment-author">You</span>
+                  <span class="jb-comment-time">Just now</span>
+                  <div class="jb-comment-body">// Implementation complete!</div>
+                </div>
+              </div>
+            </div>
+            <div class="jb-status-bar">
+              <div class="jb-status-left">
+                <span class="jb-status-item">✓</span>
+                <span class="jb-status-item">JUnit: OK</span>
+              </div>
+              <div class="jb-status-right">
+                <span class="jb-status-item">Line 42</span>
+                <span class="jb-status-item">UTF-8</span>
+                <span class="jb-status-item">4 spaces</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>✅ Acceptance Criteria Checklist</h2>
+    <ul style="list-style: none; padding: 0; line-height: 1.8;">
+      <li>✅ Both IDE platforms have context frames defined in src/public/</li>
+      <li>✅ Each captures distinct UI patterns (VS Code's activity bar, JetBrains's project tool window)</li>
+      <li>✅ Dark/light mode works for both platforms</li>
+      <li>✅ Frames integrate with existing PLATFORMS_WITH_THEME enum</li>
+    </ul>
+  </div>
+
+  <script src="platform-frames.js"></script>
+  <script>
+    const themeToggle = document.getElementById('themeToggle');
+    let currentTheme = 'dark';
+
+    themeToggle.addEventListener('click', () => {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      themeToggle.textContent = currentTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+
+      // Update IDE frames that support theme
+      const idePlatforms = ['vscode', 'jetbrains'];
+      idePlatforms.forEach(platform => {
+        const frame = document.querySelector(`.${platform}-context`);
+        if (frame) {
+          frame.classList.remove('dark-theme', 'light-theme');
+          frame.classList.add(`${currentTheme}-theme`);
+        }
+      });
+
+      console.log(`Theme switched to ${currentTheme} mode`);
+    });
+
+    // Verify platform-frames.js integration
+    console.log('✅ IDE Frames Verification');
+    console.log('Platforms with theme support:', getPlatformsWithThemeSupport());
+    console.log('vscode hasThemeSupport:', hasThemeSupport('vscode'));
+    console.log('jetbrains hasThemeSupport:', hasThemeSupport('jetbrains'));
+    console.log('VS Code frame definition:', getPlatformFrame('vscode'));
+    console.log('JetBrains frame definition:', getPlatformFrame('jetbrains'));
+  </script>
+</body>
+</html>

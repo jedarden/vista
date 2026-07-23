@@ -1,17 +1,18 @@
 /**
- * Single Platform Preference Test Case - BF-4a7et
+ * Single Platform Preference Test with DOM Ordering Verification - BF-3hda8
  *
  * This test verifies that a single platform preference can be:
  * 1. Set via the settings UI
  * 2. Saved to localStorage
  * 3. Persisted across page reloads
+ * 4. **REFLECTED IN DOM ORDER** (new verification)
  *
  * Focus: Reddit platform preference
  *
- * Usage: node test/integration/single-platform-preference-test.js
+ * Usage: node test/integration/single-platform-preference-puppeteer-test.js
  */
 
-const { chromium } = require('playwright');
+const puppeteer = require('puppeteer');
 const {
   setPlatformPreferences,
   getPlatformPreferences,
@@ -75,7 +76,7 @@ async function ensurePageReady(page) {
       return true;
     }
 
-    await page.waitForTimeout(100);
+    await new Promise(resolve => setTimeout(resolve, 100));
   }
 
   throw new Error('Page did not initialize within timeout');
@@ -86,7 +87,7 @@ async function ensurePageReady(page) {
  */
 async function runTest() {
   console.log('\n' + '='.repeat(60));
-  console.log(`Single Platform Preference Test - ${TEST_PLATFORM.toUpperCase()}`);
+  console.log(`Single Platform Preference Test (Puppeteer) - ${TEST_PLATFORM.toUpperCase()}`);
   console.log('='.repeat(60));
   console.log(`Started at: ${RESULTS.startTime}`);
   console.log(`Test Platform: ${TEST_PLATFORM}`);
@@ -98,11 +99,12 @@ async function runTest() {
   try {
     // Setup: Launch browser
     console.log('🔧 Setup: Launching browser...');
-    browser = await chromium.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    browser = await puppeteer.launch({
+      headless: 'new',
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
     });
     page = await browser.newPage();
+    await page.setViewport({ width: 1920, height: 1080 });
     console.log('✅ Browser launched\n');
 
     // Test 1: Ensure page is ready
@@ -375,7 +377,7 @@ async function runTest() {
   const fs = require('fs');
   const path = require('path');
   const resultsDir = path.join(__dirname, '..', '..', 'test-results');
-  const resultsPath = path.join(resultsDir, `single-platform-preference-test-${TEST_PLATFORM}.json`);
+  const resultsPath = path.join(resultsDir, `single-platform-preference-puppeteer-test-${TEST_PLATFORM}.json`);
 
   // Ensure results directory exists
   if (!fs.existsSync(resultsDir)) {

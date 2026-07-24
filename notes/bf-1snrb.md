@@ -1,0 +1,344 @@
+# Other Filter-Related Hook Patterns in app.js
+
+**Task:** Search for other hook patterns related to filters in app.js that don't match previous categories (event listeners, on* handlers, addEventListener patterns).
+
+**Date:** 2026-07-24
+**File:** `/home/coding/vista/src/public/app.js`
+
+---
+
+## Summary
+
+Found **5 distinct hook patterns** related to filters that are NOT event-listener based:
+
+1. **Guard Flag Pattern** - `isFilterOperation` boolean flag
+2. **Queue/Defer Pattern** - `pendingFilterOperations[]` and `queueFilterOperation()`
+3. **Centralized Guard Functions** - `shouldDeferFilterOperation()`, `isSmartOrdering()`, `processPendingFilterOperations()`
+4. **setTimeout-Based Guard Clearing** - Async guard flag reset pattern
+5. **Filter Function Pattern** - Pure functions for filtering (not event-driven)
+
+---
+
+## Pattern 1: Guard Flag Pattern
+
+### Description
+Boolean flag `isFilterOperation` prevents smart order resets during filter changes. Set to `true` before filter operations, cleared after completion.
+
+### Line Numbers
+- Declaration: **Line 6279**
+- Usage (5 instances): Lines 8080, 8096, 8144, 8156, 8263
+- Checks: Line 8792, 8794
+- Window export: Lines 5046-5049
+
+### Code Snippets
+
+**Declaration:**
+```javascript
+// Line 6279
+let isFilterOperation = false; // Guard flag to prevent smart order resets during filter changes
+```
+
+**Usage Pattern (lines 8080-8082):**
+```javascript
+isFilterOperation = true;
+renderPreviews(currentData);
+setTimeout(() => { isFilterOperation = false; }, 0);
+```
+
+**Check Pattern (lines 8792-8795):**
+```javascript
+if (isFilterOperation || isSmartOrdering()) {
+  console.log('[clearCardOrderForGroup] Skipped cardOrder clear:', 
+    isFilterOperation ? 'filter operation in progress' : 'smart ordering is active');
+  return;
+}
+```
+
+**Window Export (lines 5046-5049):**
+```javascript
+Object.defineProperty(window, 'isFilterOperation', {
+  get: () => isFilterOperation,
+  set: (val) => { isFilterOperation = val; }
+});
+```
+
+### Context
+Used to prevent race conditions between filter operations and smart ordering. When `isFilterOperation` is `true`, card order clearing is skipped to preserve user's filter state.
+
+---
+
+## Pattern 2: Queue/Defer Pattern
+
+### Description
+Filter operations are queued when smart ordering is active, then executed after smart ordering completes.
+
+### Line Numbers
+- Declaration: **Line 6281**
+- Queue function: Lines 7942-7947
+- Usage: Lines 7888, 8148
+- Window export: Lines 5050-5053
+
+### Code Snippets
+
+**Declaration:**
+```javascript
+// Line 6281
+let pendingFilterOperations = []; // Queue filter operations during smart ordering
+```
+
+**Queue Function (lines 7942-7947):**
+```javascript
+function queueFilterOperation(operation, description) {
+  if (DEBUG_SMART_ORDERING) {
+    console.log(`[queueFilterOperation] Queuing: ${description}`);
+  }
+  pendingFilterOperations.push({ operation, description });
+}
+```
+
+**Usage Example (lines 8142-8148):**
+```javascript
+if (isSmartOrdering()) {
+  const applyWhatIfReset = () => {
+    isFilterOperation = true;
+    renderPreviews(currentData);
+    setTimeout(() => { isFilterOperation = false; }, 0);
+  };
+  queueFilterOperation(applyWhatIfReset, 'toggleWhatIfMode');
+  if (DEBUG_SMART_ORDERING) {
+    console.log('[toggleWhatIfMode] Smart ordering active - operation queued');
+  }
+  return;
+}
+```
+
+**Window Export (lines 5050-5053):**
+```javascript
+Object.defineProperty(window, 'pendingFilterOperations', {
+  get: () => pendingFilterOperations,
+  set: (val) => { pendingFilterOperations = val; }
+});
+```
+
+### Context
+Prevents filter operations from executing during smart ordering, which could cause race conditions or state inconsistencies.
+
+---
+
+## Pattern 3: Centralized Guard Functions
+
+### Description
+Three centralized functions manage filter operation deferral:
+
+1. `shouldDeferFilterOperation()` - Check if operation should be deferred
+2. `isSmartOrdering()` - Check if smart ordering is active
+3. `processPendingFilterOperations()` - Execute queued operations
+
+### Line Numbers
+- `shouldDeferFilterOperation()`: Lines 7891-7893
+- `isSmartOrdering()`: Lines 7933-7935
+- `processPendingFilterOperations()`: Lines 7952-7975
+- Window export: Line 5056
+
+### Code Snippets
+
+**shouldDeferFilterOperation (lines 7891-7893):**
+```javascript
+function shouldDeferFilterOperation() {
+  return isSmartOrderingActive;
+}
+```
+
+**isSmartOrdering (lines 7933-7935):**
+```javascript
+function isSmartOrdering() {
+  return platformPrefs.smartOrdering && isSmartOrderingActive;
+}
+```
+
+**processPendingFilterOperations (lines 7952-7975):**
+```javascript
+function processPendingFilterOperations() {
+  if (pendingFilterOperations.length === 0) {
+    return;
+  }
+
+  if (DEBUG_SMART_ORDERING) {
+    console.log(`[processPendingFilterOperations] Processing ${pendingFilterOperations.length} pending operations`);
+  }
+
+  const operations = pendingFilterOperations.slice(); // Copy array to avoid modification during iteration
+  pendingFilterOperations = []; // Clear queue
+
+  operations.forEach(({ operation, description }) => {
+    try {
+      if (DEBUG_SMART_ORDERING) {
+        console.log(`[processPendingFilterOperations] Executing: ${description}`);
+      }
+      operation();
+    } catch (error) {
+      console.error(`[processPendingFilterOperations] Error executing: ${description}`, error);
+    }
+  });
+}
+```
+
+**Window Export (line 5056):**
+```javascript
+window.processPendingFilterOperations = processPendingFilterOperations;
+```
+
+### Context
+These functions provide a centralized API for managing filter operation lifecycle. The extensive JSDoc documentation (lines 7895-7932) explains the usage pattern and relationship to other guard flags.
+
+---
+
+## Pattern 4: setTimeout-Based Guard Clearing
+
+### Description
+After setting `isFilterOperation = true`, the flag is cleared asynchronously using `setTimeout(() => { isFilterOperation = false; }, 0)`. This ensures the flag stays `true` during the entire render operation.
+
+### Line Numbers
+- Line 8082 (importPreferences)
+- Line 8099 (importPreferences)
+- Line 8146 (toggleWhatIfMode)
+- Line 8159 (toggleWhatIfMode)
+- Line 8265 (applyWhatIfChanges)
+
+### Code Snippet
+```javascript
+// Lines 8263-8265
+isFilterOperation = true;
+renderPreviews(modifiedData);
+setTimeout(() => { isFilterOperation = false; }, 0);
+```
+
+### Context
+The `setTimeout(..., 0)` pattern ensures the guard flag stays `true` through the entire render cycle, even if `renderPreviews()` is synchronous. This prevents race conditions where the flag might be checked too early.
+
+---
+
+## Pattern 5: Filter Function Pattern
+
+### Description
+Pure functions that perform filtering (not event-driven). Two instances:
+
+1. `filterCommands()` - Filters command palette items
+2. `renderMetadataTable(filter)` - Filters metadata table rows
+
+### Line Numbers
+- `filterCommands()`: Lines 9177-9192
+- Event listener attachment: Line 9085
+- `renderMetadataTable()`: Lines 3941-3995
+- Event listener attachment: Line 3991
+
+### Code Snippets
+
+**filterCommands (lines 9177-9192):**
+```javascript
+function filterCommands(e) {
+  const query = e.target.value.toLowerCase().trim();
+  commandPaletteSelectedIndex = 0;
+
+  if (!query) {
+    renderCommands(COMMANDS);
+    return;
+  }
+
+  const filtered = COMMANDS.filter(cmd =>
+    cmd.label.toLowerCase().includes(query) ||
+    cmd.category.toLowerCase().includes(query)
+  );
+
+  renderCommands(filtered);
+}
+```
+
+**renderMetadataTable (lines 3941-3995):**
+```javascript
+function renderMetadataTable(filter = '') {
+  const filteredRows = filter
+    ? allMetadataRows.filter(r =>
+        r.tag.toLowerCase().includes(filter.toLowerCase()) ||
+        (r.value && String(r.value).toLowerCase().includes(filter.toLowerCase()))
+      )
+    : allMetadataRows;
+
+  // ... renders table with filtered rows
+
+  // Attach filter listener
+  const filterInput = document.getElementById('metadataFilterInput');
+  if (filterInput) {
+    filterInput.addEventListener('input', (e) => {
+      renderMetadataTable(e.target.value);
+    });
+  }
+}
+```
+
+### Context
+These are pure filtering functions that accept filter criteria and return filtered results. They're called from event listeners but are themselves non-event-driven filter logic.
+
+---
+
+## Related State Variables
+
+Additional state variables that work with the filter patterns:
+
+| Variable | Line | Purpose |
+|----------|------|---------|
+| `isSmartOrderingActive` | 6280 | Tracks when smart ordering is currently in progress |
+| `isApplyingSmartOrder` | 6273 | Prevents concurrent smart order applications |
+| `pendingApplySmartOrder` | 6274 | Queues pending smart order operations |
+| `pendingRenderData` | 6275 | Queues renders during smart ordering |
+| `isRendering` | 6276 | Prevents concurrent renders |
+| `DEBUG_SMART_ORDERING` | (implicit) | Enables debug logging for filter operations |
+
+---
+
+## Documentation Comments
+
+**Lines 7885-7932:** Comprehensive JSDoc documentation explaining:
+- When to check smart ordering state
+- How to use guard functions in filter handlers
+- Relationship between guard flags and user preferences
+- Usage examples with code snippets
+
+---
+
+## Key Differences from Previous Categories
+
+These patterns are **NOT** event listener patterns (which were documented in previous beads: bf-d99ur, bf-ihvg1, bf-40qdd, bf-2lpc4):
+
+- **Guard Flag Pattern**: State management, not event handling
+- **Queue/Defer Pattern**: Operation queueing, not event binding
+- **Centralized Guard Functions**: API pattern, not event pattern
+- **setTimeout-Based Guard Clearing**: Async timing pattern, not event listener
+- **Filter Function Pattern**: Pure functions, not event handlers
+
+These patterns represent **application-level state management** and **synchronization logic** for coordinating filter operations with other application features (smart ordering, rendering, imports).
+
+---
+
+## Exported to Window Object
+
+The following filter-related symbols are exported to `window` for debugging/inspection:
+
+- `window.isFilterOperation` (lines 5046-5049)
+- `window.pendingFilterOperations` (lines 5050-5053)
+- `window.queueFilterOperation` (line 5055)
+- `window.processPendingFilterOperations` (line 5056)
+
+---
+
+## Conclusion
+
+Found **5 distinct hook patterns** related to filters that are **not event-listener based**. These patterns focus on:
+
+1. **State management** (guard flags)
+2. **Operation queuing** (defer until safe)
+3. **Centralized API** (guard functions)
+4. **Async timing** (setTimeout guards)
+5. **Pure filtering** (function-based filters)
+
+These patterns coordinate filter operations with other application features (smart ordering, rendering) to prevent race conditions and state inconsistencies.

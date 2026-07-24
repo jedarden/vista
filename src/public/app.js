@@ -8576,27 +8576,26 @@ function applySmartOrderingSafe() {
     return;
   }
 
-  // Set guard flag
+  // Set guard flag BEFORE try block - this ensures no render can execute during DOM reordering
   isApplyingSmartOrder = true;
   pendingApplySmartOrder = false;
 
-  console.log('[applySmartOrderingSafe] Guard flag set - starting smart ordering');
+  if (DEBUG_SMART_ORDERING) {
+    console.log('[applySmartOrderingSafe] Guard flag SET (true) - starting smart ordering');
+  }
 
   try {
-    // Call the actual applySmartOrdering function
+    // Step 1: Update platformPrefs.cardOrder with smart ordering
     applySmartOrdering();
-  } finally {
-    // Always clear guard flag, even if applySmartOrdering throws
-    isApplyingSmartOrder = false;
 
-    // Move existing DOM elements to match the new smart order
-    // This preserves the existing cards (with their state) instead of destroying them
+    // Step 2: Reorder DOM elements to match the new smart order
+    // This happens INSIDE try block so isApplyingSmartOrder stays true during DOM manipulation
     if (DEBUG_SMART_ORDERING) {
-      console.log('[applySmartOrderingSafe] Moving DOM elements to match smart order');
+      console.log('[applySmartOrderingSafe] Reordering DOM elements (flag still true)');
     }
     reorderPlatformCards();
 
-    // Process any queued render after smart ordering completes and reordering is done
+    // Step 3: Process any queued render after smart ordering completes and reordering is done
     // This ensures that even if cards were moved, they have the latest data
     if (pendingRenderData) {
       if (DEBUG_SMART_ORDERING) {
@@ -8607,10 +8606,17 @@ function applySmartOrderingSafe() {
       renderPreviews(dataToRender);
     }
 
-    // If another operation was queued, process it
+    // Step 4: If another operation was queued, process it
     if (pendingApplySmartOrder) {
       console.log('[applySmartOrderingSafe] Processing queued operation');
       setTimeout(applySmartOrderingSafe, 0);
+    }
+  } finally {
+    // Always clear guard flag AFTER all operations complete, even if applySmartOrdering throws
+    isApplyingSmartOrder = false;
+
+    if (DEBUG_SMART_ORDERING) {
+      console.log('[applySmartOrderingSafe] Guard flag CLEARED (false) - all operations complete');
     }
   }
 }

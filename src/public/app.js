@@ -8742,10 +8742,12 @@ function applySmartOrdering() {
   }
 
   // Save the updated preferences to persist across page refreshes
+  // Use savePlatformPrefs() instead of direct localStorage.setItem to ensure
+  // atomic read-modify-write with version checking and concurrency protection
   try {
-    localStorage.setItem('vista-platform-prefs', JSON.stringify(platformPrefs));
+    savePlatformPrefs();
     if (DEBUG_SMART_ORDERING) {
-      console.log('[applySmartOrdering] Platform preferences saved to localStorage');
+      console.log('[applySmartOrdering] Platform preferences saved via savePlatformPrefs()');
     }
   } catch (e) {
     console.error('[applySmartOrdering] Failed to save preferences:', e);
@@ -8776,16 +8778,25 @@ handleResult = async function(data) {
   // Store reference for use in hook
   const originalData = data;
 
-  await originalHandleResult2(data);
+  // P0 - Timing fix: Set currentData BEFORE applySmartOrderingSafe() call
+  // applySmartOrdering() requires currentData to be set (line 8577 early exit check)
+  // but originalHandleResult2 sets it at line 1025, which is too late
+  currentData = data;
+
   console.log('[handleResult hook] smartOrdering enabled:', platformPrefs.smartOrdering);
   if (platformPrefs.smartOrdering) {
-    console.log('[handleResult hook] applying smart ordering immediately (no delay)');
-    // Apply smart ordering immediately after render completes
-    // This prevents race conditions from the 200ms delay
+    console.log('[handleResult hook] applying smart ordering BEFORE render (fixes race condition)');
+    // P0 - Race condition fix: Use applySmartOrderingSafe() instead of applySmartOrdering()
+    // This ensures guard flags (isApplyingSmartOrder) are properly set to prevent
+    // concurrent execution with renderPreviews, which was causing order resets
     applySmartOrderingSafe();
   } else {
     console.log('[handleResult hook] smartOrdering disabled - skipping applySmartOrdering call');
   }
+
+  // Now render with cards already in correct order (no post-render reordering needed)
+  // Note: renderPreviews will check isApplyingSmartOrder and queue if needed
+  await originalHandleResult2(data);
 };
 
 /**

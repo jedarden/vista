@@ -6257,6 +6257,8 @@ let pendingRenderData = null; // Queue renderPreviews calls during smart orderin
 let isRendering = false; // Guard flag to prevent concurrent renders
 let pendingRenderAfterCurrent = null; // Queue renders during active render
 let currentPageType = null; // Track current page type for stale cardOrder detection
+let isFilterOperation = false; // Guard flag to prevent smart order resets during filter changes
+let isSmartOrderingActive = false; // Track when smart ordering is currently active
 
 // Command palette state
 let commandPaletteOpen = false;
@@ -7850,6 +7852,12 @@ function toggleFavorite(pid) {
   }
   savePlatformPrefs();
   updateFavoritesList();
+
+  // Clear smart ordering active flag since user manually modified favorites
+  isSmartOrderingActive = false;
+  if (DEBUG_SMART_ORDERING) {
+    console.log('[toggleFavorite] Smart ordering active flag CLEARED (user manual override)');
+  }
 }
 
 function toggleHidden(pid) {
@@ -7860,7 +7868,18 @@ function toggleHidden(pid) {
   }
   savePlatformPrefs();
   updateHiddenList();
+
+  // Set guard flag to prevent smart order resets during filter operation
+  isFilterOperation = true;
   renderPreviews(currentData); // Re-render to apply hiding
+  // Clear flag after render (renderPreviews will handle timing)
+  setTimeout(() => { isFilterOperation = false; }, 0);
+
+  // Clear smart ordering active flag since user manually modified hidden platforms
+  isSmartOrderingActive = false;
+  if (DEBUG_SMART_ORDERING) {
+    console.log('[toggleHidden] Smart ordering active flag CLEARED (user manual override)');
+  }
 }
 
 function updateFavoritesList() {
@@ -7949,7 +7968,17 @@ function importPreferences(e) {
       updateHiddenList();
 
       if (currentData) {
+        // Set guard flag to prevent smart order resets during filter operation
+        isFilterOperation = true;
         renderPreviews(currentData);
+        // Clear flag after render (renderPreviews will handle timing)
+        setTimeout(() => { isFilterOperation = false; }, 0);
+
+        // Clear smart ordering active flag since user manually imported preferences
+        isSmartOrderingActive = false;
+        if (DEBUG_SMART_ORDERING) {
+          console.log('[importPreferences] Smart ordering active flag CLEARED (user manual override)');
+        }
       }
 
       showToast('Preferences imported', 2000);
@@ -7985,7 +8014,11 @@ function toggleWhatIfMode() {
       panel.remove();
     }
     if (currentData) {
+      // Set guard flag to prevent smart order resets during filter operation
+      isFilterOperation = true;
       renderPreviews(currentData);
+      // Clear flag after render (renderPreviews will handle timing)
+      setTimeout(() => { isFilterOperation = false; }, 0);
     }
   }
 }
@@ -8087,9 +8120,11 @@ function applyWhatIfChanges() {
     }
   });
 
-  // Re-render with modified data
+  // Re-render with modified data (use guard flag to preserve smart ordering)
   const modifiedData = { ...currentData, meta: modifiedMeta };
+  isFilterOperation = true;
   renderPreviews(modifiedData);
+  setTimeout(() => { isFilterOperation = false; }, 0);
 
   // Announce score change for screen readers
   const tagCount = disabledTags.size;
@@ -8614,26 +8649,34 @@ function applySmartOrdering() {
   currentPageType = pageType;
 
   if (previousPageType && previousPageType !== pageType) {
-    if (DEBUG_SMART_ORDERING) {
-      console.log(`[applySmartOrdering] Page type changed from "${previousPageType}" to "${pageType}" - clearing stale cardOrder`);
-    }
-    // Clear cardOrder for groups that weren't manually modified by user
-    PLATFORM_GROUPS.forEach((group) => {
-      const metadata = platformPrefs.cardOrderMetadata?.[group.id];
-      if (!metadata || !metadata.userModified || metadata.modifiedBy !== 'user-drag') {
-        delete platformPrefs.cardOrder[group.id];
-        if (platformPrefs.cardOrderMetadata && platformPrefs.cardOrderMetadata[group.id]) {
-          delete platformPrefs.cardOrderMetadata[group.id];
-        }
-        if (DEBUG_SMART_ORDERING) {
-          console.log(`[applySmartOrdering] Cleared cardOrder for ${group.id} (not user-modified)`);
-        }
-      } else {
-        if (DEBUG_SMART_ORDERING) {
-          console.log(`[applySmartOrdering] Preserved cardOrder for ${group.id} (user-modified)`);
-        }
+    // P2 - Filter operation guard: Skip cardOrder clearing during filter changes
+    // This prevents smart order resets when users hide/show platforms
+    if (isFilterOperation) {
+      if (DEBUG_SMART_ORDERING) {
+        console.log(`[applySmartOrdering] Page type changed but filter operation in progress - preserving cardOrder to prevent reset`);
       }
-    });
+    } else {
+      if (DEBUG_SMART_ORDERING) {
+        console.log(`[applySmartOrdering] Page type changed from "${previousPageType}" to "${pageType}" - clearing stale cardOrder`);
+      }
+      // Clear cardOrder for groups that weren't manually modified by user
+      PLATFORM_GROUPS.forEach((group) => {
+        const metadata = platformPrefs.cardOrderMetadata?.[group.id];
+        if (!metadata || !metadata.userModified || metadata.modifiedBy !== 'user-drag') {
+          delete platformPrefs.cardOrder[group.id];
+          if (platformPrefs.cardOrderMetadata && platformPrefs.cardOrderMetadata[group.id]) {
+            delete platformPrefs.cardOrderMetadata[group.id];
+          }
+          if (DEBUG_SMART_ORDERING) {
+            console.log(`[applySmartOrdering] Cleared cardOrder for ${group.id} (not user-modified)`);
+          }
+        } else {
+          if (DEBUG_SMART_ORDERING) {
+            console.log(`[applySmartOrdering] Preserved cardOrder for ${group.id} (user-modified)`);
+          }
+        }
+      });
+    }
   }
 
   const preferredOrder = getPlatformOrderForPageType(pageType);
@@ -8822,6 +8865,12 @@ function applySmartOrderingSafe() {
   try {
     // Step 1: Update platformPrefs.cardOrder with smart ordering
     applySmartOrdering();
+
+    // Set smart ordering active flag after successful application
+    isSmartOrderingActive = true;
+    if (DEBUG_SMART_ORDERING) {
+      console.log('[applySmartOrderingSafe] Smart ordering active flag SET');
+    }
 
     // Step 2: Reorder DOM elements to match the new smart order
     // This happens INSIDE try block so isApplyingSmartOrder stays true during DOM manipulation
@@ -9434,6 +9483,9 @@ function handleDrop(e) {
         modifiedBy: 'user-drag'
       };
       console.log(`[handleDrop] User reordered group ${fromGroup} via drag`, newToOrder);
+      // Clear smart ordering active flag since user manually reset the order
+      isSmartOrderingActive = false;
+      console.log(`[handleDrop] Smart ordering active flag CLEARED (user manual override)`);
     } else {
       // Different groups - move between groups
       platformPrefs.cardOrder[fromGroup] = newFromOrder;
@@ -9453,6 +9505,11 @@ function handleDrop(e) {
         toOrder: newToOrder
       });
     }
+
+    // Clear smart ordering active flag since user manually reset the order
+    isSmartOrderingActive = false;
+    console.log(`[handleDrop] Smart ordering active flag CLEARED (user manual override)`);
+
 
     savePlatformPrefs();
 

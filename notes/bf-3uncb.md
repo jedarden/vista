@@ -174,7 +174,96 @@ function renderMetadataTable(filter = '') {
 
 ---
 
-### 5. Command Palette Filter
+### 5. Platform Filter/Toggle Hooks
+
+#### Platform Checkbox Change Event Listeners (Lines 3497-3501)
+```javascript
+document.querySelectorAll('.cropper-platform-toggle input').forEach(cb => {
+  cb.addEventListener('change', () => {
+    updateEnabledPlatforms();
+    updateCropperOverlay();
+    syncGroupToggles(groups);
+  });
+});
+```
+**Purpose:** Handles individual platform checkbox changes to update the enabled platforms list, refresh cropper overlays, and sync group header states.
+
+**Context:** Core filter handler for platform visibility toggles in the cropper interface. Every checkbox change triggers this three-step update sequence.
+
+---
+
+#### Select/Clear All Platforms Event Listeners (Lines 3504-3516)
+```javascript
+document.getElementById('selectAllPlatforms')?.addEventListener('click', () => {
+  document.querySelectorAll('.cropper-platform-toggle input').forEach(cb => cb.checked = true);
+  syncGroupToggles(groups);
+  updateEnabledPlatforms();
+  updateCropperOverlay();
+});
+
+document.getElementById('clearAllPlatforms')?.addEventListener('click', () => {
+  document.querySelectorAll('.cropper-platform-toggle input').forEach(cb => cb.checked = false);
+  syncGroupToggles(groups);
+  updateEnabledPlatforms();
+  updateCropperOverlay();
+});
+```
+**Purpose:** Bulk operations to enable/disable all platforms at once, triggering the same update sequence as individual changes.
+
+**Context:** Convenience functions that update all checkboxes and trigger the standard update flow (sync → update → render).
+
+---
+
+#### `updateEnabledPlatforms()` Function (Lines 3551-3561)
+```javascript
+function updateEnabledPlatforms() {
+  cropperState.enabledPlatforms.clear();
+  document.querySelectorAll('.cropper-platform-toggle input:checked').forEach(cb => {
+    cropperState.enabledPlatforms.add(cb.dataset.platform);
+  });
+  // Refresh the category legend so its active/dimmed state tracks the live
+  // toggle selection. Every toggle path (individual, group, select/clear-all)
+  // and the initial renderCropperControls() call funnels through here, so this
+  // single hook keeps the legend in sync with the overlays on screen.
+  renderCategoryLegend();
+}
+```
+**Purpose:** Rebuilds the enabled platforms set from checkbox states and updates the category legend display.
+
+**Context:** Central aggregator hook that all checkbox paths funnel through. This is the single source of truth for which platforms are currently enabled in the cropper.
+
+---
+
+#### `syncGroupToggles()` Function (Lines 3530-3549)
+```javascript
+function syncGroupToggles(groups) {
+  groups.forEach(group => {
+    const groupCb = document.querySelector(`.cropper-group-toggle[data-group="${group.id}"]`);
+    if (!groupCb) return;
+    const children = group.platforms
+      .map(pid => document.querySelector(`input[data-platform="${pid}"]`))
+      .filter(Boolean);
+    if (!children.length) return;
+    const checkedCount = children.filter(cb => cb.checked).length;
+    if (checkedCount === 0) {
+      groupCb.checked = false;
+      groupCb.indeterminate = false;
+    } else if (checkedCount === children.length) {
+      groupCb.checked = true;
+      groupCb.indeterminate = false;
+    } else {
+      groupCb.indeterminate = true;
+    }
+  });
+}
+```
+**Purpose:** Synchronizes group header checkbox states with their child platform checkboxes (checked/unchecked/indeterminate).
+
+**Context:** Ensures visual consistency between group toggles and individual platform toggles. Called after any platform state change.
+
+---
+
+### 6. Command Palette Filter
 
 #### `filterCommands(e)` (Lines 9177-9192)
 ```javascript
@@ -316,6 +405,10 @@ window.toggleFavorite = toggleFavorite;
 | `toggleFavorite()` | 7867-7882 | Toggle favorites | Filter Hook |
 | `toggleHidden()` | 7977-7987 | Toggle visibility | Filter Hook |
 | `renderMetadataTable()` | 3941-3994 | Metadata filtering | Filter Hook |
+| Platform checkbox change handlers | 3497-3501 | Platform visibility toggles | Filter Hook |
+| Select/clear all platforms | 3504-3516 | Bulk platform operations | Filter Hook |
+| `updateEnabledPlatforms()` | 3551-3561 | Central aggregator | Filter Hook |
+| `syncGroupToggles()` | 3530-3549 | Group state sync | Filter Hook |
 | `filterCommands()` | 9177-9192 | Command palette filter | Filter Hook |
 | `handleResult` hook | 8957-8982 | Smart ordering injection | Lifecycle Hook |
 
@@ -367,16 +460,21 @@ isSmartOrderingActive = false; // Clear smart ordering flag
 
 ## Summary
 
-**Total Hook Patterns Found:** 13 major patterns
+**Total Hook Patterns Found:** 17 major patterns
 
-**Filter-Related Patterns:** 7
+**Filter-Related Patterns:** 12
 1. Filter operation guard flag (`isFilterOperation`)
 2. Pending filter operations queue (`pendingFilterOperations`)
 3. Queue filter operation function
 4. Process pending filter operations function
 5. Metadata filter input event listener
-6. Filter operation integration with smart ordering
-7. Guard wrapper patterns (toggleFavorite/toggleHidden)
+6. Platform checkbox change event listeners
+7. Select/clear all platforms event listeners
+8. `updateEnabledPlatforms()` central aggregator
+9. `syncGroupToggles()` group state sync
+10. Filter operation integration with smart ordering
+11. Guard wrapper patterns (toggleFavorite/toggleHidden)
+12. Command palette filter (`filterCommands()`)
 
 **Non-Filter Hook Patterns:** 6
 1. DOMContentLoaded lifecycle hook

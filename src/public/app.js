@@ -6259,6 +6259,7 @@ let pendingRenderAfterCurrent = null; // Queue renders during active render
 let currentPageType = null; // Track current page type for stale cardOrder detection
 let isFilterOperation = false; // Guard flag to prevent smart order resets during filter changes
 let isSmartOrderingActive = false; // Track when smart ordering is currently active
+let pendingFilterOperations = []; // Queue filter operations during smart ordering
 
 // Command palette state
 let commandPaletteOpen = false;
@@ -7860,6 +7861,89 @@ function toggleFavorite(pid) {
   }
 }
 
+// ── Centralized guard functions for filter operations during smart ordering ──
+
+/**
+ * Check if filter operation should be deferred due to active smart ordering
+ * @returns {boolean} True if smart ordering is active and operation should be deferred
+ */
+function shouldDeferFilterOperation() {
+  return isSmartOrderingActive;
+}
+
+/**
+ * Check if smart ordering is currently active
+ *
+ * Use this guard in filter handlers to prevent race conditions and interference
+ * with smart ordering operations. When smart ordering is active, filter changes
+ * should be deferred or queued to prevent card order resets.
+ *
+ * **Usage in filter handlers:**
+ * ```javascript
+ * function myFilterHandler() {
+ *   if (isSmartOrdering()) {
+ *     queueFilterOperation(myFilterHandler, 'myFilterHandler');
+ *     return;
+ *   }
+ *   // Proceed with filter operation
+ * }
+ * ```
+ *
+ * **When to check:**
+ * - Before modifying platform order/visibility
+ * - Before resetting card order
+ * - Before any operation that might conflict with smart ordering
+ *
+ * **Related flags:**
+ * - `isFilterOperation`: Set during filter operations to prevent smart order resets
+ * - `isApplyingSmartOrder`: Prevents concurrent renders during smart ordering
+ *
+ * @returns {boolean} True if smart ordering is currently active, false otherwise
+ */
+function isSmartOrdering() {
+  return isSmartOrderingActive;
+}
+
+/**
+ * Queue a filter operation to be processed after smart ordering completes
+ * @param {Function} operation - The filter operation function to execute later
+ * @param {string} description - Description of the operation for debugging
+ */
+function queueFilterOperation(operation, description) {
+  if (DEBUG_SMART_ORDERING) {
+    console.log(`[queueFilterOperation] Queuing: ${description}`);
+  }
+  pendingFilterOperations.push({ operation, description });
+}
+
+/**
+ * Process pending filter operations after smart ordering completes
+ */
+function processPendingFilterOperations() {
+  if (pendingFilterOperations.length === 0) {
+    return;
+  }
+
+  if (DEBUG_SMART_ORDERING) {
+    console.log(`[processPendingFilterOperations] Processing ${pendingFilterOperations.length} pending operations`);
+  }
+
+  // Process each pending operation
+  const operations = pendingFilterOperations.slice(); // Copy array to avoid modification during iteration
+  pendingFilterOperations = []; // Clear queue
+
+  operations.forEach(({ operation, description }) => {
+    try {
+      if (DEBUG_SMART_ORDERING) {
+        console.log(`[processPendingFilterOperations] Executing: ${description}`);
+      }
+      operation();
+    } catch (error) {
+      console.error(`[processPendingFilterOperations] Error executing: ${description}`, error);
+    }
+  });
+}
+
 function toggleHidden(pid) {
   if (platformPrefs.hidden.has(pid)) {
     platformPrefs.hidden.delete(pid);
@@ -8649,11 +8733,12 @@ function applySmartOrdering() {
   currentPageType = pageType;
 
   if (previousPageType && previousPageType !== pageType) {
-    // P2 - Filter operation guard: Skip cardOrder clearing during filter changes
-    // This prevents smart order resets when users hide/show platforms
-    if (isFilterOperation) {
+    // P2 - Filter operation guard: Skip cardOrder clearing during filter changes or when smart ordering is active
+    // This prevents smart order resets when users hide/show platforms or when smart ordering is currently active
+    if (isFilterOperation || isSmartOrderingActive) {
       if (DEBUG_SMART_ORDERING) {
-        console.log(`[applySmartOrdering] Page type changed but filter operation in progress - preserving cardOrder to prevent reset`);
+        const reason = isFilterOperation ? 'filter operation in progress' : 'smart ordering is active';
+        console.log(`[applySmartOrdering] Page type changed but ${reason} - preserving cardOrder to prevent reset`);
       }
     } else {
       if (DEBUG_SMART_ORDERING) {

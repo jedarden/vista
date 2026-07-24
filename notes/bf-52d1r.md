@@ -262,4 +262,10 @@ All DOM element references are established early in the file (lines 169-218):
 - `oggenLogoInput`: Line 201
 - `heatmapSort`: Line 218
 
+## Verification
+
+**Verified:** 2026-07-24
+**Method:** Manual extraction via grep and Read tools
+**Status:** Complete - all 16 filter/change handlers identified with DOM elements, line numbers, and handler functions
+
 Generated for bead bf-52d1r

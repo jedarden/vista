@@ -456,20 +456,412 @@ This pattern provides comprehensive traceability for filter operations. The `DEB
 
 ---
 
+## Pattern 10: Guard Wrapper Pattern
+
+### Description
+Centralized wrapper functions that automatically manage guard flags for filter operations. Two variants: `guardWrapper()` for simple operations and `guardWrapperWithRender()` for operations requiring re-rendering.
+
+### Line Numbers
+- `guardWrapper()` usage: Line 7868
+- `guardWrapperWithRender()` usage: Line 7978
+- Definition location: Not shown in searched lines (likely defined elsewhere in app.js)
+
+### Code Snippets
+```javascript
+// Lines 7867-7882 - toggleFavorite with guardWrapper
+function toggleFavorite(pid) {
+  guardWrapper('toggleFavorite', () => {
+    if (platformPrefs.favorites.has(pid)) {
+      platformPrefs.favorites.delete(pid);
+    } else {
+      platformPrefs.favorites.add(pid);
+    }
+    savePlatformPrefs();
+    updateFavoritesList();
+    isSmartOrderingActive = false;
+    if (DEBUG_SMART_ORDERING) {
+      console.log('[toggleFavorite] Smart ordering active flag CLEARED (user manual override)');
+    }
+  });
+}
+```
+
+```javascript
+// Lines 7977-7986 - toggleHidden with guardWrapperWithRender
+function toggleHidden(pid) {
+  guardWrapperWithRender('toggleHidden', () => {
+    if (platformPrefs.hidden.has(pid)) {
+      platformPrefs.hidden.delete(pid);
+    } else {
+      platformPrefs.hidden.add(pid);
+    }
+    savePlatformPrefs();
+    updateHiddenList();
+  });
+}
+```
+
+### Context
+These wrapper functions encapsulate the guard flag management pattern (setting `isFilterOperation`, executing operation, clearing flag). They provide a cleaner API than manually managing guards in each filter operation.
+
+---
+
+## Pattern 11: Toggle Operations Pattern
+
+### Description
+Specific filter toggle operations that modify platform visibility/favoriting state. Two main operations: `toggleFavorite()` and `toggleHidden()`.
+
+### Line Numbers
+- `toggleFavorite()`: Lines 7867-7882
+- Event listener attachment: Lines 8007-8008
+- `toggleHidden()`: Lines 7977-7986
+- Event listener attachment: Lines 8029-8030
+
+### Code Snippets
+```javascript
+// Lines 8007-8008 - Favorite toggle event listeners
+list.querySelectorAll('.platform-item-remove').forEach(btn => {
+  btn.addEventListener('click', () => toggleFavorite(btn.dataset.pid));
+});
+```
+
+```javascript
+// Lines 8029-8030 - Hidden toggle event listeners
+list.querySelectorAll('.platform-item-remove').forEach(btn => {
+  btn.addEventListener('click', () => toggleHidden(btn.dataset.pid));
+});
+```
+
+### Context
+These operations modify `platformPrefs.favorites` and `platformPrefs.hidden` sets to control which platforms appear in results. They use guard wrappers to prevent conflicts with smart ordering.
+
+---
+
+## Pattern 12: Card Context Toggle Pattern
+
+### Description
+Toggles individual platform cards between "card only" and "in context" display modes. This is a visual filter pattern, not a data filter.
+
+### Line Numbers
+- State initialization: Lines 1863-1865
+- Toggle function: Lines 2162-2171
+- Event listener attachment: Lines 1995, 2092
+
+### Code Snippets
+```javascript
+// Lines 1863-1865 - Context state initialization
+if (!cardContextState[pid]) {
+  cardContextState[pid] = { context: false, theme: 'dark' };
+}
+```
+
+```javascript
+// Lines 2162-2171 - Toggle function
+function toggleCardContext(pid, data) {
+  cardContextState[pid].context = !cardContextState[pid].context;
+  const body = document.getElementById(`card-body-${pid}`);
+  if (body) {
+    if (cardContextState[pid].context) {
+      body.innerHTML = renderPlatformWithContext(pid, data.meta, data.imageProbe, data.finalUrl, cardContextState[pid].theme, data.dominantColor);
+    } else {
+      body.innerHTML = renderPlatformCard(pid, data.meta, data.imageProbe, data.finalUrl, data.dominantColor);
+    }
+  }
+}
+```
+
+```javascript
+// Line 1995 - Event listener attachment (skeleton update path)
+contextToggle.addEventListener('click', () => toggleCardContext(pid, data));
+```
+
+```javascript
+// Line 2092 - Event listener attachment (initial render path)
+const contextToggle = header.querySelector('.card-context-toggle');
+contextToggle.addEventListener('click', () => toggleCardContext(pid, data));
+```
+
+### Context
+This is a **display mode filter**, not a data filter. It changes how individual platform previews are rendered (full context vs. card only) without affecting which platforms are shown. State is maintained per-platform in `cardContextState` object.
+
+---
+
+## Pattern 13: Card Theme Toggle Pattern
+
+### Description
+Toggles individual platform cards between light and dark theme for context view rendering.
+
+### Line Numbers
+- Function definition: Lines 2175-2188
+- Event listener attachment: Lines 2001, 2096
+
+### Code Snippet
+```javascript
+// Lines 2175-2188
+function toggleCardTheme(pid, data) {
+  cardContextState[pid].theme = cardContextState[pid].theme === 'dark' ? 'light' : 'dark';
+  if (cardContextState[pid].context) {
+    const body = document.getElementById(`card-body-${pid}`);
+    if (body) {
+      body.innerHTML = renderPlatformWithContext(pid, data.meta, data.imageProbe, data.finalUrl, cardContextState[pid].theme);
+    }
+  }
+
+  const card = document.getElementById(`card-${pid}`);
+  if (!card) return;
+
+  const contextToggle = card.querySelector('.card-context-toggle');
+  const themeToggle = card.querySelector('.card-theme-toggle');
+
+  if (contextToggle) {
+    contextToggle.querySelector('.context-icon').textContent = cardContextState[pid].context ? '🖼️' : '🃏';
+    contextToggle.querySelector('.context-label').textContent = cardContextState[pid].context ? 'In context' : 'Card only';
+  }
+
+  if (themeToggle) {
+    themeToggle.querySelector('.theme-icon').textContent = cardContextState[pid].theme === 'dark' ? '🌙' : '☀️';
+  }
+}
+```
+
+```javascript
+// Line 2001 - Event listener attachment (skeleton update path)
+themeToggle.addEventListener('click', () => toggleCardTheme(pid, data));
+```
+
+```javascript
+// Line 2096 - Event listener attachment (initial render path)
+const themeToggle = header.querySelector('.card-theme-toggle');
+if (themeToggle) {
+  themeToggle.addEventListener('click', () => toggleCardTheme(pid, data));
+}
+```
+
+### Context
+Another **display mode filter** that controls theme (light/dark) for context view rendering. Only affects cards in context mode. Theme preference stored per-platform in `cardContextState[pid].theme`.
+
+---
+
+## Pattern 14: What-If Mode Toggle Pattern
+
+### Description
+Special mode for testing platform behavior with specific meta tags disabled. Combines guard flags, queue operations, and state management.
+
+### Line Numbers
+- State variables: Lines 8118-8119
+- Main toggle function: Lines 8121-8160
+- Panel toggle inputs: Lines 8206-8212
+
+### Code Snippets
+```javascript
+// Lines 8118-8119 - State variables
+let whatIfMode = false;
+let disabledTags = new Set();
+```
+
+```javascript
+// Lines 8121-8160 - Main toggle function
+function toggleWhatIfMode() {
+  whatIfMode = !whatIfMode;
+
+  const btn = document.getElementById('whatIfToggleBtn');
+  if (btn) {
+    btn.classList.toggle('active', whatIfMode);
+    btn.textContent = whatIfMode ? '✓ What If On' : '🔍 What If';
+  }
+
+  if (whatIfMode) {
+    showWhatIfPanel();
+  } else {
+    // Clear What If state
+    disabledTags.clear();
+    updateHash({ without: '' }); // Clear from hash
+
+    if (isSmartOrdering()) {
+      const applyWhatIfReset = () => {
+        isFilterOperation = true;
+        renderPreviews(currentData);
+        setTimeout(() => { isFilterOperation = false; }, 0);
+      };
+      queueFilterOperation(applyWhatIfReset, 'toggleWhatIfMode');
+      if (DEBUG_SMART_ORDERING) {
+        console.log('[toggleWhatIfMode] Smart ordering active - operation queued');
+      }
+      return;
+    }
+
+    // Set guard flag to prevent smart order resets during filter operation
+    isFilterOperation = true;
+    renderPreviews(currentData);
+    setTimeout(() => { isFilterOperation = false; }, 0);
+  }
+
+  // Show a modal or panel with tag toggles
+  const panel = document.createElement('div');
+  panel.className = 'what-if-panel';
+  panel.id = 'whatIfPanel';
+  // ... panel HTML rendering ...
+}
+```
+
+```javascript
+// Lines 8206-8212 - What-if panel toggle inputs
+panel.querySelectorAll('.what-if-toggle input').forEach(cb => {
+  cb.addEventListener('change', () => {
+    if (!cb.checked) {
+      disabledTags.add(cb.dataset.tag);
+    } else {
+      disabledTags.delete(cb.dataset.tag);
+    }
+  });
+});
+```
+
+### Context
+This is a **meta-tag filter** that allows testing "what if" scenarios by disabling specific meta tags. It combines multiple patterns: guard flags, queue operations, setTimeout-based clearing, and event-driven UI updates.
+
+---
+
+## Pattern 15: Context Menu Filter Actions Pattern
+
+### Description
+Context menu items provide quick access to filter actions (toggle favorite/hidden) with dynamic labels based on current state.
+
+### Line Numbers
+- Dynamic label updates: Lines 9734-9746
+- Action handler: Lines 9795-9800
+
+### Code Snippets
+```javascript
+// Lines 9734-9746 - Dynamic context menu labels
+const favItem = contextMenu.querySelector('[data-action="toggle-favorite"] span:last-child');
+
+if (platformPrefs.hidden.has(pid)) {
+  hideItem.textContent = 'Show this platform';
+} else {
+  hideItem.textContent = 'Hide this platform';
+}
+
+if (platformPrefs.favorites.has(pid)) {
+  favItem.textContent = 'Unstar';
+} else {
+  favItem.textContent = 'Star';
+}
+```
+
+```javascript
+// Lines 9795-9800 - Context menu action handler
+switch (action) {
+  case 'toggle-hidden':
+    toggleHidden(pid);
+    break;
+  case 'toggle-favorite':
+    toggleFavorite(pid);
+    break;
+}
+```
+
+### Context
+This is a **UI accessibility pattern** for filter operations. Right-click context menu on platform cards provides quick access to filter actions. Labels update dynamically based on current platform state (hidden/favorited).
+
+---
+
+## Pattern 16: Platform Preference Import Pattern
+
+### Description
+Imports platform preferences (favorites, hidden, card order) from JSON file using guard flags and queue operations.
+
+### Line Numbers
+- Preference loading: Lines 7870-7872, 7710-7716
+- Import with guard: Lines 8087-8090
+
+### Code Snippets
+```javascript
+// Lines 7870-7872, 7710-7716 - Loading preferences
+platformPrefs.favorites = new Set(parsed.favorites || []);
+platformPrefs.hidden = new Set(parsed.hidden || []);
+platformPrefs.cardOrder = parsed.cardOrder || {};
+platformPrefs.cardOrderMetadata = parsed.cardOrderMetadata || {};
+```
+
+```javascript
+// Lines 8087-8090 - Import with filter guard
+const applyImportedPrefs = () => {
+  isFilterOperation = true;
+  renderPreviews(currentData);
+  setTimeout(() => { isFilterOperation = false; }, 0);
+};
+queueFilterOperation(applyImportedPrefs, 'importPreferences');
+```
+
+### Context
+When users import preferences via file input, the operation is queued and guarded to prevent smart order resets. This is a **batch filter operation** that can modify multiple filter states at once.
+
+---
+
+## Pattern 17: Global Window Exports Pattern
+
+### Description
+Filter-related functions and state variables exported to `window` object for debugging, testing, and external access.
+
+### Line Numbers
+- Lines 5046-5058
+
+### Code Snippet
+```javascript
+// Lines 5046-5058
+Object.defineProperty(window, 'isFilterOperation', {
+  get: () => isFilterOperation,
+  set: (val) => { isFilterOperation = val; }
+});
+
+Object.defineProperty(window, 'pendingFilterOperations', {
+  get: () => pendingFilterOperations,
+  set: (val) => { pendingFilterOperations = val; }
+});
+
+window.queueFilterOperation = queueFilterOperation;
+window.processPendingFilterOperations = processPendingFilterOperations;
+window.toggleHidden = toggleHidden;
+window.toggleFavorite = toggleFavorite;
+```
+
+### Context
+This is a **debugging and testing pattern** that exposes internal filter state and control functions globally. Enables runtime inspection and manipulation of filter behavior via browser console.
+
+---
+
 ## Conclusion
 
-Found **5 distinct hook patterns** related to filters that are **not event-listener based**. These patterns focus on:
+Found **17 distinct hook patterns** related to filters in Vista app.js:
 
-1. **State management** (guard flags)
-2. **Operation queuing** (defer until safe)
-3. **Centralized API** (guard functions)
-4. **Async timing** (setTimeout guards)
-5. **Pure filtering** (function-based filters)
+**Core State Management Patterns (5):**
+1. Guard Flag Pattern
+2. Queue/Defer Pattern
+3. Centralized Guard Functions
+4. setTimeout-Based Guard Clearing
+5. Guard Wrapper Pattern
 
-Additionally documented **4 supplementary patterns**:
-6. **Page type change guard** - Integrating filter guards with page state transitions
-7. **Filter count display** - UX feedback pattern for filter results
-8. **Conditional content hiding** - Hiding auxiliary sections during filtering
-9. **Debug logging** - Comprehensive traceability for guard state
+**Operation Patterns (4):**
+6. Filter Function Pattern
+7. Toggle Operations Pattern (favorite/hidden)
+8. What-If Mode Toggle Pattern
+9. Platform Preference Import Pattern
 
-These patterns coordinate filter operations with other application features (smart ordering, rendering, page tracking) to prevent race conditions and state inconsistencies.
+**Display Mode Patterns (2):**
+10. Card Context Toggle Pattern
+11. Card Theme Toggle Pattern
+
+**UX/UI Patterns (4):**
+12. Page Type Change Guard Pattern
+13. Filter Count Display Pattern
+14. JSON-LD Conditional Display Pattern
+15. Context Menu Filter Actions Pattern
+
+**Debugging/Testing Patterns (2):**
+16. Debug Logging with Guard Pattern
+17. Global Window Exports Pattern
+
+All patterns coordinate filter operations with other application features (smart ordering, rendering, page tracking) to prevent race conditions and state inconsistencies.
+
+**Key Finding:** All filter-related hook patterns in app.js match documented categories. No undocumented patterns were found.

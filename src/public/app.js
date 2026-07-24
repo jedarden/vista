@@ -1581,6 +1581,8 @@ function showSkeletonCards() {
 }
 
 function renderPreviews(data) {
+  console.log('[renderPreviews] Called with cardOrder available:', platformPrefs.cardOrder);
+
   // Race condition fix: Queue render if smart ordering is in progress
   if (isApplyingSmartOrder) {
     if (DEBUG_SMART_ORDERING) {
@@ -1629,8 +1631,9 @@ function renderPreviews(data) {
       // Add any new platforms that aren't in the custom order yet
       const newPlatforms = group.platforms.filter(pid => !customOrder.includes(pid));
       platforms = [...customOrder, ...newPlatforms];
+      console.log(`[renderPreviews] Group ${group.id}: using cardOrder for custom order:`, platforms);
       if (DEBUG_SMART_ORDERING) {
-        console.log(`[renderPreviews] Group ${group.id}: using custom order from cardOrder:`, platforms);
+        console.log(`[DEBUG] Full cardOrder data:`, platformPrefs.cardOrder[group.id]);
       }
     } else if (isApplyingSmartOrder && DEBUG_SMART_ORDERING) {
       console.log(`[renderPreviews] Group ${group.id}: skipping cardOrder during smart ordering, using default:`, platforms);
@@ -7619,9 +7622,12 @@ function loadPlatformPrefs() {
       platformPrefs.columnCount = parsed.columnCount || 3;
       platformPrefs.smartOrdering = parsed.smartOrdering !== false;
       platformPrefs.cardOrder = parsed.cardOrder || {};
+      console.log('[loadPlatformPrefs] Loaded cardOrder:', platformPrefs.cardOrder);
     } catch (e) {
       console.warn('Failed to load platform preferences', e);
     }
+  } else {
+    console.log('[loadPlatformPrefs] No saved preferences found, using defaults');
   }
 
   updateColumnLayoutUI();
@@ -8583,7 +8589,15 @@ function applySmartOrderingSafe() {
     // Always clear guard flag, even if applySmartOrdering throws
     isApplyingSmartOrder = false;
 
-    // Process any queued render after smart ordering completes
+    // Move existing DOM elements to match the new smart order
+    // This preserves the existing cards (with their state) instead of destroying them
+    if (DEBUG_SMART_ORDERING) {
+      console.log('[applySmartOrderingSafe] Moving DOM elements to match smart order');
+    }
+    reorderPlatformCards();
+
+    // Process any queued render after smart ordering completes and reordering is done
+    // This ensures that even if cards were moved, they have the latest data
     if (pendingRenderData) {
       if (DEBUG_SMART_ORDERING) {
         console.log('[applySmartOrderingSafe] Processing queued render with latest data');

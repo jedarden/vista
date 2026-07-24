@@ -5038,6 +5038,25 @@ window.copyText = copyText;
 window.downloadScreenshot = downloadScreenshot;
 window.renderPreviewsInternal = renderPreviews;
 
+// Expose guard functions and state for integration testing
+Object.defineProperty(window, 'isSmartOrderingActive', {
+  get: () => isSmartOrderingActive,
+  set: (val) => { isSmartOrderingActive = val; }
+});
+Object.defineProperty(window, 'isFilterOperation', {
+  get: () => isFilterOperation,
+  set: (val) => { isFilterOperation = val; }
+});
+Object.defineProperty(window, 'pendingFilterOperations', {
+  get: () => pendingFilterOperations,
+  set: (val) => { pendingFilterOperations = val; }
+});
+window.isSmartOrdering = isSmartOrdering;
+window.queueFilterOperation = queueFilterOperation;
+window.processPendingFilterOperations = processPendingFilterOperations;
+window.toggleHidden = toggleHidden;
+window.toggleFavorite = toggleFavorite;
+
 function fallbackCopy(text) {
   const ta = document.createElement('textarea');
   ta.value = text;
@@ -7846,6 +7865,15 @@ function updateColumnLayoutUI() {
 }
 
 function toggleFavorite(pid) {
+  // Check if smart ordering is active - defer operation if so
+  if (isSmartOrdering()) {
+    queueFilterOperation(() => toggleFavorite(pid), 'toggleFavorite');
+    if (DEBUG_SMART_ORDERING) {
+      console.log('[toggleFavorite] Smart ordering active - operation queued');
+    }
+    return;
+  }
+
   if (platformPrefs.favorites.has(pid)) {
     platformPrefs.favorites.delete(pid);
   } else {
@@ -7874,9 +7902,13 @@ function shouldDeferFilterOperation() {
 /**
  * Check if smart ordering is currently active
  *
- * Use this guard in filter handlers to prevent race conditions and interference
- * with smart ordering operations. When smart ordering is active, filter changes
- * should be deferred or queued to prevent card order resets.
+ * Centralized guard function that checks BOTH the user preference and runtime state
+ * to determine if smart ordering is currently active. This is the primary guard to
+ * use before any operation that might interfere with smart ordering.
+ *
+ * **Checks two conditions:**
+ * 1. User preference: `platformPrefs.smartOrdering` (is smart ordering enabled?)
+ * 2. Runtime state: `isSmartOrderingActive` (is smart ordering currently in progress?)
  *
  * **Usage in filter handlers:**
  * ```javascript
@@ -7893,15 +7925,20 @@ function shouldDeferFilterOperation() {
  * - Before modifying platform order/visibility
  * - Before resetting card order
  * - Before any operation that might conflict with smart ordering
+ * - In async callbacks that might execute during smart ordering
  *
  * **Related flags:**
  * - `isFilterOperation`: Set during filter operations to prevent smart order resets
  * - `isApplyingSmartOrder`: Prevents concurrent renders during smart ordering
+ * - `isSmartOrderingActive`: Runtime flag tracking smart ordering progress
  *
- * @returns {boolean} True if smart ordering is currently active, false otherwise
+ * **Related preferences:**
+ * - `platformPrefs.smartOrdering`: User preference for smart ordering (default: true)
+ *
+ * @returns {boolean} True if smart ordering is BOTH enabled AND currently active, false otherwise
  */
 function isSmartOrdering() {
-  return isSmartOrderingActive;
+  return platformPrefs.smartOrdering && isSmartOrderingActive;
 }
 
 /**
@@ -8126,6 +8163,20 @@ function toggleWhatIfMode() {
       panel.remove();
     }
     if (currentData) {
+      // Check if smart ordering is active - defer operation if so
+      if (isSmartOrdering()) {
+        const applyWhatIfReset = () => {
+          isFilterOperation = true;
+          renderPreviews(currentData);
+          setTimeout(() => { isFilterOperation = false; }, 0);
+        };
+        queueFilterOperation(applyWhatIfReset, 'toggleWhatIfMode');
+        if (DEBUG_SMART_ORDERING) {
+          console.log('[toggleWhatIfMode] Smart ordering active - operation queued');
+        }
+        return;
+      }
+
       // Set guard flag to prevent smart order resets during filter operation
       isFilterOperation = true;
       renderPreviews(currentData);

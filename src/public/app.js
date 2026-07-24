@@ -8291,6 +8291,62 @@ function getPlatformOrderForPageType(pageType) {
   return orders[pageType] || orders.website;
 }
 
+/**
+ * Reorder existing DOM platform cards to match cardOrder without rebuilding
+ * This is called after applySmartOrdering() updates the cardOrder arrays
+ */
+function reorderPlatformCards() {
+  PLATFORM_GROUPS.forEach((group) => {
+    // Skip if no custom order for this group
+    if (!platformPrefs.cardOrder[group.id]) {
+      return;
+    }
+
+    // Find the cards-row for this group
+    const groupEl = document.getElementById('group-' + group.id);
+    if (!groupEl) {
+      return;
+    }
+
+    const row = groupEl.querySelector('.cards-row');
+    if (!row) {
+      return;
+    }
+
+    // Get the target order from cardOrder
+    const targetOrder = platformPrefs.cardOrder[group.id];
+
+    // Create a map of current cards by their data-pid
+    const cardsByPid = new Map();
+    row.querySelectorAll('.platform-card').forEach(card => {
+      const pid = card.dataset.pid;
+      if (pid && targetOrder.includes(pid)) {
+        cardsByPid.set(pid, card);
+      }
+    });
+
+    // Reorder cards by appending them in the target order
+    // appendChild on an existing element moves it, not clones it
+    targetOrder.forEach(pid => {
+      const card = cardsByPid.get(pid);
+      if (card) {
+        row.appendChild(card);
+      }
+    });
+
+    // Update animation delays to maintain smooth staggered appearance
+    const cards = row.querySelectorAll('.platform-card');
+    const reducedMotion = prefersReducedMotion();
+    cards.forEach((card, index) => {
+      if (!reducedMotion) {
+        card.style.setProperty('--stagger-delay', (index * 50) + 'ms');
+      } else {
+        card.style.setProperty('--stagger-delay', '0ms');
+      }
+    });
+  });
+}
+
 function applySmartOrdering() {
   if (DEBUG_SMART_ORDERING) {
     console.log('[applySmartOrdering] ===== FUNCTION START =====');
@@ -8422,13 +8478,13 @@ function applySmartOrdering() {
     console.error('[applySmartOrdering] Failed to save preferences:', e);
   }
 
-  // Re-render previews
+  // Reorder DOM elements to match the new cardOrder
   if (DEBUG_SMART_ORDERING) {
-    console.log('[applySmartOrdering] Re-rendering previews with new platform order...');
+    console.log('[applySmartOrdering] Reordering DOM elements to match cardOrder...');
   }
-  renderPreviews(currentData);
+  reorderPlatformCards();
   if (DEBUG_SMART_ORDERING) {
-    console.log('[applySmartOrdering] Preview re-render complete');
+    console.log('[applySmartOrdering] DOM reordering complete');
   }
 
   showToast(`Page type detected: ${pageType}. Platforms reordered.`, 2000);
@@ -8452,8 +8508,8 @@ renderDiagnostics = function(diagnostics) {
 
 // ── Hook into handleResult for smart ordering ──
 const originalHandleResult2 = handleResult;
-handleResult = function(data) {
-  originalHandleResult2(data);
+handleResult = async function(data) {
+  await originalHandleResult2(data);
   console.log('[handleResult hook] smartOrdering enabled:', platformPrefs.smartOrdering);
   if (platformPrefs.smartOrdering) {
     console.log('[handleResult hook] about to call applySmartOrdering after 200ms delay');

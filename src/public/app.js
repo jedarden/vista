@@ -8595,18 +8595,7 @@ function applySmartOrderingSafe() {
     }
     reorderPlatformCards();
 
-    // Step 3: Process any queued render after smart ordering completes and reordering is done
-    // This ensures that even if cards were moved, they have the latest data
-    if (pendingRenderData) {
-      if (DEBUG_SMART_ORDERING) {
-        console.log('[applySmartOrderingSafe] Processing queued render with latest data');
-      }
-      const dataToRender = pendingRenderData;
-      pendingRenderData = null; // Clear before rendering to prevent re-queue
-      renderPreviews(dataToRender);
-    }
-
-    // Step 4: If another operation was queued, process it
+    // Step 3: If another operation was queued, process it
     if (pendingApplySmartOrder) {
       console.log('[applySmartOrderingSafe] Processing queued operation');
       setTimeout(applySmartOrderingSafe, 0);
@@ -8617,6 +8606,18 @@ function applySmartOrderingSafe() {
 
     if (DEBUG_SMART_ORDERING) {
       console.log('[applySmartOrderingSafe] Guard flag CLEARED (false) - all operations complete');
+    }
+
+    // Step 4: Process any queued render AFTER the flag is cleared
+    // This is critical: renderPreviews checks isApplyingSmartOrder and will re-queue if flag is still true
+    // By processing after finally, we ensure the flag is false and render proceeds normally
+    if (pendingRenderData) {
+      if (DEBUG_SMART_ORDERING) {
+        console.log('[applySmartOrderingSafe] Processing queued render with updated cardOrder (flag now false)');
+      }
+      const dataToRender = pendingRenderData;
+      pendingRenderData = null; // Clear before rendering to prevent re-queue
+      renderPreviews(dataToRender);
     }
   }
 }

@@ -1583,7 +1583,17 @@ function showSkeletonCards() {
 function renderPreviews(data) {
   console.log('[renderPreviews] Called with cardOrder available:', platformPrefs.cardOrder);
 
-  // Race condition fix: Queue render if smart ordering is in progress
+  // P1 - Concurrent Render Race fix: Prevent multiple simultaneous renders
+  if (isRendering) {
+    if (DEBUG_SMART_ORDERING) {
+      console.log('[renderPreviews] Already rendering - queueing with latest data');
+    }
+    // Store the latest data to render after current render completes
+    pendingRenderAfterCurrent = data;
+    return;
+  }
+
+  // P0 - Race condition fix: Queue render if smart ordering is in progress
   if (isApplyingSmartOrder) {
     if (DEBUG_SMART_ORDERING) {
       console.log('[renderPreviews] Smart ordering in progress - queueing render with latest data');
@@ -1592,6 +1602,9 @@ function renderPreviews(data) {
     pendingRenderData = data;
     return; // Skip rendering during smart ordering to prevent race conditions
   }
+
+  // P1 - Set rendering guard flag
+  isRendering = true;
 
   previewGrid.innerHTML = '';
   let globalIndex = 0; // Global index for stagger delay calculation
@@ -1626,11 +1639,46 @@ function renderPreviews(data) {
     // Otherwise use default group order to prevent race conditions
     let platforms = group.platforms;
     if (platformPrefs.cardOrder[group.id] && !isApplyingSmartOrder) {
-      // Filter to only include platforms that still exist in the group
-      const customOrder = platformPrefs.cardOrder[group.id].filter(pid => group.platforms.includes(pid));
-      // Add any new platforms that aren't in the custom order yet
-      const newPlatforms = group.platforms.filter(pid => !customOrder.includes(pid));
-      platforms = [...customOrder, ...newPlatforms];
+      // P2 - Filter Orphan Bug fix: Properly handle platforms that exist in group.platforms
+      // but not in cardOrder, without treating them as "new" platforms that get appended
+      const cardOrderForGroup = platformPrefs.cardOrder[group.id];
+
+      // First, collect all platforms that exist in both places
+      const existingInCardOrder = cardOrderForGroup.filter(pid => group.platforms.includes(pid));
+
+      // Then, collect platforms that are in the group but NOT in cardOrder
+      const missingFromCardOrder = group.platforms.filter(pid => !cardOrderForGroup.includes(pid));
+
+      // For missing platforms, insert them at their original group position, not at the end
+      // This prevents order drift when cardOrder is stale
+      const platformsWithProperPosition = [];
+      let cardOrderIdx = 0;
+      let groupIdx = 0;
+
+      while (cardOrderIdx < existingInCardOrder.length || groupIdx < group.platforms.length) {
+        const cardOrderNext = existingInCardOrder[cardOrderIdx];
+        const groupNext = group.platforms[groupIdx];
+
+        if (cardOrderNext && cardOrderNext === groupNext) {
+          // Platform exists in both - use cardOrder position
+          platformsWithProperPosition.push(cardOrderNext);
+          cardOrderIdx++;
+          groupIdx++;
+        } else if (missingFromCardOrder.includes(groupNext)) {
+          // Platform is in group but missing from cardOrder - insert here
+          platformsWithProperPosition.push(groupNext);
+          groupIdx++;
+        } else if (cardOrderNext) {
+          // Platform is in cardOrder but we've passed it in group - add from cardOrder
+          platformsWithProperPosition.push(cardOrderNext);
+          cardOrderIdx++;
+        } else {
+          groupIdx++;
+        }
+      }
+
+      platforms = platformsWithProperPosition;
+
       console.log(`[renderPreviews] Group ${group.id}: using cardOrder for custom order:`, platforms);
       if (DEBUG_SMART_ORDERING) {
         console.log(`[DEBUG] Full cardOrder data:`, platformPrefs.cardOrder[group.id]);
@@ -1656,6 +1704,20 @@ function renderPreviews(data) {
 
   // Initialize drag and drop for cards
   initCardDragAndDrop();
+
+  // P1 - Clear rendering guard flag after DOM is complete
+  isRendering = false;
+
+  // Process any pending render that was queued while this render was in progress
+  if (pendingRenderAfterCurrent) {
+    if (DEBUG_SMART_ORDERING) {
+      console.log('[renderPreviews] Processing queued render after completion');
+    }
+    const dataToRender = pendingRenderAfterCurrent;
+    pendingRenderAfterCurrent = null;
+    // Use setTimeout to avoid recursive call stack
+    setTimeout(() => renderPreviews(dataToRender), 0);
+  }
 }
 
 /**
@@ -5839,6 +5901,15 @@ async function handleSitemapSubmit() {
     // Announce sitemap results to screen readers
     const { totalFound, crawled, errors } = data;
     announce(`Sitemap analysis complete. Found ${totalFound} URLs, crawled ${crawled} pages, ${errors} errors.`);
+  } catch (err) {
+    console.error('[handleSitemapSubmit] Error:', err);
+    showToast(err.message || 'Failed to analyze sitemap', 3000);
+    if (progressText) progressText.textContent = 'Failed';
+    if (progressFill) progressFill.style.width = '0%';
+    setTimeout(() => {
+      if (sitemapProgress) sitemapProgress.classList.add('hidden');
+    }, 1500);
+  }
 }
 
 /**
@@ -5893,14 +5964,8 @@ function setupScrollLock(el1, el2) {
 }
 
 function renderPlatformComparison(data1, data2) {
-
-    // Scroll to results
-    if (resultsSection) resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-  } catch (err) {
-    if (sitemapProgress) sitemapProgress.classList.add('hidden');
-    showToast('Error: ' + err.message, 3000);
-  }
+  // Scroll to results
+  if (resultsSection) resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function renderSitemapResults(data) {
@@ -6188,6 +6253,9 @@ let platformPrefs = {
 let isApplyingSmartOrder = false;
 let pendingApplySmartOrder = false;
 let pendingRenderData = null; // Queue renderPreviews calls during smart ordering
+let isRendering = false; // Guard flag to prevent concurrent renders
+let pendingRenderAfterCurrent = null; // Queue renders during active render
+let currentPageType = null; // Track current page type for stale cardOrder detection
 
 // Command palette state
 let commandPaletteOpen = false;
@@ -7622,7 +7690,15 @@ function loadPlatformPrefs() {
       platformPrefs.columnCount = parsed.columnCount || 3;
       platformPrefs.smartOrdering = parsed.smartOrdering !== false;
       platformPrefs.cardOrder = parsed.cardOrder || {};
+      platformPrefs.cardOrderMetadata = parsed.cardOrderMetadata || {};
       console.log('[loadPlatformPrefs] Loaded cardOrder:', platformPrefs.cardOrder);
+
+      if (DEBUG_SMART_ORDERING && parsed._version) {
+        console.log(`[loadPlatformPrefs] Loaded preferences version ${parsed._version} from ${new Date(parsed._timestamp).toISOString()}`);
+      }
+
+      // Clean up dangling cardOrder entries for groups that no longer exist (P2 - Missing Group Bug)
+      cleanupStaleCardOrderEntries();
     } catch (e) {
       console.warn('Failed to load platform preferences', e);
     }
@@ -7635,15 +7711,115 @@ function loadPlatformPrefs() {
   updateHiddenList();
 }
 
+/**
+ * Clean up cardOrder entries for groups that no longer exist in PLATFORM_GROUPS
+ * This prevents dangling references and potential errors (P2 - Missing Group Bug fix)
+ */
+function cleanupStaleCardOrderEntries() {
+  if (!platformPrefs.cardOrder) return;
+
+  const validGroupIds = new Set(PLATFORM_GROUPS.map(g => g.id));
+  let hasChanges = false;
+
+  for (const groupId in platformPrefs.cardOrder) {
+    if (!validGroupIds.has(groupId)) {
+      console.log(`[cleanupStaleCardOrderEntries] Removing dangling entry for group: ${groupId}`);
+      delete platformPrefs.cardOrder[groupId];
+      if (platformPrefs.cardOrderMetadata && platformPrefs.cardOrderMetadata[groupId]) {
+        delete platformPrefs.cardOrderMetadata[groupId];
+      }
+      hasChanges = true;
+    }
+  }
+
+  if (hasChanges) {
+    savePlatformPrefs();
+  }
+}
+
 function savePlatformPrefs() {
-  const prefs = {
-    favorites: Array.from(platformPrefs.favorites),
-    hidden: Array.from(platformPrefs.hidden),
-    columnCount: platformPrefs.columnCount,
-    smartOrdering: platformPrefs.smartOrdering,
-    cardOrder: platformPrefs.cardOrder
-  };
-  localStorage.setItem('vista-platform-prefs', JSON.stringify(prefs));
+  // P0 - LocalStorage Desync fix: Implement atomic read-modify-write with version checking
+  const MAX_RETRIES = 3;
+  let attempt = 0;
+
+  while (attempt < MAX_RETRIES) {
+    try {
+      // Read current state from localStorage
+      const currentSaved = localStorage.getItem('vista-platform-prefs');
+      let currentData = null;
+      let currentVersion = 0;
+
+      if (currentSaved) {
+        try {
+          currentData = JSON.parse(currentSaved);
+          currentVersion = currentData._version || 0;
+        } catch (e) {
+          console.warn('[savePlatformPrefs] Failed to parse current localStorage data', e);
+        }
+      }
+
+      // Prepare new state with incremented version
+      const newVersion = currentVersion + 1;
+      const prefs = {
+        _version: newVersion,
+        _timestamp: Date.now(),
+        favorites: Array.from(platformPrefs.favorites),
+        hidden: Array.from(platformPrefs.hidden),
+        columnCount: platformPrefs.columnCount,
+        smartOrdering: platformPrefs.smartOrdering,
+        cardOrder: platformPrefs.cardOrder,
+        cardOrderMetadata: platformPrefs.cardOrderMetadata || {}
+      };
+
+      // Write to localStorage
+      localStorage.setItem('vista-platform-prefs', JSON.stringify(prefs));
+
+      // Verify write was successful (read back and check version)
+      const verifySaved = localStorage.getItem('vista-platform-prefs');
+      if (verifySaved) {
+        const verifyData = JSON.parse(verifySaved);
+        if (verifyData._version === newVersion) {
+          // Write was successful
+          if (DEBUG_SMART_ORDERING) {
+            console.log(`[savePlatformPrefs] Saved successfully with version ${newVersion}`);
+          }
+          return;
+        } else {
+          // Version mismatch - concurrent write detected
+          console.warn(`[savePlatformPrefs] Version mismatch: expected ${newVersion}, got ${verifyData._version}. Concurrent write detected.`);
+          attempt++;
+          if (attempt < MAX_RETRIES) {
+            console.log(`[savePlatformPrefs] Retrying (${attempt + 1}/${MAX_RETRIES})...`);
+            // Reload latest data and merge
+            if (verifyData.cardOrder) {
+              // Merge cardOrder changes - prefer newer data
+              Object.keys(verifyData.cardOrder).forEach(groupId => {
+                const groupMeta = verifyData.cardOrderMetadata?.[groupId];
+                const localMeta = platformPrefs.cardOrderMetadata?.[groupId];
+                if (groupMeta && localMeta && groupMeta.lastModified > localMeta.lastModified) {
+                  platformPrefs.cardOrder[groupId] = verifyData.cardOrder[groupId];
+                  platformPrefs.cardOrderMetadata[groupId] = groupMeta;
+                }
+              });
+            }
+            continue; // Retry with merged data
+          }
+        }
+      }
+    } catch (e) {
+      console.error('[savePlatformPrefs] Failed to save preferences:', e);
+      attempt++;
+      if (attempt < MAX_RETRIES) {
+        console.log(`[savePlatformPrefs] Retrying after error (${attempt + 1}/${MAX_RETRIES})...`);
+        continue;
+      }
+    }
+    break;
+  }
+
+  if (attempt >= MAX_RETRIES) {
+    console.error('[savePlatformPrefs] Failed to save preferences after ${MAX_RETRIES} attempts');
+  }
 }
 
 function setColumnLayout(count) {
@@ -8432,6 +8608,33 @@ function applySmartOrdering() {
     console.log(`[applySmartOrdering] Page type detected: "${pageType}"`);
   }
 
+  // P1 - Stale CardOrder Race fix: Track page type changes to invalidate stale cardOrder
+  const previousPageType = currentPageType;
+  currentPageType = pageType;
+
+  if (previousPageType && previousPageType !== pageType) {
+    if (DEBUG_SMART_ORDERING) {
+      console.log(`[applySmartOrdering] Page type changed from "${previousPageType}" to "${pageType}" - clearing stale cardOrder`);
+    }
+    // Clear cardOrder for groups that weren't manually modified by user
+    PLATFORM_GROUPS.forEach((group) => {
+      const metadata = platformPrefs.cardOrderMetadata?.[group.id];
+      if (!metadata || !metadata.userModified || metadata.modifiedBy !== 'user-drag') {
+        delete platformPrefs.cardOrder[group.id];
+        if (platformPrefs.cardOrderMetadata && platformPrefs.cardOrderMetadata[group.id]) {
+          delete platformPrefs.cardOrderMetadata[group.id];
+        }
+        if (DEBUG_SMART_ORDERING) {
+          console.log(`[applySmartOrdering] Cleared cardOrder for ${group.id} (not user-modified)`);
+        }
+      } else {
+        if (DEBUG_SMART_ORDERING) {
+          console.log(`[applySmartOrdering] Preserved cardOrder for ${group.id} (user-modified)`);
+        }
+      }
+    });
+  }
+
   const preferredOrder = getPlatformOrderForPageType(pageType);
   if (DEBUG_SMART_ORDERING) {
     console.log(`[applySmartOrdering] Preferred platform order for "${pageType}":`, preferredOrder);
@@ -8467,13 +8670,25 @@ function applySmartOrdering() {
     console.log('[applySmartOrdering]] ===== REORDERING PLATFORMS =====');
   }
 
-  // Initialize cardOrder if needed
+  // Initialize cardOrder and cardOrderMetadata if needed
   if (!platformPrefs.cardOrder) {
     platformPrefs.cardOrder = {};
+  }
+  if (!platformPrefs.cardOrderMetadata) {
+    platformPrefs.cardOrderMetadata = {};
   }
 
   PLATFORM_GROUPS.forEach((group, groupIndex) => {
     const originalOrder = [...group.platforms];
+
+    // P0 - Drag Override Race fix: Skip groups that were manually reordered by user
+    const metadata = platformPrefs.cardOrderMetadata[group.id];
+    if (metadata && metadata.userModified && metadata.modifiedBy === 'user-drag') {
+      if (DEBUG_SMART_ORDERING) {
+        console.log(`[applySmartOrdering] Group ${groupIndex} "${group.title}" - skipping (user-modified via drag)`);
+      }
+      return; // Skip smart ordering for this group
+    }
 
     // Create a local copy for smart ordering - DO NOT mutate global PLATFORM_GROUPS
     // This prevents race conditions where concurrent code reads the mutated order
@@ -8489,6 +8704,14 @@ function applySmartOrdering() {
     // Update platformPrefs.cardOrder to persist the smart ordering
     // renderPreviews() will use this order instead of the default PLATFORM_GROUPS order
     platformPrefs.cardOrder[group.id] = [...smartOrder];
+
+    // Mark this as smart-ordered (not user-modified)
+    platformPrefs.cardOrderMetadata[group.id] = {
+      userModified: false,
+      lastModified: Date.now(),
+      modifiedBy: 'smart-ordering',
+      pageType: pageType
+    };
 
     if (DEBUG_SMART_ORDERING) {
       if (JSON.stringify(originalOrder) !== JSON.stringify(smartOrder)) {
@@ -9171,14 +9394,40 @@ function handleDrop(e) {
     const newToOrder = [...toOrder];
     newToOrder.splice(targetIndex, 0, draggedPid);
 
-    // Update platformPrefs
+    // P0 - Drag Override Race fix: Initialize cardOrderMetadata if needed
+    if (!platformPrefs.cardOrderMetadata) {
+      platformPrefs.cardOrderMetadata = {};
+    }
+
+    // Update platformPrefs with user modification timestamps
+    const now = Date.now();
     if (fromGroup === toGroup) {
       // Same group - just reorder
       platformPrefs.cardOrder[fromGroup] = newToOrder;
+      platformPrefs.cardOrderMetadata[fromGroup] = {
+        userModified: true,
+        lastModified: now,
+        modifiedBy: 'user-drag'
+      };
+      console.log(`[handleDrop] User reordered group ${fromGroup} via drag`, newToOrder);
     } else {
       // Different groups - move between groups
       platformPrefs.cardOrder[fromGroup] = newFromOrder;
+      platformPrefs.cardOrderMetadata[fromGroup] = {
+        userModified: true,
+        lastModified: now,
+        modifiedBy: 'user-drag'
+      };
       platformPrefs.cardOrder[toGroup] = newToOrder;
+      platformPrefs.cardOrderMetadata[toGroup] = {
+        userModified: true,
+        lastModified: now,
+        modifiedBy: 'user-drag'
+      };
+      console.log(`[handleDrop] User moved card from ${fromGroup} to ${toGroup}`, {
+        fromOrder: newFromOrder,
+        toOrder: newToOrder
+      });
     }
 
     savePlatformPrefs();

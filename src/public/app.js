@@ -9368,6 +9368,18 @@ function handleDrop(e) {
     e.stopPropagation();
   }
 
+  // RC-002 Race Condition Fix: Reject drag operations during smart ordering
+  if (isApplyingSmartOrder) {
+    if (DEBUG_SMART_ORDERING) {
+      console.warn('[handleDrop] Smart ordering in progress - rejecting drop to prevent race condition');
+    }
+    // Prevent the drop and return early
+    if (e.preventDefault) {
+      e.preventDefault();
+    }
+    return false;
+  }
+
   if (draggedCard !== this) {
     const toGroup = this.dataset.groupId;
     const fromGroup = draggedFromGroup;

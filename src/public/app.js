@@ -1541,12 +1541,18 @@ function renderSkeletons() {
     row.className = 'cards-row skeleton-row';
     row.dataset.groupId = group.id;
 
-    // Use custom order if available, otherwise use default group order
+    // Use custom order if available and smart ordering is not in progress
+    // Otherwise use default group order to prevent race conditions
     let platforms = group.platforms;
-    if (platformPrefs.cardOrder[group.id]) {
+    if (platformPrefs.cardOrder[group.id] && !isApplyingSmartOrder) {
       const customOrder = platformPrefs.cardOrder[group.id].filter(pid => group.platforms.includes(pid));
       const newPlatforms = group.platforms.filter(pid => !customOrder.includes(pid));
       platforms = [...customOrder, ...newPlatforms];
+      if (DEBUG_SMART_ORDERING) {
+        console.log(`[renderSkeletons] Group ${group.id}: using custom order from cardOrder:`, platforms);
+      }
+    } else if (isApplyingSmartOrder && DEBUG_SMART_ORDERING) {
+      console.log(`[renderSkeletons] Group ${group.id}: skipping cardOrder during smart ordering, using default:`, platforms);
     }
 
     platforms.forEach((pid, i) => {
@@ -1575,6 +1581,11 @@ function showSkeletonCards() {
 }
 
 function renderPreviews(data) {
+  // Safeguard: Log if called during smart ordering operation
+  if (isApplyingSmartOrder && DEBUG_SMART_ORDERING) {
+    console.log('[renderPreviews] WARNING: Called during smart ordering operation - may use stale order');
+  }
+
   previewGrid.innerHTML = '';
   let globalIndex = 0; // Global index for stagger delay calculation
 
@@ -1604,14 +1615,20 @@ function renderPreviews(data) {
     row.className = 'cards-row';
     row.dataset.groupId = group.id;
 
-    // Use custom order if available, otherwise use default group order
+    // Use custom order if available and smart ordering is not in progress
+    // Otherwise use default group order to prevent race conditions
     let platforms = group.platforms;
-    if (platformPrefs.cardOrder[group.id]) {
+    if (platformPrefs.cardOrder[group.id] && !isApplyingSmartOrder) {
       // Filter to only include platforms that still exist in the group
       const customOrder = platformPrefs.cardOrder[group.id].filter(pid => group.platforms.includes(pid));
       // Add any new platforms that aren't in the custom order yet
       const newPlatforms = group.platforms.filter(pid => !customOrder.includes(pid));
       platforms = [...customOrder, ...newPlatforms];
+      if (DEBUG_SMART_ORDERING) {
+        console.log(`[renderPreviews] Group ${group.id}: using custom order from cardOrder:`, platforms);
+      }
+    } else if (isApplyingSmartOrder && DEBUG_SMART_ORDERING) {
+      console.log(`[renderPreviews] Group ${group.id}: skipping cardOrder during smart ordering, using default:`, platforms);
     }
 
     platforms.forEach((pid, i) => {
@@ -1697,12 +1714,18 @@ function renderTextPreviewsOnly(data) {
       previewGrid.appendChild(groupEl);
     }
 
-    // Use custom order if available
+    // Use custom order if available and smart ordering is not in progress
+    // Otherwise use default group order to prevent race conditions
     let platforms = group.platforms;
-    if (platformPrefs.cardOrder[group.id]) {
+    if (platformPrefs.cardOrder[group.id] && !isApplyingSmartOrder) {
       const customOrder = platformPrefs.cardOrder[group.id].filter(pid => group.platforms.includes(pid));
       const newPlatforms = group.platforms.filter(pid => !customOrder.includes(pid));
       platforms = [...customOrder, ...newPlatforms];
+      if (DEBUG_SMART_ORDERING) {
+        console.log(`[renderTextPreviewsOnly] Group ${group.id}: using custom order from cardOrder:`, platforms);
+      }
+    } else if (isApplyingSmartOrder && DEBUG_SMART_ORDERING) {
+      console.log(`[renderTextPreviewsOnly] Group ${group.id}: skipping cardOrder during smart ordering, using default:`, platforms);
     }
 
     // Crossfade: fade out skeleton cards, then replace with text-only cards
@@ -6153,6 +6176,10 @@ let platformPrefs = {
   cardOrder: {} // Map of groupId -> array of platform IDs in custom order
 };
 
+// ── Guard flags to prevent race conditions during smart ordering ──
+let isApplyingSmartOrder = false;
+let pendingApplySmartOrder = false;
+
 // Command palette state
 let commandPaletteOpen = false;
 let commandPaletteSelectedIndex = 0;
@@ -8296,6 +8323,11 @@ function getPlatformOrderForPageType(pageType) {
  * This is called after applySmartOrdering() updates the cardOrder arrays
  */
 function reorderPlatformCards() {
+  // Safeguard: Should only be called during smart ordering operation
+  if (!isApplyingSmartOrder && DEBUG_SMART_ORDERING) {
+    console.warn('[reorderPlatformCards] WARNING: Called outside smart ordering operation - this may indicate a race condition');
+  }
+
   PLATFORM_GROUPS.forEach((group) => {
     // Skip if no custom order for this group
     if (!platformPrefs.cardOrder[group.id]) {
@@ -8509,15 +8541,53 @@ renderDiagnostics = function(diagnostics) {
 // ── Hook into handleResult for smart ordering ──
 const originalHandleResult2 = handleResult;
 handleResult = async function(data) {
+  // Store reference for use in hook
+  const originalData = data;
+
   await originalHandleResult2(data);
   console.log('[handleResult hook] smartOrdering enabled:', platformPrefs.smartOrdering);
   if (platformPrefs.smartOrdering) {
-    console.log('[handleResult hook] about to call applySmartOrdering after 200ms delay');
-    setTimeout(applySmartOrdering, 200);
+    console.log('[handleResult hook] applying smart ordering immediately (no delay)');
+    // Apply smart ordering immediately after render completes
+    // This prevents race conditions from the 200ms delay
+    applySmartOrderingSafe();
   } else {
     console.log('[handleResult hook] smartOrdering disabled - skipping applySmartOrdering call');
   }
 };
+
+/**
+ * Thread-safe version of applySmartOrdering that prevents concurrent execution.
+ * Uses guard flags to ensure only one smart ordering operation runs at a time.
+ */
+function applySmartOrderingSafe() {
+  // If already applying, queue a pending application
+  if (isApplyingSmartOrder) {
+    console.log('[applySmartOrderingSafe] Already applying - queueing pending operation');
+    pendingApplySmartOrder = true;
+    return;
+  }
+
+  // Set guard flag
+  isApplyingSmartOrder = true;
+  pendingApplySmartOrder = false;
+
+  console.log('[applySmartOrderingSafe] Guard flag set - starting smart ordering');
+
+  try {
+    // Call the actual applySmartOrdering function
+    applySmartOrdering();
+  } finally {
+    // Always clear guard flag, even if applySmartOrdering throws
+    isApplyingSmartOrder = false;
+
+    // If another operation was queued, process it
+    if (pendingApplySmartOrder) {
+      console.log('[applySmartOrderingSafe] Processing queued operation');
+      setTimeout(applySmartOrderingSafe, 0);
+    }
+  }
+}
 
 // ── Command Palette ──
 const COMMANDS = [

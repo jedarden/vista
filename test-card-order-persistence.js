@@ -50,9 +50,9 @@ const raceConditionChecks = [
     description: 'DOM reordering must happen before flag is cleared'
   },
   {
-    name: 'pendingRenderData is processed after finally block',
-    pattern: /}\s*\/\/\s*Process any queued render[\s\S]*?if\s*\(pendingRenderData\)/,
-    description: 'Queued renders must be processed after flag is cleared'
+    name: 'pendingRenderData is processed after flag is cleared',
+    pattern: /isApplyingSmartOrder\s*=\s*false[\s\S]*?if\s*\(pendingRenderData\)/,
+    description: 'Queued renders must be processed after flag is cleared (inside finally block)'
   }
 ];
 

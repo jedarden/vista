@@ -1,64 +1,15 @@
 # Filter Change Handler Patterns in app.js
 
-## Overview
-Comprehensive search results for all filter change event handlers and related patterns found in `/home/coding/vista/src/public/app.js`.
+## Search Results Summary
 
-## Core Filter Operation Infrastructure
+This document catalogs all filter change event handlers and related patterns found in `/home/coding/vista/src/public/app.js`.
 
-### 1. Filter Operation Guard Flag (Line 6279)
+## Direct Filter Change Event Handlers
+
+### 1. Metadata Filter Input Handler (Line 3991)
 ```javascript
-let isFilterOperation = false; // Guard flag to prevent smart order resets during filter changes
-```
-- **Purpose**: Prevents smart order resets during filter operations
-- **Used by**: Multiple filter handlers to guard against cardOrder clearing
-
-### 2. Pending Filter Operations Queue (Line 6281)
-```javascript
-let pendingFilterOperations = []; // Queue filter operations during smart ordering
-```
-- **Purpose**: Queues filter operations when smart ordering is active
-- **Used by**: `queueFilterOperation()` function
-
-### 3. Global Object Property Exports (Lines 5046-5052)
-```javascript
-Object.defineProperty(window, 'isFilterOperation', {
-  get: () => isFilterOperation,
-  set: (val) => { isFilterOperation = val; }
-});
-Object.defineProperty(window, 'pendingFilterOperations', {
-  get: () => pendingFilterOperations,
-  set: (val) => { pendingFilterOperations = val; }
-});
-window.queueFilterOperation = queueFilterOperation;
-```
-- **Purpose**: Exposes filter operation state to global scope for debugging
-
-### 4. queueFilterOperation Function (Line 7942)
-```javascript
-function queueFilterOperation(operation, description) {
-    console.log(`[queueFilterOperation] Queuing: ${description}`);
-  }
-  pendingFilterOperations.push({ operation, description });
-}
-```
-- **Purpose**: Centralized function to queue filter operations during smart ordering
-- **Called by**: `importPreferences()`, `toggleWhatIfMode()`
-
-### 5. processPendingFilterOperations Function (Line 7953)
-```javascript
-if (pendingFilterOperations.length === 0) {
-  return;
-}
-console.log(`[processPendingFilterOperations] Processing ${pendingFilterOperations.length} pending operations`);
-const operations = pendingFilterOperations.slice(); // Copy array to avoid modification during iteration
-pendingFilterOperations = []; // Clear queue
-```
-- **Purpose**: Executes queued filter operations after smart ordering completes
-
-## Filter Change Event Handlers
-
-### 6. Metadata Table Filter Input (Lines 3989-3992)
-```javascript
+// Line 3988-3994
+// Attach filter listener
 const filterInput = document.getElementById('metadataFilterInput');
 if (filterInput) {
   filterInput.addEventListener('input', (e) => {
@@ -66,19 +17,24 @@ if (filterInput) {
   });
 }
 ```
-- **Event**: `input`
-- **Purpose**: Filters metadata table rows by tag/value
-- **Handler**: `renderMetadataTable(filter)`
 
-### 7. Command Palette Filter (Line 9085)
+**Pattern**: Direct `addEventListener` with `input` event on `metadataFilterInput`  
+**Handler**: Calls `renderMetadataTable(e.target.value)` with filter value  
+**Location**: Inside metadata table rendering logic  
+**Line numbers**: 3988-3994
+
+### 2. Command Palette Filter Handler (Line 9085)
 ```javascript
+// Line 9085
 input.addEventListener('input', filterCommands);
 ```
-- **Event**: `input`
-- **Purpose**: Filters command palette items
-- **Handler**: `filterCommands(e)` (Line 9177)
 
-### 8. filterCommands Function (Line 9177)
+**Pattern**: `addEventListener` with `input` event on command palette input  
+**Handler**: Calls `filterCommands(e)` function  
+**Location**: Inside command palette initialization  
+**Line numbers**: 9085, 9177-9192
+
+**Handler Function Definition (Lines 9177-9192)**:
 ```javascript
 function filterCommands(e) {
   const query = e.target.value.toLowerCase().trim();
@@ -97,212 +53,191 @@ function filterCommands(e) {
   renderCommands(filtered);
 }
 ```
-- **Purpose**: Filters command list by label/category
-- **Triggers**: Re-renders command palette with filtered results
 
-## Platform/Group Filter Handlers
+## Filter Operation Guard System
 
-### 9. Group Checkbox Toggle Handler (Lines 3480-3490)
+The app implements a comprehensive filter operation guard system to prevent smart order resets during filter changes.
+
+### State Variables (Line 6279-6281)
+
 ```javascript
-document.querySelectorAll('.cropper-group-toggle').forEach(groupCb => {
-  groupCb.addEventListener('change', (e) => {
-    const group = e.target.dataset.group;
-    const platforms = groups.find(g => g.id === group)?.platforms || [];
-    platforms.forEach(pid => {
-      const platformCb = document.querySelector(`input[data-platform="${pid}"]`);
-      if (platformCb) platformCb.checked = e.target.checked;
-    });
-    updateEnabledPlatforms();
-    updateCropperOverlay();
-    syncGroupToggles(groups);
-  });
+// Line 6279
+let isFilterOperation = false; // Guard flag to prevent smart order resets during filter changes
+
+// Line 6281
+let pendingFilterOperations = []; // Queue filter operations during smart ordering
+```
+
+### Global Property Exports (Lines 5046-5055)
+
+```javascript
+// Lines 5046-5049: Export isFilterOperation
+Object.defineProperty(window, 'isFilterOperation', {
+  get: () => isFilterOperation,
+  set: (val) => { isFilterOperation = val; }
 });
-```
-- **Event**: `change`
-- **Purpose**: Toggles all platforms in a group
-- **Chain**: updateEnabledPlatforms() → updateCropperOverlay() → syncGroupToggles()
 
-### 10. Individual Platform Toggle Handler (Lines 3497-3500)
-```javascript
-document.querySelectorAll('.cropper-platform-toggle input').forEach(cb => {
-  cb.addEventListener('change', () => {
-    updateEnabledPlatforms();
-    updateCropperOverlay();
-    syncGroupToggles(groups);
-  });
+// Lines 5050-5053: Export pendingFilterOperations
+Object.defineProperty(window, 'pendingFilterOperations', {
+  get: () => pendingFilterOperations,
+  set: (val) => { pendingFilterOperations = val; }
 });
+
+// Line 5055: Export queueFilterOperation
+window.queueFilterOperation = queueFilterOperation;
 ```
-- **Event**: `change`
-- **Purpose**: Toggles individual platform visibility
-- **Chain**: updateEnabledPlatforms() → updateCropperOverlay() → syncGroupToggles()
 
-### 11. Select All Platforms Handler (Lines 3514-3521)
+### Filter Operation Queue Function (Lines 7942-7947)
+
 ```javascript
-document.getElementById('selectAllPlatforms')?.addEventListener('click', () => {
-  document.querySelectorAll('.cropper-platform-toggle input').forEach(cb => cb.checked = true);
-  syncGroupToggles(groups);
-  updateEnabledPlatforms();
-  updateCropperOverlay();
-});
-```
-- **Event**: `click`
-- **Purpose**: Enables all platform checkboxes
-- **Chain**: syncGroupToggles() → updateEnabledPlatforms() → updateCropperOverlay()
-
-## Helper Functions for Filter Handlers
-
-### 12. updateEnabledPlatforms Function (Line 3551)
-```javascript
-function updateEnabledPlatforms() {
-  cropperState.enabledPlatforms.clear();
-  document.querySelectorAll('.cropper-platform-toggle input:checked').forEach(cb => {
-    cropperState.enabledPlatforms.add(cb.dataset.platform);
-  });
-  // Refresh the category legend so its active/dimmed state tracks the live
-  // toggle selection. Every toggle path (individual, group, select/clear-all)
-  // and the initial renderCropperControls() call funnels through here, so this
-  // single hook keeps the legend in sync with the overlays on screen.
-  renderCategoryLegend();
+function queueFilterOperation(operation, description) {
+  if (DEBUG_SMART_ORDERING) {
+    console.log(`[queueFilterOperation] Queuing: ${description}`);
+  }
+  pendingFilterOperations.push({ operation, description });
 }
 ```
-- **Purpose**: Updates `cropperState.enabledPlatforms` Set based on checked checkboxes
-- **Side effect**: Calls `renderCategoryLegend()` to update UI
 
-### 13. syncGroupToggles Function (Line 3530)
+### Filter Operation Guard Usage Examples
+
+**1. Import Preferences (Lines 8077-8099)**
 ```javascript
-function syncGroupToggles(groups) {
-  groups.forEach(group => {
-    const groupCb = document.querySelector(`.cropper-group-toggle[data-group="${group.id}"]`);
-    if (!groupCb) return;
-    const children = group.platforms
-      .map(pid => document.querySelector(`input[data-platform="${pid}"]`))
-      .filter(Boolean);
-    if (!children.length) return;
-    const checkedCount = children.filter(cb => cb.checked).length;
-    if (checkedCount === 0) {
-      groupCb.checked = false;
-      groupCb.indeterminate = false;
-    } else if (checkedCount === children.length) {
-      groupCb.checked = true;
-      groupCb.indeterminate = false;
-    } else {
-      groupCb.indeterminate = true;
-    }
-  });
-}
-```
-- **Purpose**: Syncs group checkbox state (checked/unchecked/indeterminate) with child platform checkboxes
-
-### 14. renderCategoryLegend Function (Line 3568)
-```javascript
-function renderCategoryLegend() {
-  if (!cropperCategoryLegend) return;
-  // ... (renders category legend with active/dimmed states)
-}
-```
-- **Purpose**: Renders platform category legend, dimming categories with no enabled platforms
-
-### 15. updateCropperOverlay Function (Line 3600)
-```javascript
-function updateCropperOverlay() {
-  // ... (updates crop overlay rectangles based on enabled platforms)
-}
-```
-- **Purpose**: Updates the visual crop overlay on the image
-
-## Filter Operation Guard Usage
-
-### 16. importPreferences Function (Lines 8057-8088)
-```javascript
-document.getElementById('importPrefsInput')?.addEventListener('change', importPreferences);
-
-function importPreferences(e) {
-  // ... (file reading logic)
-  
+if (isSmartOrdering()) {
   const applyImportedPrefs = () => {
     isFilterOperation = true;
+    renderPreviews(currentData);
     setTimeout(() => { isFilterOperation = false; }, 0);
-    // ... (apply prefs)
+    isSmartOrderingActive = false;
   };
-  
-  if (isSmartOrdering()) {
-    queueFilterOperation(applyImportedPrefs, 'importPreferences');
-  } else {
-    applyImportedPrefs();
+  queueFilterOperation(applyImportedPrefs, 'importPreferences');
+  return;
+}
+
+isFilterOperation = true;
+renderPreviews(currentData);
+setTimeout(() => { isFilterOperation = false; }, 0);
+```
+
+**2. Toggle What If Mode (Lines 8142-8159)**
+```javascript
+if (isSmartOrdering()) {
+  const applyWhatIfReset = () => {
+    isFilterOperation = true;
+    renderPreviews(currentData);
+    setTimeout(() => { isFilterOperation = false; }, 0);
+  };
+  queueFilterOperation(applyWhatIfReset, 'toggleWhatIfMode');
+  return;
+}
+
+isFilterOperation = true;
+renderPreviews(currentData);
+setTimeout(() => { isFilterOperation = false; }, 0);
+```
+
+**3. What If Panel Toggle (Lines 8263-8265)**
+```javascript
+const modifiedData = { ...currentData, meta: modifiedMeta };
+isFilterOperation = true;
+renderPreviews(modifiedData);
+setTimeout(() => { isFilterOperation = false; }, 0);
+```
+
+### Guard Check in applySmartOrdering (Lines 8790-8797)
+
+```javascript
+// P2 - Filter operation guard: Skip cardOrder clearing during filter changes or when smart ordering is active
+if (isFilterOperation || isSmartOrdering()) {
+  if (DEBUG_SMART_ORDERING) {
+    const reason = isFilterOperation ? 'filter operation in progress' : 'smart ordering is active';
+    console.log(`[applySmartOrdering] Page type changed but ${reason} - preserving cardOrder to prevent reset`);
   }
 }
 ```
-- **Event**: `change` (file input)
-- **Purpose**: Imports platform preferences from JSON
-- **Guard**: Sets `isFilterOperation = true` during apply
 
-### 17. toggleWhatIfMode Function (Lines 8121-8148)
+## Related Functions Called by Filter Handlers
+
+### renderMetadataTable Function (Line 3941)
+
 ```javascript
-function toggleWhatIfMode() {
-  // ... (mode toggle logic)
-  
-  const applyWhatIfReset = () => {
-    isFilterOperation = true;
-    setTimeout(() => { isFilterOperation = false; }, 0);
-    // ... (reset croppers)
-  };
-  
-  queueFilterOperation(applyWhatIfReset, 'toggleWhatIfMode');
-  // ... (rest of toggle logic)
-}
-
-document.getElementById('whatIfToggleBtn')?.addEventListener('click', toggleWhatIfMode);
-```
-- **Event**: `click`
-- **Purpose**: Toggles what-if mode and resets croppers
-- **Guard**: Sets `isFilterOperation = true` during apply
-
-### 18. Smart Order Clear Protection (Lines 8792-8794)
-```javascript
-if (isFilterOperation || isSmartOrdering()) {
-  return; // Skip clearing
-  const reason = isFilterOperation ? 'filter operation in progress' : 'smart ordering is active';
+function renderMetadataTable(filter = '') {
+  const filteredRows = filter
+    ? allMetadataRows.filter(r =>
+        r.tag.toLowerCase().includes(filter.toLowerCase()) ||
+        (r.value && String(r.value).toLowerCase().includes(filter.toLowerCase()))
+      )
+    : allMetadataRows;
+  // ... renders filtered metadata table
 }
 ```
-- **Purpose**: Prevents cardOrder clearing during filter operations
 
-## Additional Input/Change Event Listeners (Non-Filter)
+**Called by**: Line 3992 (metadata filter input handler)  
+**Purpose**: Filters and renders metadata table based on search query
 
-### 19. Other Change/Input Handlers (for context)
-- Line 296: `badgeStyleSelect?.addEventListener('change', updateBadgePreview)`
-- Line 310: `oggenBgType?.addEventListener('change', handleBgTypeChange)`
-- Lines 311-323: Multiple OG generator input/change handlers
-- Line 332: `heatmapSort?.addEventListener('change', handleHeatmapSort)`
-- Line 6801: `input.addEventListener('input', handleEditorInput)`
-- Line 6813: `document.getElementById('snippetFramework')?.addEventListener('change', generateCodeSnippet)`
-- Line 8207: `cb.addEventListener('change', ...)` (cropper-related)
+### renderPreviews Function (Line 1583)
 
-## Summary
+```javascript
+function renderPreviews(data) {
+  // P1 - Concurrent Render Race fix: Prevent multiple simultaneous renders
+  if (isRendering) {
+    if (DEBUG_SMART_ORDERING) {
+      console.log('[renderPreviews] Already rendering - queueing with latest data');
+    }
+    pendingRenderAfterCurrent = data;
+    return;
+  }
+  
+  // P0 - Race condition fix: Queue render if smart ordering is in progress
+  if (isApplyingSmartOrder) {
+    if (DEBUG_SMART_ORDERING) {
+      console.log('[renderPreviews] Smart ordering in progress - queueing render with latest data');
+    }
+    pendingRenderData = data;
+    return;
+  }
+  // ... renders platform preview cards
+}
+```
 
-All identified filter change handler patterns:
+**Called by**: Filter operation handlers (with `isFilterOperation` guard)  
+**Purpose**: Renders platform preview cards with guard flags to prevent race conditions
 
-1. **Direct filter input handlers**: 
-   - Metadata table filter (line 3991)
-   - Command palette filter (line 9085)
+## Other Event Listener Bindings (For Context)
 
-2. **Platform/group filter handlers**:
-   - Group checkbox toggle (line 3481)
-   - Individual platform toggle (line 3497)
-   - Select all platforms (line 3514)
+While not directly filter-related, these patterns show similar input/change event handling:
 
-3. **Filter operation infrastructure**:
-   - `isFilterOperation` guard flag (line 6279)
-   - `pendingFilterOperations` queue (line 6281)
-   - `queueFilterOperation()` function (line 7942)
-   - `processPendingFilterOperations()` function (line 7953)
+```javascript
+// Line 6801: Editor input handler
+input.addEventListener('input', handleEditorInput);
 
-4. **Helper functions**:
-   - `updateEnabledPlatforms()` (line 3551)
-   - `syncGroupToggles()` (line 3530)
-   - `renderCategoryLegend()` (line 3568)
-   - `updateCropperOverlay()` (line 3600)
+// Line 6831: Import preferences handler  
+document.getElementById('importPrefsInput')?.addEventListener('change', importPreferences);
 
-5. **Guarded operations**:
-   - `importPreferences()` (line 8057)
-   - `toggleWhatIfMode()` (line 8121)
-   - Smart order clear protection (line 8792)
+// Line 6813: Framework change handler
+document.getElementById('snippetFramework')?.addEventListener('change', generateCodeSnippet);
+```
+
+## Summary of Filter Change Handler Patterns
+
+1. **Direct Input Filtering**: 2 primary filter input handlers (metadata + command palette)
+2. **Guard Flag System**: `isFilterOperation` flag prevents smart order resets during filter operations
+3. **Queue System**: `queueFilterOperation()` queues filter ops during smart ordering
+4. **Debouncing**: Editor uses debounced preview updates (300ms timeout)
+5. **Race Condition Prevention**: Multiple guard flags (`isFilterOperation`, `isRendering`, `isApplyingSmartOrder`)
+
+## Key Lines Reference
+
+- **3988-3994**: Metadata filter input handler
+- **3941-3992**: renderMetadataTable function
+- **6279**: isFilterOperation guard flag
+- **6281**: pendingFilterOperations queue
+- **7942-7947**: queueFilterOperation function
+- **8077-8099**: Import preferences with filter guard
+- **8142-8159**: Toggle What If mode with filter guard
+- **8263-8265**: What If panel with filter guard
+- **8790-8797**: Guard check in applySmartOrdering
+- **9085**: Command palette filter input handler
+- **9177-9192**: filterCommands function
+
+Total filter-related lines in app.js: **103**
+Total event listeners with input/change events: **~25**

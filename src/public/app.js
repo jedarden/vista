@@ -7865,28 +7865,21 @@ function updateColumnLayoutUI() {
 }
 
 function toggleFavorite(pid) {
-  // Check if smart ordering is active - defer operation if so
-  if (isSmartOrdering()) {
-    queueFilterOperation(() => toggleFavorite(pid), 'toggleFavorite');
-    if (DEBUG_SMART_ORDERING) {
-      console.log('[toggleFavorite] Smart ordering active - operation queued');
+  guardWrapper('toggleFavorite', () => {
+    if (platformPrefs.favorites.has(pid)) {
+      platformPrefs.favorites.delete(pid);
+    } else {
+      platformPrefs.favorites.add(pid);
     }
-    return;
-  }
+    savePlatformPrefs();
+    updateFavoritesList();
 
-  if (platformPrefs.favorites.has(pid)) {
-    platformPrefs.favorites.delete(pid);
-  } else {
-    platformPrefs.favorites.add(pid);
-  }
-  savePlatformPrefs();
-  updateFavoritesList();
-
-  // Clear smart ordering active flag since user manually modified favorites
-  isSmartOrderingActive = false;
-  if (DEBUG_SMART_ORDERING) {
-    console.log('[toggleFavorite] Smart ordering active flag CLEARED (user manual override)');
-  }
+    // Clear smart ordering active flag since user manually modified favorites
+    isSmartOrderingActive = false;
+    if (DEBUG_SMART_ORDERING) {
+      console.log('[toggleFavorite] Smart ordering active flag CLEARED (user manual override)');
+    }
+  });
 }
 
 // ── Centralized guard functions for filter operations during smart ordering ──
@@ -7982,34 +7975,16 @@ function processPendingFilterOperations() {
 }
 
 function toggleHidden(pid) {
-  // Check if smart ordering is active - defer operation if so
-  if (isSmartOrdering()) {
-    queueFilterOperation(() => toggleHidden(pid), 'toggleHidden');
-    if (DEBUG_SMART_ORDERING) {
-      console.log('[toggleHidden] Smart ordering active - operation queued');
+  guardWrapperWithRender('toggleHidden', () => {
+    if (platformPrefs.hidden.has(pid)) {
+      platformPrefs.hidden.delete(pid);
+    } else {
+      platformPrefs.hidden.add(pid);
     }
-    return;
-  }
-
-  if (platformPrefs.hidden.has(pid)) {
-    platformPrefs.hidden.delete(pid);
-  } else {
-    platformPrefs.hidden.add(pid);
-  }
-  savePlatformPrefs();
-  updateHiddenList();
-
-  // Set guard flag to prevent smart order resets during filter operation
-  isFilterOperation = true;
-  renderPreviews(currentData); // Re-render to apply hiding
-  // Clear flag after render (renderPreviews will handle timing)
-  setTimeout(() => { isFilterOperation = false; }, 0);
-
-  // Clear smart ordering active flag since user manually modified hidden platforms
-  isSmartOrderingActive = false;
-  if (DEBUG_SMART_ORDERING) {
-    console.log('[toggleHidden] Smart ordering active flag CLEARED (user manual override)');
-  }
+    savePlatformPrefs();
+    updateHiddenList();
+    renderPreviews(currentData); // Re-render to apply hiding
+  });
 }
 
 function updateFavoritesList() {

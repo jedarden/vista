@@ -1581,9 +1581,14 @@ function showSkeletonCards() {
 }
 
 function renderPreviews(data) {
-  // Safeguard: Log if called during smart ordering operation
-  if (isApplyingSmartOrder && DEBUG_SMART_ORDERING) {
-    console.log('[renderPreviews] WARNING: Called during smart ordering operation - may use stale order');
+  // Race condition fix: Queue render if smart ordering is in progress
+  if (isApplyingSmartOrder) {
+    if (DEBUG_SMART_ORDERING) {
+      console.log('[renderPreviews] Smart ordering in progress - queueing render with latest data');
+    }
+    // Store the latest data to render after smart ordering completes
+    pendingRenderData = data;
+    return; // Skip rendering during smart ordering to prevent race conditions
   }
 
   previewGrid.innerHTML = '';
@@ -6179,6 +6184,7 @@ let platformPrefs = {
 // ── Guard flags to prevent race conditions during smart ordering ──
 let isApplyingSmartOrder = false;
 let pendingApplySmartOrder = false;
+let pendingRenderData = null; // Queue renderPreviews calls during smart ordering
 
 // Command palette state
 let commandPaletteOpen = false;
@@ -8452,12 +8458,20 @@ function applySmartOrdering() {
 
   // Update platform groups to show relevance
   if (DEBUG_SMART_ORDERING) {
-    console.log('[applySmartOrdering] ===== REORDERING PLATFORMS =====');
+    console.log('[applySmartOrdering]] ===== REORDERING PLATFORMS =====');
+  }
+
+  // Initialize cardOrder if needed
+  if (!platformPrefs.cardOrder) {
+    platformPrefs.cardOrder = {};
   }
 
   PLATFORM_GROUPS.forEach((group, groupIndex) => {
     const originalOrder = [...group.platforms];
-    group.platforms.sort((a, b) => {
+
+    // Create a local copy for smart ordering - DO NOT mutate global PLATFORM_GROUPS
+    // This prevents race conditions where concurrent code reads the mutated order
+    const smartOrder = [...group.platforms].sort((a, b) => {
       const aIndex = preferredOrder.indexOf(a);
       const bIndex = preferredOrder.indexOf(b);
       if (aIndex === -1 && bIndex === -1) return 0;
@@ -8467,17 +8481,14 @@ function applySmartOrdering() {
     });
 
     // Update platformPrefs.cardOrder to persist the smart ordering
-    // This ensures renderPreviews() uses the new smart order instead of custom order
-    if (!platformPrefs.cardOrder) {
-      platformPrefs.cardOrder = {};
-    }
-    platformPrefs.cardOrder[group.id] = [...group.platforms];
+    // renderPreviews() will use this order instead of the default PLATFORM_GROUPS order
+    platformPrefs.cardOrder[group.id] = [...smartOrder];
 
     if (DEBUG_SMART_ORDERING) {
-      if (JSON.stringify(originalOrder) !== JSON.stringify(group.platforms)) {
+      if (JSON.stringify(originalOrder) !== JSON.stringify(smartOrder)) {
         console.log(`[applySmartOrdering] Group ${groupIndex} "${group.title}" REORDERED:`, {
           from: originalOrder,
-          to: group.platforms
+          to: smartOrder
         });
       } else {
         console.log(`[applySmartOrdering] Group ${groupIndex} "${group.title}": no change needed`);
@@ -8485,17 +8496,17 @@ function applySmartOrdering() {
     }
   });
 
-  // Log output array AFTER reordering
+  // Log output state AFTER computing smart order
   if (DEBUG_SMART_ORDERING) {
-    console.log('[applySmartOrdering] ===== OUTPUT STATE (after reordering) =====');
+    console.log('[applySmartOrdering] ===== OUTPUT STATE (after smart ordering) =====');
     PLATFORM_GROUPS.forEach((group, groupIndex) => {
       console.log(`[applySmartOrdering] Group ${groupIndex} "${group.title}" [${group.id}]:`);
-      console.log('[applySmartOrdering]   Platform order AFTER:', group.platforms);
+      console.log('[applySmartOrdering]   Default order (unchanged):', group.platforms);
 
-      // Show how order changed
+      // Show the computed smart order
       const storedOrder = platformPrefs.cardOrder?.[group.id];
       if (storedOrder) {
-        console.log('[applySmartOrdering]   Stored in cardOrder:', storedOrder);
+        console.log('[applySmartOrdering]   Smart order (in cardOrder):', storedOrder);
       }
     });
   }
@@ -8508,15 +8519,6 @@ function applySmartOrdering() {
     }
   } catch (e) {
     console.error('[applySmartOrdering] Failed to save preferences:', e);
-  }
-
-  // Reorder DOM elements to match the new cardOrder
-  if (DEBUG_SMART_ORDERING) {
-    console.log('[applySmartOrdering] Reordering DOM elements to match cardOrder...');
-  }
-  reorderPlatformCards();
-  if (DEBUG_SMART_ORDERING) {
-    console.log('[applySmartOrdering] DOM reordering complete');
   }
 
   showToast(`Page type detected: ${pageType}. Platforms reordered.`, 2000);
@@ -8580,6 +8582,16 @@ function applySmartOrderingSafe() {
   } finally {
     // Always clear guard flag, even if applySmartOrdering throws
     isApplyingSmartOrder = false;
+
+    // Process any queued render after smart ordering completes
+    if (pendingRenderData) {
+      if (DEBUG_SMART_ORDERING) {
+        console.log('[applySmartOrderingSafe] Processing queued render with latest data');
+      }
+      const dataToRender = pendingRenderData;
+      pendingRenderData = null; // Clear before rendering to prevent re-queue
+      renderPreviews(dataToRender);
+    }
 
     // If another operation was queued, process it
     if (pendingApplySmartOrder) {

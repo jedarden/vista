@@ -495,6 +495,8 @@ function savePlatformPrefs() {
     hidden: Array.from(prefs.hidden),
     columnCount: prefs.columnCount,
     smartOrdering: prefs.smartOrdering !== false,
+    cardOrder: prefs.cardOrder || {},
+    cardOrderMetadata: prefs.cardOrderMetadata || {}
   };
   localStorage.setItem('vista-platform-prefs', JSON.stringify(toSave));
 }
@@ -903,26 +905,68 @@ function initCardDragReorder() {
 
 /**
  * Save card order to localStorage
+ * This is called after drag operations, so we mark the group as user-modified
  */
 function saveCardOrder() {
-  const order = {};
+  const prefs = getPlatformPrefs();
+
+  // Initialize cardOrder and cardOrderMetadata if needed
+  if (!prefs.cardOrder) {
+    prefs.cardOrder = {};
+  }
+  if (!prefs.cardOrderMetadata) {
+    prefs.cardOrderMetadata = {};
+  }
+
   document.querySelectorAll('.platform-group').forEach(group => {
     const groupId = group.id.replace('group-', '');
     const cards = [...group.querySelectorAll('.platform-card')].map(card => card.dataset.pid);
-    order[groupId] = cards;
+    prefs.cardOrder[groupId] = cards;
+
+    // Mark this group as user-modified via drag
+    prefs.cardOrderMetadata[groupId] = {
+      userModified: true,
+      lastModified: Date.now(),
+      modifiedBy: 'user-drag',
+      pageType: window.currentPageType || 'unknown'
+    };
   });
-  localStorage.setItem('vista-card-order', JSON.stringify(order));
+
+  // Save the updated preferences to persist across page refreshes
+  try {
+    localStorage.setItem('vista-platform-prefs', JSON.stringify(prefs));
+  } catch (e) {
+    console.error('Failed to save card order preferences:', e);
+  }
 }
 
 /**
  * Load card order from localStorage
+ * Checks both the old 'vista-card-order' key and the new 'vista-platform-prefs' structure
  */
 function loadCardOrder() {
-  const saved = localStorage.getItem('vista-card-order');
-  if (!saved) return;
+  let order = null;
+
+  // First try to get order from platformPrefs (the new location)
+  const prefs = getPlatformPrefs();
+  if (prefs.cardOrder) {
+    order = prefs.cardOrder;
+  } else {
+    // Fallback to old 'vista-card-order' key for backwards compatibility
+    const saved = localStorage.getItem('vista-card-order');
+    if (!saved) return;
+
+    try {
+      order = JSON.parse(saved);
+    } catch (e) {
+      console.warn('Failed to parse old card order format', e);
+      return;
+    }
+  }
+
+  if (!order) return;
 
   try {
-    const order = JSON.parse(saved);
     Object.entries(order).forEach(([groupId, platformOrder]) => {
       const group = document.getElementById('group-' + groupId);
       if (!group) return;

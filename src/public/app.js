@@ -6246,7 +6246,8 @@ let platformPrefs = {
   hidden: new Set(),
   columnCount: 3,
   smartOrdering: true,
-  cardOrder: {} // Map of groupId -> array of platform IDs in custom order
+  cardOrder: {}, // Map of groupId -> array of platform IDs in custom order
+  cardOrderMetadata: {} // Map of groupId -> {userModified, lastModified, modifiedBy, pageType}
 };
 
 // ── Guard flags to prevent race conditions during smart ordering ──

@@ -33,6 +33,14 @@ let pendingFilterOperations = []; // Queue filter operations during smart orderi
 
 ### 2. Filter Operation Functions
 
+#### `shouldDeferFilterOperation()` (Lines 7891-7893)
+```javascript
+function shouldDeferFilterOperation() {
+  return isSmartOrderingActive;
+}
+```
+**Purpose:** Centralized guard function to check if filter operations should be deferred during active smart ordering.
+
 #### `queueFilterOperation()` (Lines 7942-7947)
 ```javascript
 function queueFilterOperation(operation, description) {
@@ -82,7 +90,71 @@ function processPendingFilterOperations() {
 
 ---
 
-### 3. Filter Toggle Functions
+### 3. Filter Operation Guards in User Interactions
+
+#### importPreferences Filter Guard (Lines 8077-8092)
+```javascript
+// Check if smart ordering is active - defer operation if so
+if (isSmartOrdering()) {
+  const applyImportedPrefs = () => {
+    isFilterOperation = true;
+    renderPreviews(currentData);
+    setTimeout(() => { isFilterOperation = false; }, 0);
+    isSmartOrderingActive = false;
+  };
+  queueFilterOperation(applyImportedPrefs, 'importPreferences');
+  return;
+}
+
+// Set guard flag to prevent smart order resets during filter operation
+isFilterOperation = true;
+renderPreviews(currentData);
+setTimeout(() => { isFilterOperation = false; }, 0);
+```
+**Purpose:** Prevents smart ordering conflicts when user imports preferences. Either queues the operation or sets guard flag.
+
+#### toggleWhatIfMode Filter Guard (Lines 8142-8159)
+```javascript
+// Check if smart ordering is active - defer operation if so
+if (isSmartOrdering()) {
+  const applyWhatIfReset = () => {
+    isFilterOperation = true;
+    renderPreviews(currentData);
+    setTimeout(() => { isFilterOperation = false; }, 0);
+  };
+  queueFilterOperation(applyWhatIfReset, 'toggleWhatIfMode');
+  return;
+}
+
+// Set guard flag to prevent smart order resets during filter operation
+isFilterOperation = true;
+renderPreviews(currentData);
+setTimeout(() => { isFilterOperation = false; }, 0);
+```
+**Purpose:** Prevents smart ordering conflicts when toggling what-if mode. Same pattern as importPreferences.
+
+#### applySmartOrdering Filter Guard (Lines 8792-8796)
+```javascript
+// P2 - Filter operation guard: Skip cardOrder clearing during filter changes or when smart ordering is active
+if (isFilterOperation || isSmartOrdering()) {
+  if (DEBUG_SMART_ORDERING) {
+    const reason = isFilterOperation ? 'filter operation in progress' : 'smart ordering is active';
+    console.log(`[applySmartOrdering] Page type changed but ${reason} - preserving cardOrder to prevent reset`);
+  }
+}
+```
+**Purpose:** Prevents cardOrder clearing when filter operations are in progress or smart ordering is active, avoiding unintended resets.
+
+#### toggleHidden Filter Guard (Lines 8263-8265)
+```javascript
+isFilterOperation = true;
+setTimeout(() => { isFilterOperation = false; }, 0);
+```
+**Purpose:** Guard flag to prevent smart order resets during platform hide/show toggle operations.
+
+---
+
+### 4. Filter Toggle Functions
 
 #### `toggleFavorite(pid)` (Lines 7867-7882)
 ```javascript

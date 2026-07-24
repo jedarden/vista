@@ -1,0 +1,72 @@
+{
+  "tests": [
+    {
+      "test": "Guard flag: isFilterOperation defined",
+      "passed": true,
+      "details": "",
+      "timestamp": "2026-07-24T04:57:58.702Z"
+    },
+    {
+      "test": "Guard flag: isSmartOrderingActive defined",
+      "passed": true,
+      "details": "",
+      "timestamp": "2026-07-24T04:57:58.702Z"
+    },
+    {
+      "test": "Guard flag: pendingFilterOperations defined",
+      "passed": true,
+      "details": "",
+      "timestamp": "2026-07-24T04:57:58.702Z"
+    },
+    {
+      "test": "Guard function: isSmartOrdering() exists",
+      "passed": true,
+      "details": "",
+      "timestamp": "2026-07-24T04:57:58.702Z"
+    },
+    {
+      "test": "Queue function: queueFilterOperation() exists",
+      "passed": true,
+      "details": "",
+      "timestamp": "2026-07-24T04:57:58.702Z"
+    },
+    {
+      "test": "Guard check: toggleHidden uses guard logic",
+      "passed": true,
+      "details": "",
+      "timestamp": "2026-07-24T04:57:58.702Z"
+    },
+    {
+      "test": "Guard check: Order clearing prevented by guard",
+      "passed": true,
+      "details": "",
+      "timestamp": "2026-07-24T04:57:58.702Z"
+    },
+    {
+      "test": "Test support: Guard flags exposed on window object",
+      "passed": true,
+      "details": "",
+      "timestamp": "2026-07-24T04:57:58.702Z"
+    },
+    {
+      "test": "Debug support: DEBUG_SMART_ORDERING flag defined",
+      "passed": true,
+      "details": "",
+      "timestamp": "2026-07-24T04:57:58.702Z"
+    },
+    {
+      "test": "Queue processing: processPendingFilterOperations exists",
+      "passed": true,
+      "details": "",
+      "timestamp": "2026-07-24T04:57:58.702Z"
+    }
+  ],
+  "startTime": "2026-07-24T04:57:58.702Z",
+  "endTime": "2026-07-24T04:57:58.702Z",
+  "overallSuccess": true,
+  "summary": {
+    "totalTests": 10,
+    "passedTests": 10,
+    "failedTests": 0
+  }
+}

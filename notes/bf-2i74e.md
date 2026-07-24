@@ -236,15 +236,161 @@ input.addEventListener('input', filterCommands);
 return Object.keys(PLATFORM_FRAMES).filter(id => id !== 'generic');
 ```
 
+### 6. `/home/coding/vista/src/public/image-diff.js`
+
+**Purpose**: Image comparison component with mode toggles and slider controls.
+
+#### Pattern 1: Mode Toggle Buttons (lines 76-99)
+```javascript
+// Add event listeners for mode toggles
+const toggles = header.querySelectorAll('.image-diff-toggle');
+toggles.forEach(toggle => {
+  toggle.addEventListener('click', () => {
+    const selectedMode = toggle.dataset.mode;
+
+    // Update active state
+    toggles.forEach(t => t.classList.remove('active'));
+    toggle.classList.add('active');
+
+    // Show/hide views
+    if (selectedMode === 'side-by-side') {
+      overlayView.classList.add('hidden');
+      sideBySideView.classList.remove('hidden');
+    } else if (selectedMode === 'slider') {
+      overlayView.classList.remove('hidden');
+      overlayView.classList.add('slider-mode');
+      overlayView.classList.remove('overlay-mode');
+    } else {
+      overlayView.classList.remove('hidden');
+      overlayView.classList.remove('slider-mode');
+      overlayView.classList.add('overlay-mode');
+    }
+  });
+});
+```
+
+#### Pattern 2: Slider Interaction Events (lines 157-197)
+```javascript
+const startDrag = (e) => {
+  isDragging = true;
+  e.preventDefault();
+  slider.classList.add('active');
+  sliderContainer.style.cursor = 'grabbing';
+};
+
+const onDrag = (e) => {
+  if (!isDragging) return;
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  updateSlider(clientX);
+};
+
+const endDrag = () => {
+  isDragging = false;
+  slider.classList.remove('active');
+  sliderContainer.style.cursor = '';
+};
+
+// Mouse events
+sliderHandle.addEventListener('mousedown', startDrag);
+sliderContainer.addEventListener('mousedown', (e) => {
+  if (e.target !== sliderHandle) {
+    isDragging = true;
+    updateSlider(e.clientX);
+  }
+});
+
+// Touch events
+sliderHandle.addEventListener('touchstart', startDrag);
+sliderContainer.addEventListener('touchstart', (e) => {
+  if (e.target !== sliderHandle) {
+    isDragging = true;
+    updateSlider(e.touches[0].clientX);
+  }
+});
+
+document.addEventListener('mousemove', onDrag);
+document.addEventListener('mouseup', endDrag);
+document.addEventListener('touchmove', onDrag, { passive: false });
+document.addEventListener('touchend', endDrag);
+```
+
+### 7. `/home/coding/vista/src/public/frames-theme.js`
+
+**Purpose**: Theme management for platform frames with toggle functionality.
+
+#### Pattern 1: Frame Theme Toggle Function (lines 427-440)
+```javascript
+function toggleFrameTheme(frameId, fallbackTheme = 'dark') {
+  const currentTheme = getFrameTheme(frameId);
+  let newTheme;
+
+  if (currentTheme === THEME_TYPES.AUTO) {
+    newTheme = fallbackTheme;
+  } else if (currentTheme === THEME_TYPES.DARK) {
+    newTheme = THEME_TYPES.LIGHT;
+  } else {
+    newTheme = THEME_TYPES.DARK;
+  }
+
+  setFrameTheme(frameId, newTheme);
+}
+```
+
+### 8. `/home/coding/vista/src/public/frame-renderer.js`
+
+**Purpose**: Frame rendering with theme toggle integration.
+
+#### Pattern 1: Frame Theme Toggle Integration (lines 347-349)
+```javascript
+function toggleFrameTheme(frameId, fallbackTheme = 'dark') {
+  if (typeof FrameTheme !== 'undefined' && FrameTheme.toggleFrameTheme) {
+    FrameTheme.toggleFrameTheme(frameId, fallbackTheme);
+  }
+}
+```
+
+### 9. `/home/coding/vista/src/public/safe-zone.js`
+
+**Purpose**: Safe zone calculation for image cropping with visibility toggles.
+
+#### Pattern 1: Visibility Percentage Calculation (lines 146-152)
+```javascript
+function calculateVisiblePercentage(crop, imgW, imgH) {
+  if (!imgW || !imgH) return 100;
+  const rect = calculateCropRect(crop, imgW, imgH);
+  if (!rect) return 100;
+  const fraction = (rect.w * rect.h) / (imgW * imgH);
+  return Math.max(0, Math.min(100, Math.round(fraction * 100)));
+}
+```
+
+**Note**: This is referenced as "the per-platform 'X% visible' figure shown beside each platform toggle" (line 138).
+
 ## Summary
+
+### Files Analyzed (Total: 9)
+
+1. `/home/coding/vista/src/public/filter-guard-wrapper.js` - Guard wrappers for filter handlers
+2. `/home/coding/vista/src/public/guard-utils.js` - Centralized guard functions
+3. `/home/coding/vista/src/public/app-features.js` - Platform preferences and context menus
+4. `/home/coding/vista/src/public/app.js` - Main application logic (extended documentation)
+5. `/home/coding/vista/src/public/platform-frames.js` - Frame management with array filtering
+6. `/home/coding/vista/src/public/image-diff.js` - Image comparison with toggle modes
+7. `/home/coding/vista/src/public/frames-theme.js` - Frame theme toggle functionality
+8. `/home/coding/vista/src/public/frame-renderer.js` - Frame rendering with theme integration
+9. `/home/coding/vista/src/public/safe-zone.js` - Safe zone calculations for visibility toggles
 
 ### Filter-Change Handler Categories
 
 1. **Guard Wrappers** - Protective wrappers that prevent conflicts during smart ordering
-2. **Input Listeners** - Event listeners for text input filtering
+2. **Input Listeners** - Event listeners for text input filtering  
 3. **Change Listeners** - Event listeners for select/checkbox change events
 4. **Platform Visibility** - Functions that manage platform show/hide state
 5. **Array Filtering** - Standard JavaScript array filter operations
+6. **Mode Toggles** - Toggle buttons for switching between display modes
+7. **Theme Toggles** - Theme switching functionality for frames
+8. **Slider Interactions** - Drag-based filter controls with mouse/touch events
+9. **Visibility Calculations** - Percentage calculations for toggle indicators
 
 ### Key Integration Points
 
@@ -264,14 +410,52 @@ app.js (toggleHidden, metadataFilter)
 guard-utils.js (global guards)
        ↓
 app-features.js (hidePlatform, context menu)
+       ↓
+platform-frames.js (array filtering)
+       ↓
+image-diff.js (mode toggles, slider controls)
+       ↓
+frames-theme.js (theme toggles)
+       ↓
+frame-renderer.js (theme integration)
+       ↓
+safe-zone.js (visibility calculations)
 ```
+
+### New Pattern Discoveries
+
+This search revealed filter-change patterns in several files not previously documented:
+
+1. **image-diff.js** - Complex toggle system for comparison modes (overlay, side-by-side, slider) with sophisticated mouse/touch event handling
+2. **frames-theme.js** - Theme toggle functionality that switches between dark/light/auto modes
+3. **frame-renderer.js** - Integration point for theme toggles in rendered frames
+4. **safe-zone.js** - Supporting calculations for visibility toggle percentages
+
+These patterns extend beyond simple input/change listeners to include:
+- Multi-state toggle systems (3 modes: overlay, side-by-side, slider)
+- Touch/mouse unified event handling
+- Theme state management with fallback logic
+- Percentage-based visibility indicators
 
 ## Files NOT Containing Filter-Change Patterns
 
 The following files were searched but contained no filter-change patterns:
 - `/home/coding/vista/src/public/client-side-diff.js`
 - `/home/coding/vista/src/public/platform-diff.js`
-- `/home/coding/vista/src/public/frame-renderer.js`
+- `/home/coding/vista/src/public/test-dark-mode.js` (test script, not runtime code)
+- `/home/coding/vista/src/public/verify-card-only-browser.js` (verification script)
+
+## Search Methodology
+
+This analysis covered all JavaScript files in the `/home/coding/vista/src/public/` directory (excluding node_modules). Search patterns included:
+
+1. **addEventListener patterns** - Looking for 'input', 'change', 'click' events
+2. **Toggle functions** - Functions named with 'toggle', 'show', 'hide', 'filter'
+3. **Guard wrappers** - Protective patterns around filter operations  
+4. **Event emitters** - Custom event dispatching for filter changes
+5. **State management** - Functions that modify filter/visibility state
+
+The search revealed both documented patterns (from previous beads) and new patterns in image comparison, theme management, and frame rendering components.
 
 ## Related Documentation
 

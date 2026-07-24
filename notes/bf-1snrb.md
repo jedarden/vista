@@ -331,6 +331,131 @@ The following filter-related symbols are exported to `window` for debugging/insp
 
 ---
 
+## Pattern 6: Page Type Change Guard Pattern
+
+### Description
+Filter operation guard applied during page type changes to prevent smart order resets. This pattern checks guard flags before clearing cardOrder state.
+
+### Line Numbers
+- **Lines 8785-8819**: Page type change detection with filter operation guard
+
+### Code Snippet
+```javascript
+// P1 - Stale CardOrder Race fix: Track page type changes to invalidate stale cardOrder
+const previousPageType = currentPageType;
+currentPageType = pageType;
+
+if (previousPageType && previousPageType !== pageType) {
+  // P2 - Filter operation guard: Skip cardOrder clearing during filter changes or when smart ordering is active
+  // This prevents smart order resets when users hide/show platforms or when smart ordering is currently active
+  if (isFilterOperation || isSmartOrdering()) {
+    if (DEBUG_SMART_ORDERING) {
+      const reason = isFilterOperation ? 'filter operation in progress' : 'smart ordering is active';
+      console.log(`[applySmartOrdering] Page type changed but ${reason} - preserving cardOrder to prevent reset`);
+    }
+  } else {
+    if (DEBUG_SMART_ORDERING) {
+      console.log(`[applySmartOrdering] Page type changed from "${previousPageType}" to "${pageType}" - clearing stale cardOrder`);
+    }
+    // Clear cardOrder for groups that weren't manually modified by user
+    PLATFORM_GROUPS.forEach((group) => {
+      const metadata = platformPrefs.cardOrderMetadata?.[group.id];
+      if (!metadata || !metadata.userModified || metadata.modifiedBy !== 'user-drag') {
+        delete platformPrefs.cardOrder[group.id];
+        // ... additional cleanup
+      }
+    });
+  }
+}
+```
+
+### Context
+This pattern demonstrates how filter operation guards integrate with page type tracking. When a page type changes (e.g., from "home" to "article"), the system normally clears cached cardOrder preferences. However, if a filter operation is in progress, this clearing is skipped to preserve the filter state.
+
+---
+
+## Pattern 7: Filter Count Display Pattern
+
+### Description
+Display filter count showing "X of Y items" to provide user feedback about filtering results.
+
+### Line Numbers
+- **Line 3953**: Filter count display in metadata table
+- **Line 3971**: Conditional rendering based on filter results
+
+### Code Snippet
+```javascript
+// Filter count display
+<span class="filter-count">${filteredRows.length} of ${allMetadataRows.length} tags</span>
+
+// Conditional rendering
+${filteredRows.length > 0
+  ? filteredRows.map((row, idx) => renderMetadataRow(row, idx)).join('')
+  : '<tr><td colspan="4" class="no-results">No tags match your filter</td></tr>'}
+```
+
+### Context:
+This UX pattern shows users how many items remain after filtering versus the total count. When zero items match, it displays a "no results" message instead of an empty table.
+
+---
+
+## Pattern 8: JSON-LD Conditional Display Pattern
+
+### Description
+Special content sections (like JSON-LD structured data) are conditionally hidden when filtering is active.
+
+### Line Numbers
+- **Lines 3977-3983**: JSON-LD conditional display logic
+
+### Code Snippet
+```javascript
+// Add JSON-LD section at bottom if present
+const hasJsonLd = allMetadataRows.some(r => r.tag.startsWith('json-ld'));
+if (hasJsonLd && !filter) {
+  html += `<div class="raw-section">
+    <h3>JSON-LD Structured Data</h3>
+    ${currentData?.meta?.jsonLd?.map(j => `<pre class="jsonld-block">${escHtml(JSON.stringify(j, null, 2))}</pre>`).join('') || ''}
+  </div>`;
+}
+```
+
+### Context:
+This pattern hides auxiliary content sections when a filter is active, keeping the UI focused on filter results. The `!filter` check ensures JSON-LD data only shows when no filter is applied.
+
+---
+
+## Pattern 9: Debug Logging with Guard Pattern
+
+### Description
+Extensive debug logging throughout filter operations to trace guard state and operation flow.
+
+### Line Numbers
+- Scattered throughout: Lines 7894, 7908-7914, 7944, 7957-7968, 8090-8091, 8150-8151, 8793-8796
+
+### Code Snippets
+```javascript
+// Queue operation logging
+if (DEBUG_SMART_ORDERING) {
+  console.log(`[queueFilterOperation] Queuing: ${description}`);
+}
+
+// Processing logging
+if (DEBUG_SMART_ORDERING) {
+  console.log(`[processPendingFilterOperations] Processing ${pendingFilterOperations.length} pending operations`);
+}
+
+// Decision reason logging
+if (DEBUG_SMART_ORDERING) {
+  const reason = isFilterOperation ? 'filter operation in progress' : 'smart ordering is active';
+  console.log(`[applySmartOrdering] Page type changed but ${reason} - preserving cardOrder to prevent reset`);
+}
+```
+
+### Context:
+This pattern provides comprehensive traceability for filter operations. The `DEBUG_SMART_ORDERING` flag enables detailed logging of guard state, queuing decisions, and operation execution. Each log message includes a descriptive prefix (e.g., `[queueFilterOperation]`) for easy filtering in browser dev tools.
+
+---
+
 ## Conclusion
 
 Found **5 distinct hook patterns** related to filters that are **not event-listener based**. These patterns focus on:
@@ -341,4 +466,10 @@ Found **5 distinct hook patterns** related to filters that are **not event-liste
 4. **Async timing** (setTimeout guards)
 5. **Pure filtering** (function-based filters)
 
-These patterns coordinate filter operations with other application features (smart ordering, rendering) to prevent race conditions and state inconsistencies.
+Additionally documented **4 supplementary patterns**:
+6. **Page type change guard** - Integrating filter guards with page state transitions
+7. **Filter count display** - UX feedback pattern for filter results
+8. **Conditional content hiding** - Hiding auxiliary sections during filtering
+9. **Debug logging** - Comprehensive traceability for guard state
+
+These patterns coordinate filter operations with other application features (smart ordering, rendering, page tracking) to prevent race conditions and state inconsistencies.

@@ -118,6 +118,66 @@
   --twitch-overlay: rgba(0, 0, 0, 0.5);
 }
 
+/* Twitter/X Theme Variables - Dark Mode */
+:root {
+  --twitter-bg: #000000;
+  --twitter-surface: #16181c;
+  --twitter-border: #2f3336;
+  --twitter-text-primary: #e7e9ea;
+  --twitter-text-secondary: #71767b;
+  --twitter-text-muted: #71767b;
+  --twitter-accent: #1d9bf0;
+  --twitter-accent-bg: #1a8cd8;
+  --twitter-link-color: #1d9bf0;
+  --twitter-divider: #2f3336;
+  --twitter-input-bg: #16181c;
+  --twitter-overlay: rgba(0, 0, 0, 0.8);
+  /* X-specific enhanced variables */
+  --x-bg-primary: #000000;
+  --x-bg-secondary: #16181c;
+  --x-bg-tertiary: #2f3336;
+  --x-border-color: #2f3336;
+  --x-text-primary: #e7e9ea;
+  --x-text-secondary: #71767b;
+  --x-text-muted: #71767b;
+  --x-accent-blue: #1d9bf0;
+  --x-accent-blue-hover: #1a8cd8;
+  --x-like-color: #f91880;
+  --x-retweet-color: #00ba7c;
+  --x-reply-color: #71767b;
+  --x-view-color: #71767b;
+}
+
+/* Twitter/X Theme Variables - Light Mode */
+[data-theme='light'] {
+  --twitter-bg: #ffffff;
+  --twitter-surface: #f7f9f9;
+  --twitter-border: #eff3f4;
+  --twitter-text-primary: #0f1419;
+  --twitter-text-secondary: #536471;
+  --twitter-text-muted: #536471;
+  --twitter-accent: #1d9bf0;
+  --twitter-accent-bg: #1a8cd8;
+  --twitter-link-color: #1d9bf0;
+  --twitter-divider: #eff3f4;
+  --twitter-input-bg: #ffffff;
+  --twitter-overlay: rgba(0, 0, 0, 0.1);
+  /* X-specific enhanced variables */
+  --x-bg-primary: #ffffff;
+  --x-bg-secondary: #f7f9f9;
+  --x-bg-tertiary: #eff3f4;
+  --x-border-color: #eff3f4;
+  --x-text-primary: #0f1419;
+  --x-text-secondary: #536471;
+  --x-text-muted: #536471;
+  --x-accent-blue: #1d9bf0;
+  --x-accent-blue-hover: #1a8cd8;
+  --x-like-color: #f91880;
+  --x-retweet-color: #00ba7c;
+  --x-reply-color: #536471;
+  --x-view-color: #536471;
+}
+
 /* ============================================================================
    BASE FRAME STRUCTURE
    ============================================================================ */

@@ -669,22 +669,58 @@
 
 /* Social Platforms */
 .twitter-context {
+  /* Base frame variables */
   --frame-bg: #000000;
   --frame-surface: #16181c;
   --frame-border: #2f3336;
   --frame-text-primary: #e7e9ea;
   --frame-text-secondary: #71767b;
+  --frame-text-muted: #71767b;
   --frame-accent: #1d9bf0;
   --frame-link-color: #1d9bf0;
+
+  /* X-specific enhanced variables */
+  --x-bg-primary: #000000;
+  --x-bg-secondary: #16181c;
+  --x-bg-tertiary: #2f3336;
+  --x-border-color: #2f3336;
+  --x-text-primary: #e7e9ea;
+  --x-text-secondary: #71767b;
+  --x-text-muted: #71767b;
+  --x-accent-blue: #1d9bf0;
+  --x-accent-blue-hover: #1a8cd8;
+  --x-like-color: #f91880;
+  --x-retweet-color: #00ba7c;
+  --x-reply-color: #71767b;
+  --x-view-color: #71767b;
 }
 
 .twitter-context.light-theme,
 .twitter-context[data-theme='light'] {
+  /* Base frame variables */
   --frame-bg: #ffffff;
   --frame-surface: #f7f9f9;
   --frame-border: #eff3f4;
   --frame-text-primary: #0f1419;
   --frame-text-secondary: #536471;
+  --frame-text-muted: #536471;
+  --frame-accent: #1d9bf0;
+  --frame-link-color: #1d9bf0;
+
+  /* X-specific enhanced variables */
+  --x-bg-primary: #ffffff;
+  --x-bg-secondary: #f7f9f9;
+  --x-bg-tertiary: #eff3f4;
+  --x-border-color: #eff3f4;
+  --x-text-primary: #0f1419;
+  --x-text-secondary: #536471;
+  --x-text-muted: #536471;
+  --x-accent-blue: #1d9bf0;
+  --x-accent-blue-hover: #1a8cd8;
+  --x-like-color: #f91880;
+  --x-retweet-color: #00ba7c;
+  --x-reply-color: #536471;
+  --x-view-color: #536471;
 }
 
 .facebook-context {

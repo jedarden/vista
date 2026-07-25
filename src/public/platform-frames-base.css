@@ -693,6 +693,16 @@
   --x-retweet-color: var(--color-twitter-green);
   --x-reply-color: var(--color-twitter-dark-text-secondary);
   --x-view-color: var(--color-twitter-dark-text-secondary);
+  /* Avatar System Variables (PHASE 1 - CRITICAL) */
+  --x-avatar-bg: #71767b;
+  --x-avatar-border: #2f3336;
+  /* Placeholder System Variables (PHASE 1 - CRITICAL) */
+  --x-placeholder-bg: #2f3336;
+  --x-placeholder-gradient: linear-gradient(135deg, #2f3336 0%, #3d4145 100%);
+  /* Hover State Variables (PHASE 2 - ENHANCEMENT) */
+  --x-hover-bg: rgba(255, 255, 255, 0.03);
+  --x-hover-subtle: rgba(255, 255, 255, 0.015);
+  --x-link-card-hover-border: #1d9bf0;
 }
 
 .twitter-context.light-theme,
@@ -721,6 +731,16 @@
   --x-retweet-color: var(--color-twitter-green);
   --x-reply-color: var(--color-twitter-light-text-secondary);
   --x-view-color: var(--color-twitter-light-text-secondary);
+  /* Avatar System Variables (PHASE 1 - CRITICAL) */
+  --x-avatar-bg: #536471;
+  --x-avatar-border: #eff3f4;
+  /* Placeholder System Variables (PHASE 1 - CRITICAL) */
+  --x-placeholder-bg: #eff3f4;
+  --x-placeholder-gradient: linear-gradient(135deg, #eff3f4 0%, #e3e7e9 100%);
+  /* Hover State Variables (PHASE 2 - ENHANCEMENT) */
+  --x-hover-bg: rgba(0, 0, 0, 0.04);
+  --x-hover-subtle: rgba(0, 0, 0, 0.02);
+  --x-link-card-hover-border: #1d9bf0;
 }
 
 .facebook-context {

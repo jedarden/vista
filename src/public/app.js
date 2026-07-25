@@ -2173,13 +2173,33 @@ function toggleCardContext(pid, data) {
 }
 
 function toggleCardTheme(pid, data) {
+  // Ensure state is initialized (edge case protection)
+  if (!cardContextState[pid]) {
+    console.warn(`[toggleCardTheme] State not initialized for pid=${pid}, initializing with defaults`);
+    cardContextState[pid] = { context: false, theme: 'dark' };
+  }
+
+  // Validate data parameter
+  if (!data || !data.meta) {
+    console.error(`[toggleCardTheme] Invalid data parameter for pid=${pid}:`, data);
+    return;
+  }
+
+  // Toggle theme between dark and light
+  const oldTheme = cardContextState[pid].theme;
   cardContextState[pid].theme = cardContextState[pid].theme === 'dark' ? 'light' : 'dark';
+  console.log(`[toggleCardTheme] Toggled theme for ${pid}: ${oldTheme} → ${cardContextState[pid].theme}`);
+
+  // Re-render card body if in context mode
   if (cardContextState[pid].context) {
     const body = document.getElementById(`card-body-${pid}`);
     if (body) {
       body.innerHTML = renderPlatformWithContext(pid, data.meta, data.imageProbe, data.finalUrl, cardContextState[pid].theme);
+    } else {
+      console.warn(`[toggleCardTheme] Card body element not found for pid=${pid}`);
     }
   }
+
   updateCardHeader(pid);
 }
 

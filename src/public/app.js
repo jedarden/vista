@@ -125,22 +125,61 @@ function applyTheme(theme) {
     themeToggle.querySelector('.theme-icon-dark').style.display = theme === 'light' ? 'inline' : 'none';
     themeToggle.setAttribute('aria-label', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
   }
-}
-
-function toggleGlobalTheme() {
-  const newTheme = globalTheme === 'dark' ? 'light' : 'dark';
-  applyTheme(newTheme);
 
   // Sync all card themes with the new global theme
   Object.keys(cardContextState).forEach(pid => {
     if (cardContextState[pid] && PLATFORMS_WITH_THEME.includes(pid)) {
-      cardContextState[pid].theme = newTheme;
+      cardContextState[pid].theme = theme;
     }
   });
 
   // Re-render cards that support theme to update their appearance
   if (currentData) {
     renderPreviews(currentData);
+  }
+}
+
+function toggleGlobalTheme() {
+  const newTheme = globalTheme === 'dark' ? 'light' : 'dark';
+  applyTheme(newTheme);
+}
+
+/**
+ * Subscribe the most recently inserted frame for a platform to theme changes
+ * This should be called immediately after inserting a frame's HTML into the DOM
+ * @param {string} platformId - Platform ID (e.g., 'twitter', 'facebook')
+ */
+function subscribeFrameToTheme(platformId) {
+  // Find the most recently inserted frame for this platform
+  // Frames have IDs like 'frame-twitter-1', 'frame-facebook-2', etc.
+  // We use the attribute selector to find all frames for this platform and take the last one
+  const platformFrames = document.querySelectorAll(`[data-platform="${platformId}"].context-frame`);
+  if (platformFrames.length === 0) {
+    console.warn(`[subscribeFrameToTheme] No frame found for platform: ${platformId}`);
+    return;
+  }
+
+  // Get the most recently inserted frame (last in the list)
+  const latestFrame = platformFrames[platformFrames.length - 1];
+  const frameId = latestFrame.id;
+
+  if (!frameId) {
+    console.warn(`[subscribeFrameToTheme] Frame has no ID for platform: ${platformId}`);
+    return;
+  }
+
+  // Check if ThemeSubscription API is available
+  if (typeof window.ThemeSubscription === 'undefined') {
+    console.warn('[subscribeFrameToTheme] ThemeSubscription API not available');
+    return;
+  }
+
+  // Subscribe this frame to theme changes
+  try {
+    window.ThemeSubscription.subscribePlatformFrame(platformId, frameId);
+    console.log(`[subscribeFrameToTheme] Subscribed frame ${frameId} for platform ${platformId}`);
+  } catch (error) {
+    console.error(`[subscribeFrameToTheme] Failed to subscribe frame ${frameId}:`, error);
   }
 }
 
@@ -538,6 +577,38 @@ window.addEventListener('DOMContentLoaded', () => {
 
 // Global theme toggle listener
 document.getElementById('globalThemeToggle')?.addEventListener('click', toggleGlobalTheme);
+
+// Watch for theme changes from external sources (e.g., frames-theme.js, direct DOM manipulation)
+const themeObserver = new MutationObserver((mutations) => {
+  mutations.forEach((mutation) => {
+    if (mutation.attributeName === 'data-theme') {
+      const newTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+      // Update global theme variable if changed externally
+      if (globalTheme !== newTheme) {
+        globalTheme = newTheme;
+        // Sync all card themes with the new global theme
+        Object.keys(cardContextState).forEach(pid => {
+          if (cardContextState[pid] && PLATFORMS_WITH_THEME.includes(pid)) {
+            cardContextState[pid].theme = newTheme;
+          }
+        });
+        // Update all platform frames to reflect new theme
+        if (typeof window !== 'undefined' && window.FrameTheme && typeof window.FrameTheme.updateAllPlatformFrames === 'function') {
+          window.FrameTheme.updateAllPlatformFrames(newTheme);
+        }
+        // Re-render cards that support theme to update their appearance
+        if (currentData) {
+          renderPreviews(currentData);
+        }
+      }
+    }
+  });
+});
+
+themeObserver.observe(document.documentElement, {
+  attributes: true,
+  attributeFilter: ['data-theme']
+});
 
 // ── Mode switching ──
 function switchMode(mode) {
@@ -2107,6 +2178,11 @@ function buildCard(pid, scoreData, data, animDelay, groupId) {
 
   if (cardContextState[pid].context) {
     body.innerHTML = renderPlatformWithContext(pid, data.meta, data.imageProbe, data.finalUrl, cardContextState[pid].theme, data.dominantColor);
+    // Subscribe frame to theme changes for first batch of platforms
+    // First batch: twitter, facebook, linkedin (most commonly used)
+    if (['twitter', 'facebook', 'linkedin'].includes(pid)) {
+      subscribeFrameToTheme(pid);
+    }
   } else {
     body.innerHTML = renderPlatformCard(pid, data.meta, data.imageProbe, data.finalUrl, data.dominantColor);
   }
@@ -2207,6 +2283,10 @@ function toggleCardContext(pid, data) {
   if (body) {
     if (cardContextState[pid].context) {
       body.innerHTML = renderPlatformWithContext(pid, data.meta, data.imageProbe, data.finalUrl, cardContextState[pid].theme, data.dominantColor);
+      // Subscribe frame to theme changes for first batch of platforms
+      if (['twitter', 'facebook', 'linkedin'].includes(pid)) {
+        subscribeFrameToTheme(pid);
+      }
     } else {
       body.innerHTML = renderPlatformCard(pid, data.meta, data.imageProbe, data.finalUrl, data.dominantColor);
     }
@@ -2237,6 +2317,10 @@ function toggleCardTheme(pid, data) {
     const body = document.getElementById(`card-body-${pid}`);
     if (body) {
       body.innerHTML = renderPlatformWithContext(pid, data.meta, data.imageProbe, data.finalUrl, cardContextState[pid].theme, data.dominantColor);
+      // Subscribe frame to theme changes for first batch of platforms
+      if (['twitter', 'facebook', 'linkedin'].includes(pid)) {
+        subscribeFrameToTheme(pid);
+      }
     } else {
       console.warn(`[toggleCardTheme] Card body element not found for pid=${pid}`);
     }

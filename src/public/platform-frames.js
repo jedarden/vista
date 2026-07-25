@@ -3465,6 +3465,11 @@ function interpolateTemplate(template, vars) {
 }
 
 /**
+ * Frame ID counter for generating unique frame IDs
+ */
+let frameIdCounter = 0;
+
+/**
  * Build complete context frame HTML
  * @param {string} platformId - Platform ID
  * @param {object} content - Content data (title, description, image, etc.)
@@ -3474,6 +3479,9 @@ function interpolateTemplate(template, vars) {
 function buildContextFrame(platformId, content, theme = 'dark') {
   const frame = getPlatformFrame(platformId);
   const themeSuffix = hasThemeSupport(platformId) ? ` ${theme}-theme` : '';
+
+  // Generate unique ID for this frame instance
+  const frameInstanceId = `frame-${platformId}-${++frameIdCounter}`;
 
   // Build the main content/card HTML
   let mainContent = '';
@@ -3509,7 +3517,7 @@ function buildContextFrame(platformId, content, theme = 'dark') {
     ...content,
   });
 
-  return `<div class="context-frame ${platformId}-context${themeSuffix}" style="${getInlineThemeStyles(platformId, theme)}">${frameHTML}</div>`;
+  return `<div id="${frameInstanceId}" class="context-frame ${platformId}-context${themeSuffix}" data-platform="${platformId}" data-theme="${theme}" style="${getInlineThemeStyles(platformId, theme)}">${frameHTML}</div>`;
 }
 
 /**

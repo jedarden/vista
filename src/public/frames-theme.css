@@ -426,6 +426,136 @@
   --x-link-card-hover-border: #1d9bf0;
 }
 
+/* Reddit Theme Variables - Dark Mode */
+:root {
+  --reddit-bg: var(--color-reddit-dark-bg);
+  --reddit-surface: var(--color-reddit-dark-surface);
+  --reddit-border: var(--color-reddit-dark-border);
+  --reddit-text-primary: var(--color-reddit-dark-text-primary);
+  --reddit-text-secondary: var(--color-reddit-dark-text-secondary);
+  --reddit-text-muted: var(--color-reddit-dark-text-muted);
+  --reddit-accent: var(--color-reddit-orange);
+  --reddit-accent-bg: var(--color-reddit-orange-dark);
+  --reddit-link-color: var(--color-reddit-blue);
+  --reddit-divider: var(--color-reddit-dark-border);
+  --reddit-input-bg: var(--color-reddit-dark-surface);
+  --reddit-overlay: var(--color-overlay-dark-heavy);
+}
+
+/* Reddit Theme Variables - Light Mode */
+[data-theme='light'] {
+  --reddit-bg: var(--color-reddit-light-bg);
+  --reddit-surface: var(--color-reddit-light-surface);
+  --reddit-border: var(--color-reddit-light-border);
+  --reddit-text-primary: var(--color-reddit-light-text-primary);
+  --reddit-text-secondary: var(--color-reddit-light-text-secondary);
+  --reddit-text-muted: var(--color-reddit-light-text-muted);
+  --reddit-accent: var(--color-reddit-orange-dark);
+  --reddit-accent-bg: var(--color-reddit-orange);
+  --reddit-link-color: var(--color-reddit-blue-dark);
+  --reddit-divider: var(--color-reddit-light-border);
+  --reddit-input-bg: var(--color-reddit-light-bg);
+  --reddit-overlay: var(--color-overlay-light);
+}
+
+/* TikTok Theme Variables - Dark Mode */
+:root {
+  --tiktok-bg: var(--color-tiktok-dark-bg);
+  --tiktok-surface: var(--color-tiktok-dark-surface);
+  --tiktok-border: var(--color-tiktok-dark-border);
+  --tiktok-text-primary: var(--color-tiktok-dark-text-primary);
+  --tiktok-text-secondary: var(--color-tiktok-dark-text-secondary);
+  --tiktok-text-muted: var(--color-tiktok-dark-text-muted);
+  --tiktok-accent: var(--color-tiktok-pink);
+  --tiktok-accent2: var(--color-tiktok-cyan);
+  --tiktok-accent-bg: var(--color-tiktok-pink-dark);
+  --tiktok-link-color: var(--color-tiktok-cyan);
+  --tiktok-divider: var(--color-tiktok-dark-border);
+  --tiktok-input-bg: var(--color-tiktok-dark-surface);
+  --tiktok-overlay: var(--color-overlay-dark-heavy);
+}
+
+/* TikTok Theme Variables - Light Mode */
+[data-theme='light'] {
+  --tiktok-bg: var(--color-tiktok-light-bg);
+  --tiktok-surface: var(--color-tiktok-light-surface);
+  --tiktok-border: var(--color-tiktok-light-border);
+  --tiktok-text-primary: var(--color-tiktok-light-text-primary);
+  --tiktok-text-secondary: var(--color-tiktok-light-text-secondary);
+  --tiktok-text-muted: var(--color-tiktok-light-text-muted);
+  --tiktok-accent: var(--color-tiktok-pink);
+  --tiktok-accent2: var(--color-tiktok-cyan);
+  --tiktok-accent-bg: var(--color-tiktok-pink-dark);
+  --tiktok-link-color: var(--color-tiktok-cyan-dark);
+  --tiktok-divider: var(--color-tiktok-light-border);
+  --tiktok-input-bg: var(--color-tiktok-light-surface);
+  --tiktok-overlay: var(--color-overlay-light);
+}
+
+/* GitHub Theme Variables - Dark Mode */
+:root {
+  --github-bg: #0d1117;
+  --github-surface: #161b22;
+  --github-border: #30363d;
+  --github-text-primary: #c9d1d9;
+  --github-text-secondary: #8b949e;
+  --github-text-muted: #6e7681;
+  --github-accent: #58a6ff;
+  --github-accent-bg: #1f6feb;
+  --github-link-color: #58a6ff;
+  --github-divider: #30363d;
+  --github-input-bg: #0d1117;
+  --github-overlay: rgba(0, 0, 0, 0.7);
+}
+
+/* GitHub Theme Variables - Light Mode */
+[data-theme='light'] {
+  --github-bg: #ffffff;
+  --github-surface: #f6f8fa;
+  --github-border: #d0d7de;
+  --github-text-primary: #24292f;
+  --github-text-secondary: #57606a;
+  --github-text-muted: #6e7781;
+  --github-accent: #0969da;
+  --github-accent-bg: #0969da;
+  --github-link-color: #0969da;
+  --github-divider: #d0d7de;
+  --github-input-bg: #ffffff;
+  --github-overlay: rgba(0, 0, 0, 0.4);
+}
+
+/* GitLab Theme Variables - Dark Mode */
+:root {
+  --gitlab-bg: #1d1f23;
+  --gitlab-surface: #292b2f;
+  --gitlab-border: #3a3d42;
+  --gitlab-text-primary: #eaeef2;
+  --gitlab-text-secondary: #a6aab3;
+  --gitlab-text-muted: #7a828c;
+  --gitlab-accent: #7c2df7;
+  --gitlab-accent-bg: #6b4fdd;
+  --gitlab-link-color: #7c2df7;
+  --gitlab-divider: #3a3d42;
+  --gitlab-input-bg: #1d1f23;
+  --gitlab-overlay: rgba(0, 0, 0, 0.7);
+}
+
+/* GitLab Theme Variables - Light Mode */
+[data-theme='light'] {
+  --gitlab-bg: #ffffff;
+  --gitlab-surface: #f7f8fa;
+  --gitlab-border: #e5e7eb;
+  --gitlab-text-primary: #333238;
+  --gitlab-text-secondary: #636675;
+  --gitlab-text-muted: #9ba0aa;
+  --gitlab-accent: #5b36bd;
+  --gitlab-accent-bg: #5b36bd;
+  --gitlab-link-color: #5b36bd;
+  --gitlab-divider: #e5e7eb;
+  --gitlab-input-bg: #ffffff;
+  --gitlab-overlay: rgba(0, 0, 0, 0.4);
+}
+
 /* ============================================================================
    BASE FRAME STRUCTURE
    ============================================================================ */

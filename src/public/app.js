@@ -108,6 +108,14 @@ function applyTheme(theme) {
 function toggleGlobalTheme() {
   const newTheme = globalTheme === 'dark' ? 'light' : 'dark';
   applyTheme(newTheme);
+
+  // Sync all card themes with the new global theme
+  Object.keys(cardContextState).forEach(pid => {
+    if (cardContextState[pid] && PLATFORMS_WITH_THEME.includes(pid)) {
+      cardContextState[pid].theme = newTheme;
+    }
+  });
+
   // Re-render cards that support theme to update their appearance
   if (currentData) {
     renderPreviews(currentData);
@@ -1861,7 +1869,7 @@ function buildTextOnlyCard(pid, scoreData, data, animDelay, groupId) {
 
   // Initialize context state
   if (!cardContextState[pid]) {
-    cardContextState[pid] = { context: false, theme: 'dark' };
+    cardContextState[pid] = { context: false, theme: globalTheme };
   }
 
   // Header with loading badge
@@ -2206,7 +2214,7 @@ function toggleCardTheme(pid, data) {
   if (cardContextState[pid].context) {
     const body = document.getElementById(`card-body-${pid}`);
     if (body) {
-      body.innerHTML = renderPlatformWithContext(pid, data.meta, data.imageProbe, data.finalUrl, cardContextState[pid].theme);
+      body.innerHTML = renderPlatformWithContext(pid, data.meta, data.imageProbe, data.finalUrl, cardContextState[pid].theme, data.dominantColor);
     } else {
       console.warn(`[toggleCardTheme] Card body element not found for pid=${pid}`);
     }
@@ -2680,7 +2688,7 @@ function renderFacebookContext(title, desc, image, domain, site, dominantColor) 
 function renderTwitterContext(title, desc, image, domain, theme, dominantColor) {
   const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
   const isDark = theme === 'dark';
-  return `<div class="context-frame twitter-context ${isDark ? 'twitter-dark' : 'twitter-light'}">
+  return `<div class="context-frame twitter-context ${isDark ? 'dark-theme' : 'light-theme'}">
     <div class="tw-post-header">
       <div class="tw-avatar"></div>
       <div class="tw-post-meta">

@@ -1,108 +1,94 @@
 {
-  "timestamp": "2026-07-25T16:00:28.180Z",
+  "timestamp": "2026-07-25T16:07:49.274Z",
   "theme": "dark",
   "platforms": [
     {
       "platform": "twitter",
       "name": "X (Twitter)",
       "htmlExists": true,
-      "screenshotExists": false,
-      "screenshotSize": 0,
-      "isValid": false,
-      "issues": [
-        "Screenshot file missing"
-      ]
+      "screenshotExists": true,
+      "screenshotSize": 99453,
+      "isValid": true,
+      "issues": []
     },
     {
       "platform": "discord",
       "name": "Discord",
       "htmlExists": true,
-      "screenshotExists": false,
-      "screenshotSize": 0,
-      "isValid": false,
-      "issues": [
-        "Screenshot file missing"
-      ]
+      "screenshotExists": true,
+      "screenshotSize": 100839,
+      "isValid": true,
+      "issues": []
     },
     {
       "platform": "instagram",
       "name": "Instagram",
       "htmlExists": true,
-      "screenshotExists": false,
-      "screenshotSize": 0,
-      "isValid": false,
-      "issues": [
-        "Screenshot file missing"
-      ]
+      "screenshotExists": true,
+      "screenshotSize": 100645,
+      "isValid": true,
+      "issues": []
     },
     {
       "platform": "telegram",
       "name": "Telegram",
       "htmlExists": true,
-      "screenshotExists": false,
-      "screenshotSize": 0,
-      "isValid": false,
-      "issues": [
-        "Screenshot file missing"
-      ]
+      "screenshotExists": true,
+      "screenshotSize": 99916,
+      "isValid": true,
+      "issues": []
     },
     {
       "platform": "signal",
       "name": "Signal",
       "htmlExists": true,
-      "screenshotExists": false,
-      "screenshotSize": 0,
-      "isValid": false,
-      "issues": [
-        "Screenshot file missing"
-      ]
+      "screenshotExists": true,
+      "screenshotSize": 101040,
+      "isValid": true,
+      "issues": []
     },
     {
       "platform": "whatsapp",
       "name": "WhatsApp",
       "htmlExists": true,
-      "screenshotExists": false,
-      "screenshotSize": 0,
-      "isValid": false,
-      "issues": [
-        "Screenshot file missing"
-      ]
+      "screenshotExists": true,
+      "screenshotSize": 100489,
+      "isValid": true,
+      "issues": []
     },
     {
       "platform": "mastodon",
       "name": "Mastodon",
       "htmlExists": true,
-      "screenshotExists": false,
-      "screenshotSize": 0,
-      "isValid": false,
-      "issues": [
-        "Screenshot file missing"
-      ]
+      "screenshotExists": true,
+      "screenshotSize": 100415,
+      "isValid": true,
+      "issues": []
     }
   ],
   "summary": {
     "totalPlatforms": 7,
     "htmlFiles": 7,
-    "screenshots": 0,
-    "validScreenshots": 0,
-    "allPassed": false
+    "screenshots": 7,
+    "validScreenshots": 7,
+    "allPassed": true
   },
   "acceptanceCriteria": [
     {
       "check": "Screenshot captured for all 7 platforms in dark theme",
-      "passed": false
+      "passed": true
     },
     {
       "check": "All screenshots saved with correct naming convention",
-      "passed": false
+      "passed": true
     },
     {
       "check": "Screenshot files are valid PNG images",
-      "passed": false
+      "passed": true
     },
     {
       "check": "No rendering errors or blank screenshots",
-      "passed": false
+      "passed": true
     }
   ]
 }

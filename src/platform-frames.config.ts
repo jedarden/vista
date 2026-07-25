@@ -129,8 +129,8 @@ export const PLATFORM_FRAMES_CONFIG: PlatformFramesConfig = {
     aspectRatio: '1.91:1',
     structure: FRAME_TYPE_REQUIREMENTS['social-feed'],
     placeholderFrame: {
-      isStub: true,
-      implementationNotes: 'Feed card with user avatar, name, timestamp, link preview',
+      isStub: false,
+      implementationNotes: 'Complete with realistic chrome - avatar, username, timestamp, reactions, link preview',
     },
   },
 
@@ -157,8 +157,8 @@ export const PLATFORM_FRAMES_CONFIG: PlatformFramesConfig = {
     aspectRatio: '1.91:1',
     structure: FRAME_TYPE_REQUIREMENTS['social-feed'],
     placeholderFrame: {
-      isStub: true,
-      implementationNotes: 'Post with profile picture, name, headline, link preview',
+      isStub: false,
+      implementationNotes: 'Complete with professional layout - avatar, name, headline, network indicators',
     },
   },
 
@@ -199,8 +199,8 @@ export const PLATFORM_FRAMES_CONFIG: PlatformFramesConfig = {
     aspectRatio: '1:1',
     structure: FRAME_TYPE_REQUIREMENTS['image-focused'],
     placeholderFrame: {
-      isStub: true,
-      implementationNotes: 'Square image card with user, caption, likes, comments',
+      isStub: false,
+      implementationNotes: 'Complete with gradient styling - avatar, username, caption, hashtags, heart icon',
     },
   },
 

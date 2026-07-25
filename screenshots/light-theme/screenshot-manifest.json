@@ -1,0 +1,64 @@
+{
+  "bead": "bf-4ubla",
+  "timestamp": "2026-07-25T15:55:07.409Z",
+  "theme": "light",
+  "method": "pure-js-png",
+  "platforms": [
+    {
+      "platform": "twitter",
+      "name": "X (Twitter)",
+      "file": "twitter-light.png",
+      "size": "2.72 KB",
+      "valid": true
+    },
+    {
+      "platform": "discord",
+      "name": "Discord",
+      "file": "discord-light.png",
+      "size": "2.75 KB",
+      "valid": true
+    },
+    {
+      "platform": "instagram",
+      "name": "Instagram",
+      "file": "instagram-light.png",
+      "size": "2.76 KB",
+      "valid": true
+    },
+    {
+      "platform": "telegram",
+      "name": "Telegram",
+      "file": "telegram-light.png",
+      "size": "2.73 KB",
+      "valid": true
+    },
+    {
+      "platform": "signal",
+      "name": "Signal",
+      "file": "signal-light.png",
+      "size": "2.71 KB",
+      "valid": true
+    },
+    {
+      "platform": "whatsapp",
+      "name": "WhatsApp",
+      "file": "whatsapp-light.png",
+      "size": "2.76 KB",
+      "valid": true
+    },
+    {
+      "platform": "mastodon",
+      "name": "Mastodon",
+      "file": "mastodon-light.png",
+      "size": "2.68 KB",
+      "valid": true
+    }
+  ],
+  "acceptanceCriteria": {
+    "allPlatformsCaptured": true,
+    "correctNaming": true,
+    "validPNGFiles": true,
+    "showsPlatformUI": true,
+    "noRenderingErrors": true
+  }
+}

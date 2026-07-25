@@ -171,8 +171,8 @@ export const PLATFORM_FRAMES_CONFIG: PlatformFramesConfig = {
     aspectRatio: 'variable',
     structure: FRAME_TYPE_REQUIREMENTS['link-aggregator'],
     placeholderFrame: {
-      isStub: true,
-      implementationNotes: 'Post card with subreddit, upvotes, user, timestamp, link preview',
+      isStub: false,
+      implementationNotes: 'Complete with realistic chrome - subreddit header, banner, upvote/downvote arrows, vote counts, comments, link preview',
     },
   },
 

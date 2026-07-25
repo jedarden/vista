@@ -334,6 +334,28 @@ const PLATFORM_FRAMES = {
     hasThemeSupport: true,
     aspectRatio: '16:9',
     chrome: `
+      <div class="yt-video-player">
+        <div class="yt-video-placeholder">▶</div>
+        <div class="yt-video-overlay">
+          <div class="yt-progress-bar">
+            <div class="yt-progress-filled" style="width: 35%;"></div>
+          </div>
+          <div class="yt-player-controls">
+            <button class="yt-control-btn">⏮</button>
+            <button class="yt-control-btn">▶️</button>
+            <button class="yt-control-btn">⏭</button>
+            <div class="yt-volume-control">
+              <button class="yt-control-btn">🔊</button>
+              <div class="yt-volume-slider">
+                <div class="yt-volume-level" style="width: 70%;"></div>
+              </div>
+            </div>
+            <div class="yt-time-display">3:45 / 10:23</div>
+            <button class="yt-control-btn">⚙️</button>
+            <button class="yt-control-btn yt-fullscreen-btn">⛶</button>
+          </div>
+        </div>
+      </div>
       <div class="yt-video-header">
         <div class="yt-channel-avatar"></div>
         <div class="yt-channel-meta">
@@ -344,6 +366,45 @@ const PLATFORM_FRAMES = {
       </div>
       <div class="yt-video-title">Amazing Tutorial - Learn in 10 Minutes!</div>
       <div class="yt-video-stats">234K views · 3 hours ago</div>
+      <div class="yt-actions-bar">
+        <button class="yt-action-btn">
+          <span class="yt-action-icon">👍</span>
+          <span class="yt-action-label">Like</span>
+        </button>
+        <button class="yt-action-btn">
+          <span class="yt-action-icon">👎</span>
+          <span class="yt-action-label">Dislike</span>
+        </button>
+        <button class="yt-action-btn">
+          <span class="yt-action-icon">↗️</span>
+          <span class="yt-action-label">Share</span>
+        </button>
+        <button class="yt-action-btn">
+          <span class="yt-action-icon">⬇️</span>
+          <span class="yt-action-label">Download</span>
+        </button>
+        <button class="yt-action-btn">
+          <span class="yt-action-icon">✂️</span>
+          <span class="yt-action-label">Clip</span>
+        </button>
+        <button class="yt-action-btn">
+          <span class="yt-action-icon">💾</span>
+          <span class="yt-action-label">Save</span>
+        </button>
+        <button class="yt-action-btn">
+          <span class="yt-action-icon">•••</span>
+          <span class="yt-action-label">More</span>
+        </button>
+      </div>
+      <div class="yt-description-section">
+        <div class="yt-description-text">In this video, I'll show you how to get started with this amazing tool. Perfect for beginners! #tutorial #howto</div>
+        <div class="yt-description-meta">
+          <span>👍 12K</span>
+          <span>👁️ 234K views</span>
+          <span>📅 3 hours ago</span>
+        </div>
+        {{linkCards}}
+      </div>
       <div class="yt-comments-section">
         <div class="yt-comment-header">Comments</div>
         <div class="yt-comment yt-comment-dim">
@@ -366,6 +427,16 @@ const PLATFORM_FRAMES = {
           <span class="yt-comment-time">Just now</span>
           <div class="yt-comment-text">{{description}}</div>
           <div class="yt-comment-actions">👍 0 · 💬 Reply</div>
+        </div>
+      </div>
+    `,
+    linkCardTemplate: `
+      <div class="yt-link-card">
+        <div class="yt-link-card-image">📄</div>
+        <div class="yt-link-card-content">
+          <div class="yt-link-card-title">{{title}}</div>
+          <div class="yt-link-card-description">{{description}}</div>
+          <div class="yt-link-card-domain">{{domain}}</div>
         </div>
       </div>
     `,
@@ -3420,6 +3491,12 @@ function buildContextFrame(platformId, content, theme = 'dark') {
     linkPreview = buildLinkPreviewHTML(platformId, content, theme);
   }
 
+  // Build YouTube-specific link cards for description section
+  let linkCards = '';
+  if (platformId === 'youtube' && content.title) {
+    linkCards = linkPreview; // YouTube embeds link cards in description
+  }
+
   // Build complete frame
   const frameHTML = interpolateTemplate(frame.chrome, {
     mainResult: mainContent,
@@ -3427,6 +3504,7 @@ function buildContextFrame(platformId, content, theme = 'dark') {
     linkPreview,
     linkCard: linkPreview,
     cardContent: content.cardHTML || '',
+    linkCards, // For YouTube description section
     ...content,
   });
 
@@ -3502,8 +3580,13 @@ function buildLinkPreviewHTML(platformId, content, theme = 'dark') {
 
     case 'youtube':
       return `
-        <div class="yt-link-preview">
-          ${image ? `<div class="yt-context-image img-loading-container"><img src="${esc(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" /></div>` : '<div class="yt-context-placeholder"></div>'}
+        <div class="yt-link-card">
+          ${image ? `<div class="yt-link-card-image img-loading-container"><img src="${esc(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" /></div>` : '<div class="yt-link-card-image">📄</div>'}
+          <div class="yt-link-card-content">
+            <div class="yt-link-card-title">${esc(trunc(title, 60))}</div>
+            ${description ? `<div class="yt-link-card-description">${esc(trunc(description, 100))}</div>` : ''}
+            <div class="yt-link-card-domain">${esc(domain || site)}</div>
+          </div>
         </div>
       `;
 

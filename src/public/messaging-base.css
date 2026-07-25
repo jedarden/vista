@@ -1,0 +1,758 @@
+/*
+ * Messaging Platform Base CSS Infrastructure
+ *
+ * Shared CSS infrastructure and theme system for all messaging platform frames.
+ * Provides CSS variables, typography, spacing, and common component styles.
+ *
+ * Theme Variables:
+ * - --msg-bg: main background
+ * - --msg-text: primary text
+ * - --msg-bubble-sent: sent message background
+ * - --msg-bubble-rcvd: received message background
+ * - --msg-timestamp: timestamp color
+ * - --msg-meta: read receipt/delivery status color
+ */
+
+/* ============================================================================
+   CSS VARIABLE SYSTEM FOR MESSAGING PLATFORMS
+   ============================================================================ */
+
+/**
+ * Root theme variables - Dark mode (default)
+ *
+ * These variables provide the default dark theme for all messaging platforms.
+ * Individual platforms can override these in their platform-specific CSS.
+ */
+:root {
+  /* Base messaging colors - Dark mode */
+  --msg-bg-dark: #1a1a1e;
+  --msg-surface-dark: #25252a;
+  --msg-border-dark: #3a3a3f;
+  --msg-text-dark: #e4e4e7;
+  --msg-text-secondary-dark: #a1a1aa;
+  --msg-text-muted-dark: #71717a;
+
+  /* Message bubble colors - Dark mode */
+  --msg-bubble-sent-dark: #2d5a3d;
+  --msg-bubble-rcvd-dark: #2d2d33;
+  --msg-bubble-sent-text-dark: #e4e4e7;
+  --msg-bubble-rcvd-text-dark: #e4e4e7;
+
+  /* Timestamp and metadata colors - Dark mode */
+  --msg-timestamp-dark: #71717a;
+  --msg-meta-dark: #6366f1;
+  --msg-meta-read-dark: #22c55e;
+
+  /* Link card colors - Dark mode */
+  --msg-link-bg-dark: #2d2d33;
+  --msg-link-border-dark: #3a3a3f;
+  --msg-link-title-dark: #e4e4e7;
+  --msg-link-desc-dark: #a1a1aa;
+  --msg-link-domain-dark: #71717a;
+
+  /* Avatar styles - Dark mode */
+  --msg-avatar-bg-dark: #3a3a3f;
+  --msg-avatar-border-dark: #4a4a4f;
+  --msg-avatar-text-dark: #e4e4e7;
+
+  /* Input area colors - Dark mode */
+  --msg-input-bg-dark: #2d2d33;
+  --msg-input-border-dark: #3a3a3f;
+  --msg-input-placeholder-dark: #71717a;
+
+  /* Spacing system for messaging */
+  --msg-spacing-xs: 4px;
+  --msg-spacing-sm: 8px;
+  --msg-spacing-md: 12px;
+  --msg-spacing-lg: 16px;
+  --msg-spacing-xl: 20px;
+  --msg-spacing-2xl: 24px;
+
+  /* Border radius for messaging components */
+  --msg-radius-sm: 6px;
+  --msg-radius-md: 10px;
+  --msg-radius-lg: 14px;
+  --msg-radius-full: 9999px;
+
+  /* Typography for messaging */
+  --msg-font-xs: 11px;
+  --msg-font-sm: 12px;
+  --msg-font-base: 14px;
+  --msg-font-lg: 16px;
+  --msg-font-xl: 18px;
+
+  /* Transitions */
+  --msg-transition-fast: 150ms ease;
+  --msg-transition-base: 200ms ease;
+  --msg-transition-slow: 300ms ease;
+
+  /* Z-index layers */
+  --msg-z-base: 1;
+  --msg-z-overlay: 10;
+  --msg-z-modal: 100;
+}
+
+/**
+ * Light mode theme variables
+ *
+ * When [data-theme="light"] or .light-theme is set, these variables
+ * override the dark mode defaults.
+ */
+[data-theme='light'],
+.light-theme {
+  --msg-bg-light: #ffffff;
+  --msg-surface-light: #f8f9fa;
+  --msg-border-light: #e5e7eb;
+  --msg-text-light: #1f2937;
+  --msg-text-secondary-light: #6b7280;
+  --msg-text-muted-light: #9ca3af;
+
+  /* Message bubble colors - Light mode */
+  --msg-bubble-sent-light: #007aff;
+  --msg-bubble-rcvd-light: #e5e5ea;
+  --msg-bubble-sent-text-light: #ffffff;
+  --msg-bubble-rcvd-text-light: #000000;
+
+  /* Timestamp and metadata colors - Light mode */
+  --msg-timestamp-light: #8e8e93;
+  --msg-meta-light: #007aff;
+  --msg-meta-read-light: #34c759;
+
+  /* Link card colors - Light mode */
+  --msg-link-bg-light: #f0f0f0;
+  --msg-link-border-light: #d1d1d6;
+  --msg-link-title-light: #000000;
+  --msg-link-desc-light: #6e6e73;
+  --msg-link-domain-light: #8e8e93;
+
+  /* Avatar styles - Light mode */
+  --msg-avatar-bg-light: #e5e5ea;
+  --msg-avatar-border-light: #c6c6c8;
+  --msg-avatar-text-light: #000000;
+
+  /* Input area colors - Light mode */
+  --msg-input-bg-light: #ffffff;
+  --msg-input-border-light: #c6c6c8;
+  --msg-input-placeholder-light: #aeaeb2;
+}
+
+/* ============================================================================
+   BASE MESSAGING CONTEXT STYLES
+   ============================================================================ */
+
+/**
+ * Apply these styles to all messaging platform context frames
+ * Each platform should use the class .{platform}-context
+ */
+.messaging-context {
+  /* Variable mappings for dark mode (default) */
+  --msg-bg: var(--msg-bg-dark, #1a1a1e);
+  --msg-text: var(--msg-text-dark, #e4e4e7);
+  --msg-bubble-sent: var(--msg-bubble-sent-dark, #2d5a3d);
+  --msg-bubble-rcvd: var(--msg-bubble-rcvd-dark, #2d2d33);
+  --msg-timestamp: var(--msg-timestamp-dark, #71717a);
+  --msg-meta: var(--msg-meta-dark, #6366f1);
+  --msg-bubble-sent-text: var(--msg-bubble-sent-text-dark, #e4e4e7);
+  --msg-bubble-rcvd-text: var(--msg-bubble-rcvd-text-dark, #e4e4e7);
+  --msg-link-bg: var(--msg-link-bg-dark, #2d2d33);
+  --msg-link-border: var(--msg-link-border-dark, #3a3a3f);
+  --msg-link-title: var(--msg-link-title-dark, #e4e4e7);
+  --msg-link-desc: var(--msg-link-desc-dark, #a1a1aa);
+  --msg-link-domain: var(--msg-link-domain-dark, #71717a);
+  --msg-avatar-bg: var(--msg-avatar-bg-dark, #3a3a3f);
+  --msg-avatar-border: var(--msg-avatar-border-dark, #4a4a4f);
+  --msg-avatar-text: var(--msg-avatar-text-dark, #e4e4e7);
+  --msg-input-bg: var(--msg-input-bg-dark, #2d2d33);
+  --msg-input-border: var(--msg-input-border-dark, #3a3a3f);
+  --msg-input-placeholder: var(--msg-input-placeholder-dark, #71717a);
+}
+
+.messaging-context.light-theme,
+[data-theme='light'] .messaging-context {
+  /* Variable mappings for light mode */
+  --msg-bg: var(--msg-bg-light, #ffffff);
+  --msg-text: var(--msg-text-light, #1f2937);
+  --msg-bubble-sent: var(--msg-bubble-sent-light, #007aff);
+  --msg-bubble-rcvd: var(--msg-bubble-rcvd-light, #e5e5ea);
+  --msg-timestamp: var(--msg-timestamp-light, #8e8e93);
+  --msg-meta: var(--msg-meta-light, #007aff);
+  --msg-bubble-sent-text: var(--msg-bubble-sent-text-light, #ffffff);
+  --msg-bubble-rcvd-text: var(--msg-bubble-rcvd-text-light, #000000);
+  --msg-link-bg: var(--msg-link-bg-light, #f0f0f0);
+  --msg-link-border: var(--msg-link-border-light, #d1d1d6);
+  --msg-link-title: var(--msg-link-title-light, #000000);
+  --msg-link-desc: var(--msg-link-desc-light, #6e6e73);
+  --msg-link-domain: var(--msg-link-domain-light, #8e8e93);
+  --msg-avatar-bg: var(--msg-avatar-bg-light, #e5e5ea);
+  --msg-avatar-border: var(--msg-avatar-border-light, #c6c6c8);
+  --msg-avatar-text: var(--msg-avatar-text-light, #000000);
+  --msg-input-bg: var(--msg-input-bg-light, #ffffff);
+  --msg-input-border: var(--msg-input-border-light, #c6c6c8);
+  --msg-input-placeholder: var(--msg-input-placeholder-light, #aeaeb2);
+}
+
+/* ============================================================================
+   BASE TYPOGRAPHY FOR CHAT INTERFACES
+   ============================================================================ */
+
+.messaging-context {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: var(--msg-font-base);
+  line-height: 1.5;
+  color: var(--msg-text);
+  background: var(--msg-bg);
+}
+
+/* Message text styles */
+.msg-text {
+  font-size: var(--msg-font-base);
+  line-height: 1.4;
+  color: var(--msg-text);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.msg-text-sm {
+  font-size: var(--msg-font-sm);
+  line-height: 1.4;
+  color: var(--msg-text-secondary);
+}
+
+.msg-text-lg {
+  font-size: var(--msg-font-lg);
+  line-height: 1.4;
+  color: var(--msg-text);
+  font-weight: 500;
+}
+
+/* ============================================================================
+   COMMON AVATAR STYLES
+   ============================================================================ */
+
+/**
+ * Avatar base styles
+ * Platforms can extend these for specific shapes (circle, rounded square, etc.)
+ */
+
+/* Base avatar container */
+.msg-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: var(--msg-avatar-bg);
+  border: 1px solid var(--msg-avatar-border);
+  color: var(--msg-avatar-text);
+  font-size: var(--msg-font-sm);
+  font-weight: 600;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+/* Circle avatar (default for most platforms) */
+.msg-avatar-circle {
+  border-radius: 50%;
+}
+
+/* Rounded square avatar (used by some platforms) */
+.msg-avatar-rounded {
+  border-radius: var(--msg-radius-md);
+}
+
+/* Square avatar (used by some platforms) */
+.msg-avatar-square {
+  border-radius: var(--msg-radius-sm);
+}
+
+/* Avatar sizes */
+.msg-avatar-sm {
+  width: 24px;
+  height: 24px;
+  font-size: 10px;
+}
+
+.msg-avatar-md {
+  width: 36px;
+  height: 36px;
+  font-size: var(--msg-font-sm);
+}
+
+.msg-avatar-lg {
+  width: 48px;
+  height: 48px;
+  font-size: var(--msg-font-base);
+}
+
+/* Avatar with image */
+.msg-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Avatar with initials (fallback) */
+.msg-avatar-initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ============================================================================
+   TIMESTAMP STYLES
+   ============================================================================ */
+
+/**
+ * Common timestamp formatting styles
+ * Platforms can use these classes for consistent timestamp display
+ */
+
+.msg-timestamp {
+  font-size: var(--msg-font-xs);
+  color: var(--msg-timestamp);
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+/* Timestamp inside message bubble */
+.msg-timestamp-inline {
+  display: inline-block;
+  margin-left: var(--msg-spacing-sm);
+  font-size: var(--msg-font-xs);
+  color: var(--msg-timestamp);
+  opacity: 0.7;
+}
+
+/* Timestamp below message */
+.msg-timestamp-block {
+  display: block;
+  margin-top: var(--msg-spacing-xs);
+  font-size: var(--msg-font-xs);
+  color: var(--msg-timestamp);
+  text-align: right;
+}
+
+/* Date separator timestamp */
+.msg-timestamp-separator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: var(--msg-spacing-lg) 0;
+  font-size: var(--msg-font-xs);
+  color: var(--msg-timestamp);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.msg-timestamp-separator::before,
+.msg-timestamp-separator::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--msg-border);
+  margin: 0 var(--msg-spacing-md);
+}
+
+/* ============================================================================
+   MESSAGE BUBBLE STYLES
+   ============================================================================ */
+
+/**
+ * Base message bubble styles
+ * These provide the foundation for sent/received message styling
+ */
+
+.msg-bubble {
+  max-width: 70%;
+  padding: var(--msg-spacing-sm) var(--msg-spacing-md);
+  border-radius: var(--msg-radius-lg);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Sent message bubble */
+.msg-bubble-sent {
+  background: var(--msg-bubble-sent);
+  color: var(--msg-bubble-sent-text);
+  margin-left: auto;
+  border-bottom-right-radius: var(--msg-radius-sm);
+}
+
+/* Received message bubble */
+.msg-bubble-rcvd {
+  background: var(--msg-bubble-rcvd);
+  color: var(--msg-bubble-rcvd-text);
+  margin-right: auto;
+  border-bottom-left-radius: var(--msg-radius-sm);
+}
+
+/* Message container */
+.msg-message {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: var(--msg-spacing-sm);
+}
+
+.msg-message-sent {
+  align-items: flex-end;
+}
+
+.msg-message-rcvd {
+  align-items: flex-start;
+}
+
+/* ============================================================================
+   LINK CARD ATTACHMENT STYLES
+   ============================================================================ */
+
+/**
+ * Link card container and content styles
+ * Used for link previews and URL attachments
+ */
+
+/* Link card container */
+.msg-link-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--msg-link-bg);
+  border: 1px solid var(--msg-link-border);
+  border-radius: var(--msg-radius-md);
+  overflow: hidden;
+  margin-top: var(--msg-spacing-sm);
+  max-width: 300px;
+  text-decoration: none;
+  color: inherit;
+  transition: transform var(--msg-transition-fast), box-shadow var(--msg-transition-fast);
+}
+
+.msg-link-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Link card image container */
+.msg-link-card-image {
+  width: 100%;
+  height: 160px;
+  overflow: hidden;
+  background: var(--msg-surface);
+  position: relative;
+}
+
+.msg-link-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Link card content area */
+.msg-link-card-content {
+  padding: var(--msg-spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--msg-spacing-xs);
+}
+
+/* Link card domain/site name */
+.msg-link-card-domain {
+  font-size: var(--msg-font-xs);
+  color: var(--msg-link-domain);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+/* Link card title */
+.msg-link-card-title {
+  font-size: var(--msg-font-base);
+  color: var(--msg-link-title);
+  font-weight: 600;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Link card description */
+.msg-link-card-description {
+  font-size: var(--msg-font-sm);
+  color: var(--msg-link-desc);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Link card without image */
+.msg-link-card-compact {
+  flex-direction: row;
+  align-items: center;
+  padding: var(--msg-spacing-sm) var(--msg-spacing-md);
+  min-height: 60px;
+}
+
+.msg-link-card-compact .msg-link-card-content {
+  flex: 1;
+}
+
+.msg-link-card-compact .msg-link-card-domain {
+  display: none;
+}
+
+/* Large link card (for featured content) */
+.msg-link-card-large {
+  max-width: 100%;
+}
+
+.msg-link-card-large .msg-link-card-image {
+  height: 200px;
+}
+
+/* ============================================================================
+   METADATA AND READ RECEIPT STYLES
+   ============================================================================ */
+
+/**
+ * Read receipt, delivery status, and other metadata styles
+ */
+
+/* Metadata container */
+.msg-metadata {
+  display: flex;
+  align-items: center;
+  gap: var(--msg-spacing-xs);
+  font-size: var(--msg-font-xs);
+  color: var(--msg-meta);
+}
+
+/* Read receipt indicator */
+.msg-read-receipt {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--msg-meta-read);
+}
+
+/* Single checkmark (delivered) */
+.msg-checkmark-sent::before {
+  content: '✓';
+  font-size: var(--msg-font-sm);
+}
+
+/* Double checkmark (delivered) */
+.msg-checkmark-delivered::before {
+  content: '✓✓';
+  font-size: var(--msg-font-sm);
+}
+
+/* Colored double checkmark (read) */
+.msg-checkmark-read::before {
+  content: '✓✓';
+  font-size: var(--msg-font-sm);
+  color: var(--msg-meta-read);
+}
+
+/* ============================================================================
+   THEME SWITCHER STYLES
+   ============================================================================ */
+
+/**
+ * Theme switcher button styles for test harness
+ * Not used in production context frames, only for testing
+ */
+
+.theme-switcher {
+  display: flex;
+  gap: var(--msg-spacing-sm);
+  padding: var(--msg-spacing-md);
+  background: var(--msg-surface);
+  border-radius: var(--msg-radius-md);
+  margin-bottom: var(--msg-spacing-lg);
+}
+
+.theme-switcher-btn {
+  padding: var(--msg-spacing-sm) var(--msg-spacing-md);
+  border: 1px solid var(--msg-border);
+  background: transparent;
+  color: var(--msg-text);
+  border-radius: var(--msg-radius-sm);
+  cursor: pointer;
+  font-size: var(--msg-font-sm);
+  font-weight: 500;
+  transition: all var(--msg-transition-fast);
+}
+
+.theme-switcher-btn:hover {
+  background: var(--msg-surface);
+  border-color: var(--msg-text-secondary);
+}
+
+.theme-switcher-btn.active {
+  background: var(--msg-meta);
+  color: #ffffff;
+  border-color: var(--msg-meta);
+}
+
+/* ============================================================================
+   ACCESSIBILITY ENHANCEMENTS
+   ============================================================================ */
+
+/* Focus visible for keyboard navigation */
+.messaging-context a:focus-visible,
+.messaging-context button:focus-visible,
+.messaging-context [role="button"]:focus-visible {
+  outline: 2px solid var(--msg-meta);
+  outline-offset: 2px;
+  border-radius: var(--msg-radius-sm);
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .messaging-context,
+  .messaging-context *,
+  .messaging-context *::before,
+  .messaging-context *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .messaging-context .msg-link-card {
+    border-width: 2px;
+  }
+
+  .messaging-context .msg-bubble {
+    border: 1px solid currentColor;
+  }
+}
+
+/* Screen reader only content */
+.msg-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ============================================================================
+   RESPONSIVE STYLES
+   ============================================================================ */
+
+/* Mobile devices (< 480px) */
+@media (max-width: 479px) {
+  .messaging-context {
+    font-size: var(--msg-font-sm);
+  }
+
+  .msg-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .msg-bubble {
+    max-width: 80%;
+    padding: var(--msg-spacing-sm) var(--msg-spacing-sm);
+  }
+
+  .msg-link-card {
+    max-width: 250px;
+  }
+
+  .msg-link-card-image {
+    height: 140px;
+  }
+}
+
+/* Tablet devices (480px - 768px) */
+@media (min-width: 480px) and (max-width: 767px) {
+  .msg-link-card {
+    max-width: 280px;
+  }
+}
+
+/* Desktop devices (768px+) */
+@media (min-width: 768px) {
+  .msg-link-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  }
+}
+
+/* ============================================================================
+   UTILITY CLASSES
+   ============================================================================ */
+
+/* Layout utilities */
+.msg-flex { display: flex; }
+.msg-flex-col { display: flex; flex-direction: column; }
+.msg-items-center { align-items: center; }
+.msg-items-start { align-items: flex-start; }
+.msg-items-end { align-items: flex-end; }
+.msg-justify-between { justify-content: space-between; }
+.msg-justify-center { justify-content: center; }
+
+/* Spacing utilities */
+.msg-gap-xs { gap: var(--msg-spacing-xs); }
+.msg-gap-sm { gap: var(--msg-spacing-sm); }
+.msg-gap-md { gap: var(--msg-spacing-md); }
+.msg-gap-lg { gap: var(--msg-spacing-lg); }
+
+/* Text utilities */
+.msg-text-center { text-align: center; }
+.msg-text-left { text-align: left; }
+.msg-text-right { text-align: right; }
+.msg-text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Display utilities */
+.msg-hidden { display: none; }
+.msg-block { display: block; }
+.msg-inline-block { display: inline-block; }
+.msg-inline { display: inline; }
+
+/* ============================================================================
+   THEME TRANSITION SUPPORT
+   ============================================================================ */
+
+/**
+ * Smooth transitions when switching between dark and light themes
+ */
+
+.messaging-context,
+.messaging-context *,
+.messaging-context *::before,
+.messaging-context *::after {
+  transition-property:
+    background,
+    background-color,
+    border-color,
+    color,
+    fill,
+    stroke;
+  transition-duration: var(--msg-transition-base);
+  transition-timing-function: ease;
+}
+
+/* Exclude specific elements from theme transitions */
+.messaging-context img,
+.messaging-context video,
+.messaging-context svg {
+  transition: none;
+}

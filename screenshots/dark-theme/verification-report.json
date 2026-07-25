@@ -1,0 +1,108 @@
+{
+  "timestamp": "2026-07-25T16:00:28.180Z",
+  "theme": "dark",
+  "platforms": [
+    {
+      "platform": "twitter",
+      "name": "X (Twitter)",
+      "htmlExists": true,
+      "screenshotExists": false,
+      "screenshotSize": 0,
+      "isValid": false,
+      "issues": [
+        "Screenshot file missing"
+      ]
+    },
+    {
+      "platform": "discord",
+      "name": "Discord",
+      "htmlExists": true,
+      "screenshotExists": false,
+      "screenshotSize": 0,
+      "isValid": false,
+      "issues": [
+        "Screenshot file missing"
+      ]
+    },
+    {
+      "platform": "instagram",
+      "name": "Instagram",
+      "htmlExists": true,
+      "screenshotExists": false,
+      "screenshotSize": 0,
+      "isValid": false,
+      "issues": [
+        "Screenshot file missing"
+      ]
+    },
+    {
+      "platform": "telegram",
+      "name": "Telegram",
+      "htmlExists": true,
+      "screenshotExists": false,
+      "screenshotSize": 0,
+      "isValid": false,
+      "issues": [
+        "Screenshot file missing"
+      ]
+    },
+    {
+      "platform": "signal",
+      "name": "Signal",
+      "htmlExists": true,
+      "screenshotExists": false,
+      "screenshotSize": 0,
+      "isValid": false,
+      "issues": [
+        "Screenshot file missing"
+      ]
+    },
+    {
+      "platform": "whatsapp",
+      "name": "WhatsApp",
+      "htmlExists": true,
+      "screenshotExists": false,
+      "screenshotSize": 0,
+      "isValid": false,
+      "issues": [
+        "Screenshot file missing"
+      ]
+    },
+    {
+      "platform": "mastodon",
+      "name": "Mastodon",
+      "htmlExists": true,
+      "screenshotExists": false,
+      "screenshotSize": 0,
+      "isValid": false,
+      "issues": [
+        "Screenshot file missing"
+      ]
+    }
+  ],
+  "summary": {
+    "totalPlatforms": 7,
+    "htmlFiles": 7,
+    "screenshots": 0,
+    "validScreenshots": 0,
+    "allPassed": false
+  },
+  "acceptanceCriteria": [
+    {
+      "check": "Screenshot captured for all 7 platforms in dark theme",
+      "passed": false
+    },
+    {
+      "check": "All screenshots saved with correct naming convention",
+      "passed": false
+    },
+    {
+      "check": "Screenshot files are valid PNG images",
+      "passed": false
+    },
+    {
+      "check": "No rendering errors or blank screenshots",
+      "passed": false
+    }
+  ]
+}

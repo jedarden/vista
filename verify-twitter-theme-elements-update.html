@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Twitter/X Frame Elements Theme Update Verification</title>
+  <link rel="stylesheet" href="src/public/style.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 40px 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+      background: #000000;
+      color: #e7e9ea;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    .test-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .test-header h1 {
+      font-size: 32px;
+      margin-bottom: 8px;
+      transition: color 0.3s ease;
+    }
+
+    .test-header p {
+      color: #71767b;
+      font-size: 16px;
+      transition: color 0.3s ease;
+    }
+
+    .acceptance-criteria {
+      background: #16181c;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 40px;
+      border: 1px solid #2f3336;
+      transition: background 0.3s ease, border-color 0.3s ease;
+    }
+
+    .acceptance-criteria h2 {
+      font-size: 18px;
+      margin-bottom: 16px;
+      color: #1d9bf0;
+    }
+
+    .criteria-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .criteria-list li {
+      padding: 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+
+    .criteria-list li:before {
+      content: '✓';
+      color: #4ade80;
+      font-weight: bold;
+    }
+
+    .test-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 24px;
+      margin: 24px 0;
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 16px;
+      background: #1d9bf0;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 1000;
+      transition: background 0.3s ease;
+    }
+
+    .theme-toggle:hover {
+      opacity: 0.9;
+    }
+
+    .test-section {
+      margin-bottom: 40px;
+    }
+
+    .test-section h2 {
+      font-size: 20px;
+      margin-bottom: 16px;
+      color: #1d9bf0;
+      transition: color 0.3s ease;
+    }
+
+    .verification-log {
+      background: #16181c;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 20px;
+      font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+      font-size: 13px;
+      max-height: 600px;
+      overflow-y: auto;
+      border: 1px solid #2f3336;
+      transition: background 0.3s ease, border-color 0.3s ease;
+    }
+
+    .verification-log div {
+      padding: 4px 0;
+    }
+
+    .pass { color: #4ade80; }
+    .fail { color: #ef4444; }
+    .info { color: #1d9bf0; }
+    .warn { color: #f59e0b; }
+
+    .element-test {
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .element-test:last-child {
+      border-bottom: none;
+    }
+
+    /* Light theme styles */
+    html[data-theme='light'] body {
+      background: #ffffff;
+      color: #0f1419;
+    }
+
+    html[data-theme='light'] .test-header h1 {
+      color: #0f1419;
+    }
+
+    html[data-theme='light'] .test-header p {
+      color: #536471;
+    }
+
+    html[data-theme='light'] .acceptance-criteria,
+    html[data-theme='light'] .verification-log {
+      background: #f7f9f9;
+      border: 1px solid #eff3f4;
+    }
+
+    html[data-theme='light'] .test-section h2 {
+      color: #1d9bf0;
+    }
+
+    html[data-theme='light'] .theme-toggle {
+      background: #1d9bf0;
+    }
+
+    html[data-theme='light'] .element-test {
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    /* Transition utilities */
+    .transition-tracker {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: monospace;
+      z-index: 1000;
+    }
+
+    html[data-theme='light'] .transition-tracker {
+      background: rgba(0, 0, 0, 0.1);
+      color: #0f1419;
+    }
+
+    .element-status-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    .element-status-table th,
+    .element-status-table td {
+      padding: 8px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .element-status-table th {
+      font-weight: 600;
+      color: #1d9bf0;
+    }
+
+    html[data-theme='light'] .element-status-table th,
+    html[data-theme='light'] .element-status-table td {
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" id="themeToggle">☀️ Light Mode</button>
+  <div class="transition-tracker" id="transitionTracker">Theme: dark</div>
+
+  <div class="test-header">
+    <h1>𝕏 Twitter/X Frame Elements Theme Update Verification</h1>
+    <p>Comprehensive verification that ALL frame elements update on theme switch</p>
+  </div>
+
+  <!-- Acceptance Criteria Checklist -->
+  <div class="acceptance-criteria">
+    <h2>✅ Acceptance Criteria</h2>
+    <ul class="criteria-list">
+      <li>All text elements readable in both dark and light themes</li>
+      <li>Icons have correct contrast in both themes</li>
+      <li>Backgrounds switch appropriately (dark ↔ light)</li>
+      <li>Borders/separators visible in both themes</li>
+      <li>No unreadable elements in either theme</li>
+    </ul>
+  </div>
+
+  <!-- Test Section: Twitter/X Frames -->
+  <div class="test-section">
+    <h2>1. Twitter/X Context Frames - Test Elements</h2>
+    <div class="test-grid">
+      <!-- Main test frame with all elements -->
+      <div class="context-frame twitter-context dark-theme" id="mainTestFrame">
+        <div class="tw-post-header">
+          <div class="tw-avatar"></div>
+          <div class="tw-post-meta">
+            <span class="tw-author-name">Test Author</span>
+            <span class="tw-author-handle">@testauthor</span>
+            <span class="tw-post-time">· 1h</span>
+          </div>
+          <span class="tw-verified">✓</span>
+        </div>
+        <div class="tw-post-content">This is a test post to verify all theme elements update correctly.</div>
+        <div class="tw-link-card">
+          <div class="tw-context-placeholder"></div>
+          <div class="tw-context-meta">
+            <div class="tw-context-title">Test Link Title</div>
+            <div class="tw-context-domain">example.com</div>
+          </div>
+        </div>
+        <div class="tw-post-actions">
+          <div class="tw-post-action-item reply">
+            <span class="tw-action-icon">💬</span>
+            <span class="tw-action-count">10</span>
+          </div>
+          <div class="tw-post-action-item retweet">
+            <span class="tw-action-icon">🔁</span>
+            <span class="tw-action-count">20</span>
+          </div>
+          <div class="tw-post-action-item like">
+            <span class="tw-action-icon">❤️</span>
+            <span class="tw-action-count">100</span>
+          </div>
+          <div class="tw-post-action-item view">
+            <span class="tw-action-icon">👁️</span>
+            <span class="tw-action-count">1K</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Additional frame for consistency check -->
+      <div class="context-frame twitter-context dark-theme">
+        <div class="tw-post-header">
+          <div class="tw-avatar"></div>
+          <div class="tw-post-meta">
+            <span class="tw-author-name">Second Test</span>
+            <span class="tw-author-handle">@secondtest</span>
+            <span class="tw-post-time">· 2h</span>
+          </div>
+          <span class="tw-verified">✓</span>
+        </div>
+        <div class="tw-post-content">Another test frame to verify consistency.</div>
+        <div class="tw-link-card">
+          <div class="tw-context-placeholder"></div>
+          <div class="tw-context-meta">
+            <div class="tw-context-title">Another Link</div>
+            <div class="tw-context-domain">test.org</div>
+          </div>
+        </div>
+        <div class="tw-post-actions">
+          <div class="tw-post-action-item reply">
+            <span class="tw-action-icon">💬</span>
+            <span class="tw-action-count">5</span>
+          </div>
+          <div class="tw-post-action-item retweet">
+            <span class="tw-action-icon">🔁</span>
+            <span class="tw-action-count">15</span>
+          </div>
+          <div class="tw-post-action-item like">
+            <span class="tw-action-icon">❤️</span>
+            <span class="tw-action-count">50</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Verification Log -->
+  <div class="test-section">
+    <h2>2. Element-by-Element Verification Results</h2>
+    <div class="verification-log" id="verificationLog">
+      <div class="info">Starting comprehensive element verification...</div>
+    </div>
+  </div>
+
+  <script>
+    let transitionLog = [];
+    let verificationResults = {};
+
+    // Get expected values for each theme
+    const expectedValues = {
+      dark: {
+        primaryText: 'rgb(231, 233, 234)',
+        secondaryText: 'rgb(113, 118, 123)',
+        accent: 'rgb(29, 155, 240)',
+        bgPrimary: 'rgb(0, 0, 0)',
+        bgSecondary: 'rgb(22, 24, 28)',
+        border: 'rgb(47, 51, 54)',
+        placeholder: 'rgb(47, 51, 54)'
+      },
+      light: {
+        primaryText: 'rgb(15, 20, 25)',
+        secondaryText: 'rgb(83, 100, 113)',
+        accent: 'rgb(29, 155, 240)',
+        bgPrimary: 'rgb(255, 255, 255)',
+        bgSecondary: 'rgb(247, 249, 249)',
+        border: 'rgb(239, 243, 244)',
+        placeholder: 'rgb(239, 243, 244)'
+      }
+    };
+
+    // Element selectors and their expected properties
+    const elementTests = [
+      {
+        name: 'Frame Container (.twitter-context)',
+        selector: '.twitter-context',
+        tests: {
+          backgroundColor: 'bgPrimary',
+          borderColor: 'border'
+        }
+      },
+      {
+        name: 'Post Header (.tw-post-header)',
+        selector: '.tw-post-header',
+        tests: {}
+      },
+      {
+        name: 'Avatar (.tw-avatar)',
+        selector: '.tw-avatar',
+        tests: {
+          backgroundColor: 'placeholder'
+        }
+      },
+      {
+        name: 'Author Name (.tw-author-name)',
+        selector: '.tw-author-name',
+        tests: {
+          color: 'primaryText'
+        }
+      },
+      {
+        name: 'Author Handle (.tw-author-handle)',
+        selector: '.tw-author-handle',
+        tests: {
+          color: 'secondaryText'
+        }
+      },
+      {
+        name: 'Post Time (.tw-post-time)',
+        selector: '.tw-post-time',
+        tests: {
+          color: 'secondaryText'
+        }
+      },
+      {
+        name: 'Verified Badge (.tw-verified)',
+        selector: '.tw-verified',
+        tests: {
+          color: 'accent'
+        }
+      },
+      {
+        name: 'Post Content (.tw-post-content)',
+        selector: '.tw-post-content',
+        tests: {
+          color: 'primaryText'
+        }
+      },
+      {
+        name: 'Link Card (.tw-link-card)',
+        selector: '.tw-link-card',
+        tests: {
+          backgroundColor: 'bgSecondary',
+          borderColor: 'border'
+        }
+      },
+      {
+        name: 'Context Placeholder (.tw-context-placeholder)',
+        selector: '.tw-context-placeholder',
+        tests: {
+          backgroundColor: 'placeholder'
+        }
+      },
+      {
+        name: 'Context Title (.tw-context-title)',
+        selector: '.tw-context-title',
+        tests: {
+          color: 'primaryText'
+        }
+      },
+      {
+        name: 'Context Domain (.tw-context-domain)',
+        selector: '.tw-context-domain',
+        tests: {
+          color: 'secondaryText'
+        }
+      },
+      {
+        name: 'Post Actions Container (.tw-post-actions)',
+        selector: '.tw-post-actions',
+        tests: {
+          color: 'secondaryText'
+        }
+      },
+      {
+        name: 'Action Count (.tw-action-count)',
+        selector: '.tw-action-count',
+        tests: {
+          color: 'secondaryText'
+        }
+      }
+    ];
+
+    // Comprehensive verification test suite
+    function runElementVerification() {
+      const log = document.getElementById('verificationLog');
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const expected = expectedValues[currentTheme];
+      const frame = document.querySelector('#mainTestFrame');
+
+      if (!frame) {
+        logResult('No test frame found', 'fail');
+        return;
+      }
+
+      function logResult(message, status = 'info') {
+        const div = document.createElement('div');
+        div.className = status;
+        div.textContent = `[${status.toUpperCase()}] ${message}`;
+        log.appendChild(div);
+        console.log(`[${status.toUpperCase()}] ${message}`);
+      }
+
+      logResult('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+      logResult(`Testing Theme: ${currentTheme.toUpperCase()}`, 'info');
+      logResult('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+
+      let totalTests = 0;
+      let passedTests = 0;
+      let failedTests = 0;
+
+      // Test each element
+      elementTests.forEach(elementTest => {
+        const element = frame.querySelector(elementTest.selector);
+        if (!element) {
+          logResult(`❌ ${elementTest.name} - ELEMENT NOT FOUND`, 'fail');
+          failedTests++;
+          totalTests++;
+          return;
+        }
+
+        logResult(`Testing: ${elementTest.name}`, 'info');
+
+        // Test each property
+        Object.entries(elementTest.tests).forEach(([cssProperty, expectedKey]) => {
+          totalTests++;
+          const actualValue = getComputedStyle(element)[cssProperty];
+          const expectedValue = expected[expectedKey];
+          const match = actualValue === expectedValue;
+
+          if (match) {
+            logResult(`  ✓ ${cssProperty}: ${actualValue}`, 'pass');
+            passedTests++;
+          } else {
+            logResult(`  ✗ ${cssProperty}: expected ${expectedValue}, got ${actualValue}`, 'fail');
+            failedTests++;
+          }
+        });
+
+        // Check for CSS transitions
+        const transition = getComputedStyle(element).transition;
+        if (transition && transition !== 'all 0s ease 0s') {
+          logResult(`  ✓ Transition: ${transition.substring(0, 40)}...`, 'pass');
+        }
+      });
+
+      // Additional tests for icons
+      logResult('Testing Icons:', 'info');
+      const icons = frame.querySelectorAll('.tw-action-icon');
+      icons.forEach((icon, index) => {
+        totalTests++;
+        const color = getComputedStyle(icon).color;
+        // Icons should be visible (not black on black or white on white)
+        const isVisible = currentTheme === 'dark'
+          ? color !== 'rgb(0, 0, 0)'
+          : color !== 'rgb(255, 255, 255)';
+
+        if (isVisible) {
+          logResult(`  ✓ Icon ${index + 1} visible: ${color}`, 'pass');
+          passedTests++;
+        } else {
+          logResult(`  ✗ Icon ${index + 1} not visible: ${color}`, 'fail');
+          failedTests++;
+        }
+      });
+
+      // Test readability
+      logResult('Testing Readability:', 'info');
+      const textElements = frame.querySelectorAll('.tw-author-name, .tw-post-content, .tw-context-title');
+      textElements.forEach((el, index) => {
+        totalTests++;
+        const color = getComputedStyle(el).color;
+        const bg = getComputedStyle(frame).backgroundColor;
+
+        // Simple contrast check - colors should be different
+        const readable = color !== bg;
+        if (readable) {
+          logResult(`  ✓ Text element ${index + 1} readable (text: ${color}, bg: ${bg})`, 'pass');
+          passedTests++;
+        } else {
+          logResult(`  ✗ Text element ${index + 1} NOT readable (text: ${color}, bg: ${bg})`, 'fail');
+          failedTests++;
+        }
+      });
+
+      // Summary
+      logResult('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+      logResult(`Total Tests: ${totalTests}`, 'info');
+      logResult(`Passed: ${passedTests}`, passedTests === totalTests ? 'pass' : 'info');
+      logResult(`Failed: ${failedTests}`, failedTests > 0 ? 'fail' : 'info');
+
+      const allPassed = failedTests === 0;
+      if (allPassed) {
+        logResult('✅ ALL ELEMENTS UPDATE CORRECTLY - Theme switching fully functional', 'pass');
+      } else {
+        logResult(`⚠️  ${failedTests} test(s) failed - Some elements not updating correctly`, 'fail');
+      }
+
+      // Store results for comparison
+      verificationResults[currentTheme] = {
+        total: totalTests,
+        passed: passedTests,
+        failed: failedTests,
+        allPassed: allPassed
+      };
+
+      // Compare with other theme if both have been tested
+      if (verificationResults.dark && verificationResults.light) {
+        logResult('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+        logResult('THEME COMPARISON:', 'info');
+        logResult(`Dark theme: ${verificationResults.dark.passed}/${verificationResults.dark.total} passed`,
+                  verificationResults.dark.allPassed ? 'pass' : 'fail');
+        logResult(`Light theme: ${verificationResults.light.passed}/${verificationResults.light.total} passed`,
+                  verificationResults.light.allPassed ? 'pass' : 'fail');
+
+        const bothPassed = verificationResults.dark.allPassed && verificationResults.light.allPassed;
+        if (bothPassed) {
+          logResult('✅ BOTH THEMES WORKING CORRECTLY - All elements update in both themes', 'pass');
+        } else {
+          logResult('⚠️  THEME ISSUES DETECTED - One or both themes have problems', 'fail');
+        }
+      }
+
+      return allPassed;
+    }
+
+    // Theme toggle functionality with verification
+    const themeToggle = document.getElementById('themeToggle');
+    const transitionTracker = document.getElementById('transitionTracker');
+    let currentTheme = 'dark';
+    let themeSwitchCount = 0;
+
+    themeToggle.addEventListener('click', () => {
+      const startTime = performance.now();
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+      // Update HTML theme
+      document.documentElement.setAttribute('data-theme', currentTheme);
+
+      // Update UI
+      themeToggle.textContent = currentTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+      transitionTracker.textContent = `Theme: ${currentTheme}`;
+
+      // Update Twitter context frame themes
+      const twFrames = document.querySelectorAll('.twitter-context');
+      twFrames.forEach(frame => {
+        frame.classList.remove('dark-theme', 'light-theme');
+        frame.classList.add(`${currentTheme}-theme`);
+      });
+
+      themeSwitchCount++;
+      const endTime = performance.now();
+      const switchTime = (endTime - startTime).toFixed(2);
+
+      // Log the switch
+      transitionLog.push({
+        switch: themeSwitchCount,
+        from: currentTheme === 'dark' ? 'light' : 'dark',
+        to: currentTheme,
+        time: switchTime
+      });
+
+      // Re-run verification after transition completes
+      setTimeout(() => {
+        runElementVerification();
+      }, 350); // Wait for transitions to complete
+    });
+
+    // Run verification on load
+    document.addEventListener('DOMContentLoaded', () => {
+      runElementVerification();
+    });
+  </script>
+</body>
+</html>

@@ -4,148 +4,48 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LinkedIn - Light Mode Frame</title>
+  <link rel="stylesheet" href="platform-frames-base.css">
+  <link rel="stylesheet" href="frames-theme.css">
+  <link rel="stylesheet" href="social-platforms-frames.css">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
-      background: #ffffff;
-      color: #191919;
-    }
-
-    .linkedin-context {
-      display: flex;
-      flex-direction: column;
-      min-height: 400px;
-      background: #ffffff;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    .li-post-header {
-      padding: 16px;
-      background: #ffffff;
-    }
-
-    .li-post-author {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-
-    .li-avatar {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #0a66c2 0%, #004182 100%);
+      margin: 0;
+      padding: 20px;
+      background: #f3f2ef;
+      min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
-      color: #ffffff;
-    }
-
-    .li-author-info {
-      flex: 1;
-    }
-
-    .li-author-name {
-      font-size: 15px;
-      font-weight: 600;
-      color: #191919;
-    }
-
-    .li-author-headline {
-      font-size: 13px;
-      color: #666666;
-    }
-
-    .li-post-content {
-      padding: 0 16px 16px;
-    }
-
-    .li-post-text {
-      font-size: 14px;
-      line-height: 1.6;
-      color: #191919;
-      margin-bottom: 12px;
-    }
-
-    .li-link-card {
-      background: #f3f6f8;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    .li-link-image {
-      width: 100%;
-      height: 160px;
-      background: linear-gradient(135deg, #0a66c2 0%, #004182 100%);
-    }
-
-    .li-link-info {
-      padding: 12px;
-      background: #f3f6f8;
-    }
-
-    .li-link-title {
-      font-size: 14px;
-      font-weight: 600;
-      color: #191919;
-      margin-bottom: 4px;
-    }
-
-    .li-link-domain {
-      font-size: 12px;
-      color: #666666;
-    }
-
-    .li-actions {
-      display: flex;
-      gap: 16px;
-      padding: 12px 16px;
-      border-top: 1px solid #e0e0e0;
-    }
-
-    .li-action {
-      font-size: 13px;
-      color: #666666;
-      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <div class="linkedin-context">
+  <div class="context-frame linkedin-context light-theme">
     <div class="li-post-header">
-      <div class="li-post-author">
-        <div class="li-avatar">JD</div>
-        <div class="li-author-info">
-          <div class="li-author-name">John Doe</div>
-          <div class="li-author-headline">Senior Software Engineer</div>
-        </div>
+      <div class="li-avatar">JD</div>
+      <div class="li-post-meta">
+        <div class="li-author-name">John Doe</div>
+        <div class="li-author-headline">Senior Software Engineer at TechCorp</div>
+        <div class="li-post-time">2h · 🌐</div>
       </div>
     </div>
 
     <div class="li-post-content">
-      <div class="li-post-text">Great resource on web development best practices. Worth a read for anyone working in the field!</div>
-      <div class="li-link-card">
-        <div class="li-link-image"></div>
-        <div class="li-link-info">
-          <div class="li-link-title">Best Practices for Modern Web Development</div>
-          <div class="li-link-domain">website.com</div>
-        </div>
+      Excellent resource on modern web development practices. This covers essential patterns for building scalable applications that every developer should know.
+    </div>
+
+    <div class="li-link-preview">
+      <div class="li-context-placeholder">🔗</div>
+      <div class="li-context-meta">
+        <div class="li-context-title">Best Practices for Modern Web Development</div>
+        <div class="li-context-domain">website.com</div>
       </div>
     </div>
 
-    <div class="li-actions">
-      <div class="li-action">👍 24</div>
-      <div class="li-action">💬 8</div>
-      <div class="li-action">🔄 5</div>
+    <div class="li-post-stats">
+      <span>👍 24 reactions</span>
+      <span>💬 8 comments</span>
+      <span>🔄 5 shares</span>
     </div>
   </div>
 </body>

@@ -423,7 +423,14 @@ const PLATFORM_FRAMES = {
               <p>Has anyone seen this?</p>
             </div>
           </div>
-          {{userMessage}}
+          <div class="slack-message">
+            <div class="slack-msg-avatar"></div>
+            <div class="slack-msg-content">
+              <span class="slack-msg-author">You</span>
+              <span class="slack-msg-time">10:32 AM</span>
+              {{linkPreview}}
+            </div>
+          </div>
         </div>
       </div>
     `,
@@ -496,7 +503,14 @@ const PLATFORM_FRAMES = {
               <p>Check this out everyone!</p>
             </div>
           </div>
-          {{userMessage}}
+          <div class="discord-message">
+            <div class="discord-msg-avatar"></div>
+            <div class="discord-msg-content">
+              <span class="discord-msg-author">You</span>
+              <span class="discord-msg-time">Today at 10:31 AM</span>
+              {{linkPreview}}
+            </div>
+          </div>
         </div>
       </div>
     `,
@@ -3148,6 +3162,91 @@ const PLATFORM_FRAMES = {
     },
   },
 
+  // Live Streaming
+  twitch: {
+    name: 'Twitch',
+    category: 'social',
+    hasThemeSupport: true,
+    aspectRatio: '16:9',
+    chrome: `
+      <div class="twitch-stream-preview">
+        <div class="twitch-stream-placeholder">Live Stream</div>
+        <div class="twitch-stream-overlay">
+          <span class="twitch-live-badge">LIVE</span>
+          <span class="twitch-viewer-count">{{viewerCount}} viewers</span>
+        </div>
+      </div>
+      <div class="twitch-stream-info">
+        <div class="twitch-stream-title">{{streamTitle}}</div>
+        <div class="twitch-streamer">
+          <div class="twitch-avatar"></div>
+          <div class="twitch-streamer-meta">
+            <span class="twitch-streamer-name">{{streamerName}}</span>
+            <span class="twitch-game">{{game}}</span>
+          </div>
+          <button class="twitch-follow-btn">Follow</button>
+        </div>
+      </div>
+      <div class="twitch-chat-section">
+        <div class="twitch-chat-header">Stream Chat</div>
+        <div class="twitch-chat-messages">
+          <div class="twitch-chat-message twitch-chat-dim">
+            <span class="twitch-username twitch-user-color-1">Viewer1</span>
+            <span class="twitch-message-text">This stream is amazing!</span>
+          </div>
+          <div class="twitch-chat-message twitch-chat-dim">
+            <span class="twitch-username twitch-user-color-2">Viewer2</span>
+            <span class="twitch-message-text">Check out this cool link!</span>
+          </div>
+          {{userMessage}}
+        </div>
+      </div>
+    `,
+    neutralContent: `
+      <div class="twitch-chat-message">
+        <span class="twitch-username twitch-user-color-you">You</span>
+        <div class="twitch-link-card">
+          {{imageSection}}
+          <div class="twitch-card-meta">
+            <div class="twitch-card-title">{{title}}</div>
+            {{descriptionSection}}
+            <div class="twitch-card-domain">{{domain}}</div>
+          </div>
+        </div>
+      </div>
+    `,
+    themeVars: {
+      dark: {
+        '--frame-bg': '#0e0e10',
+        '--frame-surface': '#18181b',
+        '--frame-border': '#2d2d31',
+        '--frame-text-primary': '#efeff1',
+        '--frame-text-secondary': '#b5b5b5',
+        '--frame-text-muted': '#71717a',
+        '--frame-accent': '#9146ff',
+        '--frame-accent-bg': '#9146ff',
+        '--frame-link-color': '#9146ff',
+        '--frame-divider': '#2d2d31',
+        '--frame-input-bg': '#18181b',
+        '--frame-overlay': 'rgba(0, 0, 0, 0.7)',
+      },
+      light: {
+        '--frame-bg': '#ffffff',
+        '--frame-surface': '#f7f7f7',
+        '--frame-border': '#e5e5e5',
+        '--frame-text-primary': '#0e0e10',
+        '--frame-text-secondary': '#53535f',
+        '--frame-text-muted': '#9e9ea7',
+        '--frame-accent': '#9146ff',
+        '--frame-accent-bg': '#e8d8ff',
+        '--frame-link-color': '#772ce8',
+        '--frame-divider': '#e5e5e5',
+        '--frame-input-bg': '#ffffff',
+        '--frame-overlay': 'rgba(0, 0, 0, 0.1)',
+      },
+    },
+  },
+
   // Generic template for platforms without custom context frames
   generic: {
     name: 'Generic Platform',
@@ -3525,6 +3624,20 @@ function buildLinkPreviewHTML(platformId, content, theme = 'dark') {
         </div>
       `;
 
+    case 'twitch':
+      const twitchImage = image ? `<div class="twitch-card-image img-loading-container"><img src="${esc(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" /></div>` : '<div class="twitch-card-placeholder"></div>';
+      const twitchDesc = description ? `<div class="twitch-card-desc">${esc(trunc(description, 120))}</div>` : '';
+      return `
+        <div class="twitch-link-card">
+          ${twitchImage}
+          <div class="twitch-card-meta">
+            <div class="twitch-card-title">${esc(trunc(title, 70))}</div>
+            ${twitchDesc}
+            <div class="twitch-card-domain">${esc(domain)}</div>
+          </div>
+        </div>
+      `;
+
     case 'gmail':
       return `
         <div class="gmail-title-section">${esc(trunc(title, 70))}</div>
@@ -3564,6 +3677,29 @@ function buildLinkPreviewHTML(platformId, content, theme = 'dark') {
           <div class="ev-note-title">${esc(trunc(title, 60))}</div>
           ${description ? `<div class="ev-note-desc">${esc(trunc(description, 100))}</div>` : ''}
           <div class="ev-note-domain">${esc(domain)}</div>
+        </div>
+      `;
+
+    case 'slack':
+      const slackImage = image ? `<div class="slack-image img-loading-container"><img src="${esc(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" /></div>` : '';
+      return `
+        <div class="slack-link-preview">
+          ${site ? `<div class="slack-site">${esc(trunc(site, 30))}</div>` : ''}
+          <div class="slack-title">${esc(trunc(title, 60))}</div>
+          ${description ? `<div class="slack-desc">${esc(trunc(description, 120))}</div>` : ''}
+          ${slackImage}
+        </div>
+      `;
+
+    case 'discord':
+      const discordSite = site ? `<div class="discord-site">${esc(trunc(site, 30))}</div>` : '';
+      const discordImage = image ? `<div class="discord-image img-loading-container"><img src="${esc(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" /></div>` : '';
+      return `
+        <div class="discord-link-preview" style="border-left-color:${dominantColor || '#5865f2'}">
+          ${discordSite}
+          <div class="discord-title">${esc(trunc(title, 60))}</div>
+          ${description ? `<div class="discord-desc">${esc(trunc(description, 120))}</div>` : ''}
+          ${discordImage}
         </div>
       `;
 

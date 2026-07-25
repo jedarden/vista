@@ -285,11 +285,11 @@
 
 /* Twitter/X-specific layout */
 .twitter-context.card-frame {
-  background: #fff;
+  background: var(--twitter-bg, #ffffff);
 }
 
 .twitter-context[data-frame-theme='dark'] {
-  background: #000;
+  background: var(--twitter-bg, #000000);
 }
 
 /* LinkedIn-specific layout */

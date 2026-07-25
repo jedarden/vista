@@ -99,8 +99,8 @@
  * theme variables. The CSS variables are applied to .{platform}-context elements.
  */
 
-/* Social media platforms - Facebook, Twitter, LinkedIn, Instagram */
-.facebook-context, .twitter-context, .linkedin-context, .instagram-context {
+/* Social media platforms - Facebook, LinkedIn, Instagram */
+.facebook-context, .linkedin-context, .instagram-context {
   --frame-bg: var(--frame-bg-dark, #242526);
   --frame-surface: var(--frame-surface-dark, #3a3b3c);
   --frame-border: var(--frame-border-dark, #3e4042);
@@ -115,8 +115,7 @@
   --frame-overlay: var(--frame-overlay-dark, rgba(0, 0, 0, 0.6));
 }
 
-.facebook-context.light-theme, .twitter-context.light-theme,
-.linkedin-context.light-theme, .instagram-context.light-theme {
+.facebook-context.light-theme, .linkedin-context.light-theme, .instagram-context.light-theme {
   --frame-bg: var(--frame-bg-light, #ffffff);
   --frame-surface: var(--frame-surface-light, #f0f2f5);
   --frame-border: var(--frame-border-light, #ced0d4);
@@ -129,6 +128,37 @@
   --frame-divider: var(--frame-divider-light, #ced0d4);
   --frame-input-bg: var(--frame-input-bg-light, #ffffff);
   --frame-overlay: var(--frame-overlay-light, rgba(0, 0, 0, 0.1));
+}
+
+/* Twitter/X-specific platform variables - mapped from frames-theme.css */
+.twitter-context {
+  --frame-bg: var(--twitter-bg, var(--frame-bg-dark, #000000));
+  --frame-surface: var(--twitter-surface, var(--frame-surface-dark, #16181c));
+  --frame-border: var(--twitter-border, var(--frame-border-dark, #2f3336));
+  --frame-text-primary: var(--twitter-text-primary, var(--frame-text-primary-dark, #e7e9ea));
+  --frame-text-secondary: var(--twitter-text-secondary, var(--frame-text-secondary-dark, #71767b));
+  --frame-text-muted: var(--twitter-text-muted, var(--frame-text-muted-dark, #71767b));
+  --frame-accent: var(--twitter-accent, var(--frame-accent-dark, #1d9bf0));
+  --frame-accent-bg: var(--twitter-accent-bg, var(--frame-accent-bg-dark, #1a8cd8));
+  --frame-link-color: var(--twitter-link-color, var(--frame-link-color-dark, #1d9bf0));
+  --frame-divider: var(--twitter-divider, var(--frame-divider-dark, #2f3336));
+  --frame-input-bg: var(--twitter-input-bg, var(--frame-input-bg-dark, #16181c));
+  --frame-overlay: var(--twitter-overlay, var(--frame-overlay-dark, rgba(0, 0, 0, 0.8)));
+}
+
+.twitter-context.light-theme {
+  --frame-bg: var(--twitter-bg, var(--frame-bg-light, #ffffff));
+  --frame-surface: var(--twitter-surface, var(--frame-surface-light, #f7f9f9));
+  --frame-border: var(--twitter-border, var(--frame-border-light, #eff3f4));
+  --frame-text-primary: var(--twitter-text-primary, var(--frame-text-primary-light, #0f1419));
+  --frame-text-secondary: var(--twitter-text-secondary, var(--frame-text-secondary-light, #536471));
+  --frame-text-muted: var(--twitter-text-muted, var(--frame-text-muted-light, #536471));
+  --frame-accent: var(--twitter-accent, var(--frame-accent-light, #1d9bf0));
+  --frame-accent-bg: var(--twitter-accent-bg, var(--frame-accent-bg-light, #1a8cd8));
+  --frame-link-color: var(--twitter-link-color, var(--frame-link-color-light, #1d9bf0));
+  --frame-divider: var(--twitter-divider, var(--frame-divider-light, #eff3f4));
+  --frame-input-bg: var(--twitter-input-bg, var(--frame-input-bg-light, #ffffff));
+  --frame-overlay: var(--twitter-overlay, var(--frame-overlay-light, rgba(0, 0, 0, 0.1)));
 }
 
 /* Messaging platforms - Slack, Discord, iMessage, WhatsApp */

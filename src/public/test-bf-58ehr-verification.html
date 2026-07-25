@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BF-58ehr: Platform Context Frames Verification</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 20px; background: #f5f5f5; }
+    h1 { margin-bottom: 20px; color: #333; }
+    .test-section { margin-bottom: 40px; }
+    .section-title { font-size: 18px; font-weight: 600; margin-bottom: 15px; color: #555; border-bottom: 2px solid #ddd; padding-bottom: 5px; }
+    .platform-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; }
+    .platform-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .platform-header { padding: 10px 15px; background: #f0f0f0; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; }
+    .platform-name { font-weight: 600; font-size: 14px; }
+    .theme-toggle { display: flex; gap: 5px; }
+    .theme-btn { padding: 4px 10px; font-size: 12px; border: 1px solid #ccc; background: white; cursor: pointer; border-radius: 4px; }
+    .theme-btn.active { background: #007bff; color: white; border-color: #007bff; }
+    .platform-frame-container { padding: 15px; min-height: 200px; position: relative; }
+
+    /* Context Frame Base Styles */
+    .context-frame { border-radius: 8px; overflow: hidden; min-height: 180px; }
+    .context-frame * { box-sizing: border-box; }
+
+    /* Developer Platform Styles */
+    .gh-context, .gl-context, .so-context { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+
+    /* GitHub */
+    .gh-issue-header { padding: 16px; border-bottom: 1px solid var(--frame-border); }
+    .gh-issue-meta { display: flex; gap: 8px; margin-bottom: 8px; }
+    .gh-issue-number { font-size: 13px; color: var(--frame-text-secondary); }
+    .gh-issue-status { padding: 2px 8px; border-radius: 12px; font-size: 12px; background: #238636; color: white; }
+    .gh-issue-title { font-size: 20px; font-weight: 600; margin-bottom: 8px; color: var(--frame-text-primary); }
+    .gh-issue-author { display: flex; align-items: center; gap: 8px; }
+    .gh-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--frame-accent); }
+    .gh-author-name { font-size: 14px; color: var(--frame-text-primary); }
+    .gh-issue-time { font-size: 13px; color: var(--frame-text-secondary); }
+    .gh-comments-list { padding: 16px; }
+    .gh-comment { display: flex; gap: 12px; margin-bottom: 16px; }
+    .gh-comment-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--frame-accent); flex-shrink: 0; }
+    .gh-comment-content { flex: 1; }
+    .gh-comment-meta { display: flex; gap: 8px; margin-bottom: 4px; }
+    .gh-comment-author { font-weight: 600; font-size: 14px; color: var(--frame-text-primary); }
+    .gh-comment-time { font-size: 13px; color: var(--frame-text-secondary); }
+    .gh-comment-body { font-size: 14px; color: var(--frame-text-primary); line-height: 1.5; }
+    .gh-comment-dim { opacity: 0.6; }
+
+    /* GitLab */
+    .gl-mr-header { padding: 16px; border-bottom: 1px solid var(--frame-border); }
+    .gl-mr-meta { display: flex; gap: 8px; margin-bottom: 8px; }
+    .gl-mr-number { font-size: 13px; color: var(--frame-text-secondary); }
+    .gl-mr-status { padding: 2px 8px; border-radius: 12px; font-size: 12px; background: #1aaa55; color: white; }
+    .gl-mr-title { font-size: 20px; font-weight: 600; margin-bottom: 8px; color: var(--frame-text-primary); }
+    .gl-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--frame-accent); }
+    .gl-discussion-list { padding: 16px; }
+    .gl-comment { display: flex; gap: 12px; margin-bottom: 16px; }
+    .gl-comment-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--frame-accent); flex-shrink: 0; }
+    .gl-comment-content { flex: 1; }
+    .gl-comment-dim { opacity: 0.6; }
+
+    /* Stack Overflow */
+    .so-question-header { display: flex; gap: 16px; padding: 16px; border-bottom: 1px solid var(--frame-border); }
+    .so-votes { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .so-upvote, .so-downvote { font-size: 24px; cursor: pointer; }
+    .so-vote-count { font-size: 18px; font-weight: 600; }
+    .so-question-main { flex: 1; }
+    .so-question-title { font-size: 18px; font-weight: 600; margin-bottom: 8px; color: var(--frame-text-primary); }
+    .so-question-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+    .so-tags { display: flex; gap: 4px; }
+    .so-tag { background: var(--frame-accent-bg); color: var(--frame-accent); padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+    .so-author { font-size: 13px; color: var(--frame-text-secondary); }
+    .so-answers-list { padding: 16px; }
+    .so-answer { display: flex; gap: 16px; margin-bottom: 16px; }
+    .so-answer-votes { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .so-check { color: var(--frame-accent); font-size: 20px; }
+    .so-answer-content { flex: 1; }
+    .so-answer-body { font-size: 14px; line-height: 1.5; color: var(--frame-text-primary); }
+    .so-answer-meta { font-size: 13px; color: var(--frame-text-secondary); margin-top: 4px; }
+    .so-answer-dim { opacity: 0.6; }
+
+    /* Video Platform Styles */
+    .yt-context { font-family: 'Roboto', sans-serif; }
+    .yt-video-player { position: relative; background: #000; aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; }
+    .yt-video-placeholder { font-size: 48px; color: #fff; }
+    .yt-video-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); padding: 10px; }
+    .yt-progress-bar { height: 4px; background: rgba(255,255,255,0.3); margin-bottom: 8px; border-radius: 2px; }
+    .yt-progress-filled { height: 100%; background: #ff0000; border-radius: 2px; }
+    .yt-player-controls { display: flex; align-items: center; gap: 10px; color: white; }
+    .yt-control-btn { background: none; border: none; color: white; cursor: pointer; font-size: 18px; }
+    .yt-time-display { font-size: 13px; margin-left: auto; }
+    .yt-video-header { padding: 12px; display: flex; align-items: center; gap: 12px; }
+    .yt-channel-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--frame-accent); }
+    .yt-channel-meta { flex: 1; }
+    .yt-channel-name { font-weight: 600; font-size: 14px; }
+    .yt-subscriber-count { font-size: 13px; color: var(--frame-text-secondary); }
+    .yt-subscribe-btn { padding: 8px 16px; background: var(--frame-accent); color: white; border: none; border-radius: 18px; cursor: pointer; font-weight: 600; }
+    .yt-video-title { padding: 0 12px; font-size: 18px; font-weight: 600; }
+    .yt-video-stats { padding: 0 12px; font-size: 13px; color: var(--frame-text-secondary); }
+    .yt-actions-bar { padding: 12px; display: flex; gap: 8px; }
+    .yt-action-btn { display: flex; flex-direction: column; align-items: center; padding: 8px 16px; background: none; border: none; cursor: pointer; gap: 4px; }
+    .yt-action-icon { font-size: 20px; }
+    .yt-action-label { font-size: 12px; }
+    .yt-description-section { padding: 12px; border-top: 1px solid var(--frame-border); }
+    .yt-description-text { font-size: 14px; line-height: 1.5; margin-bottom: 8px; }
+    .yt-description-meta { display: flex; gap: 16px; font-size: 13px; color: var(--frame-text-secondary); }
+    .yt-link-card { display: flex; gap: 10px; margin: 8px 0; padding: 8px; background: var(--frame-surface); border-radius: 8px; }
+    .yt-link-card-image { width: 80px; height: 60px; background: #ccc; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+    .yt-link-card-content { flex: 1; }
+    .yt-link-card-title { font-size: 14px; font-weight: 600; }
+    .yt-link-card-description { font-size: 12px; color: var(--frame-text-secondary); margin: 4px 0; }
+    .yt-link-card-domain { font-size: 12px; color: var(--frame-accent); }
+    .yt-comments-section { padding: 12px; border-top: 1px solid var(--frame-border); }
+    .yt-comment-header { font-size: 16px; font-weight: 600; margin-bottom: 12px; }
+    .yt-comment { display: flex; gap: 12px; margin-bottom: 12px; }
+    .yt-comment-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--frame-accent); flex-shrink: 0; }
+    .yt-comment-meta { display: flex; gap: 8px; margin-bottom: 4px; }
+    .yt-comment-author { font-weight: 600; font-size: 13px; }
+    .yt-comment-time { font-size: 12px; color: var(--frame-text-secondary); }
+    .yt-comment-text { font-size: 14px; line-height: 1.4; }
+    .yt-comment-actions { font-size: 12px; color: var(--frame-text-secondary); margin-top: 4px; }
+    .yt-comment-dim { opacity: 0.6; }
+
+    /* Twitch */
+    .twitch-context { font-family: 'Inter', sans-serif; }
+    .twitch-stream-preview { position: relative; aspect-ratio: 16/9; background: #000; display: flex; align-items: center; justify-content: center; }
+    .twitch-stream-placeholder { color: #fff; font-size: 24px; }
+    .twitch-stream-overlay { position: absolute; top: 10px; left: 10px; display: flex; gap: 10px; }
+    .twitch-live-badge { background: #ff0000; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+    .twitch-viewer-count { background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; }
+    .twitch-stream-info { padding: 12px; }
+    .twitch-stream-title { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+    .twitch-streamer { display: flex; align-items: center; gap: 10px; }
+    .twitch-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--frame-accent); }
+    .twitch-streamer-meta { flex: 1; }
+    .twitch-streamer-name { font-weight: 600; font-size: 14px; }
+    .twitch-game { font-size: 13px; color: var(--frame-text-secondary); }
+    .twitch-follow-btn { padding: 8px 16px; background: var(--frame-accent); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; }
+    .twitch-chat-section { border-top: 1px solid var(--frame-border); }
+    .twitch-chat-header { padding: 8px 12px; font-weight: 600; font-size: 14px; border-bottom: 1px solid var(--frame-border); }
+    .twitch-chat-messages { padding: 12px; max-height: 150px; overflow-y: auto; }
+    .twitch-chat-message { margin-bottom: 8px; font-size: 13px; }
+    .twitch-username { font-weight: 600; margin-right: 8px; }
+    .twitch-user-color-1 { color: #ff0000; }
+    .twitch-user-color-2 { color: #0000ff; }
+    .twitch-user-color-you { color: var(--frame-accent); }
+    .twitch-message-text { color: var(--frame-text-primary); }
+    .twitch-chat-dim { opacity: 0.6; }
+    .twitch-link-card { display: flex; gap: 10px; margin: 8px 0; padding: 8px; background: var(--frame-surface); border-radius: 8px; }
+    .twitch-card-image { width: 80px; height: 60px; background: #ccc; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+    .twitch-card-meta { flex: 1; }
+    .twitch-card-title { font-size: 14px; font-weight: 600; }
+    .twitch-card-desc { font-size: 12px; color: var(--frame-text-secondary); margin: 4px 0; }
+    .twitch-card-domain { font-size: 12px; color: var(--frame-accent); }
+
+    /* Email Platform Styles */
+    .gmail-context, .ol-context { font-family: 'Roboto', sans-serif; }
+    .gmail-sidebar, .ol-sidebar { width: 200px; background: var(--frame-surface); padding: 12px; border-right: 1px solid var(--frame-border); display: none; }
+    .gmail-main, .ol-main { flex: 1; display: flex; flex-direction: column; }
+    .gmail-compose, .ol-compose { display: flex; gap: 8px; padding: 12px; background: var(--frame-accent-bg); border-radius: 8px; margin-bottom: 12px; cursor: pointer; }
+    .gmail-compose-icon, .ol-compose-icon { font-size: 20px; }
+    .gmail-compose-text, .ol-compose-text { font-weight: 600; }
+    .gmail-nav-item, .ol-nav-item { padding: 8px 12px; margin-bottom: 4px; border-radius: 4px; cursor: pointer; }
+    .gmail-nav-active, .ol-nav-active { background: var(--frame-accent-bg); color: var(--frame-accent); font-weight: 600; }
+    .gmail-thread-header, .ol-thread-header { padding: 16px; border-bottom: 1px solid var(--frame-border); }
+    .gmail-subject, .ol-subject { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+    .gmail-thread-meta, .ol-thread-meta { display: flex; gap: 12px; font-size: 13px; color: var(--frame-text-secondary); }
+    .gmail-messages, .ol-messages { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+    .gmail-message, .ol-message { display: flex; gap: 12px; }
+    .gmail-sender-avatar, .ol-sender-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--frame-accent); flex-shrink: 0; }
+    .gmail-message-content, .ol-message-content { flex: 1; }
+    .gmail-sender-info, .ol-sender-info { display: flex; gap: 8px; margin-bottom: 4px; }
+    .gmail-sender-name, .ol-sender-name { font-weight: 600; font-size: 14px; }
+    .gmail-sender-email, .ol-sender-email { font-size: 13px; color: var(--frame-text-secondary); }
+    .gmail-message-time, .ol-message-time { font-size: 13px; color: var(--frame-text-secondary); margin-left: auto; }
+    .gmail-message-body, .ol-message-body { font-size: 14px; line-height: 1.5; }
+    .gmail-link-preview, .ol-link-preview { padding: 8px; background: var(--frame-surface); border-radius: 8px; }
+    .gmail-title-section, .ol-title-section { font-weight: 600; margin-bottom: 4px; }
+    .gmail-domain, .ol-domain { font-size: 13px; color: var(--frame-accent); }
+    .gmail-message-dim, .ol-message-dim { opacity: 0.6; }
+
+    /* RSS/Feed Platform Styles */
+    .fl-context { font-family: 'Roboto', sans-serif; }
+    .fl-sidebar { width: 150px; background: var(--frame-surface); padding: 12px; border-right: 1px solid var(--frame-border); display: none; }
+    .fl-feed-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+    .fl-feed-meta { font-size: 12px; color: var(--frame-text-secondary); }
+    .fl-main { flex: 1; display: flex; flex-direction: column; }
+    .fl-article-list { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+    .fl-article { padding: 12px; background: var(--frame-surface); border-radius: 8px; cursor: pointer; }
+    .fl-article-source { font-size: 12px; color: var(--frame-accent); margin-bottom: 4px; }
+    .fl-article-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .fl-article-preview { font-size: 13px; color: var(--frame-text-secondary); margin-bottom: 4px; line-height: 1.4; }
+    .fl-article-time { font-size: 12px; color: var(--frame-text-muted); }
+    .fl-article-mark { font-size: 12px; color: var(--frame-accent); margin-top: 4px; }
+    .fl-article-dim { opacity: 0.6; }
+
+    /* Hacker News */
+    .hn-context { font-family: 'Verdana', sans-serif; }
+    .hn-post-header { display: flex; gap: 10px; padding: 12px; border-bottom: 1px solid var(--frame-border); }
+    .hn-upvote { font-size: 18px; cursor: pointer; }
+    .hn-post-main { flex: 1; }
+    .hn-post-title { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+    .hn-post-meta { display: flex; gap: 8px; font-size: 12px; color: var(--frame-text-secondary); flex-wrap: wrap; }
+    .hn-domain { color: var(--frame-text-secondary); }
+    .hn-points { color: var(--frame-accent); }
+    .hn-author, .hn-time { color: var(--frame-text-secondary); }
+    .hn-comments { color: var(--frame-accent); }
+    .hn-comments-list { padding: 12px; }
+    .hn-comment { display: flex; gap: 8px; margin-bottom: 12px; }
+    .hn-comment-vote { font-size: 14px; cursor: pointer; }
+    .hn-comment-content { flex: 1; }
+    .hn-comment-meta { display: flex; gap: 8px; font-size: 12px; margin-bottom: 4px; }
+    .hn-comment-author { color: var(--frame-accent); font-weight: 600; }
+    .hn-comment-time { color: var(--frame-text-secondary); }
+    .hn-comment-body { font-size: 13px; line-height: 1.5; color: var(--frame-text-primary); }
+    .hn-comment-dim { opacity: 0.6; }
+
+    /* Social Platform Styles (Twitter, Discord, Slack) */
+    .tw-context, .discord-context, .slack-context { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+
+    /* Twitter/X */
+    .tw-post-header { display: flex; gap: 10px; padding: 12px; }
+    .tw-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--frame-accent); }
+    .tw-post-meta { flex: 1; }
+    .tw-author-name { font-weight: 600; font-size: 14px; }
+    .tw-author-handle { font-size: 13px; color: var(--frame-text-secondary); }
+    .tw-post-time { color: var(--frame-text-secondary); font-size: 13px; }
+    .tw-verified { color: var(--frame-accent); font-size: 18px; }
+    .tw-post-content { padding: 0 12px 12px; font-size: 14px; line-height: 1.5; }
+    .tw-link-card { display: flex; flex-direction: column; margin: 8px 12px; padding: 12px; background: var(--frame-surface); border-radius: 12px; overflow: hidden; }
+    .tw-context-image { height: 120px; background: #ccc; display: flex; align-items: center; justify-content: center; font-size: 32px; }
+    .tw-context-meta { padding: 8px 0; }
+    .tw-context-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .tw-context-domain { font-size: 13px; color: var(--frame-text-secondary); }
+    .tw-post-actions { padding: 8px 12px; display: flex; gap: 16px; font-size: 13px; color: var(--frame-text-secondary); }
+
+    /* Discord */
+    .discord-sidebar { width: 150px; background: #202225; padding: 12px; display: none; }
+    .discord-server { font-weight: 600; margin-bottom: 12px; color: #fff; }
+    .discord-channel { padding: 6px 8px; color: #b9bbbe; cursor: pointer; border-radius: 4px; margin-bottom: 2px; }
+    .discord-main { flex: 1; display: flex; flex-direction: column; background: #36393f; }
+    .discord-channel-header { padding: 12px; background: #36393f; border-bottom: 1px solid #202225; font-weight: 600; color: #fff; }
+    .discord-messages { padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+    .discord-message { display: flex; gap: 10px; }
+    .discord-msg-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--frame-accent); flex-shrink: 0; }
+    .discord-msg-content { flex: 1; }
+    .discord-msg-author { font-weight: 600; font-size: 14px; color: #fff; margin-right: 8px; }
+    .discord-msg-time { font-size: 11px; color: #72767d; }
+    .discord-link-preview { padding: 8px; background: #2f3136; border-radius: 4px; margin-top: 8px; border-left: 3px solid; }
+    .discord-site { font-size: 11px; color: #b9bbbe; margin-bottom: 4px; }
+    .discord-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+    .discord-desc { font-size: 13px; color: #dcddde; line-height: 1.4; }
+    .discord-message-dim { opacity: 0.6; }
+
+    /* Slack */
+    .slack-sidebar { width: 150px; background: var(--frame-surface); padding: 12px; border-right: 1px solid var(--frame-border); display: none; }
+    .slack-workspace { font-weight: 600; margin-bottom: 12px; }
+    .slack-channel { padding: 6px 8px; cursor: pointer; border-radius: 4px; margin-bottom: 2px; }
+    .slack-main { flex: 1; display: flex; flex-direction: column; }
+    .slack-channel-header { padding: 12px; background: var(--frame-surface); border-bottom: 1px solid var(--frame-border); font-weight: 600; }
+    .slack-messages { padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+    .slack-message { display: flex; gap: 10px; }
+    .slack-msg-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--frame-accent); flex-shrink: 0; }
+    .slack-msg-content { flex: 1; }
+    .slack-msg-author { font-weight: 600; font-size: 14px; }
+    .slack-msg-time { font-size: 12px; color: var(--frame-text-secondary); }
+    .slack-link-preview { padding: 8px; background: var(--frame-surface); border-radius: 6px; margin-top: 8px; }
+    .slack-site { font-size: 11px; color: var(--frame-accent); margin-bottom: 4px; }
+    .slack-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+    .slack-desc { font-size: 13px; color: var(--frame-text-secondary); line-height: 1.4; }
+    .slack-message-dim { opacity: 0.6; }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .platform-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <h1>BF-58ehr: Platform Context Frames Verification</h1>
+
+  <!-- Developer Platforms -->
+  <div class="test-section">
+    <div class="section-title">Developer Platforms</div>
+    <div class="platform-grid">
+      <div class="platform-card">
+        <div class="platform-header">
+          <span class="platform-name">GitHub</span>
+          <div class="theme-toggle">
+            <button class="theme-btn active" onclick="setTheme('gh', 'dark')">Dark</button>
+            <button class="theme-btn" onclick="setTheme('gh', 'light')">Light</button>
+          </div>
+        </div>
+        <div class="platform-frame-container">
+          <div id="gh-frame" class="gh-context dark-theme context-frame"></div>
+        </div>
+      </div>
+
+      <div class="platform-card">
+        <div class="platform-header">
+          <span class="platform-name">GitLab</span>
+          <div class="theme-toggle">
+            <button class="theme-btn active" onclick="setTheme('gl', 'dark')">Dark</button>
+            <button class="theme-btn" onclick="setTheme('gl', 'light')">Light</button>
+          </div>
+        </div>
+        <div class="platform-frame-container">
+          <div id="gl-frame" class="gl-context dark-theme context-frame"></div>
+        </div>
+      </div>
+
+      <div class="platform-card">
+        <div class="platform-header">
+          <span class="platform-name">Stack Overflow</span>
+          <div class="theme-toggle">
+            <button class="theme-btn active" onclick="setTheme('so', 'dark')">Dark</button>
+            <button class="theme-btn" onclick="setTheme('so', 'light')">Light</button>
+          </div>
+        </div>
+        <div class="platform-frame-container">
+          <div id="so-frame" class="so-context dark-theme context-frame"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Video Platforms -->
+  <div class="test-section">
+    <div class="section-title">Video Platforms</div>
+    <div class="platform-grid">
+      <div class="platform-card">
+        <div class="platform-header">
+          <span class="platform-name">YouTube</span>
+          <div class="theme-toggle">
+            <button class="theme-btn active" onclick="setTheme('yt', 'dark')">Dark</button>
+            <button class="theme-btn" onclick="setTheme('yt', 'light')">Light</button>
+          </div>
+        </div>
+        <div class="platform-frame-container">
+          <div id="yt-frame" class="yt-context dark-theme context-frame"></div>
+        </div>
+      </div>
+
+      <div class="platform-card">
+        <div class="platform-header">
+          <span class="platform-name">Twitch</span>
+          <div class="theme-toggle">
+            <button class="theme-btn active" onclick="setTheme('twitch', 'dark')">Dark</button>
+            <button class="theme-btn" onclick="setTheme('twitch', 'light')">Light</button>
+          </div>
+        </div>
+        <div class="platform-frame-container">
+          <div id="twitch-frame" class="twitch-context dark-theme context-frame"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Email Platforms -->
+  <div class="test-section">
+    <div class="section-title">Email Platforms</div>
+    <div class="platform-grid">
+      <div class="platform-card">
+        <div class="platform-header">
+          <span class="platform-name">Gmail</span>
+          <div class="theme-toggle">
+            <button class="theme-btn active" onclick="setTheme('gmail', 'dark')">Dark</button>
+            <button class="theme-btn" onclick="setTheme('gmail', 'light')">Light</button>
+          </div>
+        </div>
+        <div class="platform-frame-container">
+          <div id="gmail-frame" class="gmail-context dark-theme context-frame"></div>
+        </div>
+      </div>
+
+      <div class="platform-card">
+        <div class="platform-header">
+          <span class="platform-name">Outlook</span>
+          <div class="theme-toggle">
+            <button class="theme-btn active" onclick="setTheme('ol', 'dark')">Dark</button>
+            <button class="theme-btn" onclick="setTheme('ol', 'light')">Light</button>
+          </div>
+        </div>
+        <div class="platform-frame-container">
+          <div id="ol-frame" class="ol-context dark-theme context-frame"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RSS/Feed Platforms -->
+  <div class="test-section">
+    <div class="section-title">RSS/Feed Platforms</div>
+    <div class="platform-grid">
+      <div class="platform-card">
+        <div class="platform-header">
+          <span class="platform-name">Feedly</span>
+          <div class="theme-toggle">
+            <button class="theme-btn active" onclick="setTheme('fl', 'dark')">Dark</button>
+            <button class="theme-btn" onclick="setTheme('fl', 'light')">Light</button>
+          </div>
+        </div>
+        <div class="platform-frame-container">
+          <div id="fl-frame" class="fl-context dark-theme context-frame"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Discussion Platforms -->
+  <div class="test-section">
+    <div class="section-title">Discussion Platforms</div>
+    <div class="platform-grid">
+      <div class="platform-card">
+        <div class="platform-header">
+          <span class="platform-name">Hacker News</span>
+          <div class="theme-toggle">
+            <button class="theme-btn active" onclick="setTheme('hn', 'dark')">Dark</button>
+            <button class="theme-btn" onclick="setTheme('hn', 'light')">Light</button>
+          </div>
+        </div>
+        <div class="platform-frame-container">
+          <div id="hn-frame" class="hn-context dark-theme context-frame"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Social Platforms (Verification) -->
+  <div class="test-section">
+    <div class="section-title">Social Platforms (Verification)</div>
+    <div class="platform-grid">
+      <div class="platform-card">
+        <div class="platform-header">
+          <span class="platform-name">Twitter/X</span>
+          <div class="theme-toggle">
+            <button class="theme-btn active" onclick="setTheme('tw', 'dark')">Dark</button>
+            <button class="theme-btn" onclick="setTheme('tw', 'light')">Light</button>
+          </div>
+        </div>
+        <div class="platform-frame-container">
+          <div id="tw-frame" class="tw-context dark-theme context-frame"></div>
+        </div>
+      </div>
+
+      <div class="platform-card">
+        <div class="platform-header">
+          <span class="platform-name">Discord</span>
+          <div class="theme-toggle">
+            <button class="theme-btn active" onclick="setTheme('discord', 'dark')">Dark</button>
+            <button class="theme-btn" onclick="setTheme('discord', 'light')">Light</button>
+          </div>
+        </div>
+        <div class="platform-frame-container">
+          <div id="discord-frame" class="discord-context dark-theme context-frame"></div>
+        </div>
+      </div>
+
+      <div class="platform-card">
+        <div class="platform-header">
+          <span class="platform-name">Slack</span>
+          <div class="theme-toggle">
+            <button class="theme-btn active" onclick="setTheme('slack', 'dark')">Dark</button>
+            <button class="theme-btn" onclick="setTheme('slack', 'light')">Light</button>
+          </div>
+        </div>
+        <div class="platform-frame-container">
+          <div id="slack-frame" class="slack-context dark-theme context-frame"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="platform-frames.js"></script>
+  <script>
+    // Theme management
+    const currentThemes = {};
+
+    function setTheme(platform, theme) {
+      const frame = document.getElementById(`${platform}-frame`);
+      const btn = event.target;
+
+      // Update button states
+      btn.parentElement.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      // Update frame class
+      frame.classList.remove('dark-theme', 'light-theme');
+      frame.classList.add(`${theme}-theme`);
+
+      // Apply inline theme styles
+      const styles = getInlineThemeStyles(platform, theme);
+      frame.style = styles;
+
+      currentThemes[platform] = theme;
+    }
+
+    // Initialize all platforms
+    function initializePlatforms() {
+      // GitHub
+      const ghContent = {
+        issueNumber: '123',
+        title: 'Fix authentication bug in login flow',
+        author: 'developer123',
+        timeAgo: '2 hours ago',
+        comment: 'This looks good to merge! +1'
+      };
+      document.getElementById('gh-frame').innerHTML = buildContextFrame('github', ghContent, 'dark').replace(/<div class="context-frame[^"]*">/g, '').replace(/<\/div>$/, '');
+      currentThemes.gh = 'dark';
+
+      // GitLab
+      const glContent = {
+        mrNumber: '456',
+        title: 'Implement user profile page',
+        author: 'contributor456',
+        timeAgo: '3 hours ago',
+        comment: 'LGTM! Ready to merge.'
+      };
+      document.getElementById('gl-frame').innerHTML = buildContextFrame('gitlab', glContent, 'dark').replace(/<div class="context-frame[^"]*">/g, '').replace(/<\/div>$/, '');
+      currentThemes.gl = 'dark';
+
+      // Stack Overflow
+      const soContent = {
+        upvotes: '42',
+        title: 'How to center a div in CSS?',
+        tags: '<span class="so-tag">css</span><span class="so-tag">html</span>',
+        author: 'newbie123',
+        timeAgo: '1 day ago',
+        answer: 'Flexbox is the modern way to do this:\n\n.parent {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n}'
+      };
+      document.getElementById('so-frame').innerHTML = buildContextFrame('stackoverflow', soContent, 'dark').replace(/<div class="context-frame[^"]*">/g, '').replace(/<\/div>$/, '');
+      currentThemes.so = 'dark';
+
+      // YouTube
+      const ytContent = {
+        title: 'Amazing Tutorial - Learn in 10 Minutes!',
+        streamTitle: 'Amazing Tutorial - Learn in 10 Minutes!',
+        description: 'In this video, I\'ll show you how to get started with this amazing tool. Perfect for beginners! #tutorial #howto',
+        linkCard: 'Check out this amazing resource: example.com/guide'
+      };
+      document.getElementById('yt-frame').innerHTML = buildContextFrame('youtube', ytContent, 'dark').replace(/<div class="context-frame[^"]*">/g, '').replace(/<\/div>$/, '');
+      currentThemes.yt = 'dark';
+
+      // Twitch
+      const twitchContent = {
+        streamTitle: 'Speedrunning Any%',
+        streamerName: 'ProGamer',
+        game: 'Super Mario 64',
+        viewerCount: '15.2K',
+        title: 'Check out this world record strategy!',
+        description: 'This guide explains the latest shortcuts'
+      };
+      document.getElementById('twitch-frame').innerHTML = buildContextFrame('twitch', twitchContent, 'dark').replace(/<div class="context-frame[^"]*">/g, '').replace(/<\/div>$/, '');
+      currentThemes.twitch = 'dark';
+
+      // Gmail
+      const gmailContent = {
+        subject: 'Check out this amazing resource!',
+        from: 'John Doe',
+        to: 'me',
+        time: '10:30 AM',
+        senderName: 'John Doe',
+        senderEmail: 'john@example.com',
+        yourEmail: 'you@example.com',
+        title: 'Complete Guide to Web Development',
+        domain: 'example.com'
+      };
+      document.getElementById('gmail-frame').innerHTML = buildContextFrame('gmail', gmailContent, 'dark').replace(/<div class="context-frame[^"]*">/g, '').replace(/<\/div>$/, '');
+      currentThemes.gmail = 'dark';
+
+      // Outlook
+      const olContent = {
+        subject: 'Re: Project Update',
+        from: 'Jane Smith',
+        time: '11:45 AM',
+        senderName: 'Jane Smith',
+        senderEmail: 'jane@company.com',
+        yourEmail: 'you@company.com',
+        title: 'Quarterly Report',
+        domain: 'company.com'
+      };
+      document.getElementById('ol-frame').innerHTML = buildContextFrame('outlook', olContent, 'dark').replace(/<div class="context-frame[^"]*">/g, '').replace(/<\/div>$/, '');
+      currentThemes.ol = 'dark';
+
+      // Feedly
+      const flContent = {
+        feedTitle: 'Tech Blog',
+        feedName: 'Tech Blog',
+        unreadCount: '12',
+        title: '10 Tips for Better Code',
+        description: 'Learn how to write cleaner, more maintainable code with these expert tips.',
+        domain: 'techblog.com'
+      };
+      document.getElementById('fl-frame').innerHTML = buildContextFrame('feedly', flContent, 'dark').replace(/<div class="context-frame[^"]*">/g, '').replace(/<\/div>$/, '');
+      currentThemes.fl = 'dark';
+
+      // Hacker News
+      const hnContent = {
+        title: 'Show HN: I built a tool for developers',
+        domain: 'example.com',
+        points: '156',
+        author: 'founder123',
+        timeAgo: '4 hours ago',
+        commentCount: '42',
+        comment: 'This is exactly what I needed! Great work.'
+      };
+      document.getElementById('hn-frame').innerHTML = buildContextFrame('hackernews', hnContent, 'dark').replace(/<div class="context-frame[^"]*">/g, '').replace(/<\/div>$/, '');
+      currentThemes.hn = 'dark';
+
+      // Twitter
+      const twContent = {
+        title: 'Amazing new web development framework released',
+        description: 'Check out this revolutionary new framework that makes building web apps 10x faster.',
+        domain: 'devframework.com',
+        image: ''
+      };
+      document.getElementById('tw-frame').innerHTML = buildContextFrame('twitter', twContent, 'dark').replace(/<div class="context-frame[^"]*">/g, '').replace(/<\/div>$/, '');
+      currentThemes.tw = 'dark';
+
+      // Discord
+      const discordContent = {
+        title: 'Useful coding resource',
+        description: 'Found this helpful tutorial for the project',
+        domain: 'codingtutorials.com',
+        site: 'codingtutorials.com'
+      };
+      document.getElementById('discord-frame').innerHTML = buildContextFrame('discord', discordContent, 'dark').replace(/<div class="context-frame[^"]*">/g, '').replace(/<\/div>$/, '');
+      currentThemes.discord = 'dark';
+
+      // Slack
+      const slackContent = {
+        title: 'Team Documentation',
+        description: 'Updated project guidelines and best practices',
+        domain: 'docs.company.com',
+        site: 'docs.company.com'
+      };
+      document.getElementById('slack-frame').innerHTML = buildContextFrame('slack', slackContent, 'dark').replace(/<div class="context-frame[^"]*">/g, '').replace(/<\/div>$/, '');
+      currentThemes.slack = 'dark';
+
+      // Apply initial theme styles
+      Object.keys(currentThemes).forEach(platform => {
+        const frame = document.getElementById(`${platform}-frame`);
+        const styles = getInlineThemeStyles(platform, currentThemes[platform]);
+        frame.style = styles;
+      });
+    }
+
+    // Run on page load
+    window.addEventListener('DOMContentLoaded', initializePlatforms);
+  </script>
+</body>
+</html>

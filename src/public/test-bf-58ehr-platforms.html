@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test All Required Platforms - Bead bf-58ehr</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="platform-frames.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .test-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .bead-info {
+            text-align: center;
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 30px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+        .platforms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        .platform-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #fafafa;
+        }
+        .platform-card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .platform-title {
+            font-weight: 600;
+            font-size: 16px;
+        }
+        .platform-category {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        .platform-status {
+            font-size: 11px;
+            background: rgba(255,255,255,0.2);
+            padding: 3px 8px;
+            border-radius: 12px;
+        }
+        .frame-container {
+            background: white;
+            min-height: 200px;
+            max-height: 400px;
+            overflow-y: auto;
+            position: relative;
+        }
+        .theme-toggle {
+            display: flex;
+            gap: 5px;
+            padding: 8px 16px;
+            background: #f0f0f0;
+            border-top: 1px solid #e0e0e0;
+        }
+        .theme-btn {
+            flex: 1;
+            padding: 6px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        .theme-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        .theme-btn:hover:not(.active) {
+            background: #f5f5f5;
+        }
+        .summary {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .summary h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+        .summary-label {
+            color: #666;
+        }
+        .summary-value {
+            font-weight: 600;
+        }
+        .summary-value.pass {
+            color: #10b981;
+        }
+        .summary-value.fail {
+            color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🎨 Required Platform Context Frames</h1>
+        <div class="subtitle">Bead bf-58ehr: Developer, Video, and Miscellaneous Platforms</div>
+        <div class="bead-info">
+            Testing: GitHub, GitLab, Stack Overflow, YouTube, Twitch, Gmail, Feedly, Hacker News, Discord, Slack, Twitter
+        </div>
+
+        <div class="summary" id="summary">
+            <h3>Verification Summary</h3>
+            <div id="summary-content"></div>
+        </div>
+
+        <div class="platforms-grid" id="platforms-grid"></div>
+    </div>
+
+    <script>
+        const REQUIRED_PLATFORMS = [
+            { id: 'github', name: 'GitHub', category: 'Developer', requirement: 'Issue/README with embed' },
+            { id: 'gitlab', name: 'GitLab', category: 'Developer', requirement: 'MR/Issue with embed' },
+            { id: 'stackoverflow', name: 'Stack Overflow', category: 'Developer', requirement: 'Q&A with code' },
+            { id: 'youtube', name: 'YouTube', category: 'Video', requirement: 'Video page with description' },
+            { id: 'twitch', name: 'Twitch', category: 'Video', requirement: 'Stream chat with card' },
+            { id: 'gmail', name: 'Gmail', category: 'Email', requirement: 'Thread with preview' },
+            { id: 'feedly', name: 'Feedly', category: 'RSS', requirement: 'Feed reader' },
+            { id: 'hackernews', name: 'Hacker News', category: 'Social', requirement: 'Comment thread' },
+            { id: 'discord', name: 'Discord', category: 'Messaging', requirement: 'Chat with embed' },
+            { id: 'slack', name: 'Slack', category: 'Messaging', requirement: 'Chat with embed' },
+            { id: 'twitter', name: 'Twitter/X', category: 'Social', requirement: 'Post with card' }
+        ];
+
+        const TEST_DATA = {
+            github: {
+                issueNumber: 123,
+                title: 'Implement new feature for context frames',
+                author: 'developer123',
+                timeAgo: '2 hours ago',
+                comment: 'This looks great! Should we add tests?'
+            },
+            gitlab: {
+                mrNumber: 456,
+                title: 'Fix authentication flow',
+                author: 'contributor789',
+                timeAgo: '3 hours ago',
+                comment: 'LGTM! Ready to merge 🎉'
+            },
+            stackoverflow: {
+                title: 'How to implement async/await pattern?',
+                upvotes: 42,
+                tags: 'javascript async await',
+                author: 'jsdev123',
+                timeAgo: '1 day ago',
+                answer: 'Here\'s a solution using async/await pattern with proper error handling.'
+            },
+            youtube: {
+                title: 'Building Platform Context Frames - Complete Tutorial',
+                description: 'Learn how to create platform-specific frames with dark mode support',
+                timeAgo: '5 hours ago',
+                comment: 'Great tutorial! Very helpful indeed.'
+            },
+            twitch: {
+                streamTitle: 'Coding Session - Building Frames',
+                streamerName: 'DevStreamer',
+                game: 'Software & Game Development',
+                viewerCount: 1234,
+                title: 'Check this out!',
+                description: 'Useful resource for developers',
+                domain: 'github.com'
+            },
+            gmail: {
+                subject: 'Check out this new development resource',
+                from: 'john@company.com',
+                to: 'team@company.com',
+                time: '10:30 AM',
+                senderName: 'John Smith',
+                senderEmail: 'john@company.com',
+                timeAgo: '2 hours ago',
+                yourEmail: 'me@company.com',
+                domain: 'github.com',
+                title: 'Repository: platform-frames'
+            },
+            feedly: {
+                feedTitle: 'Tech News Daily',
+                unreadCount: 42,
+                feedName: 'The Verge',
+                timeAgo: '4 hours ago',
+                title: 'New Web Development Framework Released',
+                domain: 'theverge.com'
+            },
+            hackernews: {
+                title: 'Show HN: I built a platform context frame system',
+                domain: 'github.com',
+                points: 156,
+                author: 'founder123',
+                timeAgo: '6 hours ago',
+                commentCount: 42,
+                comment: 'This is really interesting! Great approach.'
+            },
+            discord: {
+                title: 'Share link in server',
+                description: 'Check out this resource',
+                domain: 'github.com',
+                comment: 'Thanks for sharing!'
+            },
+            slack: {
+                title: 'Share link in channel',
+                description: 'Useful resource found',
+                domain: 'github.com',
+                comment: 'Great find!'
+            },
+            twitter: {
+                title: 'Check out this amazing development resource!',
+                description: 'Found this helpful link',
+                domain: 'github.com',
+                comment: 'This is perfect!'
+            }
+        };
+
+        const platformStates = {};
+
+        function initializeStates() {
+            REQUIRED_PLATFORMS.forEach(p => {
+                platformStates[p.id] = { theme: 'dark' };
+            });
+        }
+
+        function checkPlatform(platformId) {
+            try {
+                const frame = window.PlatformFrames.getPlatformFrame(platformId);
+                if (!frame) {
+                    return { exists: false, themeSupport: false, hasChrome: false };
+                }
+
+                return {
+                    exists: true,
+                    themeSupport: frame.hasThemeSupport,
+                    hasChrome: frame.chrome && frame.chrome.length > 0,
+                    name: frame.name,
+                    category: frame.category
+                };
+            } catch (e) {
+                return { exists: false, themeSupport: false, hasChrome: false };
+            }
+        }
+
+        function toggleTheme(platformId) {
+            platformStates[platformId].theme = platformStates[platformId].theme === 'dark' ? 'light' : 'dark';
+            renderPlatformFrame(platformId);
+            updateThemeButtons(platformId);
+        }
+
+        function updateThemeButtons(platformId) {
+            const card = document.querySelector(`[data-platform="${platformId}"]`);
+            if (!card) return;
+
+            const darkBtn = card.querySelector('.theme-btn.dark');
+            const lightBtn = card.querySelector('.theme-btn.light');
+
+            if (platformStates[platformId].theme === 'dark') {
+                darkBtn?.classList.add('active');
+                lightBtn?.classList.remove('active');
+            } else {
+                lightBtn?.classList.add('active');
+                darkBtn?.classList.remove('active');
+            }
+        }
+
+        function renderPlatformFrame(platformId) {
+            const container = document.querySelector(`[data-platform="${platformId}"] .frame-content`);
+            if (!container) return;
+
+            const frame = window.PlatformFrames.getPlatformFrame(platformId);
+            if (!frame) {
+                container.innerHTML = `
+                    <div style="padding: 20px; text-align: center; color: #ef4444;">
+                        <div style="font-size: 24px; margin-bottom: 10px;">❌</div>
+                        <div>Platform not found: ${platformId}</div>
+                    </div>
+                `;
+                return;
+            }
+
+            try {
+                const testData = TEST_DATA[platformId] || {};
+                const html = window.PlatformFrames.buildContextFrame(
+                    platformId,
+                    testData,
+                    platformStates[platformId].theme
+                );
+                container.innerHTML = html;
+            } catch (e) {
+                container.innerHTML = `
+                    <div style="padding: 20px; text-align: center; color: #f59e0b;">
+                        <div style="font-size: 24px; margin-bottom: 10px;">⚠️</div>
+                        <div>Error rendering: ${e.message}</div>
+                    </div>
+                `;
+            }
+        }
+
+        function renderPlatformCard(platform) {
+            const check = checkPlatform(platform.id);
+            const statusClass = check.exists ? '✓ PASS' : '✗ FAIL';
+
+            const card = document.createElement('div');
+            card.className = 'platform-card';
+            card.dataset.platform = platform.id;
+            card.innerHTML = `
+                <div class="platform-card-header">
+                    <div>
+                        <div class="platform-title">${platform.name}</div>
+                        <div class="platform-category">${platform.category} - ${platform.requirement}</div>
+                    </div>
+                    <div class="platform-status">${statusClass}</div>
+                </div>
+                <div class="frame-container">
+                    <div class="frame-content"></div>
+                </div>
+                <div class="theme-toggle">
+                    <button class="theme-btn dark" onclick="toggleTheme('${platform.id}')">🌙 Dark</button>
+                    <button class="theme-btn light" onclick="toggleTheme('${platform.id}')">☀️ Light</button>
+                </div>
+            `;
+
+            document.getElementById('platforms-grid').appendChild(card);
+            renderPlatformFrame(platform.id);
+            updateThemeButtons(platform.id);
+        }
+
+        function updateSummary() {
+            let total = REQUIRED_PLATFORMS.length;
+            let passed = 0;
+            let withTheme = 0;
+
+            REQUIRED_PLATFORMS.forEach(platform => {
+                const check = checkPlatform(platform.id);
+                if (check.exists) passed++;
+                if (check.themeSupport) withTheme++;
+            });
+
+            const summaryHTML = `
+                <div class="summary-item">
+                    <span class="summary-label">Total Required Platforms</span>
+                    <span class="summary-value">${total}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Platforms Implemented</span>
+                    <span class="summary-value ${passed === total ? 'pass' : 'fail'}">${passed}/${total}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Platforms with Theme Support</span>
+                    <span class="summary-value pass">${withTheme}/${total}</span>
+                </div>
+            `;
+
+            document.getElementById('summary-content').innerHTML = summaryHTML;
+        }
+
+        function renderAll() {
+            initializeStates();
+            REQUIRED_PLATFORMS.forEach(renderPlatformCard);
+            updateSummary();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderAll();
+        });
+    </script>
+</body>
+</html>

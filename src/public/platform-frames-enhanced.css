@@ -225,6 +225,130 @@
   --frame-overlay: var(--frame-overlay-light, rgba(0, 0, 0, 0.1));
 }
 
+/* Video platforms - YouTube, Twitch */
+.yt-context, .twitch-context {
+  --frame-bg: var(--frame-bg-dark, #0f0f0f);
+  --frame-surface: var(--frame-surface-dark, #1a1a1a);
+  --frame-border: var(--frame-border-dark, #303030);
+  --frame-text-primary: var(--frame-text-primary-dark, #ffffff);
+  --frame-text-secondary: var(--frame-text-secondary-dark, #aaaaaa);
+  --frame-text-muted: var(--frame-text-muted-dark, #666666);
+  --frame-accent: var(--frame-accent-dark, #ff0000);
+  --frame-accent-bg: var(--frame-accent-bg-dark, #ff0000);
+  --frame-link-color: var(--frame-link-color-dark, #3ea6ff);
+  --frame-divider: var(--frame-divider-dark, #303030);
+  --frame-input-bg: var(--frame-input-bg-dark, #1a1a1a);
+  --frame-overlay: var(--frame-overlay-dark, rgba(0, 0, 0, 0.7));
+}
+
+.yt-context.light-theme, .twitch-context.light-theme {
+  --frame-bg: var(--frame-bg-light, #ffffff);
+  --frame-surface: var(--frame-surface-light, #f9f9f9);
+  --frame-border: var(--frame-border-light, #e5e5e5);
+  --frame-text-primary: var(--frame-text-primary-light, #0f0f0f);
+  --frame-text-secondary: var(--frame-text-secondary-light, #606060);
+  --frame-text-muted: var(--frame-text-muted-light, #999999);
+  --frame-accent: var(--frame-accent-light, #ff0000);
+  --frame-accent-bg: var(--frame-accent-bg-light, #ffe5e5);
+  --frame-link-color: var(--frame-link-color-light, #065fd4);
+  --frame-divider: var(--frame-divider-light, #e5e5e5);
+  --frame-input-bg: var(--frame-input-bg-light, #ffffff);
+  --frame-overlay: var(--frame-overlay-light, rgba(0, 0, 0, 0.1));
+}
+
+/* RSS/Feed platforms - Feedly */
+.fl-context {
+  --frame-bg: var(--frame-bg-dark, #1a1a1a);
+  --frame-surface: var(--frame-surface-dark, #2a2a2a);
+  --frame-border: var(--frame-border-dark, #3a3a3a);
+  --frame-text-primary: var(--frame-text-primary-dark, #e0e0e0);
+  --frame-text-secondary: var(--frame-text-secondary-dark, #a0a0a0);
+  --frame-text-muted: var(--frame-text-muted-dark, #6a6a6a);
+  --frame-accent: var(--frame-accent-dark, #2bb24a);
+  --frame-accent-bg: var(--frame-accent-bg-dark, #2bb24a);
+  --frame-link-color: var(--frame-link-color-dark, #2bb24a);
+  --frame-divider: var(--frame-divider-dark, #3a3a3a);
+  --frame-input-bg: var(--frame-input-bg-dark, #2a2a2a);
+  --frame-overlay: var(--frame-overlay-dark, rgba(0, 0, 0, 0.6));
+}
+
+.fl-context.light-theme {
+  --frame-bg: var(--frame-bg-light, #ffffff);
+  --frame-surface: var(--frame-surface-light, #f4f4f4);
+  --frame-border: var(--frame-border-light, #e0e0e0);
+  --frame-text-primary: var(--frame-text-primary-light, #2a2a2a);
+  --frame-text-secondary: var(--frame-text-secondary-light, #666666);
+  --frame-text-muted: var(--frame-text-muted-light, #999999);
+  --frame-accent: var(--frame-accent-light, #2bb24a);
+  --frame-accent-bg: var(--frame-accent-bg-light, #e8f5e9);
+  --frame-link-color: var(--frame-link-color-light, #2bb24a);
+  --frame-divider: var(--frame-divider-light, #e0e0e0);
+  --frame-input-bg: var(--frame-input-bg-light, #ffffff);
+  --frame-overlay: var(--frame-overlay-light, rgba(0, 0, 0, 0.1));
+}
+
+/* Discussion platforms - Hacker News */
+.hn-context {
+  --frame-bg: var(--frame-bg-dark, #1a1a1a);
+  --frame-surface: var(--frame-surface-dark, #242424);
+  --frame-border: var(--frame-border-dark, #3a3a3a);
+  --frame-text-primary: var(--frame-text-primary-dark, #dddddd);
+  --frame-text-secondary: var(--frame-text-secondary-dark, #828282);
+  --frame-text-muted: var(--frame-text-muted-dark, #626262);
+  --frame-accent: var(--frame-accent-dark, #ff6600);
+  --frame-accent-bg: var(--frame-accent-bg-dark, #ff6600);
+  --frame-link-color: var(--frame-link-color-dark, #ff6600);
+  --frame-divider: var(--frame-divider-dark, #3a3a3a);
+  --frame-input-bg: var(--frame-input-bg-dark, #2a2a2a);
+  --frame-overlay: var(--frame-overlay-dark, rgba(0, 0, 0, 0.6));
+}
+
+.hn-context.light-theme {
+  --frame-bg: var(--frame-bg-light, #ffffff);
+  --frame-surface: var(--frame-surface-light, #f6f6ef);
+  --frame-border: var(--frame-border-light, #d4d4d4);
+  --frame-text-primary: var(--frame-text-primary-light, #222222);
+  --frame-text-secondary: var(--frame-text-secondary-light, #828282);
+  --frame-text-muted: var(--frame-text-muted-light, #999999);
+  --frame-accent: var(--frame-accent-light, #ff6600);
+  --frame-accent-bg: var(--frame-accent-bg-light, #fff0e6);
+  --frame-link-color: var(--frame-link-color-light, #ff6600);
+  --frame-divider: var(--frame-divider-light, #d4d4d4);
+  --frame-input-bg: var(--frame-input-bg-light, #ffffff);
+  --frame-overlay: var(--frame-overlay-light, rgba(0, 0, 0, 0.1));
+}
+
+/* Social platforms - Twitter/X */
+.tw-context {
+  --frame-bg: var(--frame-bg-dark, #000000);
+  --frame-surface: var(--frame-surface-dark, #16181c);
+  --frame-border: var(--frame-border-dark, #2f3336);
+  --frame-text-primary: var(--frame-text-primary-dark, #e7e9ea);
+  --frame-text-secondary: var(--frame-text-secondary-dark, #71767b);
+  --frame-text-muted: var(--frame-text-muted-dark, #71767b);
+  --frame-accent: var(--frame-accent-dark, #1d9bf0);
+  --frame-accent-bg: var(--frame-accent-bg-dark, #1d9bf0);
+  --frame-link-color: var(--frame-link-color-dark, #1d9bf0);
+  --frame-divider: var(--frame-divider-dark, #2f3336);
+  --frame-input-bg: var(--frame-input-bg-dark, #202327);
+  --frame-overlay: var(--frame-overlay-dark, rgba(91, 112, 131, 0.4));
+}
+
+.tw-context.light-theme {
+  --frame-bg: var(--frame-bg-light, #ffffff);
+  --frame-surface: var(--frame-surface-light, #f7f9f9);
+  --frame-border: var(--frame-border-light, #eff3f4);
+  --frame-text-primary: var(--frame-text-primary-light, #0f1419);
+  --frame-text-secondary: var(--frame-text-secondary-light, #536471);
+  --frame-text-muted: var(--frame-text-muted-light, #536471);
+  --frame-accent: var(--frame-accent-light, #1d9bf0);
+  --frame-accent-bg: var(--frame-accent-bg-light, #e8f5fe);
+  --frame-link-color: var(--frame-link-color-light, #1d9bf0);
+  --frame-divider: var(--frame-divider-light, #eff3f4);
+  --frame-input-bg: var(--frame-input-bg-light, #eff3f4);
+  --frame-overlay: var(--frame-overlay-light, rgba(0, 0, 0, 0.08));
+}
+
 /* ============================================================================
    RESPONSIVE FRAME STYLES
    ============================================================================ */

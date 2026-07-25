@@ -1392,6 +1392,7 @@ const PLATFORM_FRAMES = {
         <div class="tt-bottom-overlay">
           <div class="tt-username">@tiktok_user</div>
           <div class="tt-caption">Check out this amazing content! 🔗</div>
+          {{linkCard}}
           <div class="tt-music">🎵 Original Sound - Artist</div>
         </div>
       </div>

@@ -78,49 +78,50 @@ export class FacebookFrame implements BasePlatformFrame {
    * Render Facebook post frame
    */
   render(content: FrameContentData, theme: ThemeMode = 'light'): string {
-    const isLight = theme === 'light';
-    const colors = this.getThemeVars(theme);
+    const themeClass = theme === 'light' ? 'light-theme' : 'dark-theme';
 
     return `
-      <div class="fb-frame fb-frame-${theme}" style="${this.getFrameStyles(theme)}">
+      <div class="facebook-context ${themeClass} platform-frame">
         <div class="fb-post-card">
           <!-- Post Header -->
-          <div class="fb-post-header">
-            <div class="fb-avatar"></div>
-            <div class="fb-post-meta">
-              <span class="fb-author-name">${content.author || 'User Name'}</span>
-              <span class="fb-post-time">${content.timeAgo || '2h'} · 🌍</span>
+          <div class="fb-post-header frame-post-meta">
+            <div class="fb-avatar frame-avatar">
+              <div class="frame-avatar-placeholder">?</div>
             </div>
-            <span class="fb-menu">•••</span>
+            <div class="fb-post-meta frame-user-details">
+              <span class="fb-author-name frame-username">${content.author || 'User Name'}</span>
+              <span class="fb-post-time frame-timestamp"><span class="frame-timestamp-dot"></span>${content.timeAgo || '2h'} · 🌍</span>
+            </div>
+            <span class="fb-menu frame-user-badge">•••</span>
           </div>
 
           <!-- Post Content -->
-          <div class="fb-post-content">
-            <p class="fb-message">${content.description || 'Check out this interesting article!'}</p>
+          <div class="fb-post-content frame-post-content">
+            <p class="fb-message frame-post-text">${content.description || 'Check out this interesting article!'}</p>
           </div>
 
           <!-- Link Preview -->
           ${this.renderLinkPreview(content, theme)}
 
           <!-- Post Stats -->
-          <div class="fb-post-stats">
-            <span>👍 ${content.likeCount || '12'}</span>
-            <span>💬 ${content.commentCount || '5'}</span>
-            <span>🔗 ${content.shareCount || '3'}</span>
+          <div class="fb-post-stats frame-post-stats">
+            <span class="frame-stat-item">👍 <span class="frame-stat-count">${content.likeCount || '12'}</span></span>
+            <span class="frame-stat-item">💬 <span class="frame-stat-count">${content.commentCount || '5'}</span></span>
+            <span class="frame-stat-item">🔗 <span class="frame-stat-count">${content.shareCount || '3'}</span></span>
           </div>
 
           <!-- Post Actions -->
-          <div class="fb-post-actions">
-            <button class="fb-action-btn">
-              <span class="fb-action-icon">👍</span>
+          <div class="fb-post-actions frame-post-stats">
+            <button class="fb-action-btn frame-stat-item">
+              <span class="fb-action-icon frame-stat-icon">👍</span>
               <span class="fb-action-label">Like</span>
             </button>
-            <button class="fb-action-btn">
-              <span class="fb-action-icon">💬</span>
+            <button class="fb-action-btn frame-stat-item">
+              <span class="fb-action-icon frame-stat-icon">💬</span>
               <span class="fb-action-label">Comment</span>
             </button>
-            <button class="fb-action-btn">
-              <span class="fb-action-icon">🔗</span>
+            <button class="fb-action-btn frame-stat-item">
+              <span class="fb-action-icon frame-stat-icon">🔗</span>
               <span class="fb-action-label">Share</span>
             </button>
           </div>
@@ -133,36 +134,39 @@ export class FacebookFrame implements BasePlatformFrame {
    * Render Facebook chrome (frame without content)
    */
   renderChrome(theme: ThemeMode = 'light'): string {
+    const themeClass = theme === 'light' ? 'light-theme' : 'dark-theme';
     return `
-      <div class="fb-frame fb-frame-${theme}">
+      <div class="facebook-context ${themeClass} platform-frame">
         <div class="fb-post-card">
-          <div class="fb-post-header">
-            <div class="fb-avatar"></div>
-            <div class="fb-post-meta">
-              <span class="fb-author-name">User Name</span>
-              <span class="fb-post-time">2h · 🌍</span>
+          <div class="fb-post-header frame-post-meta">
+            <div class="fb-avatar frame-avatar">
+              <div class="frame-avatar-placeholder">?</div>
             </div>
-            <span class="fb-menu">•••</span>
+            <div class="fb-post-meta frame-user-details">
+              <span class="fb-author-name frame-username">User Name</span>
+              <span class="fb-post-time frame-timestamp"><span class="frame-timestamp-dot"></span>2h · 🌍</span>
+            </div>
+            <span class="fb-menu frame-user-badge">•••</span>
           </div>
-          <div class="fb-post-content">
-            <p class="fb-message">Post content goes here...</p>
+          <div class="fb-post-content frame-post-content">
+            <p class="fb-message frame-post-text">Post content goes here...</p>
           </div>
-          <div class="fb-post-stats">
-            <span>👍 --</span>
-            <span>💬 --</span>
-            <span>🔗 --</span>
+          <div class="fb-post-stats frame-post-stats">
+            <span class="frame-stat-item">👍 <span class="frame-stat-count">--</span></span>
+            <span class="frame-stat-item">💬 <span class="frame-stat-count">--</span></span>
+            <span class="frame-stat-item">🔗 <span class="frame-stat-count">--</span></span>
           </div>
-          <div class="fb-post-actions">
-            <button class="fb-action-btn">
-              <span class="fb-action-icon">👍</span>
+          <div class="fb-post-actions frame-post-stats">
+            <button class="fb-action-btn frame-stat-item">
+              <span class="fb-action-icon frame-stat-icon">👍</span>
               <span class="fb-action-label">Like</span>
             </button>
-            <button class="fb-action-btn">
-              <span class="fb-action-icon">💬</span>
+            <button class="fb-action-btn frame-stat-item">
+              <span class="fb-action-icon frame-stat-icon">💬</span>
               <span class="fb-action-label">Comment</span>
             </button>
-            <button class="fb-action-btn">
-              <span class="fb-action-icon">🔗</span>
+            <button class="fb-action-btn frame-stat-item">
+              <span class="fb-action-icon frame-stat-icon">🔗</span>
               <span class="fb-action-label">Share</span>
             </button>
           </div>
@@ -175,18 +179,9 @@ export class FacebookFrame implements BasePlatformFrame {
    * Get theme variables for Facebook
    */
   getThemeVars(theme: ThemeMode = 'light'): Record<string, string> {
-    const isLight = theme === 'light';
-
-    return {
-      '--fb-bg': isLight ? '#FFFFFF' : '#18191A',
-      '--fb-surface': isLight ? '#F0F2F5' : '#242526',
-      '--fb-border': isLight ? '#CED0D4' : '#3E4042',
-      '--fb-text-primary': isLight ? '#050505' : '#E4E6EB',
-      '--fb-text-secondary': isLight ? '#65676B' : '#B0B3B8',
-      '--fb-text-muted': isLight ? '#B7B8B9' : '#65676B',
-      '--fb-primary': '#1877F2',
-      '--fb-accent': '#1877F2',
-    };
+    // Facebook now uses CSS context classes, so this returns empty
+    // The theme variables are applied via .facebook-context and theme classes
+    return {};
   }
 
   /**
@@ -216,12 +211,12 @@ export class FacebookFrame implements BasePlatformFrame {
     }
 
     return `
-      <a href="#" class="fb-link-preview">
-        ${content.image ? `<div class="fb-link-image" style="background-image: url('${content.image}')"></div>` : ''}
-        <div class="fb-link-content">
-          <div class="fb-link-domain">${content.domain || 'example.com'}</div>
-          <div class="fb-link-title">${content.title || 'Link Title'}</div>
-          <div class="fb-link-description">${content.description || 'Link description...'}</div>
+      <a href="#" class="fb-link-preview frame-content-card">
+        ${content.image ? `<div class="fb-link-image frame-placeholder-image" style="background-image: url('${content.image}')"></div>` : '<div class="fb-link-image frame-placeholder-image"></div>'}
+        <div class="fb-link-content frame-neutral-content">
+          <div class="fb-link-domain frame-userhandle">${content.domain || 'example.com'}</div>
+          <div class="fb-link-title frame-username">${content.title || 'Link Title'}</div>
+          <div class="fb-link-description frame-post-text-compact">${content.description || 'Link description...'}</div>
         </div>
       </a>
     `;

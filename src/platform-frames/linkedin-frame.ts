@@ -78,52 +78,54 @@ export class LinkedInFrame implements BasePlatformFrame {
    * Render LinkedIn post frame
    */
   render(content: FrameContentData, theme: ThemeMode = 'light'): string {
-    const isLight = theme === 'light';
+    const themeClass = theme === 'light' ? 'light-theme' : 'dark-theme';
 
     return `
-      <div class="li-frame li-frame-${theme}" style="${this.getFrameStyles(theme)}">
+      <div class="linkedin-context ${themeClass} platform-frame">
         <div class="li-post-card">
           <!-- Post Header -->
-          <div class="li-post-header">
-            <div class="li-avatar"></div>
-            <div class="li-post-meta">
-              <span class="li-author-name">${content.author || 'User Name'}</span>
-              <span class="li-post-headline">${content.headline || 'Software Engineer at Tech Company'}</span>
-              <span class="li-post-time">${content.timeAgo || '2h'} · 🌐</span>
+          <div class="li-post-header frame-post-meta">
+            <div class="li-avatar frame-avatar">
+              <div class="frame-avatar-placeholder">?</div>
+            </div>
+            <div class="li-post-meta frame-user-details">
+              <span class="li-author-name frame-username">${content.author || 'User Name'}</span>
+              <span class="li-post-headline frame-userhandle">${content.headline || 'Software Engineer at Tech Company'}</span>
+              <span class="li-post-time frame-timestamp"><span class="frame-timestamp-dot"></span>${content.timeAgo || '2h'} · 🌐</span>
             </div>
           </div>
 
           <!-- Post Content -->
-          <div class="li-post-content">
-            <p class="li-message">${content.description || 'Great article on industry trends!'}</p>
+          <div class="li-post-content frame-post-content">
+            <p class="li-message frame-post-text">${content.description || 'Great article on industry trends!'}</p>
           </div>
 
           <!-- Link Preview -->
           ${this.renderLinkPreview(content, theme)}
 
           <!-- Post Stats -->
-          <div class="li-post-stats">
-            <span>👍 ${content.likeCount || '24'}</span>
-            <span>💬 ${content.commentCount || '8'}</span>
-            <span>🔁 ${content.repostCount || '3'}</span>
+          <div class="li-post-stats frame-post-stats">
+            <span class="frame-stat-item">👍 <span class="frame-stat-count">${content.likeCount || '24'}</span></span>
+            <span class="frame-stat-item">💬 <span class="frame-stat-count">${content.commentCount || '8'}</span></span>
+            <span class="frame-stat-item">🔁 <span class="frame-stat-count">${content.repostCount || '3'}</span></span>
           </div>
 
           <!-- Post Actions -->
-          <div class="li-post-actions">
-            <button class="li-action-btn">
-              <span class="li-action-icon">👍</span>
+          <div class="li-post-actions frame-post-stats">
+            <button class="li-action-btn frame-stat-item">
+              <span class="li-action-icon frame-stat-icon">👍</span>
               <span class="li-action-label">Like</span>
             </button>
-            <button class="li-action-btn">
-              <span class="li-action-icon">💬</span>
+            <button class="li-action-btn frame-stat-item">
+              <span class="li-action-icon frame-stat-icon">💬</span>
               <span class="li-action-label">Comment</span>
             </button>
-            <button class="li-action-btn">
-              <span class="li-action-icon">🔁</span>
+            <button class="li-action-btn frame-stat-item">
+              <span class="li-action-icon frame-stat-icon">🔁</span>
               <span class="li-action-label">Repost</span>
             </button>
-            <button class="li-action-btn">
-              <span class="li-action-icon">🔗</span>
+            <button class="li-action-btn frame-stat-item">
+              <span class="li-action-icon frame-stat-icon">🔗</span>
               <span class="li-action-label">Send</span>
             </button>
           </div>
@@ -136,40 +138,43 @@ export class LinkedInFrame implements BasePlatformFrame {
    * Render LinkedIn chrome (frame without content)
    */
   renderChrome(theme: ThemeMode = 'light'): string {
+    const themeClass = theme === 'light' ? 'light-theme' : 'dark-theme';
     return `
-      <div class="li-frame li-frame-${theme}">
+      <div class="linkedin-context ${themeClass} platform-frame">
         <div class="li-post-card">
-          <div class="li-post-header">
-            <div class="li-avatar"></div>
-            <div class="li-post-meta">
-              <span class="li-author-name">User Name</span>
-              <span class="li-post-headline">Software Engineer at Tech Company</span>
-              <span class="li-post-time">2h · 🌐</span>
+          <div class="li-post-header frame-post-meta">
+            <div class="li-avatar frame-avatar">
+              <div class="frame-avatar-placeholder">?</div>
+            </div>
+            <div class="li-post-meta frame-user-details">
+              <span class="li-author-name frame-username">User Name</span>
+              <span class="li-post-headline frame-userhandle">Software Engineer at Tech Company</span>
+              <span class="li-post-time frame-timestamp"><span class="frame-timestamp-dot"></span>2h · 🌐</span>
             </div>
           </div>
-          <div class="li-post-content">
-            <p class="li-message">Post content goes here...</p>
+          <div class="li-post-content frame-post-content">
+            <p class="li-message frame-post-text">Post content goes here...</p>
           </div>
-          <div class="li-post-stats">
-            <span>👍 --</span>
-            <span>💬 --</span>
-            <span>🔁 --</span>
+          <div class="li-post-stats frame-post-stats">
+            <span class="frame-stat-item">👍 <span class="frame-stat-count">--</span></span>
+            <span class="frame-stat-item">💬 <span class="frame-stat-count">--</span></span>
+            <span class="frame-stat-item">🔁 <span class="frame-stat-count">--</span></span>
           </div>
-          <div class="li-post-actions">
-            <button class="li-action-btn">
-              <span class="li-action-icon">👍</span>
+          <div class="li-post-actions frame-post-stats">
+            <button class="li-action-btn frame-stat-item">
+              <span class="li-action-icon frame-stat-icon">👍</span>
               <span class="li-action-label">Like</span>
             </button>
-            <button class="li-action-btn">
-              <span class="li-action-icon">💬</span>
+            <button class="li-action-btn frame-stat-item">
+              <span class="li-action-icon frame-stat-icon">💬</span>
               <span class="li-action-label">Comment</span>
             </button>
-            <button class="li-action-btn">
-              <span class="li-action-icon">🔁</span>
+            <button class="li-action-btn frame-stat-item">
+              <span class="li-action-icon frame-stat-icon">🔁</span>
               <span class="li-action-label">Repost</span>
             </button>
-            <button class="li-action-btn">
-              <span class="li-action-icon">🔗</span>
+            <button class="li-action-btn frame-stat-item">
+              <span class="li-action-icon frame-stat-icon">🔗</span>
               <span class="li-action-label">Send</span>
             </button>
           </div>
@@ -182,20 +187,9 @@ export class LinkedInFrame implements BasePlatformFrame {
    * Get theme variables for LinkedIn
    */
   getThemeVars(theme: ThemeMode = 'light'): Record<string, string> {
-    const isLight = theme === 'light';
-
-    return {
-      '--li-bg': isLight ? '#FFFFFF' : '#000000',
-      '--li-surface': isLight ? '#F3F2EF' : '#1A1A1A',
-      '--li-border': isLight ? '#E0E0E0' : '#2D2D2D',
-      '--li-text-primary': isLight ? '#191919' : '#FFFFFF',
-      '--li-text-secondary': isLight ? '#666666' : '#B0B0B0',
-      '--li-text-muted': isLight ? '#999999' : '#808080',
-      '--li-primary': '#0A66C2',
-      '--li-accent': '#0A66C2',
-      '--li-success': '#057A55',
-      '--li-error': '#CC1016',
-    };
+    // LinkedIn now uses CSS context classes, so this returns empty
+    // The theme variables are applied via .linkedin-context and theme classes
+    return {};
   }
 
   /**
@@ -225,11 +219,11 @@ export class LinkedInFrame implements BasePlatformFrame {
     }
 
     return `
-      <a href="#" class="li-link-preview">
-        ${content.image ? `<div class="li-link-image" style="background-image: url('${content.image}')"></div>` : ''}
-        <div class="li-link-content">
-          <div class="li-link-title">${content.title || 'Link Title'}</div>
-          <div class="li-link-domain">${content.domain || 'example.com'}</div>
+      <a href="#" class="li-link-preview frame-content-card">
+        ${content.image ? `<div class="li-link-image frame-placeholder-image" style="background-image: url('${content.image}')"></div>` : '<div class="li-link-image frame-placeholder-image"></div>'}
+        <div class="li-link-content frame-neutral-content">
+          <div class="li-link-title frame-username">${content.title || 'Link Title'}</div>
+          <div class="li-link-domain frame-userhandle">${content.domain || 'example.com'}</div>
         </div>
       </a>
     `;

@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Discord Context Frame</title>
+  <link rel="stylesheet" href="src/public/messaging-base.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'gg sans', 'Noto Sans', Helvetica, Arial, sans-serif;
+      background: #313338;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .discord-context {
+      width: 100%;
+      max-width: 900px;
+      height: 600px;
+      background: #313338;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      display: flex;
+    }
+
+    /* Server Sidebar */
+    .dc-server-sidebar {
+      width: 72px;
+      background: #1e1f22;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 0;
+      gap: 8px;
+      overflow-y: auto;
+    }
+
+    .dc-server-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #313338;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: #f2f3f5;
+      cursor: pointer;
+      transition: border-radius 0.2s ease, background-color 0.2s ease;
+      position: relative;
+    }
+
+    .dc-server-icon:hover {
+      border-radius: 16px;
+      background: #5865f2;
+    }
+
+    .dc-server-icon.active {
+      border-radius: 16px;
+      background: #5865f2;
+    }
+
+    .dc-server-icon.home {
+      background: #5865f2;
+    }
+
+    .dc-server-divider {
+      width: 32px;
+      height: 2px;
+      background: #35363c;
+      border-radius: 1px;
+      margin: 4px 0;
+    }
+
+    /* Channel Sidebar */
+    .dc-channel-sidebar {
+      width: 240px;
+      background: #2b2d31;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .dc-server-header {
+      height: 48px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid #1e1f22;
+      font-weight: 600;
+      color: #f2f3f5;
+      font-size: 14px;
+    }
+
+    .dc-server-header:hover {
+      background: #35373c;
+      cursor: pointer;
+    }
+
+    .dc-channel-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+    }
+
+    .dc-channel-category {
+      padding: 16px 8px 4px 8px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #949ba4;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    .dc-channel-item {
+      display: flex;
+      align-items: center;
+      padding: 6px 8px;
+      border-radius: 4px;
+      color: #949ba4;
+      cursor: pointer;
+      transition: background-color 0.1s ease;
+    }
+
+    .dc-channel-item:hover {
+      background: #35373c;
+      color: #dbdee1;
+    }
+
+    .dc-channel-item.active {
+      background: #404249;
+      color: #f2f3f5;
+    }
+
+    .dc-channel-icon {
+      margin-right: 6px;
+      font-size: 14px;
+    }
+
+    .dc-channel-name {
+      flex: 1;
+      font-size: 14px;
+    }
+
+    .dc-channel-unread {
+      background: #f23f43;
+      color: #ffffff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 8px;
+      margin-left: auto;
+    }
+
+    /* User Panel */
+    .dc-user-panel {
+      height: 52px;
+      background: #232428;
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+      gap: 8px;
+    }
+
+    .dc-user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #5865f2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: #ffffff;
+      position: relative;
+    }
+
+    .dc-user-status {
+      position: absolute;
+      bottom: -2px;
+      right: -2px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 3px solid #232428;
+    }
+
+    .dc-user-status.online {
+      background: #23a559;
+    }
+
+    .dc-user-status.idle {
+      background: #f0b232;
+    }
+
+    .dc-user-status.dnd {
+      background: #f23f43;
+    }
+
+    .dc-user-status.offline {
+      background: #80848e;
+    }
+
+    .dc-user-info {
+      flex: 1;
+    }
+
+    .dc-username {
+      font-size: 12px;
+      font-weight: 600;
+      color: #f2f3f5;
+    }
+
+    .dc-usertag {
+      font-size: 11px;
+      color: #949ba4;
+    }
+
+    /* Chat Area */
+    .dc-chat-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #313338;
+    }
+
+    /* Channel Header */
+    .dc-channel-header {
+      height: 48px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      border-bottom: 2px solid #1e1f22;
+      background: #313338;
+    }
+
+    .dc-channel-title {
+      display: flex;
+      align-items: center;
+      flex: 1;
+    }
+
+    .dc-channel-hash {
+      font-size: 20px;
+      color: #80848e;
+      margin-right: 8px;
+    }
+
+    .dc-channel-name-text {
+      font-size: 14px;
+      font-weight: 600;
+      color: #f2f3f5;
+    }
+
+    .dc-channel-description {
+      font-size: 12px;
+      color: #949ba4;
+      margin-left: 12px;
+    }
+
+    .dc-header-icons {
+      display: flex;
+      gap: 16px;
+      color: #b5bac1;
+    }
+
+    .dc-header-icon {
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    /* Messages Container */
+    .dc-messages {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+    }
+
+    /* Message Styles */
+    .dc-message {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 8px;
+      position: relative;
+    }
+
+    .dc-message:hover {
+      background: #2e3035;
+      margin: -8px -16px;
+      padding: 8px 16px;
+    }
+
+    .dc-avatar-container {
+      flex-shrink: 0;
+    }
+
+    .dc-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #5865f2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 600;
+      color: #ffffff;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .dc-avatar-status {
+      position: absolute;
+      bottom: -2px;
+      right: -2px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 3px solid #313338;
+    }
+
+    .dc-message-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .dc-message-header {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .dc-username {
+      font-size: 14px;
+      font-weight: 600;
+      color: #f2f3f5;
+      cursor: pointer;
+    }
+
+    .dc-username:hover {
+      text-decoration: underline;
+    }
+
+    .dc-discriminator {
+      font-size: 12px;
+      color: #949ba4;
+    }
+
+    .dc-timestamp {
+      font-size: 11px;
+      color: #949ba4;
+    }
+
+    .dc-message-body {
+      font-size: 14px;
+      line-height: 1.4;
+      color: #dbdee1;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+
+    /* Discord Embed/Card */
+    .dc-embed {
+      margin-top: 8px;
+      max-width: 520px;
+      background: #2b2d31;
+      border-left: 4px solid #5865f2;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .dc-embed-author {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 12px 0 12px;
+    }
+
+    .dc-embed-author-avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #5865f2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    .dc-embed-author-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    .dc-embed-title {
+      padding: 8px 12px 0 12px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #ffffff;
+      cursor: pointer;
+    }
+
+    .dc-embed-title:hover {
+      text-decoration: underline;
+    }
+
+    .dc-embed-description {
+      padding: 8px 12px;
+      font-size: 13px;
+      line-height: 1.4;
+      color: #dbdee1;
+    }
+
+    .dc-embed-image {
+      width: 100%;
+      height: 200px;
+      background: linear-gradient(135deg, #5865f2 0%, #4752c4 100%);
+    }
+
+    .dc-embed-fields {
+      padding: 8px 12px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .dc-embed-field {
+      padding: 4px 0;
+    }
+
+    .dc-embed-field-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: #ffffff;
+      margin-bottom: 2px;
+    }
+
+    .dc-embed-field-value {
+      font-size: 12px;
+      line-height: 1.4;
+      color: #dbdee1;
+    }
+
+    .dc-embed-footer {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: #232428;
+    }
+
+    .dc-embed-footer-icon {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #5865f2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8px;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    .dc-embed-footer-text {
+      font-size: 11px;
+      color: #949ba4;
+    }
+
+    /* Reactions */
+    .dc-reactions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 8px;
+    }
+
+    .dc-reaction {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      background: #373a3f;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .dc-reaction:hover {
+      background: #404349;
+    }
+
+    .dc-reaction.reacted {
+      border-color: #5865f2;
+    }
+
+    .dc-reaction-emoji {
+      font-size: 14px;
+    }
+
+    .dc-reaction-count {
+      color: #dbdee1;
+      font-weight: 500;
+    }
+
+    /* Reply Thread */
+    .dc-reply-thread {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 8px;
+      padding: 8px 12px;
+      background: #2b2d31;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .dc-reply-thread:hover {
+      background: #373a3f;
+    }
+
+    .dc-reply-icon {
+      color: #b5bac1;
+      font-size: 14px;
+    }
+
+    .dc-reply-count {
+      font-size: 12px;
+      color: #b5bac1;
+    }
+
+    /* Input Area */
+    .dc-input-area {
+      display: flex;
+      align-items: center;
+      padding: 0 16px 16px 16px;
+    }
+
+    .dc-input-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      background: #383a40;
+      border-radius: 8px;
+      padding: 0 16px;
+    }
+
+    .dc-input-btn {
+      color: #b5bac1;
+      font-size: 20px;
+      cursor: pointer;
+      margin-right: 8px;
+    }
+
+    .dc-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #dbdee1;
+      font-size: 14px;
+      padding: 10px 0;
+      outline: none;
+    }
+
+    .dc-input::placeholder {
+      color: #6d6f78;
+    }
+
+    .dc-send-btn {
+      color: #b5bac1;
+      font-size: 20px;
+      cursor: pointer;
+      margin-left: 8px;
+    }
+
+    /* Light theme overrides */
+    [data-theme="light"] body {
+      background: #ffffff;
+    }
+
+    [data-theme="light"] .discord-context {
+      background: #ffffff;
+    }
+
+    [data-theme="light"] .dc-server-sidebar {
+      background: #f2f3f5;
+    }
+
+    [data-theme="light"] .dc-server-icon {
+      background: #ffffff;
+    }
+
+    [data-theme="light"] .dc-server-icon:hover,
+    [data-theme="light"] .dc-server-icon.active {
+      background: #5865f2;
+      color: #ffffff;
+    }
+
+    [data-theme="light"] .dc-channel-sidebar {
+      background: #f2f3f5;
+    }
+
+    [data-theme="light"] .dc-server-header {
+      border-bottom-color: #e4e5e7;
+      color: #1e1f22;
+    }
+
+    [data-theme="light"] .dc-server-header:hover {
+      background: #e4e5e7;
+    }
+
+    [data-theme="light"] .dc-channel-item:hover {
+      background: #e4e5e7;
+      color: #1e1f22;
+    }
+
+    [data-theme="light"] .dc-channel-item.active {
+      background: #e4e5e7;
+      color: #1e1f22;
+    }
+
+    [data-theme="light"] .dc-user-panel {
+      background: #f2f3f5;
+    }
+
+    [data-theme="light"] .dc-username {
+      color: #1e1f22;
+    }
+
+    [data-theme="light"] .dc-chat-area {
+      background: #ffffff;
+    }
+
+    [data-theme="light"] .dc-channel-header {
+      background: #ffffff;
+      border-bottom-color: #e4e5e7;
+    }
+
+    [data-theme="light"] .dc-channel-name-text {
+      color: #1e1f22;
+    }
+
+    [data-theme="light"] .dc-message:hover {
+      background: #f2f3f5;
+    }
+
+    [data-theme="light"] .dc-username {
+      color: #1e1f22;
+    }
+
+    [data-theme="light"] .dc-message-body {
+      color: #1e1f22;
+    }
+
+    [data-theme="light"] .dc-embed {
+      background: #f2f3f5;
+      border-left-color: #5865f2;
+    }
+
+    [data-theme="light"] .dc-reaction {
+      background: #e4e5e7;
+    }
+
+    [data-theme="light"] .dc-reaction:hover {
+      background: #d4d5d7;
+    }
+
+    [data-theme="light"] .dc-reply-thread {
+      background: #f2f3f5;
+    }
+
+    [data-theme="light"] .dc-reply-thread:hover {
+      background: #e4e5e7;
+    }
+
+    [data-theme="light"] .dc-input-container {
+      background: #e4e5e7;
+    }
+
+    [data-theme="light"] .dc-input {
+      color: #1e1f22;
+    }
+
+    [data-theme="light"] .dc-input::placeholder {
+      color: #6d6f78;
+    }
+  </style>
+</head>
+<body>
+  <div class="discord-context">
+    <!-- Server Sidebar -->
+    <div class="dc-server-sidebar">
+      <div class="dc-server-icon home">
+        <svg width="28" height="20" viewBox="0 0 28 20" fill="currentColor">
+          <path d="M23.0212 1.67671C21.3107 0.879656 19.5079 0.318797 17.6584 0C17.4062 0.461742 17.1749 0.934541 16.9708 1.4184C15.003 1.11845 13.0025 1.11845 11.0347 1.4184C10.8306 0.934541 10.5993 0.461742 10.3471 0C8.4976 0.318797 6.69482 0.879656 4.98431 1.67671C1.47826 6.77772 0.552257 11.7474 1.01513 16.6443C3.04492 18.1161 5.28052 19.2381 7.62982 20C8.19267 19.2441 8.69095 18.4398 9.11627 17.5964C8.29007 17.2872 7.49182 16.9135 6.73014 16.4796C6.93145 16.3313 7.12844 16.1786 7.31914 16.0218C11.5634 17.9529 16.1684 17.9529 20.357 16.0218C20.5477 16.1786 20.7447 16.3313 20.946 16.4796C20.1843 16.9135 19.3861 17.2872 18.5599 17.5964C18.9852 18.4398 19.4835 19.2441 20.0463 20C22.3956 19.2381 24.6312 18.1161 26.661 16.6443C27.2031 11.0259 25.7818 6.10385 23.0212 1.67671ZM9.68041 13.6383C8.39754 13.6383 7.34085 12.4648 7.34085 11.0247C7.34085 9.58464 8.37155 8.41117 9.68041 8.41117C10.9893 8.41117 12.0459 9.58464 12.02 11.0247C12.02 12.4648 10.9893 13.6383 9.68041 13.6383ZM18.3161 13.6383C17.0332 13.6383 15.9765 12.4648 15.9765 11.0247C15.9765 9.58464 17.0072 8.41117 18.3161 8.41117C19.6249 8.41117 20.6816 9.58464 20.6557 11.0247C20.6557 12.4648 19.6249 13.6383 18.3161 13.6383Z"/>
+        </svg>
+      </div>
+      <div class="dc-server-divider"></div>
+      <div class="dc-server-icon" style="background: linear-gradient(135deg, #5865f2, #4752c4);">TS</div>
+      <div class="dc-server-icon active">DV</div>
+      <div class="dc-server-icon" style="background: linear-gradient(135deg, #eb459e, #f47b67);">G</div>
+      <div class="dc-server-icon" style="background: linear-gradient(135deg, #57f287, #3ba55d);">OS</div>
+    </div>
+
+    <!-- Channel Sidebar -->
+    <div class="dc-channel-sidebar">
+      <div class="dc-server-header">
+        <span>Dev Community</span>
+        <span>▼</span>
+      </div>
+
+      <div class="dc-channel-list">
+        <div class="dc-channel-category">Information</div>
+        <div class="dc-channel-item">
+          <span class="dc-channel-icon">📢</span>
+          <span class="dc-channel-name">announcements</span>
+        </div>
+        <div class="dc-channel-item">
+          <span class="dc-channel-icon">📋</span>
+          <span class="dc-channel-name">rules</span>
+        </div>
+
+        <div class="dc-channel-category">General</div>
+        <div class="dc-channel-item active">
+          <span class="dc-channel-icon">#</span>
+          <span class="dc-channel-name">web-development</span>
+        </div>
+        <div class="dc-channel-item">
+          <span class="dc-channel-icon">#</span>
+          <span class="dc-channel-name">javascript</span>
+          <span class="dc-channel-unread">3</span>
+        </div>
+        <div class="dc-channel-item">
+          <span class="dc-channel-icon">#</span>
+          <span class="dc-channel-name">css-tricks</span>
+        </div>
+        <div class="dc-channel-item">
+          <span class="dc-channel-icon">#</span>
+          <span class="dc-channel-name">react</span>
+        </div>
+
+        <div class="dc-channel-category">Resources</div>
+        <div class="dc-channel-item">
+          <span class="dc-channel-icon">🔗</span>
+          <span class="dc-channel-name">useful-links</span>
+        </div>
+        <div class="dc-channel-item">
+          <span class="dc-channel-icon">📚</span>
+          <span class="dc-channel-name">tutorials</span>
+        </div>
+      </div>
+
+      <!-- User Panel -->
+      <div class="dc-user-panel">
+        <div class="dc-user-avatar">
+          ME
+          <div class="dc-user-status online"></div>
+        </div>
+        <div class="dc-user-info">
+          <div class="dc-username">MyUser</div>
+          <div class="dc-usertag">#1234</div>
+        </div>
+        <div style="display: flex; gap: 8px; color: #b5bac1;">
+          <span style="font-size: 20px; cursor: pointer;">🎤</span>
+          <span style="font-size: 20px; cursor: pointer;">⚙️</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat Area -->
+    <div class="dc-chat-area">
+      <!-- Channel Header -->
+      <div class="dc-channel-header">
+        <div class="dc-channel-title">
+          <span class="dc-channel-hash">#</span>
+          <span class="dc-channel-name-text">web-development</span>
+          <span class="dc-channel-description">Discuss modern web development practices</span>
+        </div>
+        <div class="dc-header-icons">
+          <span class="dc-header-icon">🔔</span>
+          <span class="dc-header-icon">📌</span>
+          <span class="dc-header-icon">👥</span>
+          <span class="dc-header-icon">▼</span>
+        </div>
+      </div>
+
+      <!-- Messages -->
+      <div class="dc-messages">
+        <div class="dc-message">
+          <div class="dc-avatar-container">
+            <div class="dc-avatar" style="background: linear-gradient(135deg, #ed4245, #c03537);">
+              PM
+              <div class="dc-avatar-status online"></div>
+            </div>
+          </div>
+          <div class="dc-message-content">
+            <div class="dc-message-header">
+              <span class="dc-username">ProjectManager</span>
+              <span class="dc-discriminator">#4567</span>
+              <span class="dc-timestamp">Today at 9:00 AM</span>
+            </div>
+            <div class="dc-message-body">Has anyone seen this excellent resource on modern CSS techniques? It covers everything from Grid to container queries! 🎨</div>
+          </div>
+        </div>
+
+        <div class="dc-message">
+          <div class="dc-avatar-container">
+            <div class="dc-avatar" style="background: linear-gradient(135deg, #57f287, #3ba55d);">
+              JD
+              <div class="dc-avatar-status online"></div>
+            </div>
+          </div>
+          <div class="dc-message-content">
+            <div class="dc-message-header">
+              <span class="dc-username">JuniorDev</span>
+              <span class="dc-discriminator">#8901</span>
+              <span class="dc-timestamp">Today at 9:05 AM</span>
+            </div>
+            <div class="dc-message-body">Yes! That guide is amazing. I finally understand CSS Grid thanks to it.</div>
+            <div class="dc-reactions">
+              <div class="dc-reaction reacted">
+                <span class="dc-reaction-emoji">👍</span>
+                <span class="dc-reaction-count">5</span>
+              </div>
+              <div class="dc-reaction">
+                <span class="dc-reaction-emoji">🎉</span>
+                <span class="dc-reaction-count">2</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dc-message">
+          <div class="dc-avatar-container">
+            <div class="dc-avatar" style="background: linear-gradient(135deg, #5865f2, #4752c4);">
+              ME
+            </div>
+          </div>
+          <div class="dc-message-content">
+            <div class="dc-message-header">
+              <span class="dc-username">MyUser</span>
+              <span class="dc-discriminator">#1234</span>
+              <span class="dc-timestamp">Today at 9:10 AM</span>
+            </div>
+            <div class="dc-message-body">Here's the full guide with all the details and examples:</div>
+
+            <!-- Discord Embed -->
+            <div class="dc-embed">
+              <div class="dc-embed-author">
+                <div class="dc-embed-author-avatar">CSS</div>
+                <div class="dc-embed-author-name">CSS-Tricks</div>
+              </div>
+              <div class="dc-embed-title">A Complete Guide to CSS Grid</div>
+              <div class="dc-embed-description">CSS Grid Layout is the most powerful layout system available in CSS. It is a 2-dimensional system, meaning it can handle both columns and rows, unlike flexbox which is largely a 1-dimensional system.</div>
+              <div class="dc-embed-image"></div>
+              <div class="dc-embed-fields">
+                <div class="dc-embed-field">
+                  <div class="dc-embed-field-name">📚 Difficulty</div>
+                  <div class="dc-embed-field-value">Beginner to Advanced</div>
+                </div>
+                <div class="dc-embed-field">
+                  <div class="dc-embed-field-name">⏱️ Length</div>
+                  <div class="dc-embed-field-value">~45 min read</div>
+                </div>
+                <div class="dc-embed-field">
+                  <div class="dc-embed-field-name">🎯 Topics</div>
+                  <div class="dc-embed-field-value">Grid, Areas, Templates</div>
+                </div>
+                <div class="dc-embed-field">
+                  <div class="dc-embed-field-name">📝 Examples</div>
+                  <div class="dc-embed-field-value">20+ interactive demos</div>
+                </div>
+              </div>
+              <div class="dc-embed-footer">
+                <div class="dc-embed-footer-icon">CT</div>
+                <div class="dc-embed-footer-text">css-tricks.com • Updated 2 days ago</div>
+              </div>
+            </div>
+
+            <div class="dc-reactions">
+              <div class="dc-reaction reacted">
+                <span class="dc-reaction-emoji">🔥</span>
+                <span class="dc-reaction-count">8</span>
+              </div>
+              <div class="dc-reaction">
+                <span class="dc-reaction-emoji">💯</span>
+                <span class="dc-reaction-count">3</span>
+              </div>
+            </div>
+
+            <div class="dc-reply-thread">
+              <span class="dc-reply-icon">💬</span>
+              <span class="dc-reply-count">3 replies</span>
+              <span style="color: #b5bac1; margin-left: auto;">Last reply 9:15 AM</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="dc-message">
+          <div class="dc-avatar-container">
+            <div class="dc-avatar" style="background: linear-gradient(135deg, #fee75c, #f0b232);">
+              SR
+              <div class="dc-avatar-status idle"></div>
+            </div>
+          </div>
+          <div class="dc-message-content">
+            <div class="dc-message-header">
+              <span class="dc-username">SeniorReact</span>
+              <span class="dc-discriminator">#2345</span>
+              <span class="dc-timestamp">Today at 9:12 AM</span>
+            </div>
+            <div class="dc-message-body">This is perfect! I've been looking for a comprehensive Grid reference. Thanks for sharing! 🙏</div>
+            <div class="dc-reactions">
+              <div class="dc-reaction">
+                <span class="dc-reaction-emoji">❤️</span>
+                <span class="dc-reaction-count">1</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input Area -->
+      <div class="dc-input-area">
+        <div class="dc-input-container">
+          <span class="dc-input-btn">➕</span>
+          <input type="text" class="dc-input" placeholder="Message #web-development">
+          <span class="dc-input-btn">🙂</span>
+          <span class="dc-send-btn">➤</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Theme toggle for testing
+    let currentTheme = 'dark';
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 't' || e.key === 'T') {
+        currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        console.log(`Theme switched to ${currentTheme} mode`);
+      }
+    });
+    console.log('Discord frame loaded. Press T to toggle theme.');
+  </script>
+</body>
+</html>

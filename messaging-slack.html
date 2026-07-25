@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slack Context Frame</title>
+  <link rel="stylesheet" href="src/public/messaging-base.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+      background: #1a1d1d;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .slack-context {
+      width: 100%;
+      max-width: 900px;
+      height: 600px;
+      background: #1a1d1d;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      display: flex;
+    }
+
+    /* Workspace Sidebar */
+    .sl-workspace-sidebar {
+      width: 64px;
+      background: #3f0e40;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 0;
+      gap: 8px;
+    }
+
+    .sl-workspace-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: #4a154b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      color: #ffffff;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 3px solid transparent;
+    }
+
+    .sl-workspace-icon:hover {
+      border-color: #e01e5a;
+    }
+
+    .sl-workspace-icon.active {
+      background: #ffffff;
+      color: #4a154b;
+    }
+
+    .sl-workspace-divider {
+      width: 32px;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.2);
+      margin: 4px 0;
+    }
+
+    /* Channel Sidebar */
+    .sl-channel-sidebar {
+      width: 260px;
+      background: #3f0e40;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sl-workspace-header {
+      height: 56px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .sl-workspace-header:hover {
+      cursor: pointer;
+    }
+
+    .sl-channel-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+    }
+
+    .sl-channel-section {
+      margin-bottom: 16px;
+    }
+
+    .sl-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.7);
+      cursor: pointer;
+    }
+
+    .sl-section-header:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .sl-channel-item {
+      display: flex;
+      align-items: center;
+      padding: 6px 8px;
+      border-radius: 4px;
+      color: rgba(255, 255, 255, 0.8);
+      cursor: pointer;
+      transition: background 0.1s ease;
+    }
+
+    .sl-channel-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .sl-channel-item.active {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .sl-channel-icon {
+      margin-right: 8px;
+      font-size: 14px;
+    }
+
+    .sl-channel-name {
+      flex: 1;
+      font-size: 14px;
+    }
+
+    .sl-channel-unread {
+      background: #e01e5a;
+      color: #ffffff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 10px;
+      margin-left: auto;
+    }
+
+    /* Chat Area */
+    .sl-chat-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #1a1d1d;
+    }
+
+    /* Channel Header */
+    .sl-channel-header {
+      height: 56px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .sl-channel-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sl-channel-hash {
+      font-size: 20px;
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    .sl-channel-name-text {
+      font-size: 16px;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    .sl-channel-description {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .sl-header-icons {
+      display: flex;
+      gap: 16px;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .sl-header-icon {
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    /* Messages Container */
+    .sl-messages {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+    }
+
+    /* Message Styles */
+    .sl-message {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .sl-message:hover {
+      background: rgba(255, 255, 255, 0.03);
+      margin: -8px -16px;
+      padding: 8px 16px;
+    }
+
+    .sl-avatar-container {
+      flex-shrink: 0;
+    }
+
+    .sl-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 4px;
+      background: #4a154b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+      color: #ffffff;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .sl-avatar-status {
+      position: absolute;
+      bottom: -2px;
+      right: -2px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 2px solid #1a1d1d;
+    }
+
+    .sl-avatar-status.online {
+      background: #2bac76;
+    }
+
+    .sl-avatar-status.away {
+      background: #e01e5a;
+    }
+
+    .sl-message-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .sl-message-header {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .sl-username {
+      font-size: 14px;
+      font-weight: 700;
+      color: #ffffff;
+      cursor: pointer;
+    }
+
+    .sl-username:hover {
+      text-decoration: underline;
+    }
+
+    .sl-time {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .sl-message-body {
+      font-size: 14px;
+      line-height: 1.5;
+      color: #ffffff;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      margin-bottom: 8px;
+    }
+
+    /* Slack Card Attachment (Unfurl) */
+    .sl-card-attachment {
+      margin-top: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      overflow: hidden;
+      max-width: 500px;
+    }
+
+    .sl-card-header {
+      display: flex;
+      padding: 12px;
+      gap: 12px;
+    }
+
+    .sl-card-thumb {
+      width: 100px;
+      height: 100px;
+      background: linear-gradient(135deg, #4a154b 0%, #2d1b2e 100%);
+      border-radius: 4px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    .sl-card-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .sl-card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #ffffff;
+      margin-bottom: 4px;
+      cursor: pointer;
+      line-height: 1.3;
+    }
+
+    .sl-card-title:hover {
+      text-decoration: underline;
+    }
+
+    .sl-card-description {
+      font-size: 13px;
+      line-height: 1.4;
+      color: rgba(255, 255, 255, 0.7);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .sl-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: rgba(0, 0, 0, 0.2);
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .sl-card-domain {
+      font-weight: 500;
+    }
+
+    /* File Attachment */
+    .sl-file-attachment {
+      margin-top: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 12px;
+      max-width: 400px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .sl-file-thumb {
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, #1264a3 0%, #0d4a7c 100%);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    .sl-file-info {
+      flex: 1;
+    }
+
+    .sl-file-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #ffffff;
+      margin-bottom: 4px;
+    }
+
+    .sl-file-meta {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    /* Reactions */
+    .sl-reactions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 8px;
+    }
+
+    .sl-reaction {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      cursor: pointer;
+      font-size: 12px;
+      border: 1px solid transparent;
+    }
+
+    .sl-reaction:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .sl-reaction.reacted {
+      border-color: #4a154b;
+      background: rgba(74, 21, 75, 0.3);
+    }
+
+    .sl-reaction-emoji {
+      font-size: 14px;
+    }
+
+    .sl-reaction-count {
+      color: rgba(255, 255, 255, 0.8);
+      font-weight: 600;
+    }
+
+    /* Thread Reply Indicator */
+    .sl-thread-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .sl-thread-indicator:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .sl-thread-icon {
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 14px;
+    }
+
+    .sl-thread-count {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .sl-thread-preview {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.5);
+      margin-left: auto;
+    }
+
+    /* Input Area */
+    .sl-input-area {
+      display: flex;
+      align-items: center;
+      padding: 0 16px 16px 16px;
+    }
+
+    .sl-input-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 0 12px;
+    }
+
+    .sl-input-btn {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 20px;
+      cursor: pointer;
+      margin-right: 8px;
+    }
+
+    .sl-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #ffffff;
+      font-size: 14px;
+      padding: 10px 0;
+      outline: none;
+    }
+
+    .sl-input::placeholder {
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    .sl-send-btn {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 20px;
+      cursor: pointer;
+      margin-left: 8px;
+    }
+
+    /* Light theme overrides */
+    [data-theme="light"] body {
+      background: #ffffff;
+    }
+
+    [data-theme="light"] .slack-context {
+      background: #ffffff;
+    }
+
+    [data-theme="light"] .sl-workspace-sidebar {
+      background: #4a154b;
+    }
+
+    [data-theme="light"] .sl-channel-sidebar {
+      background: #ffffff;
+      border-right: 1px solid #e8e8e8;
+    }
+
+    [data-theme="light"] .sl-workspace-header {
+      border-bottom-color: #e8e8e8;
+      color: #1d1c1d;
+    }
+
+    [data-theme="light"] .sl-section-header {
+      color: #616061;
+    }
+
+    [data-theme="light"] .sl-section-header:hover {
+      background: #f8f8f8;
+    }
+
+    [data-theme="light"] .sl-channel-item {
+      color: #1d1c1d;
+    }
+
+    [data-theme="light"] .sl-channel-item:hover {
+      background: #f8f8f8;
+    }
+
+    [data-theme="light"] .sl-channel-item.active {
+      background: #e8e8e8;
+    }
+
+    [data-theme="light"] .sl-chat-area {
+      background: #ffffff;
+    }
+
+    [data-theme="light"] .sl-channel-header {
+      border-bottom-color: #e8e8e8;
+    }
+
+    [data-theme="light"] .sl-channel-hash {
+      color: #1d1c1d;
+    }
+
+    [data-theme="light"] .sl-channel-name-text {
+      color: #1d1c1d;
+    }
+
+    [data-theme="light"] .sl-channel-description {
+      color: #616061;
+    }
+
+    [data-theme="light"] .sl-message:hover {
+      background: #f8f8f8;
+    }
+
+    [data-theme="light"] .sl-username {
+      color: #1d1c1d;
+    }
+
+    [data-theme="light"] .sl-message-body {
+      color: #1d1c1d;
+    }
+
+    [data-theme="light"] .sl-card-attachment {
+      background: #f8f8f8;
+      border-color: #e8e8e8;
+    }
+
+    [data-theme="light"] .sl-card-title {
+      color: #1264a3;
+    }
+
+    [data-theme="light"] .sl-card-description {
+      color: #616061;
+    }
+
+    [data-theme="light"] .sl-card-footer {
+      background: #e8e8e8;
+      color: #616061;
+    }
+
+    [data-theme="light"] .sl-file-attachment {
+      background: #f8f8f8;
+      border-color: #e8e8e8;
+    }
+
+    [data-theme="light"] .sl-file-name {
+      color: #1264a3;
+    }
+
+    [data-theme="light"] .sl-file-meta {
+      color: #616061;
+    }
+
+    [data-theme="light"] .sl-reaction {
+      background: #e8e8e8;
+    }
+
+    [data-theme="light"] .sl-reaction:hover {
+      background: #d4d4d4;
+    }
+
+    [data-theme="light"] .sl-reaction.reacted {
+      background: #4a154b;
+      color: #ffffff;
+    }
+
+    [data-theme="light"] .sl-thread-indicator {
+      background: #f8f8f8;
+    }
+
+    [data-theme="light"] .sl-thread-indicator:hover {
+      background: #e8e8e8;
+    }
+
+    [data-theme="light"] .sl-input-container {
+      background: #f8f8f8;
+    }
+
+    [data-theme="light"] .sl-input {
+      color: #1d1c1d;
+    }
+
+    [data-theme="light"] .sl-input::placeholder {
+      color: #616061;
+    }
+  </style>
+</head>
+<body>
+  <div class="slack-context">
+    <!-- Workspace Sidebar -->
+    <div class="sl-workspace-sidebar">
+      <div class="sl-workspace-icon active">TC</div>
+      <div class="sl-workspace-divider"></div>
+      <div class="sl-workspace-icon">DV</div>
+      <div class="sl-workspace-icon">OS</div>
+    </div>
+
+    <!-- Channel Sidebar -->
+    <div class="sl-channel-sidebar">
+      <div class="sl-workspace-header">
+        <span>Tech Community</span>
+        <span>✏️</span>
+      </div>
+
+      <div class="sl-channel-list">
+        <div class="sl-channel-section">
+          <div class="sl-section-header">
+            <span>Channels</span>
+            <span>+</span>
+          </div>
+          <div class="sl-channel-item active">
+            <span class="sl-channel-icon">#</span>
+            <span class="sl-channel-name">web-dev</span>
+          </div>
+          <div class="sl-channel-item">
+            <span class="sl-channel-icon">#</span>
+            <span class="sl-channel-name">javascript</span>
+            <span class="sl-channel-unread">5</span>
+          </div>
+          <div class="sl-channel-item">
+            <span class="sl-channel-icon">#</span>
+            <span class="sl-channel-name">css-tricks</span>
+          </div>
+          <div class="sl-channel-item">
+            <span class="sl-channel-icon">#</span>
+            <span class="sl-channel-name">react-framework</span>
+          </div>
+          <div class="sl-channel-item">
+            <span class="sl-channel-icon">🔒</span>
+            <span class="sl-channel-name">dev-team</span>
+          </div>
+        </div>
+
+        <div class="sl-channel-section">
+          <div class="sl-section-header">
+            <span>Direct Messages</span>
+            <span>+</span>
+          </div>
+          <div class="sl-channel-item">
+            <span class="sl-channel-icon">●</span>
+            <span class="sl-channel-name">Sarah Chen</span>
+            <div class="sl-avatar-status online" style="width: 8px; height: 8px; margin-left: auto;"></div>
+          </div>
+          <div class="sl-channel-item">
+            <span class="sl-channel-icon">○</span>
+            <span class="sl-channel-name">Mike Johnson</span>
+          </div>
+          <div class="sl-channel-item">
+            <span class="sl-channel-icon">○</span>
+            <span class="sl-channel-name">Emily Davis</span>
+            <div class="sl-avatar-status away" style="width: 8px; height: 8px; margin-left: auto;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat Area -->
+    <div class="sl-chat-area">
+      <!-- Channel Header -->
+      <div class="sl-channel-header">
+        <div class="sl-channel-title">
+          <span class="sl-channel-hash">#</span>
+          <span class="sl-channel-name-text">web-dev</span>
+          <span class="sl-channel-description"> | Web development best practices and resources</span>
+        </div>
+        <div class="sl-header-icons">
+          <span class="sl-header-icon">📌</span>
+          <span class="sl-header-icon">👥</span>
+          <span class="sl-header-icon">⚙️</span>
+        </div>
+      </div>
+
+      <!-- Messages -->
+      <div class="sl-messages">
+        <div class="sl-message">
+          <div class="sl-avatar-container">
+            <div class="sl-avatar" style="background: linear-gradient(135deg, #e01e5a, #c71a45);">
+              PM
+              <div class="sl-avatar-status online"></div>
+            </div>
+          </div>
+          <div class="sl-message-content">
+            <div class="sl-message-header">
+              <span class="sl-username">Project Manager</span>
+              <span class="sl-time">9:00 AM</span>
+            </div>
+            <div class="sl-message-body">Check out this amazing resource on modern web development practices! This covers everything from CSS Grid to performance optimization. 🚀</div>
+
+            <!-- Card Attachment (Unfurl) -->
+            <div class="sl-card-attachment">
+              <div class="sl-card-header">
+                <div class="sl-card-thumb">📚</div>
+                <div class="sl-card-info">
+                  <div class="sl-card-title">Modern Web Development Best Practices - A Complete Guide 2024</div>
+                  <div class="sl-card-description">Discover the latest techniques and tools for building modern, performant web applications. From CSS Grid to container queries, this comprehensive guide covers it all.</div>
+                </div>
+              </div>
+              <div class="sl-card-footer">
+                <span class="sl-card-domain">webdevguides.com</span>
+                <span>Updated today</span>
+              </div>
+            </div>
+
+            <div class="sl-reactions">
+              <div class="sl-reaction reacted">
+                <span class="sl-reaction-emoji">🔥</span>
+                <span class="sl-reaction-count">7</span>
+              </div>
+              <div class="sl-reaction">
+                <span class="sl-reaction-emoji">👍</span>
+                <span class="sl-reaction-count">3</span>
+              </div>
+            </div>
+
+            <div class="sl-thread-indicator">
+              <span class="sl-thread-icon">💬</span>
+              <span class="sl-thread-count">4 replies</span>
+              <span class="sl-thread-preview">Last reply 9:20 AM by Sarah</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sl-message">
+          <div class="sl-avatar-container">
+            <div class="sl-avatar" style="background: linear-gradient(135deg, #1264a3, #0d4a7c);">
+              SC
+              <div class="sl-avatar-status online"></div>
+            </div>
+          </div>
+          <div class="sl-message-content">
+            <div class="sl-message-header">
+              <span class="sl-username">Sarah Chen</span>
+              <span class="sl-time">9:05 AM</span>
+            </div>
+            <div class="sl-message-body">This is perfect! I've been looking for a good resource on CSS Grid. The examples are really clear and easy to follow.</div>
+            <div class="sl-reactions">
+              <div class="sl-reaction">
+                <span class="sl-reaction-emoji">💯</span>
+                <span class="sl-reaction-count">2</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sl-message">
+          <div class="sl-avatar-container">
+            <div class="sl-avatar" style="background: linear-gradient(135deg, #2bac76, #1e8a5c);">
+              MJ
+              <div class="sl-avatar-status away"></div>
+            </div>
+          </div>
+          <div class="sl-message-content">
+            <div class="sl-message-header">
+              <span class="sl-username">Mike Johnson</span>
+              <span class="sl-time">9:10 AM</span>
+            </div>
+            <div class="sl-message-body">I've attached the component library we discussed. It has all the reusable components from our last project.</div>
+
+            <!-- File Attachment -->
+            <div class="sl-file-attachment">
+              <div class="sl-file-thumb">📁</div>
+              <div class="sl-file-info">
+                <div class="sl-file-name">component-library.zip</div>
+                <div class="sl-file-meta">24.5 MB • ZIP file</div>
+              </div>
+            </div>
+
+            <div class="sl-reactions">
+              <div class="sl-reaction reacted">
+                <span class="sl-reaction-emoji">🎉</span>
+                <span class="sl-reaction-count">5</span>
+              </div>
+              <div class="sl-reaction">
+                <span class="sl-reaction-emoji">😍</span>
+                <span class="sl-reaction-count">1</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sl-message">
+          <div class="sl-avatar-container">
+            <div class="sl-avatar" style="background: linear-gradient(135deg, #e67e22, #d35400);">
+              ED
+              <div class="sl-avatar-status online"></div>
+            </div>
+          </div>
+          <div class="sl-message-content">
+            <div class="sl-message-header">
+              <span class="sl-username">Emily Davis</span>
+              <span class="sl-time">9:15 AM</span>
+            </div>
+            <div class="sl-message-body">Thanks for sharing! This component library is exactly what we needed for the new dashboard project. The documentation is really well done too. 👍</div>
+            <div class="sl-reactions">
+              <div class="sl-reaction">
+                <span class="sl-reaction-emoji">❤️</span>
+                <span class="sl-reaction-count">1</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input Area -->
+      <div class="sl-input-area">
+        <div class="sl-input-container">
+          <span class="sl-input-btn">➕</span>
+          <input type="text" class="sl-input" placeholder="Message #web-dev">
+          <span class="sl-input-btn">😊</span>
+          <span class="sl-send-btn">➤</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Theme toggle for testing
+    let currentTheme = 'dark';
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 't' || e.key === 'T') {
+        currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        console.log(`Theme switched to ${currentTheme} mode`);
+      }
+    });
+    console.log('Slack frame loaded. Press T to toggle theme.');
+  </script>
+</body>
+</html>

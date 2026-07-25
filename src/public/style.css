@@ -1455,6 +1455,14 @@ body.has-results { padding-bottom: 48px; }
 .google-domain { color: #006621; font-size: 12px; }
 .google-favicon { width: 16px; height: 16px; background: #eee; border-radius: 2px; display: inline-block; }
 
+/* Shared social-feed frame chrome — driven by the frameType config
+   (facebook, twitter, linkedin all carry frameType: 'social-feed').
+   Provides consistent feed framing on top of each platform's own -context
+   rules. Purely additive: no per-platform overrides are removed. */
+.context-frame.frame-type-social-feed { border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px var(--frame-overlay, rgba(0,0,0,0.15)); }
+.context-frame.frame-type-social-feed .fb-post-content,
+.context-frame.frame-type-social-feed .li-post-content { word-break: break-word; }
+
 /* Facebook Context */
 .facebook-context { background: var(--frame-bg); max-width: 500px; }
 .fb-post-header { display: flex; gap: 10px; padding: 12px; background: var(--frame-surface); }
@@ -1462,6 +1470,7 @@ body.has-results { padding-bottom: 48px; }
 .fb-post-meta { display: flex; flex-direction: column; }
 .fb-author-name { font-weight: 600; color: var(--frame-text-primary); font-size: 14px; }
 .fb-post-time { font-size: 12px; color: var(--frame-text-secondary); }
+.fb-author-handle { color: var(--frame-text-secondary); }
 .fb-menu { color: var(--frame-text-secondary); margin-left: auto; }
 .fb-post-content { padding: 8px 12px; background: var(--frame-surface); color: var(--frame-text-primary); }
 .fb-link-preview { background: var(--frame-accent-bg); border-radius: 8px; overflow: hidden; margin: 8px 12px; }

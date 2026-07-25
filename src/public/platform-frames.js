@@ -130,7 +130,7 @@ const PLATFORM_FRAMES = {
         <div class="fb-avatar"></div>
         <div class="fb-post-meta">
           <span class="fb-author-name">Jane Smith</span>
-          <span class="fb-post-time">2h · 🌍</span>
+          <span class="fb-post-time"><span class="fb-author-handle">@jane.smith</span> · 2h · 🌍</span>
         </div>
         <span class="fb-menu">•••</span>
       </div>
@@ -3518,7 +3518,17 @@ function buildContextFrame(platformId, content, theme = 'dark') {
     ...content,
   });
 
-  return `<div id="${frameInstanceId}" class="context-frame ${platformId}-context${themeSuffix}" data-platform="${platformId}" data-theme="${theme}" style="${getInlineThemeStyles(platformId, theme)}">${frameHTML}</div>`;
+  // Surface the frameType (e.g. 'social-feed') sourced from the centralized
+  // platform-frames.config via renderPlatformWithContext. Surfacing it on the
+  // wrapper lets shared chrome styling — the realistic feed chrome for the
+  // social-feed platforms (facebook, twitter, linkedin) — be driven by the
+  // config's frameType rather than a per-platform class list. Defensive: only
+  // emitted when a frameType was provided by the caller.
+  const frameType = content.frameType || (frame.frameType || '');
+  const frameTypeClass = frameType ? ` frame-type-${frameType}` : '';
+  const frameTypeAttr = frameType ? ` data-frame-type="${frameType}"` : '';
+
+  return `<div id="${frameInstanceId}" class="context-frame ${platformId}-context${themeSuffix}${frameTypeClass}" data-platform="${platformId}" data-theme="${theme}"${frameTypeAttr} style="${getInlineThemeStyles(platformId, theme)}">${frameHTML}</div>`;
 }
 
 /**

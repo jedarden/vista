@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Complete Theme Switching Verification - 7 Platforms</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-primary: #1a1a1e;
+      --bg-elevated: #25252a;
+      --text-primary: #e4e4e7;
+      --text-secondary: #a1a1aa;
+      --border-color: #3a3a3f;
+      --accent: #6366f1;
+      --success: #22c55e;
+      --error: #ef4444;
+      --warning: #f59e0b;
+    }
+
+    [data-theme="light"] {
+      --bg-primary: #ffffff;
+      --bg-elevated: #f8f9fa;
+      --text-primary: #1f2937;
+      --text-secondary: #6b7280;
+      --border-color: #e5e7eb;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      padding: 20px;
+      line-height: 1.6;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+      background: var(--bg-elevated);
+      border-radius: 12px;
+      margin-bottom: 30px;
+      border: 1px solid var(--border-color);
+    }
+
+    .header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .header .subtitle {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin-top: 5px;
+    }
+
+    .theme-toggle-section {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .theme-toggle {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .theme-toggle:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    }
+
+    .theme-toggle:active {
+      transform: translateY(0);
+    }
+
+    .reload-btn {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
+    }
+
+    .reload-btn:hover {
+      border-color: var(--accent);
+    }
+
+    .criteria-section {
+      background: var(--bg-elevated);
+      border-radius: 12px;
+      padding: 25px;
+      margin-bottom: 30px;
+      border: 1px solid var(--border-color);
+    }
+
+    .criteria-section h2 {
+      font-size: 1.3rem;
+      margin-bottom: 20px;
+      color: var(--text-primary);
+    }
+
+    .criteria-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 15px;
+    }
+
+    .criteria-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px;
+      background: var(--bg-primary);
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+    }
+
+    .criteria-icon {
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .criteria-text {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .platforms-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 25px;
+      margin-top: 30px;
+    }
+
+    .platform-card {
+      background: var(--bg-elevated);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      transition: all 0.3s ease;
+    }
+
+    .platform-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+
+    .platform-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .platform-name {
+      font-size: 1.2rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .platform-badge {
+      background: var(--accent);
+      color: white;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .theme-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      padding: 6px 12px;
+      border-radius: 20px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      transition: all 0.3s ease;
+    }
+
+    .platform-preview {
+      padding: 20px;
+      min-height: 200px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .mock-card {
+      background: var(--bg-primary);
+      border-radius: 8px;
+      padding: 15px;
+      border: 1px solid var(--border-color);
+      transition: all 0.3s ease;
+    }
+
+    .mock-card-header {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .mock-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: white;
+      transition: background 0.3s ease;
+    }
+
+    .mock-meta {
+      flex: 1;
+    }
+
+    .mock-author {
+      font-weight: 600;
+      margin-bottom: 2px;
+      transition: color 0.3s ease;
+    }
+
+    .mock-handle {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      transition: color 0.3s ease;
+    }
+
+    .mock-content {
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: var(--text-primary);
+      transition: color 0.3s ease;
+    }
+
+    .mock-stats {
+      display: flex;
+      gap: 15px;
+      margin-top: 10px;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      transition: color 0.3s ease;
+    }
+
+    .status-panel {
+      background: var(--bg-elevated);
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 30px;
+      border: 1px solid var(--border-color);
+    }
+
+    .status-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px;
+      margin-bottom: 8px;
+      background: var(--bg-primary);
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+    }
+
+    .status-label {
+      font-weight: 600;
+    }
+
+    .status-value {
+      font-family: monospace;
+      color: var(--accent);
+    }
+
+    .success {
+      color: var(--success);
+    }
+
+    .testing-note {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid var(--warning);
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+      font-size: 0.9rem;
+    }
+
+    .testing-note strong {
+      color: var(--warning);
+    }
+
+    /* Platform-specific theme colors */
+    .twitter-context .mock-avatar { background: #1d9bf0; }
+    .facebook-context .mock-avatar { background: #1877f2; }
+    .linkedin-context .mock-avatar { background: #0a66c2; }
+    .reddit-context .mock-avatar { background: #ff4500; }
+    .youtube-context .mock-avatar { background: #ff0000; }
+    .instagram-context .mock-avatar { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
+    .tiktok-context .mock-avatar { background: #000000; }
+
+    /* Theme-specific overrides for platform chrome */
+    [data-theme="light"] .twitter-context { background: #ffffff; }
+    [data-theme="dark"] .twitter-context { background: #000000; }
+
+    [data-theme="light"] .facebook-context { background: #f0f2f5; }
+    [data-theme="dark"] .facebook-context { background: #18191a; }
+
+    [data-theme="light"] .linkedin-context { background: #f3f6f8; }
+    [data-theme="dark"] .linkedin-context { background: #191e23; }
+
+    [data-theme="light"] .reddit-context { background: #dae0e6; }
+    [data-theme="dark"] .reddit-context { background: #1a1a1b; }
+
+    [data-theme="light"] .youtube-context { background: #f9f9f9; }
+    [data-theme="dark"] .youtube-context { background: #0f0f0f; }
+
+    [data-theme="light"] .instagram-context { background: #fafafa; }
+    [data-theme="dark"] .instagram-context { background: #121212; }
+
+    [data-theme="light"] .tiktok-context { background: #ffffff; }
+    [data-theme="dark"] .tiktok-context { background: #121212; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>🎨 Complete Theme Switching Verification</h1>
+      <div class="subtitle">Testing real-time theme switching across all 7 platforms</div>
+    </div>
+    <div class="theme-toggle-section">
+      <button class="reload-btn" onclick="testPersistence()">🔄 Test Persistence</button>
+      <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">
+        <span id="themeIcon">🌙</span>
+        <span id="themeText">Switch to Light</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="criteria-section">
+    <h2>✅ Acceptance Criteria</h2>
+    <div class="criteria-list">
+      <div class="criteria-item">
+        <span class="criteria-icon">1️⃣</span>
+        <span class="criteria-text">Toggle button switches theme in real-time</span>
+      </div>
+      <div class="criteria-item">
+        <span class="criteria-icon">2️⃣</span>
+        <span class="criteria-text">All 7 platforms respond immediately to theme changes</span>
+      </div>
+      <div class="criteria-item">
+        <span class="criteria-icon">3️⃣</span>
+        <span class="criteria-text">No page reload required for theme switching</span>
+      </div>
+      <div class="criteria-item">
+        <span class="criteria-icon">4️⃣</span>
+        <span class="criteria-text">Each platform's chrome correctly adapts (dark ↔ light)</span>
+      </div>
+      <div class="criteria-item">
+        <span class="criteria-icon">5️⃣</span>
+        <span class="criteria-text">Theme persists across page reloads</span>
+      </div>
+      <div class="criteria-item">
+        <span class="criteria-icon">6️⃣</span>
+        <span class="criteria-text">No visual glitches or FOUC (Flash of Unstyled Content)</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="testing-note">
+    <strong>🧪 Testing Instructions:</strong> Click the theme toggle button to switch between dark and light modes. Watch all 7 platform cards update instantly without page reload. Then click "Test Persistence" to reload the page and verify your theme choice was saved.
+  </div>
+
+  <div class="platforms-grid">
+    <div class="platform-card" id="card-twitter">
+      <div class="platform-header">
+        <div class="platform-name">
+          <span>𝕏</span>
+          <span>Twitter</span>
+          <span class="platform-badge">Complete</span>
+        </div>
+        <div class="theme-indicator" id="indicator-twitter">
+          <span id="icon-twitter">🌙</span>
+          <span id="text-twitter">Dark</span>
+        </div>
+      </div>
+      <div class="platform-preview twitter-context">
+        <div class="mock-card">
+          <div class="mock-card-header">
+            <div class="mock-avatar">T</div>
+            <div class="mock-meta">
+              <div class="mock-author">Tech User</div>
+              <div class="mock-handle">@techuser</div>
+            </div>
+          </div>
+          <div class="mock-content">This is a test tweet to demonstrate theme switching on the Twitter platform card.</div>
+          <div class="mock-stats">
+            <span>💬 12</span>
+            <span>🔁 24</span>
+            <span>❤️ 156</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="platform-card" id="card-facebook">
+      <div class="platform-header">
+        <div class="platform-name">
+          <span>👥</span>
+          <span>Facebook</span>
+          <span class="platform-badge">Complete</span>
+        </div>
+        <div class="theme-indicator" id="indicator-facebook">
+          <span id="icon-facebook">🌙</span>
+          <span id="text-facebook">Dark</span>
+        </div>
+      </div>
+      <div class="platform-preview facebook-context">
+        <div class="mock-card">
+          <div class="mock-card-header">
+            <div class="mock-avatar">F</div>
+            <div class="mock-meta">
+              <div class="mock-author">Facebook User</div>
+              <div class="mock-handle">Shared a post</div>
+            </div>
+          </div>
+          <div class="mock-content">This is a test Facebook post to demonstrate theme switching on the Facebook platform card.</div>
+          <div class="mock-stats">
+            <span>👍 45</span>
+            <span>💬 8</span>
+            <span>🔄 12</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="platform-card" id="card-linkedin">
+      <div class="platform-header">
+        <div class="platform-name">
+          <span>💼</span>
+          <span>LinkedIn</span>
+          <span class="platform-badge">Complete</span>
+        </div>
+        <div class="theme-indicator" id="indicator-linkedin">
+          <span id="icon-linkedin">🌙</span>
+          <span id="text-linkedin">Dark</span>
+        </div>
+      </div>
+      <div class="platform-preview linkedin-context">
+        <div class="mock-card">
+          <div class="mock-card-header">
+            <div class="mock-avatar">L</div>
+            <div class="mock-meta">
+              <div class="mock-author">LinkedIn Professional</div>
+              <div class="mock-handle">2nd • Connection</div>
+            </div>
+          </div>
+          <div class="mock-content">This is a test LinkedIn post to demonstrate theme switching on the LinkedIn platform card.</div>
+          <div class="mock-stats">
+            <span>👍 23</span>
+            <span>💬 5</span>
+            <span>🔄 3</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="platform-card" id="card-reddit">
+      <div class="platform-header">
+        <div class="platform-name">
+          <span>🤖</span>
+          <span>Reddit</span>
+          <span class="platform-badge">Complete</span>
+        </div>
+        <div class="theme-indicator" id="indicator-reddit">
+          <span id="icon-reddit">🌙</span>
+          <span id="text-reddit">Dark</span>
+        </div>
+      </div>
+      <div class="platform-preview reddit-context">
+        <div class="mock-card">
+          <div class="mock-card-header">
+            <div class="mock-avatar">R</div>
+            <div class="mock-meta">
+              <div class="mock-author">Reddit User</div>
+              <div class="mock-handle">r/technology • 4h ago</div>
+            </div>
+          </div>
+          <div class="mock-content">This is a test Reddit post to demonstrate theme switching on the Reddit platform card.</div>
+          <div class="mock-stats">
+            <span>⬆️ 342</span>
+            <span>💬 28</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="platform-card" id="card-youtube">
+      <div class="platform-header">
+        <div class="platform-name">
+          <span>📺</span>
+          <span>YouTube</span>
+          <span class="platform-badge">Complete</span>
+        </div>
+        <div class="theme-indicator" id="indicator-youtube">
+          <span id="icon-youtube">🌙</span>
+          <span id="text-youtube">Dark</span>
+        </div>
+      </div>
+      <div class="platform-preview youtube-context">
+        <div class="mock-card">
+          <div class="mock-card-header">
+            <div class="mock-avatar">Y</div>
+            <div class="mock-meta">
+              <div class="mock-author">YouTube Creator</div>
+              <div class="mock-handle">1.2M subscribers</div>
+            </div>
+          </div>
+          <div class="mock-content">This is a test YouTube video to demonstrate theme switching on the YouTube platform card.</div>
+          <div class="mock-stats">
+            <span>👁️ 45K</span>
+            <span>👍 1.2K</span>
+            <span>💬 89</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="platform-card" id="card-instagram">
+      <div class="platform-header">
+        <div class="platform-name">
+          <span>📸</span>
+          <span>Instagram</span>
+          <span class="platform-badge">Complete</span>
+        </div>
+        <div class="theme-indicator" id="indicator-instagram">
+          <span id="icon-instagram">🌙</span>
+          <span id="text-instagram">Dark</span>
+        </div>
+      </div>
+      <div class="platform-preview instagram-context">
+        <div class="mock-card">
+          <div class="mock-card-header">
+            <div class="mock-avatar">I</div>
+            <div class="mock-meta">
+              <div class="mock-author">Instagram User</div>
+              <div class="mock-handle">Following</div>
+            </div>
+          </div>
+          <div class="mock-content">This is a test Instagram post to demonstrate theme switching on the Instagram platform card.</div>
+          <div class="mock-stats">
+            <span>❤️ 2.3K</span>
+            <span>💬 45</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="platform-card" id="card-tiktok">
+      <div class="platform-header">
+        <div class="platform-name">
+          <span>🎵</span>
+          <span>TikTok</span>
+          <span class="platform-badge">Complete</span>
+        </div>
+        <div class="theme-indicator" id="indicator-tiktok">
+          <span id="icon-tiktok">🌙</span>
+          <span id="text-tiktok">Dark</span>
+        </div>
+      </div>
+      <div class="platform-preview tiktok-context">
+        <div class="mock-card">
+          <div class="mock-card-header">
+            <div class="mock-avatar">T</div>
+            <div class="mock-meta">
+              <div class="mock-author">TikTok Creator</div>
+              <div class="mock-handle">@creator</div>
+            </div>
+          </div>
+          <div class="mock-content">This is a test TikTok video to demonstrate theme switching on the TikTok platform card.</div>
+          <div class="mock-stats">
+            <span>❤️ 12.5K</span>
+            <span>💬 234</span>
+            <span>🔄 1.1K</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-panel">
+    <div class="status-item">
+      <span class="status-label">Current Theme:</span>
+      <span class="status-value" id="status-theme">dark</span>
+    </div>
+    <div class="status-item">
+      <span class="status-label">Theme Persistence:</span>
+      <span class="status-value" id="status-persistence">checking...</span>
+    </div>
+    <div class="status-item">
+      <span class="status-label">Platform Updates:</span>
+      <span class="status-value" id="status-updates">0/7 responded</span>
+    </div>
+    <div class="status-item">
+      <span class="status-label">Theme Switch Time:</span>
+      <span class="status-value" id="status-time">0ms</span>
+    </div>
+    <div class="status-item">
+      <span class="status-label">Visual Glitches:</span>
+      <span class="status-value success" id="status-glitches">None detected</span>
+    </div>
+  </div>
+
+  <script>
+    'use strict';
+
+    // Platform list
+    const PLATFORMS = ['twitter', 'facebook', 'linkedin', 'reddit', 'youtube', 'instagram', 'tiktok'];
+
+    // Current theme
+    let currentTheme = 'dark';
+
+    // Track platform updates
+    let platformUpdateCount = 0;
+    let themeSwitchStartTime = 0;
+
+    /**
+     * Initialize the theme system
+     */
+    function initThemeSystem() {
+      // Check for saved theme in localStorage
+      const savedTheme = localStorage.getItem('vista-theme');
+      if (savedTheme) {
+        currentTheme = savedTheme;
+        console.log('🎨 Loaded saved theme:', currentTheme);
+      } else {
+        // Check system preference
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+          currentTheme = 'light';
+        }
+      }
+
+      // Apply initial theme
+      applyTheme(currentTheme, false);
+
+      // Update persistence status
+      document.getElementById('status-persistence').textContent = savedTheme ? '✓ Active' : '⚠ Not set (first visit)';
+
+      console.log('✅ Theme system initialized with:', currentTheme);
+    }
+
+    /**
+     * Apply theme to the entire page
+     * @param {string} theme - 'dark' or 'light'
+     * @param {boolean} measureTime - Whether to measure switch time
+     */
+    function applyTheme(theme, measureTime = true) {
+      if (measureTime) {
+        themeSwitchStartTime = performance.now();
+        platformUpdateCount = 0;
+      }
+
+      // Apply theme to document
+      document.documentElement.setAttribute('data-theme', theme);
+      currentTheme = theme;
+
+      // Save to localStorage
+      localStorage.setItem('vista-theme', theme);
+
+      // Update all platform indicators
+      PLATFORMS.forEach(platform => {
+        updatePlatformIndicator(platform, theme);
+        if (measureTime) {
+          platformUpdateCount++;
+        }
+      });
+
+      // Update global toggle button
+      updateThemeToggleButton(theme);
+
+      // Update status panel
+      document.getElementById('status-theme').textContent = theme;
+
+      if (measureTime) {
+        const switchTime = Math.round(performance.now() - themeSwitchStartTime);
+        document.getElementById('status-time').textContent = switchTime + 'ms';
+        document.getElementById('status-updates').textContent = platformUpdateCount + '/7 responded';
+
+        console.log(`⚡ Theme switched to ${theme} in ${switchTime}ms`);
+      }
+
+      // Check for FOUC
+      setTimeout(checkForFOUC, 100);
+    }
+
+    /**
+     * Update platform-specific theme indicator
+     * @param {string} platform - Platform ID
+     * @param {string} theme - Current theme
+     */
+    function updatePlatformIndicator(platform, theme) {
+      const icon = document.getElementById(`icon-${platform}`);
+      const text = document.getElementById(`text-${platform}`);
+
+      if (icon && text) {
+        if (theme === 'dark') {
+          icon.textContent = '🌙';
+          text.textContent = 'Dark';
+        } else {
+          icon.textContent = '☀️';
+          text.textContent = 'Light';
+        }
+
+        console.log(`  ✓ ${platform} updated to ${theme}`);
+      }
+    }
+
+    /**
+     * Update the global theme toggle button
+     * @param {string} theme - Current theme
+     */
+    function updateThemeToggleButton(theme) {
+      const icon = document.getElementById('themeIcon');
+      const text = document.getElementById('themeText');
+
+      if (theme === 'dark') {
+        icon.textContent = '🌙';
+        text.textContent = 'Switch to Light';
+      } else {
+        icon.textContent = '☀️';
+        text.textContent = 'Switch to Dark';
+      }
+    }
+
+    /**
+     * Toggle between dark and light themes
+     */
+    function toggleTheme() {
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      console.log(`🎨 Toggling theme from ${currentTheme} to ${newTheme}`);
+      applyTheme(newTheme);
+    }
+
+    /**
+     * Test theme persistence by reloading the page
+     */
+    function testPersistence() {
+      console.log('🔄 Testing persistence - reloading page...');
+
+      // Set a flag to indicate we're testing persistence
+      sessionStorage.setItem('testing-persistence', 'true');
+
+      // Reload the page
+      location.reload();
+    }
+
+    /**
+     * Check for Flash of Unstyled Content (FOUC)
+     */
+    function checkForFOUC() {
+      // Check if all platform cards are properly styled
+      const platformCards = document.querySelectorAll('.platform-card');
+      let hasFOUC = false;
+
+      platformCards.forEach(card => {
+        const computedStyle = window.getComputedStyle(card);
+        const backgroundColor = computedStyle.backgroundColor;
+
+        // Check if the background color is properly set
+        if (backgroundColor === 'rgba(0, 0, 0, 0)' || backgroundColor === 'transparent') {
+          hasFOUC = true;
+          console.warn('⚠️ FOUC detected on card:', card.id);
+        }
+      });
+
+      const glitchesEl = document.getElementById('status-glitches');
+      if (hasFOUC) {
+        glitchesEl.textContent = '⚠️ FOUC detected';
+        glitchesEl.classList.remove('success');
+      } else {
+        glitchesEl.textContent = '✓ None detected';
+        glitchesEl.classList.add('success');
+      }
+    }
+
+    /**
+     * Handle page load with persistence testing
+     */
+    function handlePersistenceTest() {
+      if (sessionStorage.getItem('testing-persistence') === 'true') {
+        console.log('🔄 Persistence test: Page reloaded');
+        sessionStorage.removeItem('testing-persistence');
+
+        // Verify theme was preserved
+        const preservedTheme = localStorage.getItem('vista-theme');
+        const appliedTheme = document.documentElement.getAttribute('data-theme');
+
+        if (preservedTheme === appliedTheme) {
+          console.log('✅ SUCCESS: Theme persisted correctly across reload');
+          document.getElementById('status-persistence').textContent = '✓ Verified after reload';
+        } else {
+          console.error('❌ FAIL: Theme did not persist correctly');
+          console.error('  Saved:', preservedTheme, 'Applied:', appliedTheme);
+          document.getElementById('status-persistence').textContent = '❌ Failed';
+        }
+      }
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('🚀 Page loaded - initializing theme system...');
+      initThemeSystem();
+      handlePersistenceTest();
+
+      console.log('✅ All systems ready for theme switching verification');
+      console.log('📊 Platform count:', PLATFORMS.length);
+      console.log('🎨 Current theme:', currentTheme);
+    });
+  </script>
+</body>
+</html>

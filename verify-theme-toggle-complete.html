@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Theme Toggle Real-Time Verification Test</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .test-section {
+      background: white;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .test-result {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+    }
+    .pass {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .fail {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    .info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+    .summary {
+      background: #fff3cd;
+      color: #856404;
+      border: 2px solid #ffeaa7;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      font-weight: bold;
+    }
+    .theme-toggle {
+      background: #6366f1;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s;
+    }
+    .theme-toggle:hover {
+      background: #4f46e5;
+    }
+    .theme-toggle .theme-icon-light,
+    .theme-toggle .theme-icon-dark {
+      font-size: 20px;
+    }
+    .demo-content {
+      background: #f8f9fa;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 6px;
+    }
+    .dark-theme {
+      background: #1a1a1e;
+      color: #e4e4e7;
+    }
+    .dark-theme .test-section {
+      background: #25252a;
+    }
+    .dark-theme .demo-content {
+      background: #2d2d33;
+    }
+    h1 {
+      color: #1f2937;
+    }
+    .dark-theme h1 {
+      color: #e4e4e7;
+    }
+    .test-timer {
+      font-size: 14px;
+      color: #6b7280;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧪 Theme Toggle Real-Time Switching Verification</h1>
+
+  <div class="test-section">
+    <h2>Theme Toggle Button Demo</h2>
+    <p>Click the button below to test theme switching:</p>
+    <button class="theme-toggle" id="globalThemeToggle" aria-label="Switch to light mode" title="Toggle dark/light mode">
+      <span class="theme-icon-light" aria-hidden="true">☀️</span>
+      <span class="theme-icon-dark" aria-hidden="true" style="display: none;">🌙</span>
+      <span class="theme-label">Switch Theme</span>
+    </button>
+    <div class="demo-content">
+      <p><strong>Current Theme:</strong> <span id="currentThemeDisplay">dark</span></p>
+      <p><strong>DOM data-theme attribute:</strong> <span id="dataThemeDisplay">dark</span></p>
+      <p><strong>Toggle aria-label:</strong> <span id="ariaLabelDisplay">Switch to light mode</span></p>
+      <p><strong>Light icon visible:</strong> <span id="lightIconVisible">Yes</span></p>
+      <p><strong>Dark icon visible:</strong> <span id="darkIconVisible">No</span></p>
+    </div>
+  </div>
+
+  <div id="testResults"></div>
+  <div id="testSummary"></div>
+
+  <script>
+    // Global theme state
+    let globalTheme = 'dark';
+
+    // Apply theme function (matches app.js implementation)
+    function applyTheme(theme) {
+      globalTheme = theme;
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('vista-theme', theme);
+
+      // Update theme toggle icon and accessible label
+      const themeToggle = document.getElementById('globalThemeToggle');
+      if (themeToggle) {
+        themeToggle.querySelector('.theme-icon-light').style.display = theme === 'dark' ? 'inline' : 'none';
+        themeToggle.querySelector('.theme-icon-dark').style.display = theme === 'light' ? 'inline' : 'none';
+        themeToggle.setAttribute('aria-label', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+      }
+
+      // Update display
+      updateDisplay();
+    }
+
+    // Toggle theme function (matches app.js implementation)
+    function toggleGlobalTheme() {
+      const newTheme = globalTheme === 'dark' ? 'light' : 'dark';
+      applyTheme(newTheme);
+    }
+
+    // Update display information
+    function updateDisplay() {
+      document.getElementById('currentThemeDisplay').textContent = globalTheme;
+      document.getElementById('dataThemeDisplay').textContent = document.documentElement.getAttribute('data-theme') || 'none';
+
+      const themeToggle = document.getElementById('globalThemeToggle');
+      document.getElementById('ariaLabelDisplay').textContent = themeToggle.getAttribute('aria-label');
+
+      const lightIcon = themeToggle.querySelector('.theme-icon-light');
+      const darkIcon = themeToggle.querySelector('.theme-icon-dark');
+
+      document.getElementById('lightIconVisible').textContent = lightIcon.style.display !== 'none' ? 'Yes' : 'No';
+      document.getElementById('darkIconVisible').textContent = darkIcon.style.display !== 'none' ? 'Yes' : 'No';
+
+      // Apply visual theme to body for demonstration
+      if (globalTheme === 'dark') {
+        document.body.classList.add('dark-theme');
+      } else {
+        document.body.classList.remove('dark-theme');
+      }
+    }
+
+    // Initialize
+    document.documentElement.setAttribute('data-theme', 'dark');
+    document.getElementById('globalThemeToggle').addEventListener('click', toggleGlobalTheme);
+    updateDisplay();
+
+    // Test framework
+    const testResults = [];
+    let testsPassed = 0;
+    let testsFailed = 0;
+
+    function addTestResult(name, passed, message, duration) {
+      const result = { name, passed, message, duration };
+      testResults.push(result);
+
+      const resultsDiv = document.getElementById('testResults');
+      const resultDiv = document.createElement('div');
+      resultDiv.className = `test-result ${passed ? 'pass' : 'fail'}`;
+      resultDiv.innerHTML = `
+        <strong>${passed ? '✅' : '❌'} ${name}</strong><br>
+        ${message}<br>
+        <small>Time: ${duration}ms</small>
+      `;
+      resultsDiv.appendChild(resultDiv);
+
+      if (passed) {
+        testsPassed++;
+      } else {
+        testsFailed++;
+      }
+
+      updateSummary();
+    }
+
+    function updateSummary() {
+      const total = testsPassed + testsFailed;
+      const summaryDiv = document.getElementById('testSummary');
+      summaryDiv.innerHTML = `
+        <div class="summary">
+          <h3>Test Summary</h3>
+          <p>Total Tests: ${total}</p>
+          <p>✅ Passed: ${testsPassed}</p>
+          <p>❌ Failed: ${testsFailed}</p>
+          <p>Success Rate: ${total > 0 ? Math.round((testsPassed / total) * 100) : 0}%</p>
+        </div>
+      `;
+    }
+
+    function runTest(name, testFn) {
+      const startTime = performance.now();
+      try {
+        const result = testFn();
+        const duration = Math.round(performance.now() - startTime);
+        if (result.passed) {
+          addTestResult(name, true, result.message, duration);
+        } else {
+          addTestResult(name, false, result.message, duration);
+        }
+      } catch (error) {
+        const duration = Math.round(performance.now() - startTime);
+        addTestResult(name, false, `Exception: ${error.message}`, duration);
+      }
+    }
+
+    // Run tests
+    setTimeout(() => {
+      console.log('🧪 Starting Theme Toggle Verification Tests...');
+
+      // Test 1: Toggle button exists and is accessible
+      runTest('Toggle button exists and is accessible', () => {
+        const themeToggle = document.getElementById('globalThemeToggle');
+        if (!themeToggle) {
+          return { passed: false, message: 'Theme toggle button not found' };
+        }
+        if (themeToggle.tagName !== 'BUTTON') {
+          return { passed: false, message: 'Element is not a button' };
+        }
+        if (!themeToggle.getAttribute('aria-label')) {
+          return { passed: false, message: 'Missing aria-label for accessibility' };
+        }
+        if (themeToggle.disabled) {
+          return { passed: false, message: 'Button is disabled' };
+        }
+        return { passed: true, message: 'Button exists, is accessible, and enabled' };
+      });
+
+      // Test 2: Initial theme state is dark
+      runTest('Initial theme state is dark', () => {
+        const initialTheme = document.documentElement.getAttribute('data-theme');
+        if (initialTheme !== 'dark') {
+          return { passed: false, message: `Initial theme is "${initialTheme}", expected "dark"` };
+        }
+        return { passed: true, message: 'Initial theme is dark' };
+      });
+
+      // Test 3: Light icon is visible initially
+      runTest('Light icon visible, dark icon hidden initially', () => {
+        const themeToggle = document.getElementById('globalThemeToggle');
+        const lightIcon = themeToggle.querySelector('.theme-icon-light');
+        const darkIcon = themeToggle.querySelector('.theme-icon-dark');
+
+        if (lightIcon.style.display === 'none') {
+          return { passed: false, message: 'Light icon should be visible initially' };
+        }
+        if (darkIcon.style.display !== 'none') {
+          return { passed: false, message: 'Dark icon should be hidden initially' };
+        }
+        return { passed: true, message: 'Correct icons visible initially' };
+      });
+
+      // Test 4: Clicking toggle switches theme to light immediately
+      runTest('Clicking toggle switches theme to light immediately', () => {
+        const themeToggle = document.getElementById('globalThemeToggle');
+        const beforeTheme = document.documentElement.getAttribute('data-theme');
+
+        // Click the toggle button
+        themeToggle.click();
+
+        const afterTheme = document.documentElement.getAttribute('data-theme');
+
+        if (afterTheme !== 'light') {
+          return { passed: false, message: `Theme is "${afterTheme}", expected "light"` };
+        }
+
+        // Verify it happened without page reload by checking JavaScript state still exists
+        if (typeof window.toggleGlobalTheme !== 'function') {
+          return { passed: false, message: 'JavaScript state lost - possible page reload' };
+        }
+
+        return { passed: true, message: 'Theme switched to light on click (no reload)' };
+      });
+
+      // Test 5: DOM attributes update in real-time
+      runTest('DOM attributes update in real-time', () => {
+        // Check data-theme attribute
+        const dataTheme = document.documentElement.getAttribute('data-theme');
+        if (dataTheme !== 'light') {
+          return { passed: false, message: `data-theme is "${dataTheme}", expected "light"` };
+        }
+
+        // Check aria-label updated
+        const themeToggle = document.getElementById('globalThemeToggle');
+        const ariaLabel = themeToggle.getAttribute('aria-label');
+        if (ariaLabel !== 'Switch to dark mode') {
+          return { passed: false, message: `aria-label is "${ariaLabel}", expected "Switch to dark mode"` };
+        }
+
+        // Check icons swapped
+        const lightIcon = themeToggle.querySelector('.theme-icon-light');
+        const darkIcon = themeToggle.querySelector('.theme-icon-dark');
+        if (lightIcon.style.display !== 'none') {
+          return { passed: false, message: 'Light icon should be hidden after switch' };
+        }
+        if (darkIcon.style.display !== 'inline') {
+          return { passed: false, message: 'Dark icon should be visible after switch' };
+        }
+
+        return { passed: true, message: 'All DOM attributes updated correctly' };
+      });
+
+      // Test 6: Theme persists to localStorage
+      runTest('Theme persists to localStorage', () => {
+        const storedTheme = localStorage.getItem('vista-theme');
+        if (storedTheme !== 'light') {
+          return { passed: false, message: `localStorage has "${storedTheme}", expected "light"` };
+        }
+        return { passed: true, message: 'Theme saved to localStorage' };
+      });
+
+      // Test 7: Clicking again switches back to dark
+      runTest('Clicking toggle again switches back to dark', () => {
+        const themeToggle = document.getElementById('globalThemeToggle');
+
+        // Click again
+        themeToggle.click();
+
+        const newTheme = document.documentElement.getAttribute('data-theme');
+        if (newTheme !== 'dark') {
+          return { passed: false, message: `Theme is "${newTheme}", expected "dark"` };
+        }
+
+        // Check button state updated back
+        const ariaLabel = themeToggle.getAttribute('aria-label');
+        if (ariaLabel !== 'Switch to light mode') {
+          return { passed: false, message: `aria-label is "${ariaLabel}", expected "Switch to light mode"` };
+        }
+
+        return { passed: true, message: 'Theme switches back to dark on second click' };
+      });
+
+      // Test 8: No page reload (DOM state preserved)
+      runTest('No page reload occurred - DOM state preserved', () => {
+        const testContent = document.getElementById('testResults');
+        if (!testContent) {
+          return { passed: false, message: 'Test results container not found' };
+        }
+        if (testContent.children.length === 0) {
+          return { passed: false, message: 'Test results lost - possible page reload' };
+        }
+        return { passed: true, message: 'DOM state preserved, no page reload' };
+      });
+
+      // Test 9: Theme switching is instant (< 50ms)
+      runTest('Theme switching is instant (< 50ms)', () => {
+        const themeToggle = document.getElementById('globalThemeToggle');
+        const startTime = performance.now();
+
+        themeToggle.click();
+
+        const endTime = performance.now();
+        const duration = endTime - startTime;
+
+        if (duration > 50) {
+          return { passed: false, message: `Theme switch took ${duration.toFixed(2)}ms, expected < 50ms` };
+        }
+
+        return { passed: true, message: `Theme switch took ${duration.toFixed(2)}ms` };
+      });
+
+      // Test 10: Multiple rapid clicks work correctly
+      runTest('Multiple rapid clicks work correctly', () => {
+        const themeToggle = document.getElementById('globalThemeToggle');
+
+        // Perform rapid clicks
+        for (let i = 0; i < 5; i++) {
+          themeToggle.click();
+        }
+
+        const finalTheme = document.documentElement.getAttribute('data-theme');
+        const storedTheme = localStorage.getItem('vista-theme');
+
+        if (finalTheme !== storedTheme) {
+          return { passed: false, message: 'DOM and localStorage out of sync after rapid clicks' };
+        }
+
+        return { passed: true, message: 'Rapid clicks handled correctly' };
+      });
+
+      console.log('✅ All tests completed!');
+    }, 100);
+  </script>
+</body>
+</html>

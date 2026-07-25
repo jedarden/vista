@@ -6360,6 +6360,41 @@ html[data-theme='light'] .image-diff-slider-handle {
 .so-answer-content { flex: 1; }
 .so-answer-body { color: var(--frame-text-primary); font-size: 14px; line-height: 1.5; margin-bottom: 8px; }
 .so-answer-meta { color: var(--frame-text-secondary); font-size: 12px; }
+/* Enhanced Stack Overflow elements */
+.so-question-body { color: var(--frame-text-primary); font-size: 15px; line-height: 1.6; margin-bottom: 12px; }
+.so-code-block { background: #2d2d2d; border: 1px solid var(--frame-border); border-radius: 4px; padding: 12px; margin: 12px 0; font-family: 'SF Mono', 'Fira Code', Consolas, monospace; font-size: 13px; line-height: 1.5; overflow-x: auto; color: #d4d4d4; }
+.so-code-block .keyword { color: #569cd6; font-weight: 600; }
+.so-code-block .string { color: #ce9178; }
+.so-code-block .comment { color: #6a9955; font-style: italic; }
+.so-code-block .function { color: #dcdcaa; }
+.so-code-block .number { color: #b5cea8; }
+.so-user-card { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.so-user-avatar { width: 32px; height: 32px; border-radius: 4px; background: var(--frame-accent); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; color: #fff; }
+.so-user-info { display: flex; flex-direction: column; }
+.so-user-name { font-weight: 600; color: var(--frame-text-primary); font-size: 13px; }
+.so-user-reputation { color: var(--frame-text-secondary); font-size: 11px; }
+.so-badge { display: inline-flex; align-items: center; padding: 2px 6px; border-radius: 3px; font-size: 10px; font-weight: 600; margin-right: 4px; }
+.so-badge-gold { background: #ffcc01; color: #3c2e04; }
+.so-badge-silver { background: #c4c4c4; color: #3c3c3c; }
+.so-badge-bronze { background: #d4a048; color: #3c2e04; }
+.so-link-card { background: var(--frame-surface); border: 1px solid var(--frame-border); border-radius: 6px; padding: 12px; margin: 12px 0; display: flex; gap: 12px; align-items: flex-start; }
+.so-link-card-icon { width: 48px; height: 48px; background: var(--frame-accent); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+.so-link-card-content { flex: 1; min-width: 0; }
+.so-link-card-title { font-weight: 600; color: var(--frame-link-color); font-size: 14px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.so-link-card-description { color: var(--frame-text-secondary); font-size: 12px; line-height: 1.4; margin-bottom: 6px; }
+.so-link-card-domain { color: var(--frame-text-muted); font-size: 11px; }
+.so-accepted-answer { border: 2px solid var(--frame-accent); background: var(--frame-accent-bg); }
+.so-tabs { display: flex; gap: 24px; padding: 12px 16px; border-bottom: 1px solid var(--frame-border); background: var(--frame-surface); }
+.so-tab { color: var(--frame-text-secondary); font-size: 13px; cursor: pointer; padding: 4px 8px; border-radius: 3px; }
+.so-tab:hover { color: var(--frame-text-primary); }
+.so-tab.active { color: var(--frame-accent); font-weight: 600; }
+.so-tab-count { background: var(--frame-border); padding: 2px 6px; border-radius: 10px; font-size: 11px; margin-left: 4px; }
+.html[data-theme='light'] .so-code-block { background: #f6f8fa; color: #24292f; }
+.html[data-theme='light'] .so-code-block .keyword { color: #d73a49; }
+.html[data-theme='light'] .so-code-block .string { color: #032f62; }
+.html[data-theme='light'] .so-code-block .comment { color: #6a737d; }
+.html[data-theme='light'] .so-code-block .function { color: #6f42c1; }
+.html[data-theme='light'] .so-code-block .number { color: #005cc5; }
 
 /* Hacker News Context */
 .hackernews-context { background: var(--frame-bg); border-radius: 6px; overflow: hidden; }

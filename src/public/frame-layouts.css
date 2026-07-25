@@ -256,69 +256,69 @@
 
 /* Google-specific layout */
 .google-context.search-frame {
-  background: #fff;
+  background: var(--frame-bg);
   border-radius: 0;
   box-shadow: none;
   border: none;
 }
 
 .google-context[data-frame-theme='dark'] {
-  background: #202124;
+  background: var(--frame-bg);
 }
 
 .google-context .frame-search-title {
-  color: #8ab4f8;
+  color: var(--google-accent);
 }
 
 .google-context[data-frame-theme='light'] .frame-search-title {
-  color: #1a0dab;
+  color: var(--google-link-color);
 }
 
 /* Facebook-specific layout */
 .facebook-context.card-frame {
-  background: #f0f2f5;
+  background: var(--frame-bg);
 }
 
 .facebook-context[data-frame-theme='dark'] {
-  background: #18191a;
+  background: var(--frame-bg);
 }
 
 /* Twitter/X-specific layout */
 .twitter-context.card-frame {
-  background: var(--twitter-bg, #ffffff);
+  background: var(--frame-bg);
 }
 
 .twitter-context[data-frame-theme='dark'] {
-  background: var(--twitter-bg, #000000);
+  background: var(--frame-bg);
 }
 
 /* LinkedIn-specific layout */
 .linkedin-context.card-frame {
-  background: #f3f6f8;
+  background: var(--frame-bg);
 }
 
 .linkedin-context[data-frame-theme='dark'] {
-  background: #1d2226;
+  background: var(--frame-bg);
 }
 
 /* Slack-specific layout */
 .slack-context.message-frame {
-  background: #fff;
-  border-left: 3px solid var(--slack-accent, #6366f1);
+  background: var(--frame-bg);
+  border-left: 3px solid var(--slack-accent);
 }
 
 .slack-context[data-frame-theme='dark'] {
-  background: #1a1d1d;
+  background: var(--frame-bg);
 }
 
 /* Discord-specific layout */
 .discord-context.message-frame {
-  background: #36393f;
-  border-left: 3px solid var(--discord-accent, #5865f2);
+  background: var(--frame-bg);
+  border-left: 3px solid var(--discord-accent);
 }
 
 .discord-context[data-frame-theme='light'] {
-  background: #ffffff;
+  background: var(--frame-bg);
 }
 
 /* ============================================================================

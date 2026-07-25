@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Platform Context Frames Demo - Vista</title>
+
+  <!-- Enhanced CSS for platform frames -->
+  <link rel="stylesheet" href="platform-frames-enhanced.css">
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+
+    .demo-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .demo-header h1 {
+      color: #1a1a1a;
+      margin-bottom: 8px;
+    }
+
+    .demo-header p {
+      color: #666;
+      font-size: 16px;
+    }
+
+    .demo-section {
+      margin-bottom: 60px;
+    }
+
+    .demo-section h2 {
+      color: #333;
+      border-bottom: 2px solid #4f46e5;
+      padding-bottom: 8px;
+      margin-bottom: 20px;
+    }
+
+    .platform-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 24px;
+      margin-bottom: 30px;
+    }
+
+    .frame-wrapper {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .frame-wrapper h3 {
+      margin-top: 0;
+      margin-bottom: 12px;
+      color: #333;
+      font-size: 16px;
+    }
+
+    .theme-toggle {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+      justify-content: flex-end;
+    }
+
+    .theme-toggle button {
+      padding: 8px 16px;
+      border: 1px solid #ddd;
+      background: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .theme-toggle button:hover {
+      background: #f5f5f5;
+    }
+
+    .theme-toggle button.active {
+      background: #4f46e5;
+      color: white;
+      border-color: #4f46e5;
+    }
+
+    .stats-panel {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: bold;
+      color: #4f46e5;
+    }
+
+    .stat-label {
+      color: #666;
+      font-size: 14px;
+      margin-top: 4px;
+    }
+
+    .code-example {
+      background: #1a1a1a;
+      color: #e0e0e0;
+      padding: 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: 'Monaco', 'Consolas', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      margin: 16px 0;
+    }
+
+    .category-tag {
+      display: inline-block;
+      padding: 4px 8px;
+      background: #4f46e5;
+      color: white;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-left: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-header">
+    <h1>🎨 Platform Context Frames Demo</h1>
+    <p>Comprehensive examples of Vista's platform context frame system</p>
+  </div>
+
+  <!-- Statistics Panel -->
+  <div class="stats-panel">
+    <h2 style="margin-top: 0;">Platform Frame Statistics</h2>
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-value" id="total-platforms">-</div>
+        <div class="stat-label">Total Platforms</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="theme-platforms">-</div>
+        <div class="stat-label">Theme Support</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="social-platforms">-</div>
+        <div class="stat-label">Social Platforms</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="messaging-platforms">-</div>
+        <div class="stat-label">Messaging Platforms</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Social Media Platforms -->
+  <div class="demo-section">
+    <h2>Social Media Platforms <span class="category-tag">Social</span></h2>
+    <p style="color: #666; margin-bottom: 20px;">Frames for social media posts and engagement metrics</p>
+
+    <div class="platform-grid">
+      <!-- Twitter Frame -->
+      <div class="frame-wrapper">
+        <h3>𝕏 Twitter</h3>
+        <div class="theme-toggle">
+          <button class="active" onclick="toggleTheme('twitter', 'dark', this)">Dark</button>
+          <button onclick="toggleTheme('twitter', 'light', this)">Light</button>
+        </div>
+        <div id="twitter-container"></div>
+      </div>
+
+      <!-- Facebook Frame -->
+      <div class="frame-wrapper">
+        <h3>📘 Facebook</h3>
+        <div class="theme-toggle">
+          <button class="active" onclick="toggleTheme('facebook', 'dark', this)">Dark</button>
+          <button onclick="toggleTheme('facebook', 'light', this)">Light</button>
+        </div>
+        <div id="facebook-container"></div>
+      </div>
+
+      <!-- LinkedIn Frame -->
+      <div class="frame-wrapper">
+        <h3>💼 LinkedIn</h3>
+        <div class="theme-toggle">
+          <button class="active" onclick="toggleTheme('linkedin', 'dark', this)">Dark</button>
+          <button onclick="toggleTheme('linkedin', 'light', this)">Light</button>
+        </div>
+        <div id="linkedin-container"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Messaging Platforms -->
+  <div class="demo-section">
+    <h2>Messaging Platforms <span class="category-tag">Messaging</span></h2>
+    <p style="color: #666; margin-bottom: 20px;">Frames for messaging apps and chat platforms</p>
+
+    <div class="platform-grid">
+      <!-- Slack Frame -->
+      <div class="frame-wrapper">
+        <h3>💬 Slack</h3>
+        <div class="theme-toggle">
+          <button class="active" onclick="toggleTheme('slack', 'dark', this)">Dark</button>
+          <button onclick="toggleTheme('slack', 'light', this)">Light</button>
+        </div>
+        <div id="slack-container"></div>
+      </div>
+
+      <!-- Discord Frame -->
+      <div class="frame-wrapper">
+        <h3>🎮 Discord</h3>
+        <div class="theme-toggle">
+          <button class="active" onclick="toggleTheme('discord', 'dark', this)">Dark</button>
+          <button onclick="toggleTheme('discord', 'light', this)">Light</button>
+        </div>
+        <div id="discord-container"></div>
+      </div>
+
+      <!-- iMessage Frame -->
+      <div class="frame-wrapper">
+        <h3>💬 iMessage</h3>
+        <div class="theme-toggle">
+          <button class="active" onclick="toggleTheme('imessage', 'dark', this)">Dark</button>
+          <button onclick="toggleTheme('imessage', 'light', this)">Light</button>
+        </div>
+        <div id="imessage-container"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Developer Platforms -->
+  <div class="demo-section">
+    <h2>Developer Platforms <span class="category-tag">Collaboration</span></h2>
+    <p style="color: #666; margin-bottom: 20px;">Frames for developer tools and collaboration platforms</p>
+
+    <div class="platform-grid">
+      <!-- GitHub Frame -->
+      <div class="frame-wrapper">
+        <h3>🐙 GitHub</h3>
+        <div class="theme-toggle">
+          <button class="active" onclick="toggleTheme('github', 'dark', this)">Dark</button>
+          <button onclick="toggleTheme('github', 'light', this)">Light</button>
+        </div>
+        <div id="github-container"></div>
+      </div>
+
+      <!-- Stack Overflow Frame -->
+      <div class="frame-wrapper">
+        <h3>📚 Stack Overflow</h3>
+        <div class="theme-toggle">
+          <button class="active" onclick="toggleTheme('stackoverflow', 'dark', this)">Dark</button>
+          <button onclick="toggleTheme('stackoverflow', 'light', this)">Light</button>
+        </div>
+        <div id="stackoverflow-container"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Code Example -->
+  <div class="demo-section">
+    <h2>Usage Example</h2>
+    <p style="color: #666; margin-bottom: 20px;">How to use the platform frames API</p>
+
+    <div class="code-example">
+// Basic usage
+const frameHTML = buildContextFrame('twitter', {
+  title: 'Amazing Article',
+  description: 'Check out this great content',
+  image: 'https://example.com/image.jpg',
+  domain: 'example.com',
+  author: 'Developer',
+  timeAgo: '2h'
+}, 'dark');
+
+// Enhanced rendering with validation and caching
+const result = PlatformFramesRenderer.buildEnhancedFrame(
+  'linkedin',
+  {
+    title: 'Professional Post',
+    description: 'Industry insights and trends',
+    image: 'https://example.com/image.jpg',
+    domain: 'linkedin.com'
+  },
+  'light',
+  {
+    useCache: true,
+    validate: true,
+    accessibility: true,
+    responsive: true
+  }
+);
+
+// Render directly into container
+PlatformFramesRenderer.renderFrame(
+  document.getElementById('container'),
+  'slack',
+  { title: 'Check this out!', domain: 'example.com' },
+  'dark'
+);
+
+// Theme management
+if (hasThemeSupport('twitter')) {
+  const vars = getThemeVars('twitter', 'dark');
+  console.log('Theme variables:', vars);
+}
+    </div>
+  </div>
+
+  <!-- Load platform frames modules -->
+  <script src="platform-frames.js"></script>
+  <script src="platform-frames-renderer.js"></script>
+
+  <script>
+    // Sample content for demonstration
+    const sampleContent = {
+      title: 'Amazing Web Development Article',
+      description: 'Check out this comprehensive guide to modern web development practices, covering everything from HTML5 to advanced JavaScript frameworks.',
+      image: 'https://picsum.photos/800/600',
+      domain: 'example.com',
+      site: 'Example.com',
+      author: 'Developer',
+      timeAgo: '2h',
+      dominantColor: '#4f46e5'
+    };
+
+    // Platform configurations
+    const platforms = ['twitter', 'facebook', 'linkedin', 'slack', 'discord', 'imessage', 'github', 'stackoverflow'];
+    const defaultThemes = {
+      twitter: 'dark',
+      facebook: 'dark',
+      linkedin: 'dark',
+      slack: 'dark',
+      discord: 'dark',
+      imessage: 'light',
+      github: 'dark',
+      stackoverflow: 'light'
+    };
+
+    // Initialize statistics
+    function initStats() {
+      if (typeof PlatformFramesRenderer !== 'undefined') {
+        const stats = PlatformFramesRenderer.getPlatformStats();
+        document.getElementById('total-platforms').textContent = stats.totalPlatforms;
+        document.getElementById('theme-platforms').textContent = stats.platformsWithThemeSupport;
+
+        const categories = PlatformFramesRenderer.getAllCategories();
+        document.getElementById('social-platforms').textContent = categories.social?.length || 0;
+        document.getElementById('messaging-platforms').textContent = categories.messaging?.length || 0;
+      }
+    }
+
+    // Render initial frames
+    function renderInitialFrames() {
+      platforms.forEach(platformId => {
+        const container = document.getElementById(`${platformId}-container`);
+        if (container && typeof buildContextFrame !== 'undefined') {
+          const theme = defaultThemes[platformId] || 'dark';
+          const html = buildContextFrame(platformId, sampleContent, theme);
+          container.innerHTML = html;
+        }
+      });
+    }
+
+    // Toggle theme for a platform
+    function toggleTheme(platformId, theme, button) {
+      // Update button states
+      const container = document.getElementById(`${platformId}-container`);
+      const buttons = button.parentElement.querySelectorAll('button');
+      buttons.forEach(btn => btn.classList.remove('active'));
+      button.classList.add('active');
+
+      // Re-render frame with new theme
+      if (container && typeof buildContextFrame !== 'undefined') {
+        const html = buildContextFrame(platformId, sampleContent, theme);
+        container.innerHTML = html;
+      }
+    }
+
+    // Enhanced rendering example
+    function renderEnhancedExample() {
+      const container = document.getElementById('enhanced-container');
+      if (container && typeof PlatformFramesRenderer !== 'undefined') {
+        PlatformFramesRenderer.renderFrame(
+          container,
+          'twitter',
+          sampleContent,
+          'dark',
+          {
+            responsive: true,
+            accessibility: true,
+            lazyLoad: true
+          }
+        );
+      }
+    }
+
+    // Performance measurement example
+    function measurePerformance() {
+      if (typeof PlatformFramesRenderer !== 'undefined') {
+        const result = PlatformFramesRenderer.measurePerformance(() => {
+          return buildContextFrame('twitter', sampleContent, 'dark');
+        });
+        console.log('Render performance:', result.duration, 'ms');
+      }
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      initStats();
+      renderInitialFrames();
+
+      // Log platform categories
+      if (typeof PlatformFramesRenderer !== 'undefined') {
+        console.log('Platform categories:', PlatformFramesRenderer.getAllCategories());
+        console.log('Social platforms:', PlatformFramesRenderer.getPlatformsByCategory('social'));
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -134,7 +134,7 @@
   </style>
 </head>
 <body>
-  <button class="theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+  <button class="theme-toggle" id="themeToggle">☀️ Light Mode</button>
 
   <div class="test-header">
     <h1>🎥 YouTube Video Context Frame Verification</h1>
@@ -153,7 +153,7 @@
       <li>Channel info with avatar and subscribe button</li>
       <li>Action buttons (like, share, etc.)</li>
       <li>Comments section with realistic content</li>
-      <li>Single theme implementation (light)</li>
+      <li>Single theme implementation (dark mode)</li>
     </ul>
   </div>
 
@@ -543,10 +543,10 @@
 
     // Theme toggle functionality
     const themeToggle = document.getElementById('themeToggle');
-    let currentTheme = 'light';
+    let currentTheme = 'dark';
 
     themeToggle.addEventListener('click', () => {
-      currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
       document.documentElement.setAttribute('data-theme', currentTheme);
       themeToggle.textContent = currentTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
 

@@ -152,9 +152,143 @@ This allows users to click the badge to view the full VISTA analysis for your UR
 [![VISTA Score](https://vista.jedarden.com/api/badge?url=https://example.com)](https://vista.jedarden.com/?url=https://example.com)
 ```
 
-### Development
+### Developer Platform Context Frames
 
-Coming soon.
+VISTA provides authentic developer platform context frames that simulate how content appears when shared on GitHub, GitLab, Stack Overflow, Hacker News, and Dev.to. These frames support both dark and light themes with platform-accurate styling.
+
+#### Available Developer Platforms
+
+| Platform | Frame Types | Theme Support | Location |
+|----------|------------|---------------|----------|
+| **GitHub** | Issue/PR discussions, README files | ✅ Dark/Light | `src/public/github-issue-frame.html`, `src/public/github-readme-frame.html` |
+| **GitLab** | Merge requests, Issues | ✅ Dark/Light | `src/public/gitlab-mr-frame.html`, `src/public/gitlab-issue-frame.html` |
+| **Stack Overflow** | Q&A pages with voting | ✅ Dark/Light | `src/public/stackoverflow-dark.html`, `src/public/stackoverflow-light.html` |
+| **Hacker News** | Comment threads | ✅ Dark/Light | `src/public/hackernews-dark.html`, `src/public/hackernews-light.html` |
+| **Dev.to** | Article comments | ✅ Dark/Light | `src/public/devto-dark.html`, `src/public/devto-light.html` |
+
+#### Platform Features
+
+**GitHub Context Frames**
+- Authentic GitHub design patterns (issue/PR layout, README formatting)
+- Code blocks with syntax highlighting
+- User avatars, reactions, and comment threads
+- Status badges (Open/Closed, Merged)
+- Dark theme: `#0d1117` background, `#c9d1d9` text, `#58a6ff` accents
+- Light theme: `#ffffff` background, `#24292f` text, `#0969da` accents
+
+**GitLab Context Frames**
+- GitLab merge request and issue UI patterns
+- Purple accent color scheme (`#7b5cfd`)
+- Code diff styling and participant avatars
+- Discussion threads with reactions
+- Dark theme: `#1f1e24` background, `#ebebeb` text
+- Light theme: `#ffffff` background, `#333238` text
+
+**Stack Overflow Context Frames**
+- Authentic Q&A layout with voting system
+- Tag-based categorization
+- Answer acceptance checkmarks
+- Code blocks with syntax highlighting
+- Dark theme: `#1e1e1e` background, `#d4d4d4` text, `#4db2ff` accents
+- Light theme: `#ffffff` background, `#232629` text, `#39739d` accents
+
+**Hacker News Context Frames**
+- Minimalist comment thread design
+- Upvote voting system
+- Domain display and point counts
+- Nested comment structure
+- Orange accent color (`#f48024`)
+- Dark/Light theme support
+
+**Dev.to Context Frames**
+- Article header with author metadata
+- Tag system and reaction counts
+- Follow buttons and comment sections
+- Dark/Light theme support
+- Purple accent colors
+
+#### Theme Switching
+
+All developer platform frames support comprehensive theme switching:
+
+- **Cross-platform synchronization**: Theme changes propagate across all frames
+- **Platform-authentic colors**: Each platform uses its official color scheme
+- **Proper contrast ratios**: WCAG AA compliant in both themes
+- **Smooth transitions**: 0.3s transition animations for theme changes
+- **Code syntax highlighting**: Adjusted colors for both dark and light backgrounds
+
+#### Technical Implementation
+
+**CSS Architecture**
+```css
+/* Platform-specific color schemes */
+.github-context { --gh-bg: #0d1117; --gh-text: #c9d1d9; --gh-accent: #58a6ff; }
+.gitlab-context { --gl-bg: #1f1e24; --gl-text: #ebebeb; --gl-accent: #7b5cfd; }
+.stackoverflow-context { --so-bg: #1e1e1e; --so-text: #d4d4d4; --so-accent: #4db2ff; }
+```
+
+**Theme Toggle System**
+```html
+<html data-theme="dark|light">
+<button onclick="toggleTheme()">☀️ Light Mode</button>
+```
+
+**Frame Structure**
+- Semantic HTML matching platform patterns
+- Responsive design for mobile devices
+- Accessible contrast ratios
+- Platform-specific UI elements
+
+#### Usage Examples
+
+**Individual Frame Testing**
+```bash
+# Test GitHub frames
+open src/public/test-github-platform-frames.html
+
+# Test GitLab frames  
+open src/public/test-gitlab-platform-frames.html
+
+# Test all developer platforms
+open src/public/test-developer-platforms-frame.html
+```
+
+**Embedding Frames**
+```html
+<!-- GitHub Issue Frame -->
+<iframe src="src/public/github-issue-frame.html" 
+        title="GitHub Context" 
+        data-theme="dark">
+</iframe>
+
+<!-- Stack Overflow Frame -->
+<iframe src="src/public/stackoverflow-dark.html"
+        title="Stack Overflow Context">
+</iframe>
+```
+
+#### Verification and Testing
+
+Comprehensive testing framework includes:
+
+- **Visual verification**: Side-by-side dark/light theme comparison
+- **Automated checks**: Frame loading detection and theme attribute verification
+- **Platform authenticity**: Color scheme validation against official platforms
+- **Accessibility testing**: Contrast ratio verification
+- **Cross-browser testing**: Chrome, Firefox, Safari compatibility
+
+**Test Coverage**: ✅ All 5 developer platforms verified with comprehensive theme switching tests
+
+See `theme-switching-verification-report.md` for detailed test results and verification data.
+
+#### Implementation Notes
+
+- All frames use semantic HTML matching platform patterns
+- Code blocks include syntax highlighting with proper colors for both themes
+- Link cards and embedded content are styled to match each platform's design
+- Interactive elements (buttons, links) maintain platform-authentic behavior
+- Frames are fully responsive and work on mobile devices
+- Each platform maintains its unique design language while supporting theme switching
 
 ## License
 

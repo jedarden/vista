@@ -3536,3 +3536,33 @@ if (typeof module !== 'undefined' && module.exports) {
     getInlineThemeStyles,
   };
 }
+
+// Browser: expose to global scope for use by app.js
+if (typeof window !== 'undefined') {
+  // Expose as both a namespace AND individual functions for compatibility
+  window.PlatformFrames = {
+    PLATFORM_FRAMES,
+    THEME_VAR_NAMES,
+    getPlatformFrame,
+    hasThemeSupport,
+    getThemeVars,
+    getPlatformsWithThemeSupport,
+    generateThemeCSS,
+    generateAllThemeCSS,
+    applyThemeToElement,
+    buildContextFrame,
+    buildLinkPreviewHTML,
+    getSupportedPlatforms,
+    interpolateTemplate,
+    getInlineThemeStyles,
+  };
+
+  // Expose key functions directly to global scope for app.js
+  window.PLATFORM_FRAMES = PLATFORM_FRAMES;
+  window.getPlatformsWithThemeSupport = getPlatformsWithThemeSupport;
+  window.buildContextFrame = buildContextFrame;
+  window.buildLinkPreviewHTML = buildLinkPreviewHTML;
+  window.getPlatformFrame = getPlatformFrame;
+  window.hasThemeSupport = hasThemeSupport;
+  window.getThemeVars = getThemeVars;
+}

@@ -4851,6 +4851,938 @@ html[data-theme='light'] .pin-image-placeholder {
   --frame-overlay: rgba(0, 0, 0, 0.1);
 }
 
+/* ── Additional Platform Theme CSS (bf-45q) ── */
+
+/* Asana Context */
+.asana-context.dark-theme {
+  --frame-bg: #1f1f1f;
+  --frame-surface: #2a2a2a;
+  --frame-border: #3a3a3a;
+  --frame-text-primary: #e0e0e0;
+  --frame-text-secondary: #a0a0a0;
+  --frame-text-muted: #6a6a6a;
+  --frame-accent: #7f54b3;
+  --frame-accent-bg: #7f54b3;
+  --frame-link-color: #4da3ff;
+  --frame-divider: #3a3a3a;
+  --frame-input-bg: #2a2a2a;
+  --frame-overlay: rgba(0, 0, 0, 0.6);
+}
+.asana-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #f9f9f9;
+  --frame-border: #d8d8d8;
+  --frame-text-primary: #222222;
+  --frame-text-secondary: #6e6e6e;
+  --frame-text-muted: #9e9e9e;
+  --frame-accent: #7f54b3;
+  --frame-accent-bg: #f4ebff;
+  --frame-link-color: #0066cc;
+  --frame-divider: #d8d8d8;
+  --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* Bluesky Context */
+.bluesky-context.dark-theme {
+  --frame-bg: #000000;
+  --frame-surface: #111111;
+  --frame-border: #2d2d2d;
+  --frame-text-primary: #e0e0e0;
+  --frame-text-secondary: #888888;
+  --frame-text-muted: #5a5a5a;
+  --frame-accent: #0085ff;
+  --frame-accent-bg: #0085ff;
+  --frame-link-color: #0085ff;
+  --frame-divider: #2d2d2d;
+  --frame-input-bg: #1a1a1a;
+  --frame-overlay: rgba(0, 0, 0, 0.6);
+}
+.bluesky-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #f7f7f7;
+  --frame-border: #e5e5e5;
+  --frame-text-primary: #0a0a0a;
+  --frame-text-secondary: #666666;
+  --frame-text-muted: #999999;
+  --frame-accent: #0085ff;
+  --frame-accent-bg: #e5f1ff;
+  --frame-link-color: #0085ff;
+  --frame-divider: #e5e5e5;
+  --frame-input-bg: #f0f0f0;
+  --frame-overlay: rgba(0, 0, 0, 0.08);
+}
+
+/* Email Context (Generic for Gmail/Outlook) */
+.email-context.dark-theme {
+  --frame-bg: #1f1f1f;
+  --frame-surface: #2d2d2d;
+  --frame-border: #3d3d3d;
+  --frame-text-primary: #e8eaed;
+  --frame-text-secondary: #9aa0a6;
+  --frame-text-muted: #5f6368;
+  --frame-accent: #c4e7fa;
+  --frame-accent-bg: #c4e7fa;
+  --frame-link-color: #8ab4f8;
+  --frame-divider: #3d3d3d;
+  --frame-input-bg: #2d2d2d;
+  --frame-overlay: rgba(0, 0, 0, 0.6);
+}
+.email-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #f2f2f2;
+  --frame-border: #e0e0e0;
+  --frame-text-primary: #202124;
+  --frame-text-secondary: #5f6368;
+  --frame-text-muted: #9aa0a6;
+  --frame-accent: #0b57d0;
+  --frame-accent-bg: #e8f0fe;
+  --frame-link-color: #0b57d0;
+  --frame-divider: #e0e0e0;
+  --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* Evernote Context */
+.evernote-context.dark-theme {
+  --frame-bg: #1a1a1a;
+  --frame-surface: #2a2a2a;
+  --frame-border: #3a3a3a;
+  --frame-text-primary: #e0e0e0;
+  --frame-text-secondary: #a0a0a0;
+  --frame-text-muted: #6a6a6a;
+  --frame-accent: #00a82d;
+  --frame-accent-bg: #00a82d;
+  --frame-link-color: #00a82d;
+  --frame-divider: #3a3a3a;
+  --frame-input-bg: #2a2a2a;
+  --frame-overlay: rgba(0, 0, 0, 0.6);
+}
+.evernote-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #f8f8f8;
+  --frame-border: #e0e0e0;
+  --frame-text-primary: #2c2c2c;
+  --frame-text-secondary: #6a6a6a;
+  --frame-text-muted: #9a9a9a;
+  --frame-accent: #00a82d;
+  --frame-accent-bg: #e8f5e9;
+  --frame-link-color: #00a82d;
+  --frame-divider: #e0e0e0;
+  --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* Feedly Context */
+.feedly-context.dark-theme {
+  --frame-bg: #1a1a1a;
+  --frame-surface: #2a2a2a;
+  --frame-border: #3a3a3a;
+  --frame-text-primary: #e0e0e0;
+  --frame-text-secondary: #a0a0a0;
+  --frame-text-muted: #6a6a6a;
+  --frame-accent: #2bb24a;
+  --frame-accent-bg: #2bb24a;
+  --frame-link-color: #2bb24a;
+  --frame-divider: #3a3a3a;
+  --frame-input-bg: #2a2a2a;
+  --frame-overlay: rgba(0, 0, 0, 0.6);
+}
+.feedly-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #f4f4f4;
+  --frame-border: #e0e0e0;
+  --frame-text-primary: #2a2a2a;
+  --frame-text-secondary: #666666;
+  --frame-text-muted: #999999;
+  --frame-accent: #2bb24a;
+  --frame-accent-bg: #e8f5e9;
+  --frame-link-color: #2bb24a;
+  --frame-divider: #e0e0e0;
+  --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* Figma Context */
+.figma-context.dark-theme {
+  --frame-bg: #1e1e1e;
+  --frame-surface: #2c2c2c;
+  --frame-border: #3e3e3e;
+  --frame-text-primary: #ffffff;
+  --frame-text-secondary: #a0a0a0;
+  --frame-text-muted: #6a6a6a;
+  --frame-accent: #f24e1e;
+  --frame-accent-bg: #f24e1e;
+  --frame-link-color: #1abcfe;
+  --frame-divider: #3e3e3e;
+  --frame-input-bg: #2c2c2c;
+  --frame-overlay: rgba(0, 0, 0, 0.6);
+}
+.figma-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #f5f5f5;
+  --frame-border: #e0e0e0;
+  --frame-text-primary: #1a1a1a;
+  --frame-text-secondary: #666666;
+  --frame-text-muted: #9a9a9a;
+  --frame-accent: #f24e1e;
+  --frame-accent-bg: #ffe8e0;
+  --frame-link-color: #1abcfe;
+  --frame-divider: #e0e0e0;
+  --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* Google Chat Context */
+.gchat-context.dark-theme {
+  --frame-bg: #202124;
+  --frame-surface: #2d2e30;
+  --frame-border: #3f4042;
+  --frame-text-primary: #e8eaed;
+  --frame-text-secondary: #9aa0a6;
+  --frame-text-muted: #5f6368;
+  --frame-accent: #8ab4f8;
+  --frame-accent-bg: #8ab4f8;
+  --frame-link-color: #8ab4f8;
+  --frame-divider: #3f4042;
+  --frame-input-bg: #2d2e30;
+  --frame-overlay: rgba(0, 0, 0, 0.6);
+}
+.gchat-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #f8f9fa;
+  --frame-border: #e0e0e0;
+  --frame-text-primary: #202124;
+  --frame-text-secondary: #5f6368;
+  --frame-text-muted: #9aa0a6;
+  --frame-accent: #1a73e8;
+  --frame-accent-bg: #e8f0fe;
+  --frame-link-color: #1a73e8;
+  --frame-divider: #e0e0e0;
+  --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* GitHub Context */
+.github-context.dark-theme {
+  --frame-bg: #0d1117;
+  --frame-surface: #161b22;
+  --frame-border: #30363d;
+  --frame-text-primary: #c9d1d9;
+  --frame-text-secondary: #8b949e;
+  --frame-text-muted: #6e7681;
+  --frame-accent: #58a6ff;
+  --frame-accent-bg: #1f6feb;
+  --frame-link-color: #58a6ff;
+  --frame-divider: #30363d;
+  --frame-input-bg: #0d1117;
+  --frame-overlay: rgba(0, 0, 0, 0.6);
+}
+.github-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #f6f8fa;
+  --frame-border: #d0d7de;
+  --frame-text-primary: #24292f;
+  --frame-text-secondary: #57606a;
+  --frame-text-muted: #6e7681;
+  --frame-accent: #0969da;
+  --frame-accent-bg: #ddf4ff;
+  --frame-link-color: #0969da;
+  --frame-divider: #d0d7de;
+  --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* GitLab Context */
+.gitlab-context.dark-theme {
+  --frame-bg: #1f1e24;
+  --frame-surface: #292730;
+  --frame-border: #3f3d44;
+  --frame-text-primary: #ebebeb;
+  --frame-text-secondary: #a3a3a3;
+  --frame-text-muted: #737278;
+  --frame-accent: #7b5cfd;
+  --frame-accent-bg: #7b5cfd;
+  --frame-link-color: #7b5cfd;
+  --frame-divider: #3f3d44;
+  --frame-input-bg: #1f1e24;
+  --frame-overlay: rgba(0, 0, 0, 0.6);
+}
+.gitlab-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #fbfbfc;
+  --frame-border: #e5e5e5;
+  --frame-text-primary: #333238;
+  --frame-text-secondary: #737278;
+  --frame-text-muted: #a3a3a3;
+  --frame-accent: #7b5cfd;
+  --frame-accent-bg: #e8e6fd;
+  --frame-link-color: #7b5cfd;
+  --frame-divider: #e5e5e5;
+  --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* Gmail Context */
+.gmail-context.dark-theme {
+  --frame-bg: #1f1f1f;
+  --frame-surface: #2d2d2d;
+  --frame-border: #3d3d3d;
+  --frame-text-primary: #e8eaed;
+  --frame-text-secondary: #9aa0a6;
+  --frame-text-muted: #5f6368;
+  --frame-accent: #c4e7fa;
+  --frame-accent-bg: #c4e7fa;
+  --frame-link-color: #8ab4f8;
+  --frame-divider: #3d3d3d;
+  --frame-input-bg: #2d2d2d;
+  --frame-overlay: rgba(0, 0, 0, 0.6);
+}
+.gmail-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #f2f2f2;
+  --frame-border: #e0e0e0;
+  --frame-text-primary: #202124;
+  --frame-text-secondary: #5f6368;
+  --frame-text-muted: #9aa0a6;
+  --frame-accent: #0b57d0;
+  --frame-accent-bg: #e8f0fe;
+  --frame-link-color: #0b57d0;
+  --frame-divider: #e0e0e0;
+  --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* Google Context */
+.google-context.dark-theme {
+  --frame-bg: #202124;
+  --frame-surface: #303134;
+  --frame-border: #5f6368;
+  --frame-text-primary: #bdc1c6;
+  --frame-text-secondary: #9aa0a6;
+  --frame-text-muted: #5f6368;
+  --frame-accent: #8ab4f8;
+  --frame-accent-bg: #1a73e8;
+  --frame-link-color: #8ab4f8;
+  --frame-divider: #3c4043;
+  --frame-input-bg: #303134;
+  --frame-overlay: rgba(0, 0, 0, 0.5);
+}
+.google-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #f1f3f4;
+  --frame-border: #dadce0;
+  --frame-text-primary: #202124;
+  --frame-text-secondary: #5f6368;
+  --frame-text-muted: #9aa0a6;
+  --frame-accent: #1a73e8;
+  --frame-accent-bg: #e8f0fe;
+  --frame-link-color: #1a73e8;
+  --frame-divider: #dadce0;
+  --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* Hacker News Context */
+.hackernews-context.dark-theme {
+  --frame-bg: #1a1a1a;
+  --frame-surface: #242424;
+  --frame-border: #3a3a3a;
+  --frame-text-primary: #dddddd;
+  --frame-text-secondary: #828282;
+  --frame-text-muted: #626262;
+  --frame-accent: #ff6600;
+  --frame-accent-bg: #ff6600;
+  --frame-link-color: #ff6600;
+  --frame-divider: #3a3a3a;
+  --frame-input-bg: #2a2a2a;
+  --frame-overlay: rgba(0, 0, 0, 0.6);
+}
+.hackernews-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #f6f6ef;
+  --frame-border: #d4d4d4;
+  --frame-text-primary: #222222;
+  --frame-text-secondary: #828282;
+  --frame-text-muted: #999999;
+  --frame-accent: #ff6600;
+  --frame-accent-bg: #fff0e6;
+  --frame-link-color: #ff6600;
+  --frame-divider: #d4d4d4;
+  --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* iMessage Context */
+.imessage-context.dark-theme {
+  --frame-bg: #000000;
+  --frame-surface: #1c1c1e;
+  --frame-border: #2c2c2e;
+  --frame-text-primary: #ffffff;
+  --frame-text-secondary: #a1a1a6;
+  --frame-text-muted: #636366;
+  --frame-accent: #007aff;
+  --frame-accent-bg: #007aff;
+  --frame-link-color: #007aff;
+  --frame-divider: #2c2c2e;
+  --frame-input-bg: #1c1c1e;
+  --frame-overlay: rgba(0, 0, 0, 0.5);
+}
+.imessage-context.light-theme {
+  --frame-bg: #e5e1e5;
+  --frame-surface: #f9f9f9;
+  --frame-border: #c6c6c8;
+  --frame-text-primary: #000000;
+  --frame-text-secondary: #6e6e73;
+  --frame-text-muted: #aeaeb2;
+  --frame-accent: #007aff;
+  --frame-accent-bg: #e5f1ff;
+  --frame-link-color: #007aff;
+  --frame-divider: #d1d1d6;
+  --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* JetBrains IDE Context */
+.jetbrains-context.dark-theme {
+  --frame-bg: #2b2b2b;
+  --frame-surface: #313335;
+  --frame-border: #4e5254;
+  --frame-text-primary: #a9b7c6;
+  --frame-text-secondary: #808080;
+  --frame-text-muted: #6e6e6e;
+  --frame-accent: #6c8eba;
+  --frame-accent-bg: #4e6a91;
+  --frame-link-color: #589df6;
+  --frame-divider: #4e5254;
+  --frame-input-bg: #3c3f41;
+  --frame-overlay: rgba(0, 0, 0, 0.6);
+}
+.jetbrains-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #f5f5f5;
+  --frame-border: #dcdcdc;
+  --frame-text-primary: #1a1a1a;
+  --frame-text-secondary: #6e6e6e;
+  --frame-text-muted: #9e9e9e;
+  --frame-accent: #6c8eba;
+  --frame-accent-bg: #e8f0fe;
+  --frame-link-color: #0066cc;
+  --frame-divider: #dcdcdc;
+  --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* Jira Context */
+.jira-context.dark-theme {
+  --frame-bg: #0d1216;
+  --frame-surface: #1a2129;
+  --frame-border: #2e3947;
+  --frame-text-primary: #b6c2cf;
+  --frame-text-secondary: #7a869a;
+  --frame-text-muted: #5c6779;
+  --frame-accent: #0052cc;
+  --frame-accent-bg: #0052cc;
+  --frame-link-color: #579dff;
+  --frame-divider: #2e3947;
+  --frame-input-bg: #1a2129;
+  --frame-overlay: rgba(0, 0, 0, 0.6);
+}
+.jira-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #f4f5f7;
+  --frame-border: #dfe1e6;
+  --frame-text-primary: #172b4d;
+  --frame-text-secondary: #5e6c84;
+  --frame-text-muted: #9fadbd;
+  --frame-accent: #0052cc;
+  --frame-accent-bg: #deebff;
+  --frame-link-color: #0052cc;
+  --frame-divider: #dfe1e6;
+  --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* Mastodon Context */
+.mastodon-context.dark-theme {
+  --frame-bg: #191b22;
+  --frame-surface: #282c37;
+  --frame-border: #393f4f;
+  --frame-text-primary: #d9e1e8;
+  --frame-text-secondary: #9baec8;
+  --frame-text-muted: #636b7f;
+  --frame-accent: #6364ff;
+  --frame-accent-bg: #6364ff;
+  --frame-link-color: #563acc;
+  --frame-divider: #393f4f;
+  --frame-input-bg: #282c37;
+  --frame-overlay: rgba(0, 0, 0, 0.6);
+}
+.mastodon-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #f7f9fc;
+  --frame-border: #d9e1e8;
+  --frame-text-primary: #282c37;
+  --frame-text-secondary: #636b7f;
+  --frame-text-muted: #9baec8;
+  --frame-accent: #6364ff;
+  --frame-accent-bg: #e8e8ff;
+  --frame-link-color: #563acc;
+  --frame-divider: #d9e1e8;
+  --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* Notion Context */
+.notion-context.dark-theme {
+  --frame-bg: #191919;
+  --frame-surface: #2f2f2f;
+  --frame-border: #3f3f3f;
+  --frame-text-primary: #e6e6e6;
+  --frame-text-secondary: #9a9a9a;
+  --frame-text-muted: #6a6a6a;
+  --frame-accent: #2383e2;
+  --frame-accent-bg: #2383e2;
+  --frame-link-color: #2383e2;
+  --frame-divider: #3f3f3f;
+  --frame-input-bg: #2f2f2f;
+  --frame-overlay: rgba(0, 0, 0, 0.6);
+}
+.notion-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #f7f7f5;
+  --frame-border: #e6e6e6;
+  --frame-text-primary: #37352f;
+  --frame-text-secondary: #787774;
+  --frame-text-muted: #9b9a97;
+  --frame-accent: #2383e2;
+  --frame-accent-bg: #e8f0fe;
+  --frame-link-color: #2383e2;
+  --frame-divider: #e6e6e6;
+  --frame-input-bg: #f7f7f5;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* Outlook Context */
+.outlook-context.dark-theme {
+  --frame-bg: #1f1f1f;
+  --frame-surface: #2b2b2b;
+  --frame-border: #3a3a3a;
+  --frame-text-primary: #e0e0e0;
+  --frame-text-secondary: #a0a0a0;
+  --frame-text-muted: #6a6a6a;
+  --frame-accent: #0078d4;
+  --frame-accent-bg: #0078d4;
+  --frame-link-color: #0078d4;
+  --frame-divider: #3a3a3a;
+  --frame-input-bg: #2b2b2b;
+  --frame-overlay: rgba(0, 0, 0, 0.6);
+}
+.outlook-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #f3f2f1;
+  --frame-border: #edebe9;
+  --frame-text-primary: #323130;
+  --frame-text-secondary: #605e5c;
+  --frame-text-muted: #a19f9d;
+  --frame-accent: #0078d4;
+  --frame-accent-bg: #eff6fc;
+  --frame-link-color: #0078d4;
+  --frame-divider: #edebe9;
+  --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* Signal Context */
+.signal-context.dark-theme {
+  --frame-bg: #1c1c1e;
+  --frame-surface: #2c2c2e;
+  --frame-border: #3a3a3c;
+  --frame-text-primary: #ffffff;
+  --frame-text-secondary: #a1a1a6;
+  --frame-text-muted: #636366;
+  --frame-accent: #3a76f0;
+  --frame-accent-bg: #3a76f0;
+  --frame-link-color: #0a84ff;
+  --frame-divider: #3a3a3c;
+  --frame-input-bg: #2c2c2e;
+  --frame-overlay: rgba(0, 0, 0, 0.6);
+}
+.signal-context.light-theme {
+  --frame-bg: #f6f6f6;
+  --frame-surface: #ffffff;
+  --frame-border: #e0e0e0;
+  --frame-text-primary: #000000;
+  --frame-text-secondary: #616161;
+  --frame-text-muted: #9e9e9e;
+  --frame-accent: #3a76f0;
+  --frame-accent-bg: #e8f0ff;
+  --frame-link-color: #007aff;
+  --frame-divider: #e0e0e0;
+  --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* Stack Overflow Context */
+.stackoverflow-context.dark-theme {
+  --frame-bg: #1e1e1e;
+  --frame-surface: #252526;
+  --frame-border: #3e3e42;
+  --frame-text-primary: #d4d4d4;
+  --frame-text-secondary: #808080;
+  --frame-text-muted: #6a6a6a;
+  --frame-accent: #f48024;
+  --frame-accent-bg: #f48024;
+  --frame-link-color: #4db2ff;
+  --frame-divider: #3e3e42;
+  --frame-input-bg: #3c3c3c;
+  --frame-overlay: rgba(0, 0, 0, 0.6);
+}
+.stackoverflow-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #f8f9fa;
+  --frame-border: #d6d6d6;
+  --frame-text-primary: #232629;
+  --frame-text-secondary: #6a737c;
+  --frame-text-muted: #9fa6ad;
+  --frame-accent: #f48024;
+  --frame-accent-bg: #fff0dc;
+  --frame-link-color: #0077cc;
+  --frame-divider: #d6d6d6;
+  --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* Substack Context */
+.substack-context.dark-theme {
+  --frame-bg: #1a1a1a;
+  --frame-surface: #2a2a2a;
+  --frame-border: #3a3a3a;
+  --frame-text-primary: #e0e0e0;
+  --frame-text-secondary: #a0a0a0;
+  --frame-text-muted: #6a6a6a;
+  --frame-accent: #ff6c35;
+  --frame-accent-bg: #ff6c35;
+  --frame-link-color: #ff6c35;
+  --frame-divider: #3a3a3a;
+  --frame-input-bg: #2a2a2a;
+  --frame-overlay: rgba(0, 0, 0, 0.6);
+}
+.substack-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #f9f9f9;
+  --frame-border: #e0e0e0;
+  --frame-text-primary: #1a1a1a;
+  --frame-text-secondary: #666666;
+  --frame-text-muted: #9a9a9a;
+  --frame-accent: #ff6c35;
+  --frame-accent-bg: #fff0e8;
+  --frame-link-color: #ff6c35;
+  --frame-divider: #e0e0e0;
+  --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* Teams Context */
+.teams-context.dark-theme {
+  --frame-bg: #1f1f1f;
+  --frame-surface: #2d2d2d;
+  --frame-border: #3d3d3d;
+  --frame-text-primary: #ffffff;
+  --frame-text-secondary: #a0a0a0;
+  --frame-text-muted: #6a6a6a;
+  --frame-accent: #6264a7;
+  --frame-accent-bg: #6264a7;
+  --frame-link-color: #6264a7;
+  --frame-divider: #3d3d3d;
+  --frame-input-bg: #2d2d2d;
+  --frame-overlay: rgba(0, 0, 0, 0.6);
+}
+.teams-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #f5f5f5;
+  --frame-border: #e0e0e0;
+  --frame-text-primary: #252423;
+  --frame-text-secondary: #605e5c;
+  --frame-text-muted: #979593;
+  --frame-accent: #6264a7;
+  --frame-accent-bg: #e8e8f8;
+  --frame-link-color: #6264a7;
+  --frame-divider: #e0e0e0;
+  --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* Telegram Context */
+.telegram-context.dark-theme {
+  --frame-bg: #17212b;
+  --frame-surface: #0e1621;
+  --frame-border: #0e1621;
+  --frame-text-primary: #ffffff;
+  --frame-text-secondary: #aaaaaa;
+  --frame-text-muted: #777777;
+  --frame-accent: #2b5278;
+  --frame-accent-bg: #2b5278;
+  --frame-link-color: #64b5ef;
+  --frame-divider: #0e1621;
+  --frame-input-bg: #242f3d;
+  --frame-overlay: rgba(0, 0, 0, 0.6);
+}
+.telegram-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #f5f5f5;
+  --frame-border: #e0e0e0;
+  --frame-text-primary: #000000;
+  --frame-text-secondary: #666666;
+  --frame-text-muted: #999999;
+  --frame-accent: #3390ec;
+  --frame-accent-bg: #e0f0ff;
+  --frame-link-color: #007aff;
+  --frame-divider: #e0e0e0;
+  --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* Threads Context */
+.threads-context.dark-theme {
+  --frame-bg: #101010;
+  --frame-surface: #1a1a1a;
+  --frame-border: #2a2a2a;
+  --frame-text-primary: #f0f0f0;
+  --frame-text-secondary: #a0a0a0;
+  --frame-text-muted: #6a6a6a;
+  --frame-accent: #e0e0e0;
+  --frame-accent-bg: #e0e0e0;
+  --frame-link-color: #0095f6;
+  --frame-divider: #2a2a2a;
+  --frame-input-bg: #1a1a1a;
+  --frame-overlay: rgba(0, 0, 0, 0.6);
+}
+.threads-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #f5f5f5;
+  --frame-border: #dbdbdb;
+  --frame-text-primary: #262626;
+  --frame-text-secondary: #737373;
+  --frame-text-muted: #a8a8a8;
+  --frame-accent: #262626;
+  --frame-accent-bg: #262626;
+  --frame-link-color: #0095f6;
+  --frame-divider: #dbdbdb;
+  --frame-input-bg: #efefef;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* Trello Context */
+.trello-context.dark-theme {
+  --frame-bg: #1e1e1e;
+  --frame-surface: #2a2a2a;
+  --frame-border: #3a3a3a;
+  --frame-text-primary: #e0e0e0;
+  --frame-text-secondary: #a0a0a0;
+  --frame-text-muted: #6a6a6a;
+  --frame-accent: #0079bf;
+  --frame-accent-bg: #0079bf;
+  --frame-link-color: #0079bf;
+  --frame-divider: #3a3a3a;
+  --frame-input-bg: #2a2a2a;
+  --frame-overlay: rgba(0, 0, 0, 0.6);
+}
+.trello-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #f4f5f7;
+  --frame-border: #dfe1e6;
+  --frame-text-primary: #172b4d;
+  --frame-text-secondary: #5e6c84;
+  --frame-text-muted: #9fadbd;
+  --frame-accent: #0079bf;
+  --frame-accent-bg: #e6f0ff;
+  --frame-link-color: #0079bf;
+  --frame-divider: #dfe1e6;
+  --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* Tumblr Context */
+.tumblr-context.dark-theme {
+  --frame-bg: #001035;
+  --frame-surface: #0a1a4f;
+  --frame-border: #1a2a5f;
+  --frame-text-primary: #ffffff;
+  --frame-text-secondary: #a0a0a0;
+  --frame-text-muted: #6a6a6a;
+  --frame-accent: #00b8ff;
+  --frame-accent-bg: #00b8ff;
+  --frame-link-color: #00d4f5;
+  --frame-divider: #1a2a5f;
+  --frame-input-bg: #0a1a4f;
+  --frame-overlay: rgba(0, 0, 0, 0.6);
+}
+.tumblr-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #f8f8f8;
+  --frame-border: #e0e0e0;
+  --frame-text-primary: #001035;
+  --frame-text-secondary: #5a5a5a;
+  --frame-text-muted: #9a9a9a;
+  --frame-accent: #00b8ff;
+  --frame-accent-bg: #e0f7ff;
+  --frame-link-color: #00d4f5;
+  --frame-divider: #e0e0e0;
+  --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* VS Code Context */
+.vscode-context.dark-theme {
+  --frame-bg: #1e1e1e;
+  --frame-surface: #252526;
+  --frame-border: #3e3e42;
+  --frame-text-primary: #d4d4d4;
+  --frame-text-secondary: #858585;
+  --frame-text-muted: #6e6e6e;
+  --frame-accent: #0078d4;
+  --frame-accent-bg: #0078d4;
+  --frame-link-color: #3794ff;
+  --frame-divider: #3e3e42;
+  --frame-input-bg: #3c3c3c;
+  --frame-overlay: rgba(0, 0, 0, 0.6);
+}
+.vscode-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #f3f3f3;
+  --frame-border: #e4e4e4;
+  --frame-text-primary: #333333;
+  --frame-text-secondary: #616161;
+  --frame-text-muted: #9e9e9e;
+  --frame-accent: #005fb8;
+  --frame-accent-bg: #e8f0fe;
+  --frame-link-color: #0066cc;
+  --frame-divider: #e4e4e4;
+  --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* WhatsApp Context */
+.whatsapp-context.dark-theme {
+  --frame-bg: #0b141a;
+  --frame-surface: #0b141a;
+  --frame-border: #1f2c34;
+  --frame-text-primary: #e9edef;
+  --frame-text-secondary: #8696a0;
+  --frame-text-muted: #54656f;
+  --frame-accent: #00a884;
+  --frame-accent-bg: #00a884;
+  --frame-link-color: #53bdeb;
+  --frame-divider: #1f2c34;
+  --frame-input-bg: #1f2c34;
+  --frame-overlay: rgba(0, 0, 0, 0.6);
+}
+.whatsapp-context.light-theme {
+  --frame-bg: #efeae2;
+  --frame-surface: #ffffff;
+  --frame-border: #d1d7db;
+  --frame-text-primary: #111b21;
+  --frame-text-secondary: #54656f;
+  --frame-text-muted: #8696a0;
+  --frame-accent: #00a884;
+  --frame-accent-bg: #dcf8c6;
+  --frame-link-color: #53bdeb;
+  --frame-divider: #d1d7db;
+  --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* Zoom Context */
+.zoom-context.dark-theme {
+  --frame-bg: #1a1a1a;
+  --frame-surface: #2a2a2a;
+  --frame-border: #3a3a3a;
+  --frame-text-primary: #e0e0e0;
+  --frame-text-secondary: #a0a0a0;
+  --frame-text-muted: #6a6a6a;
+  --frame-accent: #0d71eb;
+  --frame-accent-bg: #0d71eb;
+  --frame-link-color: #0d71eb;
+  --frame-divider: #3a3a3a;
+  --frame-input-bg: #2a2a2a;
+  --frame-overlay: rgba(0, 0, 0, 0.6);
+}
+.zoom-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #f5f5f5;
+  --frame-border: #e0e0e0;
+  --frame-text-primary: #1a1a1a;
+  --frame-text-secondary: #666666;
+  --frame-text-muted: #9a9a9a;
+  --frame-accent: #0d71eb;
+  --frame-accent-bg: #e8f0ff;
+  --frame-link-color: #0d71eb;
+  --frame-divider: #e0e0e0;
+  --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* Line Context */
+.line-context.dark-theme {
+  --frame-bg: #1b1b1b;
+  --frame-surface: #2a2a2a;
+  --frame-border: #3a3a3a;
+  --frame-text-primary: #ffffff;
+  --frame-text-secondary: #a0a0a0;
+  --frame-text-muted: #6a6a6a;
+  --frame-accent: #00b900;
+  --frame-accent-bg: #00b900;
+  --frame-link-color: #00b900;
+  --frame-divider: #3a3a3a;
+  --frame-input-bg: #2a2a2a;
+  --frame-overlay: rgba(0, 0, 0, 0.6);
+}
+.line-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #f0f0f0;
+  --frame-border: #e0e0e0;
+  --frame-text-primary: #1a1a1a;
+  --frame-text-secondary: #666666;
+  --frame-text-muted: #9a9a9a;
+  --frame-accent: #00b900;
+  --frame-accent-bg: #e8f5e9;
+  --frame-link-color: #00b900;
+  --frame-divider: #e0e0e0;
+  --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* KakaoTalk Context */
+.kakaotalk-context.dark-theme {
+  --frame-bg: #1a1a1a;
+  --frame-surface: #2a2a2a;
+  --frame-border: #3a3a3a;
+  --frame-text-primary: #ffffff;
+  --frame-text-secondary: #a0a0a0;
+  --frame-text-muted: #6a6a6a;
+  --frame-accent: #fae000;
+  --frame-accent-bg: #fae000;
+  --frame-link-color: #fae000;
+  --frame-divider: #3a3a3a;
+  --frame-input-bg: #2a2a2a;
+  --frame-overlay: rgba(0, 0, 0, 0.6);
+}
+.kakaotalk-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #f5f5f5;
+  --frame-border: #e0e0e0;
+  --frame-text-primary: #1a1a1a;
+  --frame-text-secondary: #666666;
+  --frame-text-muted: #9a9a9a;
+  --frame-accent: #fae000;
+  --frame-accent-bg: #fff8e0;
+  --frame-link-color: #fae000;
+  --frame-divider: #e0e0e0;
+  --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
 /* ── Keyboard focus ring for form controls (bf-56pp) ──
    Several inputs/selects/textareas set `outline: none` on their base rule and
    signal focus with a border-color change. That base `outline: none` has equal

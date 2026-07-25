@@ -2528,12 +2528,43 @@ function renderCardBySkeletonType(pid, skeletonType, title, desc, image, site, d
 // ── Platform Context Frame Renderers ──
 // Uses platform-frames module for structured context frame generation
 function renderPlatformWithContext(pid, meta, imageProbe, baseUrl, theme = 'dark', dominantColor) {
-  const ogTitle = meta.og.title || meta.title || '';
-  const ogDesc = meta.og.description || meta.description || '';
-  const ogImage = meta.og.image || meta.twitter.image || '';
-  const ogSite = meta.og.site_name || '';
-  const domain = getDomain(baseUrl);
+  // ── Input Validation ──
+  // Validate platform ID parameter
+  if (!pid || typeof pid !== 'string') {
+    console.warn('[renderPlatformWithContext] Invalid platform ID provided, using safe fallback');
+    pid = 'unknown';
+  }
+
+  // Validate meta parameter - ensure it's an object
+  if (!meta || typeof meta !== 'object') {
+    console.warn('[renderPlatformWithContext] Invalid meta object provided, using empty object');
+    meta = {};
+  }
+
+  // Validate theme parameter - ensure it's a valid theme value
+  const validThemes = ['light', 'dark', 'auto'];
+  if (!theme || typeof theme !== 'string' || !validThemes.includes(theme)) {
+    console.warn(`[renderPlatformWithContext] Invalid theme "${theme}", defaulting to "dark"`);
+    theme = 'dark';
+  }
+
+  // Safely extract meta properties with fallbacks
+  const ogTitle = (meta.og && meta.og.title) || meta.title || '';
+  const ogDesc = (meta.og && meta.og.description) || meta.description || '';
+  const ogImage = (meta.og && meta.og.image) || (meta.twitter && meta.twitter.image) || '';
+  const ogSite = (meta.og && meta.og.site_name) || '';
   const themeColor = meta.themeColor || '#5865f2';
+
+  // Safely get domain - validate baseUrl first
+  let domain = '';
+  try {
+    if (baseUrl && typeof baseUrl === 'string') {
+      domain = getDomain(baseUrl);
+    }
+  } catch (e) {
+    console.warn('[renderPlatformWithContext] Error extracting domain:', e.message);
+    domain = '';
+  }
 
   // Prepare content data for the platform frame
   const contentData = {
@@ -2546,33 +2577,72 @@ function renderPlatformWithContext(pid, meta, imageProbe, baseUrl, theme = 'dark
     themeColor: themeColor,
   };
 
+  // Generate card HTML to wrap within the frame
+  // This ensures the actual platform card content is embedded inside the frame chrome
+  let cardHTML = '';
+  try {
+    cardHTML = renderPlatformCard(pid, meta, imageProbe, baseUrl, dominantColor);
+    contentData.cardHTML = cardHTML;
+  } catch (e) {
+    console.warn('[renderPlatformWithContext] Error rendering platform card:', e.message);
+    contentData.cardHTML = '';
+  }
+
   // Use platform-frames configuration system for frame selection
   // This integrates with the platform-frames.config.ts mapping structure
   // The JavaScript PLATFORM_FRAMES object mirrors the TypeScript PLATFORM_FRAMES_CONFIG
-  if (typeof buildContextFrame === 'function' && typeof getPlatformFrame === 'function') {
-    // Look up frame component by platform parameter from platform-frames configuration
-    const platformFrame = getPlatformFrame(pid);
+  try {
+    if (typeof buildContextFrame === 'function' && typeof getPlatformFrame === 'function') {
+      // Validate PLATFORM_FRAMES exists before accessing it
+      if (typeof PLATFORM_FRAMES === 'undefined') {
+        console.warn('[renderPlatformWithContext] PLATFORM_FRAMES not defined, using fallback');
+        return renderPlatformWithContextLegacy(pid, ogTitle, ogDesc, ogImage, domain, ogSite, theme, dominantColor, meta, imageProbe, baseUrl);
+      }
 
-    // Check if platform exists in PLATFORM_FRAMES mapping
-    // This handles the mapping lookup correctly for all 7 platforms:
-    // twitter, youtube, tiktok, facebook, linkedin, reddit, instagram
-    if (!PLATFORM_FRAMES[pid]) {
-      console.warn(`[renderPlatformWithContext] Unknown platform: ${pid}, using fallback frame`);
-      // Use generic fallback frame for unknown platforms
-      return renderGenericContextFrame(pid, contentData, theme);
+      // Check if platform exists in PLATFORM_FRAMES mapping BEFORE calling getPlatformFrame
+      // This handles the mapping lookup correctly for all platforms
+      if (!PLATFORM_FRAMES[pid]) {
+        console.warn(`[renderPlatformWithContext] Unknown platform: ${pid}, using fallback frame`);
+        // Use generic fallback frame for unknown platforms
+        return renderGenericContextFrame(pid, contentData, theme);
+      }
+
+      // Platform exists in mapping - now safe to call getPlatformFrame
+      const platformFrame = getPlatformFrame(pid);
+
+      // Validate the returned frame object has required properties
+      if (!platformFrame || typeof platformFrame !== 'object' || !platformFrame.chrome) {
+        console.warn(`[renderPlatformWithContext] Invalid frame configuration for ${pid}, using fallback`);
+        return renderGenericContextFrame(pid, contentData, theme);
+      }
+
+      // Build context frame using platform-specific configuration
+      // Wrap in try-catch for additional safety during frame building
+      try {
+        const frameHTML = buildContextFrame(pid, contentData, theme);
+
+        // Validate that buildContextFrame returned valid HTML
+        if (!frameHTML || typeof frameHTML !== 'string') {
+          console.warn(`[renderPlatformWithContext] buildContextFrame returned invalid result for ${pid}, using fallback`);
+          return renderGenericContextFrame(pid, contentData, theme);
+        }
+
+        // Return the complete frame with embedded card content
+        // The frame structure wraps around the link preview/card content
+        return frameHTML;
+      } catch (buildError) {
+        // Catch errors specifically from buildContextFrame
+        console.warn(`[renderPlatformWithContext] Error building frame for ${pid}: ${buildError.message}, using fallback`);
+        return renderGenericContextFrame(pid, contentData, theme);
+      }
+    } else {
+      // Fallback if platform-frames module not loaded
+      return renderPlatformWithContextLegacy(pid, ogTitle, ogDesc, ogImage, domain, ogSite, theme, dominantColor, meta, imageProbe, baseUrl);
     }
-
-    // Store selected frame configuration for use in rendering
-    // Build context frame using platform-specific configuration
-    // This uses the platform-frames.config.ts mapping via the JavaScript PLATFORM_FRAMES object
-    const frameHTML = buildContextFrame(pid, contentData, theme);
-
-    // Return the complete frame with embedded card content
-    // The frame structure wraps around the link preview/card content
-    return frameHTML;
-  } else {
-    // Fallback if platform-frames module not loaded
-    return renderPlatformWithContextLegacy(pid, ogTitle, ogDesc, ogImage, domain, ogSite, theme, dominantColor, meta, imageProbe, baseUrl);
+  } catch (e) {
+    // Final catch-all for any unexpected errors
+    console.error('[renderPlatformWithContext] Unexpected error, using ultimate fallback:', e.message);
+    return renderSafeFallbackFrame(pid, contentData, theme);
   }
 }
 
@@ -2581,16 +2651,74 @@ function renderPlatformWithContext(pid, meta, imageProbe, baseUrl, theme = 'dark
  * Provides a safe fallback when platform frame configuration is not available
  */
 function renderGenericContextFrame(pid, contentData, theme) {
-  const { title, description, image, domain, site, dominantColor } = contentData;
+  // Validate contentData parameter
+  if (!contentData || typeof contentData !== 'object') {
+    console.warn('[renderGenericContextFrame] Invalid contentData, using empty object');
+    contentData = {};
+  }
+
+  // Safely extract properties with fallbacks
+  const title = contentData.title || '';
+  const description = contentData.description || '';
+  const image = contentData.image || '';
+  const domain = contentData.domain || '';
+  const site = contentData.site || '';
+  const dominantColor = contentData.dominantColor;
+
   const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
   const esc = (str) => String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-  const platformName = PLATFORM_NAMES[pid] || pid;
+  // Safely get platform name - validate PLATFORM_NAMES exists
+  let platformName = pid;
+  if (typeof PLATFORM_NAMES !== 'undefined' && PLATFORM_NAMES && PLATFORM_NAMES[pid]) {
+    platformName = PLATFORM_NAMES[pid];
+  }
+
+  // Safely build URL
+  const safeUrl = domain ? `https://${domain}` : '#';
+
+  // Safely render platform card - wrap in try-catch
+  let cardHTML = '';
+  try {
+    cardHTML = renderPlatformCard(pid, { og: { title, description, image } }, null, safeUrl, dominantColor);
+  } catch (e) {
+    console.warn('[renderGenericContextFrame] Error rendering platform card:', e.message);
+    cardHTML = `<div class="card-error">Unable to render card</div>`;
+  }
 
   return `<div class="context-frame generic-context ${theme}-theme">
     <div class="context-header"><span class="context-title">${esc(platformName)}</span></div>
     <div class="context-body">
-      ${renderPlatformCard(pid, { og: { title, description, image } }, null, `https://${domain}`, dominantColor)}
+      ${cardHTML}
+    </div>
+  </div>`;
+}
+
+/**
+ * Ultimate safe fallback context frame
+ * Provides a minimal safe fallback when all else fails
+ * This function should never crash and always return valid HTML
+ */
+function renderSafeFallbackFrame(pid, contentData, theme) {
+  const esc = (str) => String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+  // Validate parameters with maximum safety
+  const safePid = (pid && typeof pid === 'string') ? pid : 'unknown';
+  const safeTheme = (theme === 'light' || theme === 'dark') ? theme : 'dark';
+
+  // Safely extract contentData properties
+  const title = (contentData && typeof contentData === 'object') ? (contentData.title || 'Unknown') : 'Unknown';
+  const description = (contentData && typeof contentData === 'object') ? (contentData.description || 'No description available') : 'No description available';
+  const domain = (contentData && typeof contentData === 'object') ? (contentData.domain || '') : '';
+
+  return `<div class="context-frame safe-fallback ${safeTheme}-theme">
+    <div class="context-header"><span class="context-title">${esc(safePid)}</span></div>
+    <div class="context-body">
+      <div class="fallback-content">
+        <div class="fallback-title">${esc(title)}</div>
+        <div class="fallback-description">${esc(description)}</div>
+        ${domain ? `<div class="fallback-domain">${esc(domain)}</div>` : ''}
+      </div>
     </div>
   </div>`;
 }

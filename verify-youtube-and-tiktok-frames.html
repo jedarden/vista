@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube & TikTok Frame Verification</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+      padding: 20px;
+    }
+
+    .verification-container {
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .subtitle {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #666;
+      font-size: 16px;
+    }
+
+    .instructions {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .instructions h2 {
+      margin-bottom: 10px;
+      font-size: 18px;
+    }
+
+    .instructions ul {
+      margin-left: 20px;
+    }
+
+    .instructions li {
+      margin-bottom: 8px;
+    }
+
+    .platform-section {
+      margin-bottom: 40px;
+    }
+
+    .platform-title {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #333;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .platform-icon {
+      font-size: 32px;
+    }
+
+    .frames-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .frame-wrapper {
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .frame-header {
+      padding: 12px 16px;
+      font-weight: 600;
+      text-align: center;
+      color: #fff;
+    }
+
+    .frame-header.youtube {
+      background: #ff0000;
+    }
+
+    .frame-header.youtube.light {
+      background: #cc0000;
+    }
+
+    .frame-header.tiktok {
+      background: linear-gradient(135deg, #ff0050 0%, #00f2ea 100%);
+    }
+
+    .frame-header.tiktok.light {
+      background: linear-gradient(135deg, #00f2ea 0%, #ff0050 100%);
+    }
+
+    .frame-content {
+      padding: 20px;
+      height: 650px;
+      overflow: hidden;
+    }
+
+    .frame-content.youtube-dark {
+      background: #0f0f0f;
+    }
+
+    .frame-content.youtube-light {
+      background: #ffffff;
+    }
+
+    .frame-content.tiktok-dark {
+      background: #000;
+    }
+
+    .frame-content.tiktok-light {
+      background: #ffffff;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      border-radius: 8px;
+    }
+
+    .theme-toggle-section {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .theme-toggle-section h2 {
+      margin-bottom: 15px;
+    }
+
+    .theme-btn {
+      padding: 12px 24px;
+      margin: 0 10px;
+      background: #6366f1;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .theme-btn:hover {
+      background: #4f46e5;
+    }
+
+    .checklist {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .checklist h2 {
+      margin-bottom: 15px;
+    }
+
+    .checklist-group {
+      margin-bottom: 20px;
+    }
+
+    .checklist-group h3 {
+      font-size: 16px;
+      margin-bottom: 12px;
+      color: #444;
+    }
+
+    .checklist-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+      padding: 10px;
+      background: #f9f9f9;
+      border-radius: 6px;
+    }
+
+    .checklist-item input[type="checkbox"] {
+      margin-right: 12px;
+      width: 18px;
+      height: 18px;
+    }
+
+    .checklist-item label {
+      cursor: pointer;
+      flex: 1;
+    }
+
+    .status {
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-left: auto;
+    }
+
+    .status.pass {
+      background: #4caf50;
+      color: #fff;
+    }
+
+    .status.fail {
+      background: #f44336;
+      color: #fff;
+    }
+
+    @media (max-width: 768px) {
+      .frames-container {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="verification-container">
+    <h1>📺 🎵 YouTube & TikTok Platform Frames Verification</h1>
+    <p class="subtitle">Complete theme switching and chrome verification for both video platforms</p>
+
+    <div class="instructions">
+      <h2>Verification Instructions</h2>
+      <ul>
+        <li>✓ Both frames render with realistic chrome matching their respective platforms</li>
+        <li>✓ YouTube: Red accents, video player controls, comments section</li>
+        <li>✓ TikTok: Gradient colors, vertical layout, action buttons sidebar</li>
+        <li>✓ Dark/light toggle switches theme seamlessly on both platforms</li>
+        <li>✓ Cards appear embedded in proper platform context, not floating</li>
+        <li>✓ Manual verification: screenshot both frames in both themes</li>
+      </ul>
+    </div>
+
+    <!-- YouTube Section -->
+    <div class="platform-section">
+      <div class="platform-title">
+        <span class="platform-icon">▶️</span>
+        YouTube Frame
+      </div>
+
+      <div class="frames-container">
+        <div class="frame-wrapper">
+          <div class="frame-header youtube">Dark Mode (Default)</div>
+          <div class="frame-content youtube-dark">
+            <iframe id="youtube-dark" src="src/public/youtube-frame.html"></iframe>
+          </div>
+        </div>
+
+        <div class="frame-wrapper">
+          <div class="frame-header youtube light">Light Mode</div>
+          <div class="frame-content youtube-light">
+            <iframe id="youtube-light" src="src/public/youtube-frame.html?theme=light"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TikTok Section -->
+    <div class="platform-section">
+      <div class="platform-title">
+        <span class="platform-icon">🎵</span>
+        TikTok Frame
+      </div>
+
+      <div class="frames-container">
+        <div class="frame-wrapper">
+          <div class="frame-header tiktok">Dark Mode (Default)</div>
+          <div class="frame-content tiktok-dark">
+            <iframe id="tiktok-dark" src="src/public/tiktok-frame.html"></iframe>
+          </div>
+        </div>
+
+        <div class="frame-wrapper">
+          <div class="frame-header tiktok light">Light Mode</div>
+          <div class="frame-content tiktok-light">
+            <iframe id="tiktok-light" src="src/public/tiktok-frame.html?theme=light"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="theme-toggle-section">
+      <h2>Test Theme Switching</h2>
+      <button class="theme-btn" onclick="toggleAllThemes('dark')">Switch All to Dark</button>
+      <button class="theme-btn" onclick="toggleAllThemes('light')">Switch All to Light</button>
+      <button class="theme-btn" onclick="toggleAllThemes('alternate')">Toggle Alternating</button>
+    </div>
+
+    <div class="checklist">
+      <h2>Acceptance Criteria Checklist</h2>
+
+      <div class="checklist-group">
+        <h3>YouTube Frame</h3>
+        <div class="checklist-item">
+          <input type="checkbox" id="yt-check1">
+          <label for="yt-check1">YouTube frame renders with realistic chrome matching YouTube's UI</label>
+          <span class="status" id="yt-status1">Pending</span>
+        </div>
+
+        <div class="checklist-item">
+          <input type="checkbox" id="yt-check2">
+          <label for="yt-check2">View count and like/dislike icons display correctly</label>
+          <span class="status" id="yt-status2">Pending</span>
+        </div>
+
+        <div class="checklist-item">
+          <input type="checkbox" id="yt-check3">
+          <label for="yt-check3">Dark/light toggle switches theme seamlessly</label>
+          <span class="status" id="yt-status3">Pending</span>
+        </div>
+
+        <div class="checklist-item">
+          <input type="checkbox" id="yt-check4">
+          <label for="yt-check4">Card appears embedded in YouTube context, not floating</label>
+          <span class="status" id="yt-status4">Pending</span>
+        </div>
+      </div>
+
+      <div class="checklist-group">
+        <h3>TikTok Frame</h3>
+        <div class="checklist-item">
+          <input type="checkbox" id="tt-check1">
+          <label for="tt-check1">TikTok frame renders with realistic chrome matching TikTok's UI</label>
+          <span class="status" id="tt-status1">Pending</span>
+        </div>
+
+        <div class="checklist-item">
+          <input type="checkbox" id="tt-check2">
+          <label for="tt-check2">Like, comment, and share icons display correctly</label>
+          <span class="status" id="tt-status2">Pending</span>
+        </div>
+
+        <div class="checklist-item">
+          <input type="checkbox" id="tt-check3">
+          <label for="tt-check3">Dark/light toggle switches theme seamlessly</label>
+          <span class="status" id="tt-status3">Pending</span>
+        </div>
+
+        <div class="checklist-item">
+          <input type="checkbox" id="tt-check4">
+          <label for="tt-check4">Card appears embedded in TikTok context, not floating</label>
+          <span class="status" id="tt-status4">Pending</span>
+        </div>
+      </div>
+
+      <div class="checklist-group">
+        <h3>Screenshot Verification</h3>
+        <div class="checklist-item">
+          <input type="checkbox" id="ss-check1">
+          <label for="ss-check1">YouTube frame screenshot captured in dark theme</label>
+          <span class="status" id="ss-status1">Pending</span>
+        </div>
+
+        <div class="checklist-item">
+          <input type="checkbox" id="ss-check2">
+          <label for="ss-check2">YouTube frame screenshot captured in light theme</label>
+          <span class="status" id="ss-status2">Pending</span>
+        </div>
+
+        <div class="checklist-item">
+          <input type="checkbox" id="ss-check3">
+          <label for="ss-check3">TikTok frame screenshot captured in dark theme</label>
+          <span class="status" id="ss-status3">Pending</span>
+        </div>
+
+        <div class="checklist-item">
+          <input type="checkbox" id="ss-check4">
+          <label for="ss-check4">TikTok frame screenshot captured in light theme</label>
+          <span class="status" id="ss-status4">Pending</span>
+        </div>
+      </div>
+
+      <button class="theme-btn" style="margin-top: 15px;" onclick="updateStatuses()">Update All Statuses</button>
+    </div>
+  </div>
+
+  <script>
+    function toggleAllThemes(mode) {
+      const youtubeDark = document.getElementById('youtube-dark');
+      const youtubeLight = document.getElementById('youtube-light');
+      const tiktokDark = document.getElementById('tiktok-dark');
+      const tiktokLight = document.getElementById('tiktok-light');
+
+      if (mode === 'dark') {
+        [youtubeDark, youtubeLight, tiktokDark, tiktokLight].forEach(frame => {
+          frame.contentWindow.postMessage({ action: 'setTheme', theme: 'dark' }, '*');
+        });
+      } else if (mode === 'light') {
+        [youtubeDark, youtubeLight, tiktokDark, tiktokLight].forEach(frame => {
+          frame.contentWindow.postMessage({ action: 'setTheme', theme: 'light' }, '*');
+        });
+      } else if (mode === 'alternate') {
+        youtubeDark.contentWindow.postMessage({ action: 'toggleTheme' }, '*');
+        setTimeout(() => {
+          youtubeLight.contentWindow.postMessage({ action: 'toggleTheme' }, '*');
+        }, 200);
+        setTimeout(() => {
+          tiktokDark.contentWindow.postMessage({ action: 'toggleTheme' }, '*');
+        }, 400);
+        setTimeout(() => {
+          tiktokLight.contentWindow.postMessage({ action: 'toggleTheme' }, '*');
+        }, 600);
+      }
+    }
+
+    function updateStatuses() {
+      const checkboxes = document.querySelectorAll('.checklist-item input[type="checkbox"]');
+      checkboxes.forEach(checkbox => {
+        const statusId = checkbox.id.replace('check', 'status');
+        const status = document.getElementById(statusId);
+
+        if (checkbox.checked) {
+          status.textContent = 'PASS';
+          status.className = 'status pass';
+        } else {
+          status.textContent = 'FAIL';
+          status.className = 'status fail';
+        }
+      });
+    }
+
+    // Listen for checkbox changes to auto-update statuses
+    document.querySelectorAll('.checklist-item input[type="checkbox"]').forEach(checkbox => {
+      checkbox.addEventListener('change', function() {
+        const statusId = this.id.replace('check', 'status');
+        const status = document.getElementById(statusId);
+
+        if (this.checked) {
+          status.textContent = 'PASS';
+          status.className = 'status pass';
+        } else {
+          status.textContent = 'Pending';
+          status.className = 'status';
+        }
+      });
+    });
+
+    // Listen for messages from iframes
+    window.addEventListener('message', (event) => {
+      if (event.data.action === 'themeChanged') {
+        console.log('Theme changed in iframe:', event.data.theme);
+      }
+    });
+  </script>
+</body>
+</html>

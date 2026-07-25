@@ -623,6 +623,18 @@
         document.documentElement.setAttribute('data-theme', currentTheme);
       }
     });
+
+    // Listen for messages from parent window
+    window.addEventListener('message', (event) => {
+      if (event.data.action === 'setTheme') {
+        currentTheme = event.data.theme;
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        localStorage.setItem('vista-theme', currentTheme);
+      } else if (event.data.action === 'toggleTheme') {
+        toggleTheme();
+        window.parent.postMessage({ action: 'themeChanged', theme: currentTheme }, '*');
+      }
+    });
   </script>
 </body>
 </html>

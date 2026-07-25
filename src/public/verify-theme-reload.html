@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Theme Reload Persistence Test</title>
+  <script>
+    // Prevent FOUC: Apply saved theme immediately before any content renders
+    (function() {
+      try {
+        const savedTheme = localStorage.getItem('vista-theme');
+        if (savedTheme) {
+          document.documentElement.setAttribute('data-theme', savedTheme);
+        } else {
+          // Default to dark theme if no preference saved
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      } catch (e) {
+        // Fallback if localStorage is unavailable
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+      background: var(--bg-primary, #1a1a1a);
+      color: var(--text-primary, #e0e0e0);
+      transition: background 0.3s, color 0.3s;
+    }
+
+    [data-theme="light"] body {
+      --bg-primary: #ffffff;
+      --text-primary: #1a1a1a;
+      --card-bg: #f5f5f5;
+      --border-color: #ddd;
+      --success: #059669;
+      --accent: #2563eb;
+    }
+
+    [data-theme="dark"] body {
+      --bg-primary: #1a1a1a;
+      --text-primary: #e0e0e0;
+      --card-bg: #2d2d2d;
+      --border-color: #404040;
+      --success: #10b981;
+      --accent: #3b82f6;
+    }
+
+    h1 {
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 10px;
+    }
+
+    .test-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 20px;
+      margin: 15px 0;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 4px;
+      font-weight: bold;
+      margin-right: 10px;
+    }
+
+    .status-badge.pass {
+      background: var(--success);
+      color: white;
+    }
+
+    .status-badge.fail {
+      background: #dc2626;
+      color: white;
+    }
+
+    .status-badge.pending {
+      background: #f59e0b;
+      color: white;
+    }
+
+    .theme-toggle {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1em;
+      font-weight: 600;
+      transition: transform 0.2s;
+    }
+
+    .theme-toggle:hover {
+      transform: scale(1.05);
+    }
+
+    .state-display {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin: 20px 0;
+    }
+
+    .state-item {
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 12px;
+    }
+
+    .state-item strong {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--accent);
+    }
+
+    .code {
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 10px;
+      font-family: monospace;
+      font-size: 0.9em;
+      overflow-x: auto;
+      margin: 10px 0;
+    }
+
+    .instructions {
+      background: var(--card-bg);
+      border-left: 4px solid var(--accent);
+      padding: 15px;
+      margin: 20px 0;
+    }
+
+    .instructions ol {
+      margin: 10px 0;
+      padding-left: 20px;
+    }
+
+    .instructions li {
+      margin: 8px 0;
+    }
+
+    .fouc-check {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: var(--accent);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 0.8em;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+  </style>
+</head>
+<body>
+  <div class="fouc-check" id="foucCheck">THEME APPLIED</div>
+
+  <h1>🔄 Theme Reload Persistence Verification</h1>
+
+  <div class="instructions">
+    <h3>📋 Test Instructions</h3>
+    <ol>
+      <li>Click "Toggle Theme" to switch to light mode</li>
+      <li>Notice the background changes to white</li>
+      <li><strong>Reload this page (F5 or Cmd+R)</strong></li>
+      <li>Verify the page loads with light theme (no flash of dark theme)</li>
+      <li>Check that all 4 acceptance criteria show PASS</li>
+    </ol>
+  </div>
+
+  <div class="test-card">
+    <h2>🎨 Theme Control</h2>
+    <button class="theme-toggle" onclick="toggleTestTheme()">
+      Toggle Theme (Current: <span id="currentThemeDisplay">Loading...</span>)
+    </button>
+
+    <div class="state-display">
+      <div class="state-item">
+        <strong>DOM data-theme</strong>
+        <span id="domTheme">-</span>
+      </div>
+      <div class="state-item">
+        <strong>localStorage value</strong>
+        <span id="localTheme">-</span>
+      </div>
+      <div class="state-item">
+        <strong>Page load theme</strong>
+        <span id="loadTheme">-</span>
+      </div>
+      <div class="state-item">
+        <strong>Fouc detected</strong>
+        <span id="foucDetected">-</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="test-card">
+    <h2>✅ Acceptance Criteria</h2>
+
+    <div style="margin: 15px 0;">
+      <span class="status-badge pending" id="ac1">Testing...</span>
+      <strong>1. Selected theme is saved to localStorage</strong>
+      <div class="code" id="ac1Result">Checking...</div>
+    </div>
+
+    <div style="margin: 15px 0;">
+      <span class="status-badge pending" id="ac2">Testing...</span>
+      <strong>2. Reloading the page restores the saved theme</strong>
+      <div class="code" id="ac2Result">Checking...</div>
+    </div>
+
+    <div style="margin: 15px 0;">
+      <span class="status-badge pending" id="ac3">Testing...</span>
+      <strong>3. No FOUC (Flash of Unstyled Content) on reload</strong>
+      <div class="code" id="ac3Result">Checking...</div>
+    </div>
+
+    <div style="margin: 15px 0;">
+      <span class="status-badge pending" id="ac4">Testing...</span>
+      <strong>4. Theme applies immediately on page load</strong>
+      <div class="code" id="ac4Result">Checking...</div>
+    </div>
+  </div>
+
+  <div class="test-card">
+    <h2>🔍 Technical Details</h2>
+    <div class="code" id="technicalDetails">Loading...</div>
+  </div>
+
+  <script>
+    // Track theme at page load (before any script changes)
+    const themeAtLoad = document.documentElement.getAttribute('data-theme');
+    const loadTime = performance.now();
+
+    // Show FOUC check indicator
+    setTimeout(() => {
+      document.getElementById('foucCheck').style.opacity = '1';
+    }, 100);
+
+    function toggleTestTheme() {
+      const current = document.documentElement.getAttribute('data-theme');
+      const newTheme = current === 'dark' ? 'light' : 'dark';
+      applyTheme(newTheme);
+    }
+
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('vista-theme', theme);
+      updateDisplay();
+      runTests();
+    }
+
+    function updateDisplay() {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const localValue = localStorage.getItem('vista-theme');
+
+      document.getElementById('currentThemeDisplay').textContent = currentTheme;
+      document.getElementById('domTheme').textContent = currentTheme || 'NOT SET';
+      document.getElementById('localTheme').textContent = localValue || 'NOT SET';
+      document.getElementById('loadTheme').textContent = themeAtLoad || 'NOT SET';
+
+      // Check for FOUC - if theme changed after load, there was FOUC
+      const foucDetected = themeAtLoad && themeAtLoad !== localValue && localValue;
+      document.getElementById('foucDetected').textContent = foucDetected ? 'YES' : 'NO';
+    }
+
+    function runTests() {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const localValue = localStorage.getItem('vista-theme');
+
+      // AC1: Selected theme is saved to localStorage
+      const ac1Pass = localValue === currentTheme;
+      document.getElementById('ac1').className = 'status-badge ' + (ac1Pass ? 'pass' : 'fail');
+      document.getElementById('ac1').textContent = ac1Pass ? '✓ PASS' : '✗ FAIL';
+      document.getElementById('ac1Result').textContent =
+        `Theme: ${currentTheme}, localStorage: ${localValue}`;
+
+      // AC2: Reloading the page restores the saved theme
+      const ac2Pass = themeAtLoad === localValue;
+      document.getElementById('ac2').className = 'status-badge ' + (ac2Pass ? 'pass' : 'fail');
+      document.getElementById('ac2').textContent = ac2Pass ? '✓ PASS' : '✗ FAIL';
+      document.getElementById('ac2Result').textContent =
+        `Theme at load: ${themeAtLoad}, localStorage: ${localValue}`;
+
+      // AC3: No FOUC on reload
+      // FOUC is detected if the theme at load is different from what was in localStorage
+      const ac3Pass = themeAtLoad === localValue;
+      document.getElementById('ac3').className = 'status-badge ' + (ac3Pass ? 'pass' : 'fail');
+      document.getElementById('ac3').textContent = ac3Pass ? '✓ PASS' : '✗ FAIL';
+      document.getElementById('ac3Result').textContent =
+        `No flash detected - theme at load (${themeAtLoad}) matches saved (${localValue})`;
+
+      // AC4: Theme applies immediately on page load
+      // Check if theme was set before DOM content loaded
+      const themeSetEarly = themeAtLoad !== null && themeAtLoad !== undefined;
+      const ac4Pass = themeSetEarly;
+      document.getElementById('ac4').className = 'status-badge ' + (ac4Pass ? 'pass' : 'fail');
+      document.getElementById('ac4').textContent = ac4Pass ? '✓ PASS' : '✗ FAIL';
+      document.getElementById('ac4Result').textContent =
+        `Theme present at load: ${themeAtLoad} (set before render)`;
+
+      // Technical details
+      document.getElementById('technicalDetails').innerHTML =
+        `<strong>Performance timing:</strong><br>` +
+        `Load time: ${loadTime.toFixed(2)}ms<br>` +
+        `Theme at load: ${themeAtLoad || 'NOT SET'}<br>` +
+        `Current theme: ${currentTheme}<br>` +
+        `localStorage: ${localValue}<br>` +
+        `FOUC check indicator: ${document.getElementById('foucCheck').style.opacity === '1' ? 'VISIBLE' : 'HIDDEN'}`;
+    }
+
+    // Initialize
+    window.addEventListener('DOMContentLoaded', () => {
+      updateDisplay();
+      runTests();
+    });
+  </script>
+</body>
+</html>

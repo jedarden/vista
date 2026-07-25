@@ -2897,6 +2897,26 @@ html[data-theme='light'] .pin-image-placeholder {
 .signal-context .signal-domain { font-size: 11px; color: var(--frame-accent); }
 .signal-context .signal-time { font-size: 10px; display: block; text-align: right; padding-top: 4px; color: rgba(255,255,255,0.8); }
 
+/* SMS/RCS Context */
+.sms-context { max-width: 350px; background: var(--frame-bg); }
+.sms-context .sms-chat-header { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: var(--frame-surface); border-bottom: 1px solid var(--frame-divider); }
+.sms-context .sms-back { font-size: 18px; color: var(--frame-accent); }
+.sms-context .sms-contact-info { flex: 1; }
+.sms-context .sms-contact-name { font-weight: 600; color: var(--frame-text-primary); }
+.sms-context .sms-contact-number { font-size: 12px; color: var(--frame-text-secondary); }
+.sms-context .sms-call { font-size: 18px; color: var(--frame-accent); }
+.sms-context .sms-messages { padding: 12px; min-height: 200px; }
+.sms-context .sms-message { display: flex; flex-direction: column; margin-bottom: 12px; }
+.sms-context .sms-sender { font-size: 11px; font-weight: 600; color: var(--frame-text-secondary); margin-bottom: 2px; }
+.sms-context .sms-bubble { max-width: 85%; background: var(--frame-surface); border-radius: 18px; padding: 8px 12px; color: var(--frame-text-primary); }
+.sms-context .sms-time { font-size: 10px; color: var(--frame-text-muted); margin-top: 4px; }
+.sms-context .sms-rcs-card { background: var(--frame-surface); border-radius: 12px; overflow: hidden; margin-top: 4px; }
+.sms-context .sms-rcs-image img { width: 100%; max-height: 140px; object-fit: cover; }
+.sms-context .sms-rcs-content { padding: 10px 12px; }
+.sms-context .sms-rcs-title { font-size: 14px; font-weight: 600; color: var(--frame-text-primary); margin-bottom: 4px; }
+.sms-context .sms-rcs-description { font-size: 13px; color: var(--frame-text-secondary); margin-bottom: 8px; }
+.sms-context .sms-rcs-button { background: var(--frame-accent); color: #fff; text-align: center; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; }
+
 /* Teams Context */
 .teams-context { display: flex; min-height: 300px; }
 .teams-sidebar { width: 80px; background: #464775; padding: 12px 8px; flex-shrink: 0; }
@@ -5420,6 +5440,35 @@ html[data-theme='light'] .pin-image-placeholder {
   --frame-link-color: #007aff;
   --frame-divider: #e0e0e0;
   --frame-input-bg: #ffffff;
+  --frame-overlay: rgba(0, 0, 0, 0.1);
+}
+
+.sms-context.dark-theme {
+  --frame-bg: #1c1c1e;
+  --frame-surface: #2c2c2e;
+  --frame-border: #3a3a3c;
+  --frame-text-primary: #ffffff;
+  --frame-text-secondary: #a1a1a6;
+  --frame-text-muted: #636366;
+  --frame-accent: #007aff;
+  --frame-accent-bg: #007aff;
+  --frame-link-color: #0a84ff;
+  --frame-divider: #2c2c2e;
+  --frame-input-bg: #2c2c2e;
+  --frame-overlay: rgba(0, 0, 0, 0.6);
+}
+.sms-context.light-theme {
+  --frame-bg: #ffffff;
+  --frame-surface: #f5f5f7;
+  --frame-border: #e5e5ea;
+  --frame-text-primary: #000000;
+  --frame-text-secondary: #616161;
+  --frame-text-muted: #9e9e9e;
+  --frame-accent: #007aff;
+  --frame-accent-bg: #e8f0ff;
+  --frame-link-color: #007aff;
+  --frame-divider: #e5e5ea;
+  --frame-input-bg: #f0f0f0;
   --frame-overlay: rgba(0, 0, 0, 0.1);
 }
 

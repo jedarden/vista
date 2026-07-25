@@ -820,6 +820,81 @@ const PLATFORM_FRAMES = {
     },
   },
 
+  sms: {
+    name: 'SMS/RCS',
+    category: 'messaging',
+    hasThemeSupport: true,
+    aspectRatio: 'variable',
+    chrome: `
+      <div class="sms-chat-header">
+        <span class="sms-back">‹</span>
+        <div class="sms-contact-info">
+          <div class="sms-contact-name">Sarah Chen</div>
+          <div class="sms-contact-number">+1 (555) 123-4567</div>
+        </div>
+        <span class="sms-call">📞</span>
+      </div>
+      <div class="sms-messages">
+        <div class="sms-message">
+          <div class="sms-sender">+1 (555) 123-4567</div>
+          <div class="sms-bubble">Hey! Check out this amazing new web development resource I found 🚀</div>
+          <div class="sms-time">9:00 AM</div>
+        </div>
+        <div class="sms-message">
+          <div class="sms-sender">+1 (555) 123-4567</div>
+          <div class="sms-bubble">Thanks for sharing! This looks really interesting. Let me take a look at it.</div>
+          <div class="sms-time">9:05 AM</div>
+        </div>
+        {{userMessage}}
+      </div>
+    `,
+    neutralContent: `
+      <div class="sms-message">
+        <div class="sms-bubble">
+          <div class="sms-rcs-card">
+            {{imageSection}}
+            <div class="sms-rcs-content">
+              <div class="sms-rcs-title">{{title}}</div>
+              <div class="sms-rcs-description">{{description}}</div>
+              <div class="sms-rcs-button">View Link</div>
+            </div>
+          </div>
+        </div>
+        <div class="sms-time">Just now</div>
+      </div>
+    `,
+    themeVars: {
+      dark: {
+        '--frame-bg': '#1c1c1e',
+        '--frame-surface': '#2c2c2e',
+        '--frame-border': '#3a3a3c',
+        '--frame-text-primary': '#ffffff',
+        '--frame-text-secondary': '#a1a1a6',
+        '--frame-text-muted': '#636366',
+        '--frame-accent': '#007aff',
+        '--frame-accent-bg': '#007aff',
+        '--frame-link-color': '#0a84ff',
+        '--frame-divider': '#2c2c2e',
+        '--frame-input-bg': '#2c2c2e',
+        '--frame-overlay': 'rgba(0, 0, 0, 0.6)',
+      },
+      light: {
+        '--frame-bg': '#ffffff',
+        '--frame-surface': '#f5f5f7',
+        '--frame-border': '#e5e5ea',
+        '--frame-text-primary': '#000000',
+        '--frame-text-secondary': '#616161',
+        '--frame-text-muted': '#9e9e9e',
+        '--frame-accent': '#007aff',
+        '--frame-accent-bg': '#e8f0ff',
+        '--frame-link-color': '#007aff',
+        '--frame-divider': '#e5e5ea',
+        '--frame-input-bg': '#f0f0f0',
+        '--frame-overlay': 'rgba(0, 0, 0, 0.1)',
+      },
+    },
+  },
+
   teams: {
     name: 'Microsoft Teams',
     category: 'messaging',

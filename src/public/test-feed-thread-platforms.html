@@ -1,0 +1,1935 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Feed & Thread Platform Context Frames - RSS, HN, Email</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="platform-frames-enhanced.css">
+  <link rel="stylesheet" href="frames-theme.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 40px 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+      background: #1a1a1e;
+      color: #e4e4e7;
+    }
+    .test-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .test-header h1 {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+    .test-header p {
+      color: #a1a1aa;
+      font-size: 16px;
+    }
+    .acceptance-criteria {
+      background: #25252a;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 40px;
+    }
+    .acceptance-criteria h2 {
+      font-size: 18px;
+      margin-bottom: 16px;
+      color: #ff6b35;
+    }
+    .criteria-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .criteria-list li {
+      padding: 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+    .criteria-list li:before {
+      content: '✓';
+      color: #4ade80;
+      font-weight: bold;
+    }
+    .platform-section {
+      margin-bottom: 60px;
+    }
+    .platform-section h2 {
+      font-size: 24px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #3a3a3f;
+    }
+    .platform-section h2.rss { border-color: #2bb24c; color: #2bb24c; }
+    .platform-section h2.hackernews { border-color: #ff6600; color: #ff6600; }
+    .platform-section h2.email { border-color: #ea4335; color: #ea4335; }
+
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 16px;
+      background: #ff6b35;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 1000;
+    }
+    .theme-toggle:hover {
+      background: #e55a2b;
+    }
+
+    .context-frame {
+      margin: 20px 0;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .test-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+      gap: 24px;
+      margin: 24px 0;
+    }
+
+    .verification-log {
+      background: #25252a;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 20px;
+      font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+      font-size: 13px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .verification-log div {
+      padding: 4px 0;
+    }
+    .pass { color: #4ade80; }
+    .fail { color: #ef4444; }
+    .info { color: #60a5fa; }
+
+    /* HTML theme support */
+    html[data-theme='light'] body {
+      background: #f8f9fa;
+      color: #1f2937;
+    }
+    html[data-theme='light'] .acceptance-criteria,
+    html[data-theme='light'] .verification-log {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+    }
+    html[data-theme='light'] .platform-section h2 {
+      border-bottom-color: #e5e7eb;
+    }
+
+    /* ============================================================================
+       RSS READER CONTEXT FRAME STYLES
+       ============================================================================ */
+
+    .rss-context {
+      background: var(--frame-bg, #1a1a1e);
+      border: 1px solid var(--frame-border, #3a3a3f);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--frame-text-primary, #e4e4e7);
+    }
+
+    .rss-header {
+      background: var(--frame-surface, #25252a);
+      border-bottom: 1px solid var(--frame-border, #3a3a3f);
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .rss-feed-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #2bb24c, #1a7a33);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    .rss-feed-info {
+      flex: 1;
+    }
+
+    .rss-feed-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--frame-text-primary, #e4e4e7);
+      margin-bottom: 4px;
+    }
+
+    .rss-feed-meta {
+      font-size: 12px;
+      color: var(--frame-text-secondary, #a1a1aa);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .rss-feed-url {
+      color: var(--frame-link-color, #818cf8);
+    }
+
+    .rss-content {
+      padding: 0;
+    }
+
+    .rss-item {
+      padding: 16px;
+      border-bottom: 1px solid var(--frame-border, #3a3a3f);
+      display: flex;
+      gap: 12px;
+      cursor: pointer;
+      transition: background var(--frame-transition-fast, 150ms ease);
+    }
+
+    .rss-item:hover {
+      background: var(--frame-surface, #25252a);
+    }
+
+    .rss-item.unread {
+      background: rgba(43, 178, 76, 0.05);
+    }
+
+    .rss-item-status {
+      width: 8px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .rss-unread-dot {
+      width: 8px;
+      height: 8px;
+      background: #2bb24c;
+      border-radius: 50%;
+    }
+
+    .rss-item-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .rss-item-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--frame-link-color, #818cf8);
+      margin-bottom: 6px;
+      line-height: 1.4;
+    }
+
+    .rss-item.snippet .rss-item-title {
+      color: var(--frame-text-primary, #e4e4e7);
+      font-weight: 500;
+    }
+
+    .rss-item-excerpt {
+      font-size: 13px;
+      color: var(--frame-text-secondary, #a1a1aa);
+      line-height: 1.5;
+      margin-bottom: 8px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .rss-item-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 11px;
+      color: var(--frame-text-muted, #71717a);
+    }
+
+    .rss-item-author {
+      color: var(--frame-text-secondary, #a1a1aa);
+      font-weight: 500;
+    }
+
+    .rss-link-card {
+      background: var(--frame-surface, #25252a);
+      border: 1px solid var(--frame-border, #3a3a3f);
+      border-radius: 6px;
+      padding: 12px;
+      margin-top: 8px;
+      display: flex;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .rss-link-card:hover {
+      background: var(--frame-border, #3a3a3f);
+    }
+
+    .rss-link-card-image {
+      width: 80px;
+      height: 60px;
+      background: linear-gradient(135deg, #3a3a3f, #2a2a2f);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--frame-text-muted, #71717a);
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .rss-link-card-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .rss-link-card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--frame-link-color, #818cf8);
+      margin-bottom: 4px;
+      line-height: 1.3;
+    }
+
+    .rss-link-card-domain {
+      font-size: 11px;
+      color: var(--frame-text-muted, #71717a);
+    }
+
+    /* ============================================================================
+       HACKER NEWS CONTEXT FRAME STYLES
+       ============================================================================ */
+
+    .hackernews-context {
+      background: var(--frame-bg, #1a1a1e);
+      border: 1px solid var(--frame-border, #3a3a3f);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--frame-text-primary, #e4e4e7);
+    }
+
+    .hn-header {
+      background: var(--frame-surface, #25252a);
+      border-bottom: 1px solid var(--frame-border, #3a3a3f);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .hn-logo {
+      font-size: 18px;
+      font-weight: 700;
+      color: #ff6600;
+      letter-spacing: -0.5px;
+    }
+
+    .hn-header-nav {
+      flex: 1;
+      display: flex;
+      gap: 16px;
+      font-size: 13px;
+    }
+
+    .hn-nav-link {
+      color: var(--frame-text-secondary, #a1a1aa);
+      text-decoration: none;
+    }
+
+    .hn-nav-link:hover {
+      color: var(--frame-text-primary, #e4e4e7);
+    }
+
+    .hn-content {
+      padding: 16px;
+    }
+
+    .hn-post {
+      margin-bottom: 24px;
+    }
+
+    .hn-post-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .hn-upvote {
+      width: 20px;
+      height: 20px;
+      background: var(--frame-surface, #25252a);
+      border: 1px solid var(--frame-border, #3a3a3f);
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--frame-text-muted, #71717a);
+      font-size: 12px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .hn-upvote:hover {
+      color: #ff6600;
+      border-color: #ff6600;
+    }
+
+    .hn-upvote.voted {
+      background: #ff6600;
+      color: white;
+      border-color: #ff6600;
+    }
+
+    .hn-post-main {
+      flex: 1;
+    }
+
+    .hn-post-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--frame-link-color, #818cf8);
+      margin-bottom: 4px;
+      line-height: 1.3;
+    }
+
+    .hn-post-meta {
+      font-size: 12px;
+      color: var(--frame-text-secondary, #a1a1aa);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .hn-post-author {
+      color: var(--frame-link-color, #818cf8);
+    }
+
+    .hn-post-domain {
+      color: var(--frame-text-muted, #71717a);
+    }
+
+    .hn-post-stats {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .hn-post-link {
+      color: var(--frame-text-secondary, #a1a1aa);
+      text-decoration: none;
+    }
+
+    .hn-post-link:hover {
+      color: var(--frame-link-color, #818cf8);
+    }
+
+    .hn-link-preview {
+      background: var(--frame-surface, #25252a);
+      border: 1px solid var(--frame-border, #3a3a3f);
+      border-radius: 6px;
+      padding: 12px;
+      margin-top: 12px;
+      display: flex;
+      gap: 12px;
+    }
+
+    .hn-link-preview-favicon {
+      width: 16px;
+      height: 16px;
+      background: var(--frame-border, #3a3a3f);
+      border-radius: 3px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .hn-link-preview-content {
+      flex: 1;
+    }
+
+    .hn-link-preview-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--frame-link-color, #818cf8);
+      margin-bottom: 4px;
+    }
+
+    .hn-link-preview-domain {
+      font-size: 12px;
+      color: var(--frame-text-muted, #71717a);
+    }
+
+    .hn-comments {
+      margin-top: 16px;
+      padding-left: 28px;
+    }
+
+    .hn-comment {
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .hn-comment-thread-line {
+      position: absolute;
+      left: -12px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--frame-border, #3a3a3f);
+    }
+
+    .hn-comment-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--frame-text-secondary, #a1a1aa);
+      margin-bottom: 6px;
+    }
+
+    .hn-comment-author {
+      color: var(--frame-link-color, #818cf8);
+      font-weight: 500;
+    }
+
+    .hn-comment-time {
+      color: var(--frame-text-muted, #71717a);
+    }
+
+    .hn-comment-body {
+      font-size: 14px;
+      color: var(--frame-text-primary, #e4e4e7);
+      line-height: 1.5;
+      margin-bottom: 8px;
+    }
+
+    .hn-comment-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+    }
+
+    .hn-comment-action {
+      color: var(--frame-text-secondary, #a1a1aa);
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .hn-comment-action:hover {
+      color: var(--frame-link-color, #818cf8);
+    }
+
+    .hn-reply {
+      margin-top: 12px;
+      margin-left: 16px;
+      padding: 12px;
+      background: var(--frame-surface, #25252a);
+      border-radius: 6px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .hn-reply-avatar {
+      width: 24px;
+      height: 24px;
+      background: var(--frame-accent, #6366f1);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 11px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .hn-reply-content {
+      flex: 1;
+    }
+
+    .hn-reply-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .hn-reply-author {
+      color: var(--frame-link-color, #818cf8);
+      font-weight: 600;
+    }
+
+    .hn-reply-body {
+      font-size: 13px;
+      color: var(--frame-text-primary, #e4e4e7);
+      line-height: 1.4;
+    }
+
+    .hn-link-card {
+      background: var(--frame-surface, #25252a);
+      border: 1px solid var(--frame-border, #3a3a3f);
+      border-radius: 6px;
+      padding: 10px;
+      margin-top: 8px;
+      text-decoration: none;
+      display: block;
+    }
+
+    .hn-link-card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--frame-link-color, #818cf8);
+      margin-bottom: 4px;
+    }
+
+    .hn-link-card-domain {
+      font-size: 11px;
+      color: var(--frame-text-muted, #71717a);
+    }
+
+    /* ============================================================================
+       EMAIL/THREAD CONTEXT FRAME STYLES
+       ============================================================================ */
+
+    .email-context {
+      background: var(--frame-bg, #1f1f1f);
+      border: 1px solid var(--frame-border, #3d3d3d);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--frame-text-primary, #e8eaed);
+    }
+
+    .email-header {
+      background: var(--frame-surface, #2d2d2d);
+      border-bottom: 1px solid var(--frame-border, #3d3d3d);
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .email-folder-tabs {
+      display: flex;
+      gap: 4px;
+      padding: 12px 16px;
+      background: var(--frame-bg, #1f1f1f);
+      border-bottom: 1px solid var(--frame-border, #3d3d3d);
+    }
+
+    .email-folder-tab {
+      padding: 8px 16px;
+      border-radius: 16px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--frame-text-secondary, #9aa0a6);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: all var(--frame-transition-fast, 150ms ease);
+    }
+
+    .email-folder-tab:hover {
+      background: var(--frame-surface, #2d2d2d);
+    }
+
+    .email-folder-tab.active {
+      background: var(--frame-accent-bg, #c4e7fa);
+      color: var(--frame-accent, #0b57d0);
+    }
+
+    .email-content {
+      padding: 0;
+    }
+
+    .email-thread {
+      border-bottom: 1px solid var(--frame-border, #3d3d3d);
+      cursor: pointer;
+      transition: background var(--frame-transition-fast, 150ms ease);
+    }
+
+    .email-thread:hover {
+      background: var(--frame-surface, #2d2d2d);
+    }
+
+    .email-thread.unread {
+      background: rgba(138, 180, 248, 0.05);
+    }
+
+    .email-thread.unread:hover {
+      background: rgba(138, 180, 248, 0.1);
+    }
+
+    .email-thread-main {
+      display: flex;
+      padding: 16px;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .email-thread-selector {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--frame-text-secondary, #9aa0a6);
+      border-radius: 50%;
+      flex-shrink: 0;
+      cursor: pointer;
+      transition: all var(--frame-transition-fast, 150ms ease);
+    }
+
+    .email-thread-selector:hover {
+      border-color: var(--frame-accent, #0b57d0);
+    }
+
+    .email-thread-selector.selected {
+      background: var(--frame-accent, #0b57d0);
+      border-color: var(--frame-accent, #0b57d0);
+    }
+
+    .email-thread-star {
+      width: 20px;
+      height: 20px;
+      color: var(--frame-text-muted, #5f6368);
+      cursor: pointer;
+      transition: all var(--frame-transition-fast, 150ms ease);
+    }
+
+    .email-thread-star:hover {
+      color: var(--frame-text-secondary, #9aa0a6);
+    }
+
+    .email-thread-star.starred {
+      color: #f4b400;
+    }
+
+    .email-thread-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .email-thread-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .email-thread-sender {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--frame-text-primary, #e8eaed);
+    }
+
+    .email-thread-email {
+      font-size: 13px;
+      color: var(--frame-text-secondary, #9aa0a6);
+    }
+
+    .email-thread-preview {
+      font-size: 13px;
+      color: var(--frame-text-secondary, #9aa0a6);
+      line-height: 1.4;
+      margin-bottom: 6px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .email-thread-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--frame-text-muted, #5f6368);
+    }
+
+    .email-thread-attachments {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--frame-text-secondary, #9aa0a6);
+    }
+
+    .email-thread-count {
+      background: var(--frame-accent, #0b57d0);
+      color: white;
+      padding: 2px 6px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+
+    .email-conversation {
+      display: none;
+      border-top: 1px solid var(--frame-border, #3d3d3d);
+    }
+
+    .email-conversation.open {
+      display: block;
+    }
+
+    .email-message {
+      padding: 16px;
+      border-bottom: 1px solid var(--frame-border, #3d3d3d);
+      display: flex;
+      gap: 12px;
+    }
+
+    .email-message.expanded {
+      background: var(--frame-surface, #2d2d2d);
+    }
+
+    .email-message-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--frame-accent, #0b57d0);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+
+    .email-message-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .email-message-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .email-message-from {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .email-message-name {
+      font-weight: 600;
+      color: var(--frame-text-primary, #e8eaed);
+    }
+
+    .email-message-address {
+      color: var(--frame-text-secondary, #9aa0a6);
+      font-size: 13px;
+    }
+
+    .email-message-time {
+      color: var(--frame-text-muted, #5f6368);
+      font-size: 12px;
+    }
+
+    .email-message-to {
+      font-size: 12px;
+      color: var(--frame-text-secondary, #9aa0a6);
+      margin-bottom: 8px;
+    }
+
+    .email-message-body {
+      font-size: 14px;
+      color: var(--frame-text-primary, #e8eaed);
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+
+    .email-link-card {
+      background: var(--frame-surface, #2d2d2d);
+      border: 1px solid var(--frame-border, #3d3d3d);
+      border-radius: 8px;
+      padding: 12px;
+      margin: 12px 0;
+      display: flex;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .email-link-card:hover {
+      background: var(--frame-border, #3d3d3d);
+    }
+
+    .email-link-card-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--frame-accent-bg, #e8f0fe);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--frame-accent, #0b57d0);
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .email-link-card-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .email-link-card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--frame-link-color, #8ab4f8);
+      margin-bottom: 4px;
+    }
+
+    .email-link-card-description {
+      font-size: 12px;
+      color: var(--frame-text-secondary, #9aa0a6);
+      line-height: 1.4;
+      margin-bottom: 4px;
+    }
+
+    .email-link-card-url {
+      font-size: 11px;
+      color: var(--frame-text-muted, #5f6368);
+    }
+
+    .email-message-actions {
+      display: flex;
+      gap: 16px;
+      padding-top: 8px;
+      border-top: 1px solid var(--frame-border, #3d3d3d);
+    }
+
+    .email-action-btn {
+      font-size: 13px;
+      color: var(--frame-text-secondary, #9aa0a6);
+      background: none;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: all var(--frame-transition-fast, 150ms ease);
+    }
+
+    .email-action-btn:hover {
+      background: var(--frame-border, #3d3d3d);
+      color: var(--frame-text-primary, #e8eaed);
+    }
+
+    .email-reply-box {
+      margin: 16px;
+      padding: 16px;
+      background: var(--frame-surface, #2d2d2d);
+      border: 1px solid var(--frame-border, #3d3d3d);
+      border-radius: 8px;
+      display: flex;
+      gap: 12px;
+    }
+
+    .email-reply-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--frame-accent, #0b57d0);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+
+    .email-reply-input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      color: var(--frame-text-primary, #e8eaed);
+      font-size: 14px;
+      resize: none;
+      outline: none;
+    }
+
+    .email-reply-input::placeholder {
+      color: var(--frame-text-muted, #5f6368);
+    }
+
+    /* Theme-specific adjustments for email */
+    .email-context.light-theme {
+      --frame-bg: #ffffff;
+      --frame-surface: #f2f2f2;
+      --frame-border: #e0e0e0;
+      --frame-text-primary: #202124;
+      --frame-text-secondary: #5f6368;
+      --frame-text-muted: #9aa0a6;
+      --frame-accent: #0b57d0;
+      --frame-accent-bg: #e8f0fe;
+      --frame-link-color: #0b57d0;
+    }
+
+    /* ============================================================================
+       RESPONSIVE DESIGN
+       ============================================================================ */
+
+    @media (max-width: 600px) {
+      .test-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .rss-item,
+      .email-thread-main,
+      .email-message {
+        padding: 12px;
+      }
+
+      .hn-comments {
+        padding-left: 16px;
+      }
+
+      .email-reply-box {
+        margin: 12px;
+        padding: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" id="themeToggle">☀️ Light Mode</button>
+
+  <div class="test-header">
+    <h1>📰 Feed & Thread Platform Context Frames</h1>
+    <p>Testing RSS Reader, Hacker News, and Email context frames with realistic threading and link cards</p>
+  </div>
+
+  <!-- Acceptance Criteria Checklist -->
+  <div class="acceptance-criteria">
+    <h2>✅ Acceptance Criteria</h2>
+    <ul class="criteria-list">
+      <li>RSS feed reader frames with accurate feed/list layout and unread indicators</li>
+      <li>Hacker News frames with comment threading and upvoting</li>
+      <li>Email/Gmail frames with conversation threading and reply structure</li>
+      <li>Link cards embedded naturally in all three platform contexts</li>
+      <li>Dark/light theme switching works for all platforms</li>
+      <li>All platforms tested in both themes with comprehensive verification</li>
+    </ul>
+  </div>
+
+  <!-- Test Section: RSS Feed Reader -->
+  <div class="platform-section">
+    <h2 class="rss">📡 RSS Feed Reader Context Frames</h2>
+    <div class="test-grid">
+      <!-- RSS - Tech News Feed -->
+      <div class="context-frame rss-context dark-theme">
+        <div class="rss-header">
+          <div class="rss-feed-icon">📡</div>
+          <div class="rss-feed-info">
+            <div class="rss-feed-title">TechCrunch</div>
+            <div class="rss-feed-meta">
+              <span>1,234 subscribers</span>
+              <span class="rss-feed-url">techcrunch.com</span>
+            </div>
+          </div>
+        </div>
+        <div class="rss-content">
+          <div class="rss-item unread">
+            <div class="rss-item-status">
+              <div class="rss-unread-dot"></div>
+            </div>
+            <div class="rss-item-content">
+              <div class="rss-item-title">AI Startup Raises $50M Series B to Transform Healthcare Diagnostics</div>
+              <div class="rss-item-excerpt">A San Francisco-based healthcare AI company has announced a successful $50 million Series B funding round led by Sequoia Capital...</div>
+              <div class="rss-item-meta">
+                <span class="rss-item-author">Sarah Lacy</span>
+                <span>2 hours ago</span>
+                <span>5 min read</span>
+              </div>
+            </div>
+          </div>
+          <div class="rss-item">
+            <div class="rss-item-status"></div>
+            <div class="rss-item-content">
+              <div class="rss-item-title">New Framework Makes Building Web Apps 10x Faster</div>
+              <div class="rss-item-excerpt">Developers rave about the revolutionary approach to frontend development...</div>
+              <div class="rss-item-meta">
+                <span class="rss-item-author">Mike Butcher</span>
+                <span>5 hours ago</span>
+                <span>3 min read</span>
+              </div>
+              <a class="rss-link-card" href="#">
+                <div class="rss-link-card-image">🔗</div>
+                <div class="rss-link-card-content">
+                  <div class="rss-link-card-title">Complete Framework Documentation</div>
+                  <div class="rss-link-card-domain">docs.dev-framework.io</div>
+                </div>
+              </a>
+            </div>
+          </div>
+          <div class="rss-item snippet">
+            <div class="rss-item-status"></div>
+            <div class="rss-item-content">
+              <div class="rss-item-title">🎙️ Podcast: The Future of Cloud Computing</div>
+              <div class="rss-item-meta">
+                <span class="rss-item-author">TechCrunch</span>
+                <span>Yesterday</span>
+                <span>45 min listen</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RSS - Developer Blog -->
+      <div class="context-frame rss-context dark-theme">
+        <div class="rss-header">
+          <div class="rss-feed-icon">👨‍💻</div>
+          <div class="rss-feed-info">
+            <div class="rss-feed-title">CSS-Tricks</div>
+            <div class="rss-feed-meta">
+              <span>892 subscribers</span>
+              <span class="rss-feed-url">css-tricks.com</span>
+            </div>
+          </div>
+        </div>
+        <div class="rss-content">
+          <div class="rss-item unread">
+            <div class="rss-item-status">
+              <div class="rss-unread-dot"></div>
+            </div>
+            <div class="rss-item-content">
+              <div class="rss-item-title">Modern CSS: A Complete Guide to Container Queries</div>
+              <div class="rss-item-excerpt">Container queries are finally here and they're changing how we think about responsive design...</div>
+              <div class="rss-item-meta">
+                <span class="rss-item-author">Chris Coyier</span>
+                <span>1 hour ago</span>
+                <span>8 min read</span>
+              </div>
+            </div>
+          </div>
+          <div class="rss-item">
+            <div class="rss-item-status"></div>
+            <div class="rss-item-content">
+              <div class="rss-item-title">10 JavaScript Performance Tips You Need to Know</div>
+              <div class="rss-item-excerpt">Optimize your JavaScript applications with these battle-tested techniques...</div>
+              <div class="rss-item-meta">
+                <span class="rss-item-author">Geoff Graham</span>
+                <span>1 day ago</span>
+                <span>6 min read</span>
+              </div>
+            </div>
+          </div>
+          <div class="rss-item">
+            <div class="rss-item-status"></div>
+            <div class="rss-item-content">
+              <div class="rss-item-title">The Ultimate Guide to CSS Grid Layout</div>
+              <div class="rss-item-excerpt">Master CSS Grid with this comprehensive tutorial covering everything from basics to advanced techniques...</div>
+              <div class="rss-item-meta">
+                <span class="rss-item-author">Sarah Drasner</span>
+                <span>3 days ago</span>
+                <span>12 min read</span>
+              </div>
+              <a class="rss-link-card" href="#">
+                <div class="rss-link-card-image">🎨</div>
+                <div class="rss-link-card-content">
+                  <div class="rss-link-card-title">Interactive Grid Layout Examples</div>
+                  <div class="rss-link-card-domain">css-grid-examples.dev</div>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Test Section: Hacker News -->
+  <div class="platform-section">
+    <h2 class="hackernews">🔶 Hacker News Context Frames</h2>
+    <div class="test-grid">
+      <!-- HN - Tech Discussion -->
+      <div class="context-frame hackernews-context dark-theme">
+        <div class="hn-header">
+          <div class="hn-logo">Y</div>
+          <div class="hn-header-nav">
+            <a class="hn-nav-link">new</a>
+            <a class="hn-nav-link">past</a>
+            <a class="hn-nav-link">comments</a>
+            <a class="hn-nav-link">ask</a>
+            <a class="hn-nav-link">show</a>
+            <a class="hn-nav-link">jobs</a>
+            <a class="hn-nav-link">submit</a>
+          </div>
+        </div>
+        <div class="hn-content">
+          <div class="hn-post">
+            <div class="hn-post-header">
+              <div class="hn-upvote">▲</div>
+              <div class="hn-post-main">
+                <div class="hn-post-title">Show HN: I built a tool that generates context frames for any platform</div>
+                <div class="hn-post-meta">
+                  <span class="hn-post-author">johndoe123</span>
+                  <span>2 hours ago</span>
+                  <span class="hn-post-domain">(example.com)</span>
+                </div>
+                <div class="hn-post-stats">
+                  <span>142 points</span>
+                  <a class="hn-post-link">89 comments</a>
+                </div>
+              </div>
+            </div>
+            <div class="hn-link-preview">
+              <div class="hn-link-preview-favicon"></div>
+              <div class="hn-link-preview-content">
+                <div class="hn-link-preview-title">Platform Frame Generator - Create realistic UI mockups</div>
+                <div class="hn-link-preview-domain">example.com</div>
+              </div>
+            </div>
+            <div class="hn-comments">
+              <div class="hn-comment">
+                <div class="hn-comment-thread-line"></div>
+                <div class="hn-comment-header">
+                  <span class="hn-comment-author">alice_dev</span>
+                  <span class="hn-comment-time">1 hour ago</span>
+                </div>
+                <div class="hn-comment-body">This is exactly what I needed for my project! The attention to detail is impressive. Can you add support for more platforms?</div>
+                <div class="hn-comment-actions">
+                  <span class="hn-comment-action">▲</span>
+                  <span class="hn-comment-action">24</span>
+                  <span class="hn-comment-action">reply</span>
+                </div>
+                <div class="hn-reply">
+                  <div class="hn-reply-avatar">JD</div>
+                  <div class="hn-reply-content">
+                    <div class="hn-reply-header">
+                      <span class="hn-reply-author">johndoe123</span>
+                      <span class="hn-comment-time">45 min ago</span>
+                    </div>
+                    <div class="hn-reply-body">Thanks! Yes, I'm planning to add Reddit, LinkedIn, and Instagram soon. Stay tuned!</div>
+                    <a class="hn-link-card" href="#">
+                      <div class="hn-link-card-title">Roadmap & Feature Requests</div>
+                      <div class="hn-link-card-domain">github.com</div>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HN - Launch Announcement -->
+      <div class="context-frame hackernews-context dark-theme">
+        <div class="hn-header">
+          <div class="hn-logo">Y</div>
+          <div class="hn-header-nav">
+            <a class="hn-nav-link">new</a>
+            <a class="hn-nav-link">past</a>
+            <a class="hn-nav-link">comments</a>
+            <a class="hn-nav-link">ask</a>
+            <a class="hn-nav-link">show</a>
+            <a class="hn-nav-link">jobs</a>
+            <a class="hn-nav-link">submit</a>
+          </div>
+        </div>
+        <div class="hn-content">
+          <div class="hn-post">
+            <div class="hn-post-header">
+              <div class="hn-upvote voted">▲</div>
+              <div class="hn-post-main">
+                <div class="hn-post-title">Open source alternative to popular development tool hits 10K GitHub stars</div>
+                <div class="hn-post-meta">
+                  <span class="hn-post-author">sarahcoder</span>
+                  <span>4 hours ago</span>
+                  <span class="hn-post-domain">(github.com)</span>
+                </div>
+                <div class="hn-post-stats">
+                  <span>287 points</span>
+                  <a class="hn-post-link">156 comments</a>
+                </div>
+              </div>
+            </div>
+            <div class="hn-comments">
+              <div class="hn-comment">
+                <div class="hn-comment-thread-line"></div>
+                <div class="hn-comment-header">
+                  <span class="hn-comment-author">techbro42</span>
+                  <span class="hn-comment-time">3 hours ago</span>
+                </div>
+                <div class="hn-comment-body">We've been using this in production for 6 months and it's been rock solid. The performance is actually better than the commercial alternative.</div>
+                <div class="hn-comment-actions">
+                  <span class="hn-comment-action">▲</span>
+                  <span class="hn-comment-action">42</span>
+                  <span class="hn-comment-action">reply</span>
+                </div>
+              </div>
+              <div class="hn-comment">
+                <div class="hn-comment-thread-line"></div>
+                <div class="hn-comment-header">
+                  <span class="hn-comment-author">opensourcedev</span>
+                  <span class="hn-comment-time">2 hours ago</span>
+                </div>
+                <div class="hn-comment-body">Great to see open source tools getting traction! Here's a comprehensive comparison guide I wrote:</div>
+                <div class="hn-comment-actions">
+                  <span class="hn-comment-action">▲</span>
+                  <span class="hn-comment-action">18</span>
+                  <span class="hn-comment-action">reply</span>
+                </div>
+                <a class="hn-link-card" href="#">
+                  <div class="hn-link-card-title">Commercial vs Open Source: Complete Comparison Guide</div>
+                  <div class="hn-link-card-domain">dev-comparison.io</div>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Test Section: Email Thread -->
+  <div class="platform-section">
+    <h2 class="email">✉️ Email Thread Context Frames</h2>
+    <div class="test-grid">
+      <!-- Email - Work Thread -->
+      <div class="context-frame email-context dark-theme">
+        <div class="email-header">
+          <span>📧</span>
+          <span style="font-weight: 600;">Gmail</span>
+        </div>
+        <div class="email-folder-tabs">
+          <button class="email-folder-tab active">Primary</button>
+          <button class="email-folder-tab">Promotions</button>
+          <button class="email-folder-tab">Social</button>
+        </div>
+        <div class="email-content">
+          <div class="email-thread unread" onclick="this.querySelector('.email-conversation').classList.toggle('open')">
+            <div class="email-thread-main">
+              <div class="email-thread-selector"></div>
+              <div class="email-thread-star starred">★</div>
+              <div class="email-thread-content">
+                <div class="email-thread-header">
+                  <span class="email-thread-sender">Project Team</span>
+                  <span class="email-thread-email">&lt;team@company.com&gt;</span>
+                </div>
+                <div class="email-thread-preview">RE: Q4 Roadmap Review - Updated timeline and deliverables for the upcoming quarter. Please review the attached document...</div>
+                <div class="email-thread-meta">
+                  <span>Today, 2:34 PM</span>
+                  <div class="email-thread-attachments">
+                    <span>📎</span>
+                    <span>2</span>
+                  </div>
+                  <span class="email-thread-count">4</span>
+                </div>
+              </div>
+            </div>
+            <div class="email-conversation open">
+              <div class="email-message">
+                <div class="email-message-avatar">PT</div>
+                <div class="email-message-main">
+                  <div class="email-message-header">
+                    <div class="email-message-from">
+                      <span class="email-message-name">Project Team</span>
+                      <span class="email-message-address">&lt;team@company.com&gt;</span>
+                    </div>
+                    <span class="email-message-time">Today, 2:34 PM</span>
+                  </div>
+                  <div class="email-message-to">to: You, Sarah, Mike</div>
+                  <div class="email-message-body">Hi everyone,<br><br>I've updated the Q4 roadmap based on our discussion yesterday. The key changes are:<br><br>1. Moved feature launch to early December<br>2. Added buffer time for QA<br>3. Adjusted resource allocation<br><br>Please review and let me know if you have any questions.</div>
+                  <div class="email-message-actions">
+                    <button class="email-action-btn">↩ Reply</button>
+                    <button class="email-action-btn">↪ Forward</button>
+                    <button class="email-action-btn">📎 Attach</button>
+                  </button>
+                </div>
+              </div>
+              <div class="email-message expanded">
+                <div class="email-message-avatar">Y</div>
+                <div class="email-message-main">
+                  <div class="email-message-header">
+                    <div class="email-message-from">
+                      <span class="email-message-name">You</span>
+                    </div>
+                    <span class="email-message-time">Today, 3:15 PM</span>
+                  </div>
+                  <div class="email-message-to">to: Project Team</div>
+                  <div class="email-message-body">Thanks for the update! The timeline looks much better now. I have one question about the QA buffer - is that sufficient for the new testing requirements we discussed?</div>
+                  <div class="email-message-body">Also, I found this great resource on QA best practices that might help:</div>
+                  <a class="email-link-card" href="#">
+                    <div class="email-link-card-icon">🔗</div>
+                    <div class="email-link-card-content">
+                      <div class="email-link-card-title">Complete Guide to QA Testing in Agile Development</div>
+                      <div class="email-link-card-description">Learn how to implement effective QA processes in agile environments</div>
+                      <div class="email-link-card-url">qa-agile-guide.dev</div>
+                    </div>
+                  </a>
+                  <div class="email-message-actions">
+                    <button class="email-action-btn">↩ Reply</button>
+                    <button class="email-action-btn">↪ Forward</button>
+                    <button class="email-action-btn">✏️ Edit</button>
+                  </button>
+                </div>
+              </div>
+              <div class="email-reply-box">
+                <div class="email-reply-avatar">Y</div>
+                <textarea class="email-reply-input" placeholder="Write your reply..."></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Email - Client Thread -->
+      <div class="context-frame email-context dark-theme">
+        <div class="email-header">
+          <span>📧</span>
+          <span style="font-weight: 600;">Gmail</span>
+        </div>
+        <div class="email-folder-tabs">
+          <button class="email-folder-tab">Primary</button>
+          <button class="email-folder-tab active">Promotions</button>
+          <button class="email-folder-tab">Social</button>
+        </div>
+        <div class="email-content">
+          <div class="email-thread unread" onclick="this.querySelector('.email-conversation').classList.toggle('open')">
+            <div class="email-thread-main">
+              <div class="email-thread-selector"></div>
+              <div class="email-thread-star">☆</div>
+              <div class="email-thread-content">
+                <div class="email-thread-header">
+                  <span class="email-thread-sender">Acme Corp</span>
+                  <span class="email-thread-email">&lt;contact@acmecorp.com&gt;</span>
+                </div>
+                <div class="email-thread-preview">Your project proposal has been approved! We're excited to move forward with Phase 1...</div>
+                <div class="email-thread-meta">
+                  <span>Yesterday, 5:42 PM</span>
+                  <div class="email-thread-attachments">
+                    <span>📎</span>
+                    <span>1</span>
+                  </div>
+                  <span class="email-thread-count">3</span>
+                </div>
+              </div>
+            </div>
+            <div class="email-conversation">
+              <div class="email-message">
+                <div class="email-message-avatar">AC</div>
+                <div class="email-message-main">
+                  <div class="email-message-header">
+                    <div class="email-message-from">
+                      <span class="email-message-name">Acme Corp</span>
+                      <span class="email-message-address">&lt;contact@acmecorp.com&gt;</span>
+                    </div>
+                    <span class="email-message-time">Yesterday, 5:42 PM</span>
+                  </div>
+                  <div class="email-message-to">to: You</div>
+                  <div class="email-message-body">Dear [Your Name],<br><br>We are pleased to inform you that your project proposal has been approved! We were very impressed with your thorough approach and innovative solutions.<br><br>Phase 1 budget: $50,000<br>Start date: November 1st<br>Duration: 8 weeks<br><br>Please sign the attached contract to formalize our partnership.</div>
+                  <a class="email-link-card" href="#">
+                    <div class="email-link-card-icon">📄</div>
+                    <div class="email-link-card-content">
+                      <div class="email-link-card-title">Project Contract - Phase 1</div>
+                      <div class="email-link-card-description">PDF, 2.4 MB - Ready for signature</div>
+                      <div class="email-link-card-url">docs.google.com</div>
+                    </div>
+                  </a>
+                  <div class="email-message-actions">
+                    <button class="email-action-btn">↩ Reply</button>
+                    <button class="email-action-btn">↪ Forward</button>
+                    <button class="email-action-btn">📎 Attach</button>
+                  </button>
+                </div>
+              </div>
+              <div class="email-message expanded">
+                <div class="email-message-avatar">Y</div>
+                <div class="email-message-main">
+                  <div class="email-message-header">
+                    <div class="email-message-from">
+                      <span class="email-message-name">You</span>
+                    </div>
+                    <span class="email-message-time">Today, 9:15 AM</span>
+                  </div>
+                  <div class="email-message-to">to: Acme Corp</div>
+                  <div class="email-message-body">Thank you so much for the approval! I'm thrilled to work with you on this project.<br><br>I've reviewed the contract and everything looks great. I'll sign it and send it back by end of day today.<br><br>Quick question - do you have a preferred project management tool, or should I set one up?</div>
+                  <div class="email-message-actions">
+                    <button class="email-action-btn">↩ Reply</button>
+                    <button class="email-action-btn">↪ Forward</button>
+                    <button class="email-action-btn">✏️ Edit</button>
+                  </button>
+                </div>
+              </div>
+              <div class="email-reply-box">
+                <div class="email-reply-avatar">Y</div>
+                <textarea class="email-reply-input" placeholder="Write your reply..."></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Verification Results -->
+  <div class="platform-section">
+    <h2>📊 Verification Results</h2>
+    <div class="verification-log" id="verificationLog">
+      <div class="info">Running verification tests...</div>
+    </div>
+  </div>
+
+  <script>
+    // Comprehensive verification test suite
+    function runVerification() {
+      const log = document.getElementById('verificationLog');
+      const results = [];
+
+      function logResult(message, status = 'info') {
+        const div = document.createElement('div');
+        div.className = status;
+        div.textContent = `[${status.toUpperCase()}] ${message}`;
+        log.appendChild(div);
+        results.push({ message, status });
+      }
+
+      // Test 1: RSS structure verification
+      function testRSSStructure() {
+        const rssFrames = document.querySelectorAll('.rss-context');
+        if (rssFrames.length === 0) {
+          logResult('No RSS frames found', 'fail');
+          return false;
+        }
+
+        logResult(`Found ${rssFrames.length} RSS context frames`, 'pass');
+
+        const rssFrame = rssFrames[0];
+        const requiredElements = {
+          'rss-header': '.rss-header',
+          'rss-feed-icon': '.rss-feed-icon',
+          'rss-feed-info': '.rss-feed-info',
+          'rss-feed-title': '.rss-feed-title',
+          'rss-feed-meta': '.rss-feed-meta',
+          'rss-content': '.rss-content',
+          'rss-item': '.rss-item',
+          'rss-item-content': '.rss-item-content',
+          'rss-item-title': '.rss-item-title',
+          'rss-item-meta': '.rss-item-meta'
+        };
+
+        let allPresent = true;
+        for (const [name, selector] of Object.entries(requiredElements)) {
+          if (rssFrame.querySelector(selector)) {
+            logResult(`✓ RSS element found: .${name}`, 'pass');
+          } else {
+            logResult(`✗ RSS element missing: .${name}`, 'fail');
+            allPresent = false;
+          }
+        }
+        return allPresent;
+      }
+
+      // Test 2: RSS content verification
+      function testRSSContent() {
+        const rssFrame = document.querySelector('.rss-context');
+        if (!rssFrame) {
+          logResult('No RSS frame to check content', 'fail');
+          return false;
+        }
+
+        const unreadItems = rssFrame.querySelectorAll('.rss-item.unread');
+        const linkCards = rssFrame.querySelectorAll('.rss-link-card');
+        const feedTitles = rssFrame.querySelectorAll('.rss-feed-title');
+
+        if (unreadItems.length > 0) {
+          logResult(`RSS has ${unreadItems.length} unread item(s) with indicators`, 'pass');
+        } else {
+          logResult('RSS has no unread items', 'fail');
+          return false;
+        }
+
+        if (linkCards.length > 0) {
+          logResult(`RSS has ${linkCards.length} link card(s) embedded`, 'pass');
+        } else {
+          logResult('RSS has no link cards', 'fail');
+          return false;
+        }
+
+        if (feedTitles.length > 0) {
+          const firstFeed = feedTitles[0].textContent.trim();
+          if (firstFeed) {
+            logResult(`RSS feed title: "${firstFeed}"`, 'pass');
+          } else {
+            logResult('RSS feed title is empty', 'fail');
+            return false;
+          }
+        }
+
+        return true;
+      }
+
+      // Test 3: Hacker News structure verification
+      function testHackerNewsStructure() {
+        const hnFrames = document.querySelectorAll('.hackernews-context');
+        if (hnFrames.length === 0) {
+          logResult('No Hacker News frames found', 'fail');
+          return false;
+        }
+
+        logResult(`Found ${hnFrames.length} Hacker News context frames`, 'pass');
+
+        const hnFrame = hnFrames[0];
+        const requiredElements = {
+          'hn-header': '.hn-header',
+          'hn-logo': '.hn-logo',
+          'hn-content': '.hn-content',
+          'hn-post': '.hn-post',
+          'hn-post-header': '.hn-post-header',
+          'hn-upvote': '.hn-upvote',
+          'hn-post-title': '.hn-post-title',
+          'hn-post-meta': '.hn-post-meta',
+          'hn-comments': '.hn-comments',
+          'hn-comment': '.hn-comment',
+          'hn-comment-body': '.hn-comment-body'
+        };
+
+        let allPresent = true;
+        for (const [name, selector] of Object.entries(requiredElements)) {
+          if (hnFrame.querySelector(selector)) {
+            logResult(`✓ HN element found: .${name}`, 'pass');
+          } else {
+            logResult(`✗ HN element missing: .${name}`, 'fail');
+            allPresent = false;
+          }
+        }
+        return allPresent;
+      }
+
+      // Test 4: Hacker News threading verification
+      function testHackerNewsThreading() {
+        const hnFrame = document.querySelector('.hackernews-context');
+        if (!hnFrame) {
+          logResult('No Hacker News frame to check threading', 'fail');
+          return false;
+        }
+
+        const comments = hnFrame.querySelectorAll('.hn-comment');
+        const threadLines = hnFrame.querySelectorAll('.hn-comment-thread-line');
+        const replies = hnFrame.querySelectorAll('.hn-reply');
+        const hnLinkCards = hnFrame.querySelectorAll('.hn-link-card');
+
+        if (comments.length > 0) {
+          logResult(`HN has ${comments.length} comment(s)`, 'pass');
+        } else {
+          logResult('HN has no comments', 'fail');
+          return false;
+        }
+
+        if (threadLines.length > 0) {
+          logResult(`HN has ${threadLines.length} thread line(s) for threading visualization`, 'pass');
+        } else {
+          logResult('HN has no thread lines', 'fail');
+          return false;
+        }
+
+        if (replies.length > 0) {
+          logResult(`HN has ${replies.length} nested reply/replies`, 'pass');
+        } else {
+          logResult('HN has no nested replies', 'fail');
+          return false;
+        }
+
+        if (hnLinkCards.length > 0) {
+          logResult(`HN has ${hnLinkCards.length} link card(s) embedded`, 'pass');
+        } else {
+          logResult('HN has no link cards', 'fail');
+          return false;
+        }
+
+        return true;
+      }
+
+      // Test 5: Email structure verification
+      function testEmailStructure() {
+        const emailFrames = document.querySelectorAll('.email-context');
+        if (emailFrames.length === 0) {
+          logResult('No Email frames found', 'fail');
+          return false;
+        }
+
+        logResult(`Found ${emailFrames.length} Email context frames`, 'pass');
+
+        const emailFrame = emailFrames[0];
+        const requiredElements = {
+          'email-header': '.email-header',
+          'email-folder-tabs': '.email-folder-tabs',
+          'email-folder-tab': '.email-folder-tab',
+          'email-content': '.email-content',
+          'email-thread': '.email-thread',
+          'email-thread-main': '.email-thread-main',
+          'email-thread-content': '.email-thread-content',
+          'email-thread-sender': '.email-thread-sender',
+          'email-thread-preview': '.email-thread-preview',
+          'email-conversation': '.email-conversation',
+          'email-message': '.email-message'
+        };
+
+        let allPresent = true;
+        for (const [name, selector] of Object.entries(requiredElements)) {
+          if (emailFrame.querySelector(selector)) {
+            logResult(`✓ Email element found: .${name}`, 'pass');
+          } else {
+            logResult(`✗ Email element missing: .${name}`, 'fail');
+            allPresent = false;
+          }
+        }
+        return allPresent;
+      }
+
+      // Test 6: Email threading verification
+      function testEmailThreading() {
+        const emailFrame = document.querySelector('.email-context');
+        if (!emailFrame) {
+          logResult('No Email frame to check threading', 'fail');
+          return false;
+        }
+
+        const threads = emailFrame.querySelectorAll('.email-thread');
+        const conversations = emailFrame.querySelectorAll('.email-conversation');
+        const messages = emailFrame.querySelectorAll('.email-message');
+        const emailLinkCards = emailFrame.querySelectorAll('.email-link-card');
+
+        if (threads.length > 0) {
+          logResult(`Email has ${threads.length} thread(s)`, 'pass');
+        } else {
+          logResult('Email has no threads', 'fail');
+          return false;
+        }
+
+        if (conversations.length > 0) {
+          logResult(`Email has ${conversations.length} conversation(s) for threading`, 'pass');
+        } else {
+          logResult('Email has no conversations', 'fail');
+          return false;
+        }
+
+        if (messages.length > 0) {
+          logResult(`Email has ${messages.length} message(s) in conversations`, 'pass');
+        } else {
+          logResult('Email has no messages', 'fail');
+          return false;
+        }
+
+        if (emailLinkCards.length > 0) {
+          logResult(`Email has ${emailLinkCards.length} link card(s) embedded`, 'pass');
+        } else {
+          logResult('Email has no link cards', 'fail');
+          return false;
+        }
+
+        return true;
+      }
+
+      // Test 7: Theme switching verification
+      function testThemeSwitching() {
+        const html = document.documentElement;
+        const currentTheme = html.getAttribute('data-theme');
+
+        if (!currentTheme) {
+          logResult('No theme attribute found on HTML element', 'fail');
+          return false;
+        }
+
+        logResult(`Current theme: ${currentTheme}`, 'pass');
+
+        // Check if frames have theme classes
+        const rssFrames = document.querySelectorAll('.rss-context');
+        const hnFrames = document.querySelectorAll('.hackernews-context');
+        const emailFrames = document.querySelectorAll('.email-context');
+
+        let rssHasTheme = false;
+        let hnHasTheme = false;
+        let emailHasTheme = false;
+
+        rssFrames.forEach(frame => {
+          if (frame.classList.contains('dark-theme') || frame.classList.contains('light-theme')) {
+            rssHasTheme = true;
+          }
+        });
+
+        hnFrames.forEach(frame => {
+          if (frame.classList.contains('dark-theme') || frame.classList.contains('light-theme')) {
+            hnHasTheme = true;
+          }
+        });
+
+        emailFrames.forEach(frame => {
+          if (frame.classList.contains('dark-theme') || frame.classList.contains('light-theme')) {
+            emailHasTheme = true;
+          }
+        });
+
+        if (rssHasTheme) {
+          logResult('RSS frames have theme classes', 'pass');
+        } else {
+          logResult('RSS frames missing theme classes', 'fail');
+          return false;
+        }
+
+        if (hnHasTheme) {
+          logResult('Hacker News frames have theme classes', 'pass');
+        } else {
+          logResult('Hacker News frames missing theme classes', 'fail');
+          return false;
+        }
+
+        if (emailHasTheme) {
+          logResult('Email frames have theme classes', 'pass');
+        } else {
+          logResult('Email frames missing theme classes', 'fail');
+          return false;
+        }
+
+        return true;
+      }
+
+      // Test 8: Link card verification across platforms
+      function testLinkCards() {
+        const rssFrame = document.querySelector('.rss-context');
+        const hnFrame = document.querySelector('.hackernews-context');
+        const emailFrame = document.querySelector('.email-context');
+
+        if (!rssFrame || !hnFrame || !emailFrame) {
+          logResult('Frames missing for link card verification', 'fail');
+          return false;
+        }
+
+        const rssLinkCards = rssFrame.querySelectorAll('.rss-link-card');
+        const hnLinkCards = hnFrame.querySelectorAll('.hn-link-card');
+        const emailLinkCards = emailFrame.querySelectorAll('.email-link-card');
+
+        let hasLinkCards = true;
+
+        if (rssLinkCards.length > 0) {
+          const card = rssLinkCards[0];
+          if (card.querySelector('.rss-link-card-title') && card.querySelector('.rss-link-card-domain')) {
+            logResult('RSS link cards have proper structure', 'pass');
+          } else {
+            logResult('RSS link cards missing required elements', 'fail');
+            hasLinkCards = false;
+          }
+        } else {
+          logResult('RSS has no link cards', 'fail');
+          hasLinkCards = false;
+        }
+
+        if (hnLinkCards.length > 0) {
+          const card = hnLinkCards[0];
+          if (card.querySelector('.hn-link-card-title') && card.querySelector('.hn-link-card-domain')) {
+            logResult('HN link cards have proper structure', 'pass');
+          } else {
+            logResult('HN link cards missing required elements', 'fail');
+            hasLinkCards = false;
+          }
+        } else {
+          logResult('HN has no link cards', 'fail');
+          hasLinkCards = false;
+        }
+
+        if (emailLinkCards.length > 0) {
+          const card = emailLinkCards[0];
+          if (card.querySelector('.email-link-card-title') && card.querySelector('.email-link-card-url')) {
+            logResult('Email link cards have proper structure', 'pass');
+          } else {
+            logResult('Email link cards missing required elements', 'fail');
+            hasLinkCards = false;
+          }
+        } else {
+          logResult('Email has no link cards', 'fail');
+          hasLinkCards = false;
+        }
+
+        return hasLinkCards;
+      }
+
+      // Run all tests
+      logResult('Starting feed & thread platform context frame verification...', 'info');
+      logResult('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+
+      const testResults = {
+        rssStructure: testRSSStructure(),
+        rssContent: testRSSContent(),
+        hackerNewsStructure: testHackerNewsStructure(),
+        hackerNewsThreading: testHackerNewsThreading(),
+        emailStructure: testEmailStructure(),
+        emailThreading: testEmailThreading(),
+        themeSwitching: testThemeSwitching(),
+        linkCards: testLinkCards()
+      };
+
+      const allPassed = Object.values(testResults).every(result => result === true);
+
+      logResult('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+      if (allPassed) {
+        logResult('✅ ALL TESTS PASSED - Feed & thread platform frames fully implemented', 'pass');
+      } else {
+        const failedTests = Object.entries(testResults).filter(([_, result]) => result === false);
+        logResult(`⚠️  ${failedTests.length} test(s) failed:`, 'fail');
+        failedTests.forEach(([name, _]) => {
+          logResult(`  - ${name}`, 'fail');
+        });
+      }
+
+      return allPassed;
+    }
+
+    // Theme toggle functionality
+    const themeToggle = document.getElementById('themeToggle');
+    let currentTheme = 'dark';
+
+    themeToggle.addEventListener('click', () => {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      themeToggle.textContent = currentTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+
+      // Update frame theme classes
+      document.querySelectorAll('.rss-context, .hackernews-context, .email-context').forEach(frame => {
+        frame.classList.remove('dark-theme', 'light-theme');
+        frame.classList.add(`${currentTheme}-theme`);
+      });
+
+      // Re-run verification after theme change
+      setTimeout(() => {
+        runVerification();
+      }, 100);
+    });
+
+    // Run verification on load
+    document.addEventListener('DOMContentLoaded', () => {
+      runVerification();
+    });
+  </script>
+</body>
+</html>

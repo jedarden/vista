@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Stack Overflow Context Frame</title>
   <link rel="stylesheet" href="src/public/style.css">
+  <link rel="stylesheet" href="src/public/platform-frames-enhanced.css">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -158,13 +159,6 @@
               <span>error-handling</span>
               <span>promises</span>
             </div>
-            <div class="so-user-card">
-              <div class="so-user-avatar">JD</div>
-              <div class="so-user-info">
-                <div class="so-user-name">javascriptDev2024</div>
-                <div class="so-user-reputation">1.2k reputation</div>
-              </div>
-            </div>
             <span class="so-author">asked 2 hours ago</span>
           </div>
         </div>
@@ -218,14 +212,14 @@
 }</div>
             </div>
             <!-- Embedded Link Card -->
-            <div class="so-link-card">
+            <a href="#" class="so-link-card">
               <div class="so-link-card-icon">📖</div>
               <div class="so-link-card-content">
                 <div class="so-link-card-title">MDN: async function</div>
                 <div class="so-link-card-description">Comprehensive guide to async/await syntax and error handling patterns in JavaScript.</div>
                 <div class="so-link-card-domain">developer.mozilla.org</div>
               </div>
-            </div>
+            </a>
             <div class="so-answer-meta">
               <div class="so-user-card">
                 <div class="so-user-avatar">SE</div>
@@ -490,7 +484,7 @@ process.on(<span class="string">'unhandledRejection'</span>, (reason, promise) =
           const frameStyle = getComputedStyle(frame);
           const accentColor = frameStyle.getPropertyValue('--frame-accent');
 
-          if (accentColor && accentColor.includes('f48024')) {
+          if (accentColor && (accentColor.includes('f48024') || accentColor.includes('244, 128, 36'))) {
             logResult('Stack Overflow orange accent color (#f48024) used', 'pass');
             return true;
           } else {

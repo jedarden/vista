@@ -1,7 +1,7 @@
 # Twitter/X Frame Manual Verification Report
 
 **Bead ID:** bf-2maio
-**Date:** 2025-07-25
+**Date:** 2026-07-25
 **Task:** Verify Twitter/X frame with screenshots
 
 ## Summary
@@ -11,7 +11,7 @@ Manual verification of the Twitter/X context frame implementation has been compl
 ## Screenshots Captured
 
 ### 1. Dark Mode Screenshot ✅
-**File:** `/tmp/vista-twitter-x-dark-mode.png`
+**File:** `/home/coding/vista/notes/bf-2maio-dark-mode.png`
 **Method:** ADB screencap from Google Pixel 6
 **Resolution:** 1080x2400 (native mobile resolution)
 
@@ -28,7 +28,7 @@ Manual verification of the Twitter/X context frame implementation has been compl
 - ✅ Platform-appropriate spacing and typography
 
 ### 2. Light Mode Screenshot ✅
-**File:** `/tmp/vista-twitter-x-light-mode.png`
+**File:** `/home/coding/vista/notes/bf-2maio-light-mode.png`
 **Method:** ADB screencap after theme toggle
 **Resolution:** 1080x2400 (native mobile resolution)
 
@@ -82,8 +82,8 @@ Manual verification of the Twitter/X context frame implementation has been compl
 **Status:** COMPLETE
 
 Both screenshots successfully captured:
-- Dark mode: `/tmp/vista-twitter-x-dark-mode.png`
-- Light mode: `/tmp/vista-twitter-x-light-mode.png`
+- Dark mode: `/home/coding/vista/notes/bf-2maio-dark-mode.png`
+- Light mode: `/home/coding/vista/notes/bf-2maio-light-mode.png`
 - Method: ADB screencap from Google Pixel 6
 - Resolution: 1080x2400 native mobile resolution
 
@@ -213,8 +213,8 @@ The implementation successfully mimics Twitter/X's visual design language while 
 
 ---
 
-**Screenshots Location:** `/tmp/vista-twitter-x-*.png`
+**Screenshots Location:** `/home/coding/vista/notes/bf-2maio-{dark,light}-mode.png`
 **Test Page:** `test-twitter-frame.html`
-**Verification Date:** 2025-07-25
+**Verification Date:** 2026-07-25
 **Verification Method:** ADB screenshot capture with Google Pixel 6
 **Bead ID:** bf-2maio

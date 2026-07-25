@@ -30,6 +30,7 @@
   --color-bg-light-elevated: #f8f9fa;
   --color-bg-light-input: #ffffff;
   --color-border-light-default: #e5e7eb;
+  --color-border-print: #cccccc;
   --color-text-light-primary: #1f2937;
   --color-text-light-secondary: #6b7280;
   --color-text-light-muted: #9ca3af;
@@ -46,6 +47,10 @@
   --color-overlay-light: rgba(0, 0, 0, 0.1);
   --shadow-dark-lg: 0 4px 24px rgba(0, 0, 0, 0.4);
   --shadow-light-lg: 0 4px 24px rgba(0, 0, 0, 0.08);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.16);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.2);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.25);
 
   /* Link Colors */
   --color-link-indigo-400: #818cf8;
@@ -92,6 +97,80 @@
   --color-twitter-light-border: #eff3f4;
   --color-twitter-light-text-primary: #0f1419;
   --color-twitter-light-text-secondary: #536471;
+
+  /* Facebook Colors */
+  --color-facebook-dark-bg: #18191a;
+  --color-facebook-dark-surface: #242526;
+  --color-facebook-dark-border: #3e4042;
+  --color-facebook-dark-text-primary: #e4e6eb;
+  --color-facebook-dark-text-secondary: #b0b3b8;
+  --color-facebook-dark-text-muted: #65676b;
+  --color-facebook-accent: #1877f2;
+  --color-facebook-gradient-light: #42a5f5;
+  --color-facebook-gradient-blue: #2d88ff;
+  --color-facebook-hover-bg: #3a3b3c;
+  --color-facebook-light-bg: #ffffff;
+  --color-facebook-light-surface: #f0f2f5;
+  --color-facebook-light-border: #ced0d4;
+  --color-facebook-light-text-primary: #050505;
+  --color-facebook-light-text-secondary: #65676b;
+  --color-facebook-light-text-muted: #b0b3b8;
+  --color-facebook-light-hover-bg: #e4e6eb;
+
+  /* Instagram Colors */
+  --color-instagram-dark-bg: #000000;
+  --color-instagram-dark-surface: #000000;
+  --color-instagram-dark-border: #262626;
+  --color-instagram-dark-text-primary: #ffffff;
+  --color-instagram-dark-text-secondary: #a8a8a8;
+  --color-instagram-dark-text-muted: #737373;
+  --color-instagram-accent: #0095f6;
+  --color-instagram-gradient-start: #f09433;
+  --color-instagram-gradient-25: #e6683c;
+  --color-instagram-gradient-50: #dc2743;
+  --color-instagram-gradient-75: #cc2366;
+  --color-instagram-gradient-end: #bc1888;
+  --color-instagram-light-bg: #ffffff;
+  --color-instagram-light-surface: #ffffff;
+  --color-instagram-light-border: #dbdbdb;
+  --color-instagram-light-text-primary: #000000;
+  --color-instagram-light-text-secondary: #737373;
+  --color-instagram-light-text-muted: #a8a8a8;
+  --color-instagram-light-hover-bg: #fafafa;
+
+  /* LinkedIn Colors */
+  --color-linkedin-dark-bg: #1d2226;
+  --color-linkedin-dark-surface: #282c31;
+  --color-linkedin-dark-border: #384147;
+  --color-linkedin-dark-text-primary: #e4e9ee;
+  --color-linkedin-dark-text-secondary: #9ca3af;
+  --color-linkedin-dark-text-muted: #6e7680;
+  --color-linkedin-accent: #0a66c2;
+  --color-linkedin-gradient-dark: #004182;
+  --color-linkedin-hover-bg: #384147;
+  --color-linkedin-light-bg: #ffffff;
+  --color-linkedin-light-surface: #f3f2ef;
+  --color-linkedin-light-border: #e0e0e0;
+  --color-linkedin-light-text-primary: #191919;
+  --color-linkedin-light-text-secondary: #666666;
+  --color-linkedin-light-text-muted: #999999;
+  --color-linkedin-light-hover-bg: #e0e0e0;
+
+  /* Slack Colors */
+  --color-slack-accent: #2ac7de;
+  --color-slack-link: #2ac7de;
+
+  /* Discord Colors */
+  --color-discord-accent: #5865f2;
+  --color-discord-link: #00aff4;
+
+  /* GitHub Colors */
+  --color-github-accent: #58a6ff;
+  --color-github-link: #58a6ff;
+
+  /* StackOverflow Colors */
+  --color-stackoverflow-accent: #f48024;
+  --color-stackoverflow-link: #5ebaff;
 
   /* Structural Variables */
   --frame-radius-global: 12px;
@@ -675,18 +754,36 @@
 
 /* Facebook Context */
 .facebook-context {
-  --frame-bg: var(--facebook-bg, var(--frame-bg-global));
-  --frame-surface: var(--facebook-surface, var(--frame-surface-global));
-  --frame-border: var(--facebook-border, var(--frame-border-global));
-  --frame-text-primary: var(--facebook-text-primary, var(--frame-text-primary-global));
-  --frame-text-secondary: var(--facebook-text-secondary, var(--frame-text-secondary-global));
-  --frame-text-muted: var(--facebook-text-muted, var(--frame-text-muted-global));
-  --frame-accent: var(--facebook-accent, var(--frame-accent-global));
-  --frame-accent-bg: var(--facebook-accent-bg, var(--frame-accent-bg-global));
-  --frame-link-color: var(--facebook-link-color, var(--frame-link-color-global));
-  --frame-divider: var(--facebook-divider, var(--frame-divider-global));
-  --frame-input-bg: var(--facebook-input-bg, var(--frame-input-bg-global));
-  --frame-overlay: var(--facebook-overlay, var(--frame-overlay-global));
+  --frame-bg: var(--color-facebook-dark-bg);
+  --frame-surface: var(--color-facebook-dark-surface);
+  --frame-border: var(--color-facebook-dark-border);
+  --frame-text-primary: var(--color-facebook-dark-text-primary);
+  --frame-text-secondary: var(--color-facebook-dark-text-secondary);
+  --frame-text-muted: var(--color-facebook-dark-text-muted);
+  --frame-accent: var(--color-facebook-accent);
+  --frame-accent-bg: var(--color-facebook-accent);
+  --frame-link-color: var(--color-facebook-accent);
+  --frame-divider: var(--color-facebook-dark-border);
+  --frame-input-bg: var(--color-facebook-dark-surface);
+  --frame-overlay: var(--color-overlay-dark);
+  --facebook-hover-bg: var(--color-facebook-hover-bg);
+}
+
+.facebook-context[data-theme='light'],
+.facebook-context.light-theme {
+  --frame-bg: var(--color-facebook-light-bg);
+  --frame-surface: var(--color-facebook-light-surface);
+  --frame-border: var(--color-facebook-light-border);
+  --frame-text-primary: var(--color-facebook-light-text-primary);
+  --frame-text-secondary: var(--color-facebook-light-text-secondary);
+  --frame-text-muted: var(--color-facebook-light-text-muted);
+  --frame-accent: var(--color-facebook-accent);
+  --frame-accent-bg: var(--color-facebook-accent);
+  --frame-link-color: var(--color-facebook-accent);
+  --frame-divider: var(--color-facebook-light-border);
+  --frame-input-bg: var(--color-facebook-light-bg);
+  --frame-overlay: var(--color-overlay-light);
+  --facebook-hover-bg: var(--color-facebook-light-hover-bg);
 }
 
 /* Twitter/X Context */
@@ -707,18 +804,36 @@
 
 /* LinkedIn Context */
 .linkedin-context {
-  --frame-bg: var(--linkedin-bg, var(--frame-bg-global));
-  --frame-surface: var(--linkedin-surface, var(--frame-surface-global));
-  --frame-border: var(--linkedin-border, var(--frame-border-global));
-  --frame-text-primary: var(--linkedin-text-primary, var(--frame-text-primary-global));
-  --frame-text-secondary: var(--linkedin-text-secondary, var(--frame-text-secondary-global));
-  --frame-text-muted: var(--linkedin-text-muted, var(--frame-text-muted-global));
-  --frame-accent: var(--linkedin-accent, var(--frame-accent-global));
-  --frame-accent-bg: var(--linkedin-accent-bg, var(--frame-accent-bg-global));
-  --frame-link-color: var(--linkedin-link-color, var(--frame-link-color-global));
-  --frame-divider: var(--linkedin-divider, var(--frame-divider-global));
-  --frame-input-bg: var(--linkedin-input-bg, var(--frame-input-bg-global));
-  --frame-overlay: var(--linkedin-overlay, var(--frame-overlay-global));
+  --frame-bg: var(--color-linkedin-dark-bg);
+  --frame-surface: var(--color-linkedin-dark-surface);
+  --frame-border: var(--color-linkedin-dark-border);
+  --frame-text-primary: var(--color-linkedin-dark-text-primary);
+  --frame-text-secondary: var(--color-linkedin-dark-text-secondary);
+  --frame-text-muted: var(--color-linkedin-dark-text-muted);
+  --frame-accent: var(--color-linkedin-accent);
+  --frame-accent-bg: var(--color-linkedin-accent);
+  --frame-link-color: var(--color-linkedin-accent);
+  --frame-divider: var(--color-linkedin-dark-border);
+  --frame-input-bg: var(--color-linkedin-dark-surface);
+  --frame-overlay: var(--color-overlay-dark);
+  --linkedin-hover-bg: var(--color-linkedin-hover-bg);
+}
+
+.linkedin-context[data-theme='light'],
+.linkedin-context.light-theme {
+  --frame-bg: var(--color-linkedin-light-bg);
+  --frame-surface: var(--color-linkedin-light-surface);
+  --frame-border: var(--color-linkedin-light-border);
+  --frame-text-primary: var(--color-linkedin-light-text-primary);
+  --frame-text-secondary: var(--color-linkedin-light-text-secondary);
+  --frame-text-muted: var(--color-linkedin-light-text-muted);
+  --frame-accent: var(--color-linkedin-accent);
+  --frame-accent-bg: var(--color-linkedin-accent);
+  --frame-link-color: var(--color-linkedin-accent);
+  --frame-divider: var(--color-linkedin-light-border);
+  --frame-input-bg: var(--color-linkedin-light-bg);
+  --frame-overlay: var(--color-overlay-light);
+  --linkedin-hover-bg: var(--color-linkedin-light-hover-bg);
 }
 
 /* Slack Context */
@@ -787,18 +902,36 @@
 
 /* Instagram Context */
 .instagram-context {
-  --frame-bg: var(--instagram-bg, var(--frame-bg-global));
-  --frame-surface: var(--instagram-surface, var(--frame-surface-global));
-  --frame-border: var(--instagram-border, var(--frame-border-global));
-  --frame-text-primary: var(--instagram-text-primary, var(--frame-text-primary-global));
-  --frame-text-secondary: var(--instagram-text-secondary, var(--frame-text-secondary-global));
-  --frame-text-muted: var(--instagram-text-muted, var(--frame-text-muted-global));
-  --frame-accent: var(--instagram-accent, var(--frame-accent-global));
-  --frame-accent-bg: var(--instagram-accent-bg, var(--frame-accent-bg-global));
-  --frame-link-color: var(--instagram-link-color, var(--frame-link-color-global));
-  --frame-divider: var(--instagram-divider, var(--frame-divider-global));
-  --frame-input-bg: var(--instagram-input-bg, var(--frame-input-bg-global));
-  --frame-overlay: var(--instagram-overlay, var(--frame-overlay-global));
+  --frame-bg: var(--color-instagram-dark-bg);
+  --frame-surface: var(--color-instagram-dark-surface);
+  --frame-border: var(--color-instagram-dark-border);
+  --frame-text-primary: var(--color-instagram-dark-text-primary);
+  --frame-text-secondary: var(--color-instagram-dark-text-secondary);
+  --frame-text-muted: var(--color-instagram-dark-text-muted);
+  --frame-accent: var(--color-instagram-accent);
+  --frame-accent-bg: var(--color-instagram-accent);
+  --frame-link-color: var(--color-instagram-accent);
+  --frame-divider: var(--color-instagram-dark-border);
+  --frame-input-bg: var(--color-instagram-dark-surface);
+  --frame-overlay: var(--color-overlay-dark);
+  --instagram-hover-bg: var(--color-instagram-dark-surface);
+}
+
+.instagram-context[data-theme='light'],
+.instagram-context.light-theme {
+  --frame-bg: var(--color-instagram-light-bg);
+  --frame-surface: var(--color-instagram-light-surface);
+  --frame-border: var(--color-instagram-light-border);
+  --frame-text-primary: var(--color-instagram-light-text-primary);
+  --frame-text-secondary: var(--color-instagram-light-text-secondary);
+  --frame-text-muted: var(--color-instagram-light-text-muted);
+  --frame-accent: var(--color-instagram-accent);
+  --frame-accent-bg: var(--color-instagram-accent);
+  --frame-link-color: var(--color-instagram-accent);
+  --frame-divider: var(--color-instagram-light-border);
+  --frame-input-bg: var(--color-instagram-light-bg);
+  --frame-overlay: var(--color-overlay-light);
+  --instagram-hover-bg: var(--color-instagram-light-hover-bg);
 }
 
 /* Pinterest Context */

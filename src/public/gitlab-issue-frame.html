@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitLab Issue Context Frame</title>
+  <link rel="stylesheet" href="frames-theme.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+      background: #1a1a1e;
+      color: #e4e4e7;
+    }
+
+    [data-theme='light'] body {
+      background: #ffffff;
+      color: #333238;
+    }
+
+    .gitlab-issue-context {
+      display: flex;
+      flex-direction: column;
+      min-height: 500px;
+      background: var(--gl-bg, #1a1a1e);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    [data-theme='light'] .gitlab-issue-context {
+      background: var(--gl-bg, #ffffff);
+    }
+
+    /* Issue Header */
+    .gl-issue-header {
+      padding: 20px 24px;
+      background: var(--gl-header-bg, #1a1a1e);
+      border-bottom: 1px solid var(--gl-border, #3a3a3f);
+    }
+
+    [data-theme='light'] .gl-issue-header {
+      background: var(--gl-header-bg, #ffffff);
+      border-bottom-color: var(--gl-border, #e5e5e5);
+    }
+
+    .gl-issue-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .gl-issue-number {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--gl-text-muted, #a1a1aa);
+    }
+
+    [data-theme='light'] .gl-issue-number {
+      color: var(--gl-text-muted, #737278);
+    }
+
+    .gl-issue-status {
+      padding: 4px 12px;
+      background: var(--gl-status-bg, #fc6d26);
+      color: #ffffff;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .gl-issue-status.closed {
+      background: #2da160;
+    }
+
+    .gl-issue-confidential {
+      padding: 4px 8px;
+      background: #a82233;
+      color: #ffffff;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .gl-issue-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--gl-text-primary, #e4e4e7);
+      margin-bottom: 12px;
+    }
+
+    [data-theme='light'] .gl-issue-title {
+      color: var(--gl-text-primary, #333238);
+    }
+
+    .gl-issue-author {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .gl-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #fc6d26 0%, #e6512d 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: #ffffff;
+    }
+
+    [data-theme='light'] .gl-avatar {
+      background: linear-gradient(135deg, #e6512d 0%, #c43d1f 100%);
+    }
+
+    .gl-author-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--gl-text-primary, #e4e4e7);
+    }
+
+    [data-theme='light'] .gl-author-name {
+      color: var(--gl-text-primary, #333238);
+    }
+
+    .gl-issue-time {
+      font-size: 13px;
+      color: var(--gl-text-muted, #a1a1aa);
+      margin-left: 8px;
+    }
+
+    [data-theme='light'] .gl-issue-time {
+      color: var(--gl-text-muted, #737278);
+    }
+
+    /* Discussion List */
+    .gl-discussion-list {
+      flex: 1;
+      padding: 20px 24px;
+      overflow-y: auto;
+      background: var(--gl-bg, #1a1a1e);
+    }
+
+    [data-theme='light'] .gl-discussion-list {
+      background: var(--gl-bg, #ffffff);
+    }
+
+    .gl-comment {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .gl-comment-dim {
+      opacity: 0.6;
+    }
+
+    .gl-comment-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #7b5cfd 0%, #5b3dfc 100%);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      color: #ffffff;
+    }
+
+    [data-theme='light'] .gl-comment-avatar {
+      background: linear-gradient(135deg, #5b3dfc 0%, #3d2ad9 100%);
+    }
+
+    .gl-comment-avatar.developer {
+      background: linear-gradient(135deg, #2da160 0%, #1f8c63 100%);
+    }
+
+    [data-theme='light'] .gl-comment-avatar.developer {
+      background: linear-gradient(135deg, #1f8c63 0%, #166b4a 100%);
+    }
+
+    .gl-comment-content {
+      flex: 1;
+    }
+
+    .gl-comment-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .gl-comment-author {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gl-text-primary, #e4e4e7);
+    }
+
+    [data-theme='light'] .gl-comment-author {
+      color: var(--gl-text-primary, #333238);
+    }
+
+    .gl-comment-badge {
+      padding: 2px 6px;
+      background: var(--gl-badge-bg, #7b5cfd);
+      color: #ffffff;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: 600;
+    }
+
+    .gl-comment-badge.developer {
+      background: #2da160;
+    }
+
+    [data-theme='light'] .gl-comment-badge.developer {
+      background: #1f8c63;
+    }
+
+    .gl-comment-time {
+      font-size: 12px;
+      color: var(--gl-text-muted, #a1a1aa);
+    }
+
+    [data-theme='light'] .gl-comment-time {
+      color: var(--gl-text-muted, #737278);
+    }
+
+    .gl-comment-body {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--gl-text-primary, #e4e4e7);
+      background: var(--gl-comment-bg, #25252a);
+      border: 1px solid var(--gl-border, #3a3a3f);
+      border-radius: 6px;
+      padding: 12px 16px;
+    }
+
+    [data-theme='light'] .gl-comment-body {
+      color: var(--gl-text-primary, #333238);
+      background: var(--gl-comment-bg, #fbfbfc);
+      border-color: var(--gl-border, #e5e5e5);
+    }
+
+    /* Code Block */
+    .gl-code-block {
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+      font-size: 13px;
+      background: var(--gl-code-bg, #1a1a1e);
+      border: 1px solid var(--gl-border, #3a3a3f);
+      border-radius: 6px;
+      padding: 12px;
+      margin: 12px 0;
+      overflow-x: auto;
+      line-height: 1.5;
+    }
+
+    [data-theme='light'] .gl-code-block {
+      background: var(--gl-code-bg, #f7f6f9);
+      border-color: var(--gl-border, #e6e4eb);
+    }
+
+    /* Syntax Highlighting */
+    .gl-code-keyword {
+      color: #ff7b72;
+    }
+
+    .gl-code-string {
+      color: #a5d6ff;
+    }
+
+    .gl-code-comment {
+      color: #8b949e;
+      font-style: italic;
+    }
+
+    .gl-code-function {
+      color: #d2a8ff;
+    }
+
+    [data-theme='light'] .gl-code-keyword {
+      color: #cf222e;
+    }
+
+    [data-theme='light'] .gl-code-string {
+      color: #0a3069;
+    }
+
+    [data-theme='light'] .gl-code-comment {
+      color: #6e7781;
+    }
+
+    [data-theme='light'] .gl-code-function {
+      color: #8250df;
+    }
+
+    /* Link Card */
+    .gl-link-card {
+      margin-top: 12px;
+      border: 1px solid var(--gl-border, #3a3a3f);
+      border-radius: 6px;
+      overflow: hidden;
+      max-width: 400px;
+      background: var(--gl-surface, #25252a);
+    }
+
+    [data-theme='light'] .gl-link-card {
+      border-color: var(--gl-border, #e5e5e5);
+      background: var(--gl-surface, #fbfbfc);
+    }
+
+    .gl-link-card-header {
+      padding: 8px 12px;
+      background: var(--gl-link-header-bg, #25252a);
+      border-bottom: 1px solid var(--gl-border, #3a3a3f);
+      font-size: 12px;
+      color: var(--gl-text-muted, #a1a1aa);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    [data-theme='light'] .gl-link-card-header {
+      background: var(--gl-link-header-bg, #fbfbfc);
+      border-bottom-color: var(--gl-border, #e5e5e5);
+    }
+
+    .gl-link-card-favicon {
+      width: 16px;
+      height: 16px;
+      background: linear-gradient(135deg, #fc6d26, #e6512d);
+      border-radius: 3px;
+    }
+
+    [data-theme='light'] .gl-link-card-favicon {
+      background: linear-gradient(135deg, #e6512d, #c43d1f);
+    }
+
+    .gl-link-card-title {
+      padding: 10px 12px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gl-link-color, #fc6d26);
+      background: var(--gl-bg, #1a1a1e);
+    }
+
+    [data-theme='light'] .gl-link-card-title {
+      color: var(--gl-link-color, #e6512d);
+      background: var(--gl-bg, #ffffff);
+    }
+
+    .gl-link-card-desc {
+      padding: 8px 12px;
+      font-size: 13px;
+      color: var(--gl-text-secondary, #a1a1aa);
+      background: var(--gl-link-header-bg, #25252a);
+    }
+
+    [data-theme='light'] .gl-link-card-desc {
+      color: var(--gl-text-secondary, #737278);
+      background: var(--gl-link-header-bg, #fbfbfc);
+    }
+
+    /* Comment Actions */
+    .gl-comment-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 8px;
+    }
+
+    .gl-reaction-btn {
+      font-size: 12px;
+      color: var(--gl-text-muted, #a1a1aa);
+      background: var(--gl-button-bg, #2d2d33);
+      border: 1px solid var(--gl-border, #3a3a3f);
+      border-radius: 20px;
+      padding: 4px 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    [data-theme='light'] .gl-reaction-btn {
+      color: var(--gl-text-muted, #737278);
+      background: var(--gl-button-bg, #ffffff);
+      border-color: var(--gl-border, #e5e5e5);
+    }
+
+    .gl-reaction-btn:hover {
+      background: var(--gl-button-hover-bg, #3a3a3f);
+    }
+
+    [data-theme='light'] .gl-reaction-btn:hover {
+      background: var(--gl-button-hover-bg, #f3f4f6);
+    }
+
+    .gl-reply-btn {
+      font-size: 12px;
+      color: var(--gl-link-color, #fc6d26);
+      cursor: pointer;
+    }
+
+    [data-theme='light'] .gl-reply-btn {
+      color: var(--gl-link-color, #e6512d);
+    }
+
+    /* Issue Footer */
+    .gl-issue-footer {
+      padding: 12px 24px;
+      background: var(--gl-header-bg, #1a1a1e);
+      border-top: 1px solid var(--gl-border, #3a3a3f);
+      font-size: 12px;
+      color: var(--gl-text-muted, #a1a1aa);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    [data-theme='light'] .gl-issue-footer {
+      background: var(--gl-header-bg, #ffffff);
+      border-top-color: var(--gl-border, #e5e5e5);
+    }
+
+    .gl-issue-stats {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .gl-issue-stat {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Theme Toggle */
+    .theme-toggle {
+      padding: 6px 12px;
+      background: var(--gl-button-bg, #2d2d33);
+      border: 1px solid var(--gl-border, #3a3a3f);
+      border-radius: 6px;
+      color: var(--gl-text-primary, #e4e4e7);
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    [data-theme='light'] .theme-toggle {
+      background: var(--gl-button-bg, #ffffff);
+    }
+
+    .theme-toggle:hover {
+      background: var(--gl-button-hover-bg, #3a3a3f);
+    }
+
+    [data-theme='light'] .theme-toggle:hover {
+      background: var(--gl-button-hover-bg, #f3f4f6);
+    }
+
+    /* Labels */
+    .gl-label {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-right: 4px;
+    }
+
+    .gl-label.bug {
+      background: #db3b21;
+      color: #ffffff;
+    }
+
+    .gl-label.feature {
+      background: #2da160;
+      color: #ffffff;
+    }
+
+    .gl-label.enhancement {
+      background: #7b5cfd;
+      color: #ffffff;
+    }
+
+    .gl-label.urgent {
+      background: #a82233;
+      color: #ffffff;
+    }
+
+    [data-theme='light'] .gl-label.bug {
+      background: #c43d1f;
+    }
+
+    [data-theme='light'] .gl-label.feature {
+      background: #1f8c63;
+    }
+
+    [data-theme='light'] .gl-label.enhancement {
+      background: #5b3dfc;
+    }
+
+    [data-theme='light'] .gl-label.urgent {
+      background: #8b1e32;
+    }
+  </style>
+</head>
+<body>
+  <div class="gitlab-issue-context">
+    <div class="gl-issue-header">
+      <div class="gl-issue-meta">
+        <span class="gl-issue-number">#156</span>
+        <span class="gl-issue-status">Open</span>
+        <span class="gl-label bug">bug</span>
+        <span class="gl-label enhancement">enhancement</span>
+      </div>
+      <div class="gl-issue-title">Implement GraphQL API for user authentication system</div>
+      <div class="gl-issue-author">
+        <div class="gl-avatar">JD</div>
+        <span class="gl-author-name">johndoe</span>
+        <span class="gl-issue-time">opened this issue 3 hours ago</span>
+      </div>
+    </div>
+
+    <div class="gl-discussion-list">
+      <div class="gl-comment gl-comment-dim">
+        <div class="gl-comment-avatar">TM</div>
+        <div class="gl-comment-content">
+          <div class="gl-comment-meta">
+            <span class="gl-comment-author">teammember1</span>
+            <span class="gl-comment-badge">Developer</span>
+            <span class="gl-comment-time">2 hours ago</span>
+          </div>
+          <div class="gl-comment-body">This is a great addition to our API! I'd suggest we also add rate limiting for the authentication endpoint. Here's a quick prototype:
+
+<div class="gl-code-block"><span class="gl-code-keyword">const</span> rateLimit = <span class="gl-code-keyword">new</span> <span class="gl-code-function">RateLimiter</span>({
+  windowMs: <span class="gl-code-string">'15 minutes'</span>,
+  max: <span class="gl-code-string">100</span>
+});
+
+<span class="gl-code-comment">// Apply to auth mutations</span>
+rateLimit.<span class="gl-code-function">apply</span>(authSchema);</div></div>
+          <div class="gl-comment-actions">
+            <span class="gl-reaction-btn">👍 3</span>
+            <span class="gl-reaction-btn">❤️ 1</span>
+            <span class="gl-reply-btn">Reply</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="gl-comment gl-comment-dim">
+        <div class="gl-comment-avatar developer">CB</div>
+        <div class="gl-comment-content">
+          <div class="gl-comment-meta">
+            <span class="gl-comment-author">contributor_developer</span>
+            <span class="gl-comment-badge developer">Developer</span>
+            <span class="gl-comment-time">1 hour ago</span>
+          </div>
+          <div class="gl-comment-body">Good point about rate limiting! I can work on that after the initial implementation is done. Also, we should consider adding webhook support for authentication events.</div>
+          <div class="gl-comment-actions">
+            <span class="gl-reaction-btn">👍 2</span>
+            <span class="gl-reaction-btn">🚀 1</span>
+            <span class="gl-reply-btn">Reply</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="gl-comment gl-comment-dim">
+        <div class="gl-comment-avatar">MS</div>
+        <div class="gl-comment-content">
+          <div class="gl-comment-meta">
+            <span class="gl-comment-author">maintainer_senior</span>
+            <span class="gl-comment-badge">Maintainer</span>
+            <span class="gl-comment-time">45 minutes ago</span>
+          </div>
+          <div class="gl-comment-body">Just a heads up - this is blocking several other features that depend on authentication. Let's prioritize this for the next sprint. The webhook support would be a great addition! 🔥</div>
+          <div class="gl-comment-actions">
+            <span class="gl-reaction-btn">👍 5</span>
+            <span class="gl-reaction-btn">🎉 2</span>
+            <span class="gl-reply-btn">Reply</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="gl-comment">
+        <div class="gl-comment-avatar developer">Y</div>
+        <div class="gl-comment-content">
+          <div class="gl-comment-meta">
+            <span class="gl-comment-author">You</span>
+            <span class="gl-comment-time">Just now</span>
+          </div>
+          <div class="gl-comment-body">Excellent progress on this! I've documented the complete authentication flow in the linked specification. This includes security considerations, rate limiting strategies, and webhook integration guidelines.
+
+<div class="gl-link-card">
+  <div class="gl-link-card-header">
+    <div class="gl-link-card-favicon"></div>
+    <span>docs.gitlab.example</span>
+  </div>
+  <div class="gl-link-card-title">GraphQL Authentication Specification</div>
+  <div class="gl-link-card-desc">Complete specification for GraphQL authentication mutations, queries, security best practices, rate limiting, and webhook integration patterns.</div>
+</div></div>
+          <div class="gl-comment-actions">
+            <span class="gl-reaction-btn">👍 0</span>
+            <span class="gl-reply-btn">Reply</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="gl-issue-footer">
+      <div class="gl-issue-stats">
+        <span class="gl-issue-stat">💬 4 comments</span>
+        <span class="gl-issue-stat">👁️ 18 watching</span>
+        <span class="gl-issue-stat">⬆️ 5 upvotes</span>
+      </div>
+      <button class="theme-toggle" onclick="toggleTheme()">🌓 Toggle Theme</button>
+    </div>
+  </div>
+
+  <script>
+    let currentTheme = 'dark';
+
+    function toggleTheme() {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', currentTheme);
+    }
+
+    // Initialize
+    document.documentElement.setAttribute('data-theme', currentTheme);
+  </script>
+</body>
+</html>

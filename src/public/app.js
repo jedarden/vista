@@ -2550,21 +2550,24 @@ function renderPlatformWithContext(pid, meta, imageProbe, baseUrl, theme = 'dark
   // This integrates with the platform-frames.config.ts mapping structure
   // The JavaScript PLATFORM_FRAMES object mirrors the TypeScript PLATFORM_FRAMES_CONFIG
   if (typeof buildContextFrame === 'function' && typeof getPlatformFrame === 'function') {
-    // Check if platform is supported in the frame configuration
+    // Look up frame component by platform parameter from platform-frames configuration
     const platformFrame = getPlatformFrame(pid);
 
-    // Handle unknown/unsupported platforms gracefully
-    if (!platformFrame || platformFrame.name === pid && !PLATFORM_FRAMES[pid]) {
+    // Check if platform exists in PLATFORM_FRAMES mapping
+    // This handles the mapping lookup correctly for all 7 platforms:
+    // twitter, youtube, tiktok, facebook, linkedin, reddit, instagram
+    if (!PLATFORM_FRAMES[pid]) {
       console.warn(`[renderPlatformWithContext] Unknown platform: ${pid}, using fallback frame`);
       // Use generic fallback frame for unknown platforms
       return renderGenericContextFrame(pid, contentData, theme);
     }
 
+    // Store selected frame configuration for use in rendering
     // Build context frame using platform-specific configuration
     // This uses the platform-frames.config.ts mapping via the JavaScript PLATFORM_FRAMES object
     const frameHTML = buildContextFrame(pid, contentData, theme);
 
-    // Ensure card content is embedded within the frame
+    // Return the complete frame with embedded card content
     // The frame structure wraps around the link preview/card content
     return frameHTML;
   } else {

@@ -65,10 +65,23 @@ function verifyYouTubeFrame() {
     {
       name: 'Theme CSS variables properly defined',
       test: () => {
-        return content.includes('--youtube-bg') &&
-               content.includes('--youtube-surface') &&
-               content.includes('--youtube-text-primary') &&
-               content.includes('--youtube-accent');
+        // Check if CSS files exist and contain proper variables
+        const themeCssPath = path.join(__dirname, 'src/public/frames-theme.css');
+        const socialCssPath = path.join(__dirname, 'src/public/social-platforms-frames.css');
+
+        if (!fs.existsSync(themeCssPath) || !fs.existsSync(socialCssPath)) {
+          return false;
+        }
+
+        const themeCss = fs.readFileSync(themeCssPath, 'utf8');
+        const socialCss = fs.readFileSync(socialCssPath, 'utf8');
+
+        // Check if YouTube CSS variables are defined in theme CSS
+        return themeCss.includes('--youtube-bg') &&
+               themeCss.includes('--youtube-surface') &&
+               themeCss.includes('--youtube-text-primary') &&
+               themeCss.includes('--youtube-accent') &&
+               socialCss.includes('.youtube-context');
       }
     }
   ];

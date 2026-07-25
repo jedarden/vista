@@ -1,6 +1,28 @@
 'use strict';
 /* VISTA frontend application */
 
+/**
+ * Platform Context Frames Configuration
+ *
+ * @import { PlatformFramesConfig } from '../platform-frames.config.ts'
+ *
+ * This file integrates with the platform-frames configuration system.
+ * TypeScript source: ../platform-frames.config.ts
+ * Type definitions: ../types/platform-frames.d.ts
+ * Runtime implementation: platform-frames.js (loaded as global script)
+ *
+ * The platform-frames.config.ts provides the authoritative mapping of all 43 platforms
+ * to their frame types, chrome HTML templates, and theming configuration.
+ * This JavaScript runtime accesses that configuration through the global PLATFORM_FRAMES object.
+ *
+ * The following are loaded from platform-frames.js and available in global scope:
+ * - PLATFORM_FRAMES: Platform frame configuration object
+ * - getPlatformFrame(platformId): Get platform frame configuration
+ * - buildContextFrame(pid, contentData, theme): Build context frame HTML
+ * - hasThemeSupport(platformId): Check if platform supports theme toggle
+ * - getThemeVars(platformId, theme): Get theme variables for a platform
+ */
+
 // ── State ──
 let currentData = null;
 let currentMode = 'url'; // 'url' | 'paste' | 'compare'
@@ -2524,14 +2546,50 @@ function renderPlatformWithContext(pid, meta, imageProbe, baseUrl, theme = 'dark
     themeColor: themeColor,
   };
 
-  // Use new platform-frames module for all platforms with structured frames
-  if (typeof buildContextFrame === 'function') {
-    // All platforms in platform-frames.js now use the new system
-    return buildContextFrame(pid, contentData, theme);
+  // Use platform-frames configuration system for frame selection
+  // This integrates with the platform-frames.config.ts mapping structure
+  // The JavaScript PLATFORM_FRAMES object mirrors the TypeScript PLATFORM_FRAMES_CONFIG
+  if (typeof buildContextFrame === 'function' && typeof getPlatformFrame === 'function') {
+    // Check if platform is supported in the frame configuration
+    const platformFrame = getPlatformFrame(pid);
+
+    // Handle unknown/unsupported platforms gracefully
+    if (!platformFrame || platformFrame.name === pid && !PLATFORM_FRAMES[pid]) {
+      console.warn(`[renderPlatformWithContext] Unknown platform: ${pid}, using fallback frame`);
+      // Use generic fallback frame for unknown platforms
+      return renderGenericContextFrame(pid, contentData, theme);
+    }
+
+    // Build context frame using platform-specific configuration
+    // This uses the platform-frames.config.ts mapping via the JavaScript PLATFORM_FRAMES object
+    const frameHTML = buildContextFrame(pid, contentData, theme);
+
+    // Ensure card content is embedded within the frame
+    // The frame structure wraps around the link preview/card content
+    return frameHTML;
   } else {
     // Fallback if platform-frames module not loaded
     return renderPlatformWithContextLegacy(pid, ogTitle, ogDesc, ogImage, domain, ogSite, theme, dominantColor, meta, imageProbe, baseUrl);
   }
+}
+
+/**
+ * Generic fallback context frame for unknown/unsupported platforms
+ * Provides a safe fallback when platform frame configuration is not available
+ */
+function renderGenericContextFrame(pid, contentData, theme) {
+  const { title, description, image, domain, site, dominantColor } = contentData;
+  const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
+  const esc = (str) => String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+  const platformName = PLATFORM_NAMES[pid] || pid;
+
+  return `<div class="context-frame generic-context ${theme}-theme">
+    <div class="context-header"><span class="context-title">${esc(platformName)}</span></div>
+    <div class="context-body">
+      ${renderPlatformCard(pid, { og: { title, description, image } }, null, `https://${domain}`, dominantColor)}
+    </div>
+  </div>`;
 }
 
 // Legacy context frame renderer (for platforms not yet migrated)

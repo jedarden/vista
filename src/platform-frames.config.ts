@@ -128,6 +128,22 @@ export const PLATFORM_FRAMES_CONFIG: PlatformFramesConfig = {
     hasThemeSupport: true,
     aspectRatio: '1.91:1',
     structure: FRAME_TYPE_REQUIREMENTS['social-feed'],
+    chrome: `<div class="fb-post-header">
+        <div class="fb-avatar"></div>
+        <div class="fb-post-meta">
+          <span class="fb-author-name">{{author}}</span>
+          <span class="fb-post-time">{{timeAgo}} · 🌍</span>
+        </div>
+        <span class="fb-menu">•••</span>
+      </div>
+      <div class="fb-post-content">{{userMessage}}</div>
+      {{linkPreview}}
+      <div class="fb-post-stats">
+        <span>👍 {{likeCount}}</span>
+        <span>💬 {{commentCount}}</span>
+        <span>🔗 {{shareCount}}</span>
+      </div>`,
+    neutralContent: 'Check out this interesting article!',
     placeholderFrame: {
       isStub: false,
       implementationNotes: 'Complete with realistic chrome - avatar, username, timestamp, reactions, link preview',
@@ -180,6 +196,22 @@ export const PLATFORM_FRAMES_CONFIG: PlatformFramesConfig = {
     hasThemeSupport: true,
     aspectRatio: '1.91:1',
     structure: FRAME_TYPE_REQUIREMENTS['social-feed'],
+    chrome: `<div class="li-post-header">
+        <div class="li-avatar"></div>
+        <div class="li-post-meta">
+          <span class="li-author-name">{{author}}</span>
+          <span class="li-post-headline">{{headline}}</span>
+          <span class="li-post-time">{{timeAgo}} · 🌐</span>
+        </div>
+      </div>
+      <div class="li-post-content">{{userMessage}}</div>
+      {{linkPreview}}
+      <div class="li-post-stats">
+        <span>👍 {{likeCount}}</span>
+        <span>💬 {{commentCount}}</span>
+        <span>🔁 {{repostCount}}</span>
+      </div>`,
+    neutralContent: 'Great article on industry trends!',
     placeholderFrame: {
       isStub: false,
       implementationNotes: 'Complete with professional layout - avatar, name, headline, network indicators',
@@ -315,6 +347,25 @@ export const PLATFORM_FRAMES_CONFIG: PlatformFramesConfig = {
     hasThemeSupport: true,
     aspectRatio: '1:1',
     structure: FRAME_TYPE_REQUIREMENTS['image-focused'],
+    chrome: `<div class="ig-post-header">
+        <div class="ig-avatar"></div>
+        <div class="ig-post-meta">
+          <span class="ig-username">{{username}}</span>
+          <span class="ig-post-time">{{timeAgo}}</span>
+        </div>
+        <span class="ig-menu">•••</span>
+      </div>
+      {{linkPreview}}
+      <div class="ig-post-content">
+        <div class="ig-caption">{{caption}}</div>
+        <div class="ig-hashtags">{{hashtags}}</div>
+      </div>
+      <div class="ig-post-actions">
+        <span class="ig-action">♡</span> <span class="ig-action-count">{{likeCount}}</span>
+        <span class="ig-action">💬</span> <span class="ig-action-count">{{commentCount}}</span>
+        <span class="ig-action">🔗</span> <span class="ig-action-count">Share</span>
+      </div>`,
+    neutralContent: '',
     placeholderFrame: {
       isStub: false,
       implementationNotes: 'Complete with gradient styling - avatar, username, caption, hashtags, heart icon',
@@ -458,6 +509,37 @@ export const PLATFORM_FRAMES_CONFIG: PlatformFramesConfig = {
     placeholderFrame: {
       isStub: true,
       implementationNotes: 'Pin with image, title, description, saves, user',
+    },
+  },
+
+  snapchat: {
+    id: 'snapchat',
+    name: 'Snapchat',
+    sourceCategory: 'Social & Microblogging',
+    frameType: 'image-focused',
+    hasThemeSupport: true,
+    aspectRatio: '9:16',
+    structure: FRAME_TYPE_REQUIREMENTS['image-focused'],
+    chrome: `<div class="sc-snap-header">
+        <div class="sc-user-info">
+          <div class="sc-avatar"></div>
+          <div class="sc-username">{{username}}</div>
+          <div class="sc-time-ago">{{timeAgo}}</div>
+        </div>
+        <span class="sc-menu">•••</span>
+      </div>
+      {{linkPreview}}
+      <div class="sc-snap-footer">
+        <div class="sc-caption">{{caption}}</div>
+        <div class="sc-snap-actions">
+          <span class="sc-action">❤️</span> <span class="sc-action-count">{{viewCount}}</span>
+          <span class="sc-action">🔗</span> <span class="sc-action-count">Share</span>
+        </div>
+      </div>`,
+    neutralContent: '',
+    placeholderFrame: {
+      isStub: false,
+      implementationNotes: 'Complete with ghost icon styling - avatar, username, snap caption, view count',
     },
   },
 

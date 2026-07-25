@@ -10,44 +10,131 @@
  */
 
 /* ============================================================================
-   GLOBAL FRAME THEME VARIABLES
+   BASE COLOR TOKENS (Semantic Color Palette)
    ============================================================================ */
 
 :root {
-  /* Frame Global Colors - Dark Mode (default) */
-  --frame-bg-global: #1a1a1e;
-  --frame-surface-global: #25252a;
-  --frame-border-global: #3a3a3f;
-  --frame-text-primary-global: #e4e4e7;
-  --frame-text-secondary-global: #a1a1aa;
-  --frame-text-muted-global: #71717a;
-  --frame-accent-global: #6366f1;
-  --frame-accent-bg-global: #4f46e5;
-  --frame-link-color-global: #818cf8;
-  --frame-divider-global: #3a3a3f;
-  --frame-input-bg-global: #2d2d33;
-  --frame-overlay-global: rgba(0, 0, 0, 0.5);
-  --frame-shadow-global: 0 4px 24px rgba(0, 0, 0, 0.4);
+  /* Neutral Colors - Dark Mode */
+  --color-black: #000000;
+  --color-white: #ffffff;
+  --color-bg-dark-primary: #1a1a1e;
+  --color-bg-dark-elevated: #25252a;
+  --color-bg-dark-input: #2d2d33;
+  --color-border-dark-default: #3a3a3f;
+  --color-text-dark-primary: #e4e4e7;
+  --color-text-dark-secondary: #a1a1aa;
+  --color-text-dark-muted: #71717a;
+
+  /* Neutral Colors - Light Mode */
+  --color-bg-light-primary: #ffffff;
+  --color-bg-light-elevated: #f8f9fa;
+  --color-bg-light-input: #ffffff;
+  --color-border-light-default: #e5e7eb;
+  --color-text-light-primary: #1f2937;
+  --color-text-light-secondary: #6b7280;
+  --color-text-light-muted: #9ca3af;
+
+  /* Accent Colors - Indigo */
+  --color-accent-indigo-400: #818cf8;
+  --color-accent-indigo-500: #6366f1;
+  --color-accent-indigo-600: #4f46e5;
+  --color-accent-indigo-100: #eef2ff;
+
+  /* Overlay & Shadow */
+  --color-overlay-dark: rgba(0, 0, 0, 0.5);
+  --color-overlay-dark-heavy: rgba(0, 0, 0, 0.8);
+  --color-overlay-light: rgba(0, 0, 0, 0.1);
+  --shadow-dark-lg: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --shadow-light-lg: 0 4px 24px rgba(0, 0, 0, 0.08);
+
+  /* Link Colors */
+  --color-link-indigo-400: #818cf8;
+  --color-link-indigo-600: #4f46e5;
+
+  /* Platform-Specific Base Colors */
+  --color-youtube-red: #ff0000;
+  --color-youtube-red-dark: #cc0000;
+  --color-youtube-link: #3ea6ff;
+  --color-youtube-link-blue: #065fd4;
+  --color-youtube-dark-bg: #0f0f0f;
+  --color-youtube-dark-surface: #1a1a1a;
+  --color-youtube-dark-border: #303030;
+  --color-youtube-dark-text-secondary: #aaaaaa;
+  --color-youtube-light-surface: #f9f9f9;
+  --color-youtube-light-border: #e5e5e5;
+  --color-youtube-light-text-primary: #0f0f0f;
+  --color-youtube-light-text-secondary: #606060;
+
+  --color-twitch-purple: #9146ff;
+  --color-twitch-purple-dark: #772ce8;
+  --color-twitch-purple-light: #e9d5ff;
+  --color-twitch-dark-bg: #0e0e10;
+  --color-twitch-dark-surface: #18181b;
+  --color-twitch-dark-border: #2d2d31;
+  --color-twitch-dark-text-primary: #efeff1;
+  --color-twitch-dark-text-secondary: #b5b5b5;
+  --color-twitch-light-surface: #f7f7f7;
+  --color-twitch-light-border: #e5e5e5;
+  --color-twitch-light-text-primary: #0e0e10;
+  --color-twitch-light-text-secondary: #53535f;
+  --color-twitch-light-text-muted: #9e9ea7;
+
+  --color-twitter-black: #000000;
+  --color-twitter-dark-surface: #16181c;
+  --color-twitter-dark-border: #2f3336;
+  --color-twitter-dark-text-primary: #e7e9ea;
+  --color-twitter-dark-text-secondary: #71767b;
+  --color-twitter-blue: #1d9bf0;
+  --color-twitter-blue-dark: #1a8cd8;
+  --color-twitter-pink: #f91880;
+  --color-twitter-green: #00ba7c;
+  --color-twitter-light-surface: #f7f9f9;
+  --color-twitter-light-border: #eff3f4;
+  --color-twitter-light-text-primary: #0f1419;
+  --color-twitter-light-text-secondary: #536471;
+
+  /* Structural Variables */
   --frame-radius-global: 12px;
   --frame-radius-sm-global: 8px;
   --frame-transition-global: 0.2s ease;
 }
 
+/* ============================================================================
+   GLOBAL FRAME THEME VARIABLES
+   ============================================================================ */
+
+:root {
+  /* Frame Global Colors - Dark Mode (default) */
+  --frame-bg-global: var(--color-bg-dark-primary);
+  --frame-surface-global: var(--color-bg-dark-elevated);
+  --frame-border-global: var(--color-border-dark-default);
+  --frame-text-primary-global: var(--color-text-dark-primary);
+  --frame-text-secondary-global: var(--color-text-dark-secondary);
+  --frame-text-muted-global: var(--color-text-dark-muted);
+  --frame-accent-global: var(--color-accent-indigo-500);
+  --frame-accent-bg-global: var(--color-accent-indigo-600);
+  --frame-link-color-global: var(--color-link-indigo-400);
+  --frame-divider-global: var(--color-border-dark-default);
+  --frame-input-bg-global: var(--color-bg-dark-input);
+  --frame-overlay-global: var(--color-overlay-dark);
+  --frame-shadow-global: var(--shadow-dark-lg);
+}
+
 /* Light Mode Theme Variables */
 [data-theme='light'] {
-  --frame-bg-global: #ffffff;
-  --frame-surface-global: #f8f9fa;
-  --frame-border-global: #e5e7eb;
-  --frame-text-primary-global: #1f2937;
-  --frame-text-secondary-global: #6b7280;
-  --frame-text-muted-global: #9ca3af;
-  --frame-accent-global: #4f46e5;
-  --frame-accent-bg-global: #eef2ff;
-  --frame-link-color-global: #4f46e5;
-  --frame-divider-global: #e5e7eb;
-  --frame-input-bg-global: #ffffff;
-  --frame-overlay-global: rgba(0, 0, 0, 0.1);
-  --frame-shadow-global: 0 4px 24px rgba(0, 0, 0, 0.08);
+  --frame-bg-global: var(--color-bg-light-primary);
+  --frame-surface-global: var(--color-bg-light-elevated);
+  --frame-border-global: var(--color-border-light-default);
+  --frame-text-primary-global: var(--color-text-light-primary);
+  --frame-text-secondary-global: var(--color-text-light-secondary);
+  --frame-text-muted-global: var(--color-text-light-muted);
+  --frame-accent-global: var(--color-accent-indigo-600);
+  --frame-accent-bg-global: var(--color-accent-indigo-100);
+  --frame-link-color-global: var(--color-link-indigo-600);
+  --frame-divider-global: var(--color-border-light-default);
+  --frame-input-bg-global: var(--color-bg-light-input);
+  --frame-overlay-global: var(--color-overlay-light);
+  --frame-shadow-global: var(--shadow-light-lg);
 }
 
 /* ============================================================================
@@ -56,126 +143,126 @@
 
 /* YouTube Theme Variables - Dark Mode */
 :root {
-  --youtube-bg: #0f0f0f;
-  --youtube-surface: #1a1a1a;
-  --youtube-border: #303030;
-  --youtube-text-primary: #ffffff;
-  --youtube-text-secondary: #aaaaaa;
-  --youtube-text-muted: #666666;
-  --youtube-accent: #ff0000;
-  --youtube-accent-bg: #cc0000;
-  --youtube-link-color: #3ea6ff;
-  --youtube-divider: #303030;
-  --youtube-input-bg: #1a1a1a;
-  --youtube-overlay: rgba(0, 0, 0, 0.8);
+  --youtube-bg: var(--color-youtube-dark-bg);
+  --youtube-surface: var(--color-youtube-dark-surface);
+  --youtube-border: var(--color-youtube-dark-border);
+  --youtube-text-primary: var(--color-white);
+  --youtube-text-secondary: var(--color-youtube-dark-text-secondary);
+  --youtube-text-muted: var(--color-text-dark-secondary);
+  --youtube-accent: var(--color-youtube-red);
+  --youtube-accent-bg: var(--color-youtube-red-dark);
+  --youtube-link-color: var(--color-youtube-link);
+  --youtube-divider: var(--color-youtube-dark-border);
+  --youtube-input-bg: var(--color-youtube-dark-surface);
+  --youtube-overlay: var(--color-overlay-dark-heavy);
 }
 
 /* YouTube Theme Variables - Light Mode */
 [data-theme='light'] {
-  --youtube-bg: #ffffff;
-  --youtube-surface: #f9f9f9;
-  --youtube-border: #e5e5e5;
-  --youtube-text-primary: #0f0f0f;
-  --youtube-text-secondary: #606060;
-  --youtube-text-muted: #999999;
-  --youtube-accent: #cc0000;
-  --youtube-accent-bg: #ff0000;
-  --youtube-link-color: #065fd4;
-  --youtube-divider: #e5e5e5;
-  --youtube-input-bg: #ffffff;
-  --youtube-overlay: rgba(0, 0, 0, 0.1);
+  --youtube-bg: var(--color-bg-light-primary);
+  --youtube-surface: var(--color-youtube-light-surface);
+  --youtube-border: var(--color-youtube-light-border);
+  --youtube-text-primary: var(--color-youtube-light-text-primary);
+  --youtube-text-secondary: var(--color-youtube-light-text-secondary);
+  --youtube-text-muted: var(--color-text-light-muted);
+  --youtube-accent: var(--color-youtube-red-dark);
+  --youtube-accent-bg: var(--color-youtube-red);
+  --youtube-link-color: var(--color-youtube-link-blue);
+  --youtube-divider: var(--color-youtube-light-border);
+  --youtube-input-bg: var(--color-bg-light-primary);
+  --youtube-overlay: var(--color-overlay-light);
 }
 
 /* Twitch Theme Variables - Dark Mode */
 :root {
-  --twitch-bg: #0e0e10;
-  --twitch-surface: #18181b;
-  --twitch-border: #2d2d31;
-  --twitch-text-primary: #efeff1;
-  --twitch-text-secondary: #b5b5b5;
-  --twitch-text-muted: #71717a;
-  --twitch-accent: #9146ff;
-  --twitch-accent-bg: #772ce8;
-  --twitch-link-color: #9146ff;
-  --twitch-divider: #2d2d31;
-  --twitch-input-bg: #18181b;
-  --twitch-overlay: rgba(0, 0, 0, 0.75);
+  --twitch-bg: var(--color-twitch-dark-bg);
+  --twitch-surface: var(--color-twitch-dark-surface);
+  --twitch-border: var(--color-twitch-dark-border);
+  --twitch-text-primary: var(--color-twitch-dark-text-primary);
+  --twitch-text-secondary: var(--color-twitch-dark-text-secondary);
+  --twitch-text-muted: var(--color-text-dark-muted);
+  --twitch-accent: var(--color-twitch-purple);
+  --twitch-accent-bg: var(--color-twitch-purple-dark);
+  --twitch-link-color: var(--color-twitch-purple);
+  --twitch-divider: var(--color-twitch-dark-border);
+  --twitch-input-bg: var(--color-twitch-dark-surface);
+  --twitch-overlay: var(--color-overlay-dark-heavy);
 }
 
 /* Twitch Theme Variables - Light Mode */
 [data-theme='light'] {
-  --twitch-bg: #ffffff;
-  --twitch-surface: #f7f7f7;
-  --twitch-border: #e5e5e5;
-  --twitch-text-primary: #0e0e10;
-  --twitch-text-secondary: #53535f;
-  --twitch-text-muted: #9e9ea7;
-  --twitch-accent: #9146ff;
-  --twitch-accent-bg: #e9d5ff;
-  --twitch-link-color: #9146ff;
-  --twitch-divider: #e5e5e5;
-  --twitch-input-bg: #ffffff;
-  --twitch-overlay: rgba(0, 0, 0, 0.5);
+  --twitch-bg: var(--color-bg-light-primary);
+  --twitch-surface: var(--color-twitch-light-surface);
+  --twitch-border: var(--color-twitch-light-border);
+  --twitch-text-primary: var(--color-twitch-light-text-primary);
+  --twitch-text-secondary: var(--color-twitch-light-text-secondary);
+  --twitch-text-muted: var(--color-twitch-light-text-muted);
+  --twitch-accent: var(--color-twitch-purple);
+  --twitch-accent-bg: var(--color-twitch-purple-light);
+  --twitch-link-color: var(--color-twitch-purple);
+  --twitch-divider: var(--color-twitch-light-border);
+  --twitch-input-bg: var(--color-bg-light-primary);
+  --twitch-overlay: var(--color-overlay-dark);
 }
 
 /* Twitter/X Theme Variables - Dark Mode */
 :root {
-  --twitter-bg: #000000;
-  --twitter-surface: #16181c;
-  --twitter-border: #2f3336;
-  --twitter-text-primary: #e7e9ea;
-  --twitter-text-secondary: #71767b;
-  --twitter-text-muted: #71767b;
-  --twitter-accent: #1d9bf0;
-  --twitter-accent-bg: #1a8cd8;
-  --twitter-link-color: #1d9bf0;
-  --twitter-divider: #2f3336;
-  --twitter-input-bg: #16181c;
-  --twitter-overlay: rgba(0, 0, 0, 0.8);
+  --twitter-bg: var(--color-twitter-black);
+  --twitter-surface: var(--color-twitter-dark-surface);
+  --twitter-border: var(--color-twitter-dark-border);
+  --twitter-text-primary: var(--color-twitter-dark-text-primary);
+  --twitter-text-secondary: var(--color-twitter-dark-text-secondary);
+  --twitter-text-muted: var(--color-twitter-dark-text-secondary);
+  --twitter-accent: var(--color-twitter-blue);
+  --twitter-accent-bg: var(--color-twitter-blue-dark);
+  --twitter-link-color: var(--color-twitter-blue);
+  --twitter-divider: var(--color-twitter-dark-border);
+  --twitter-input-bg: var(--color-twitter-dark-surface);
+  --twitter-overlay: var(--color-overlay-dark-heavy);
   /* X-specific enhanced variables */
-  --x-bg-primary: #000000;
-  --x-bg-secondary: #16181c;
-  --x-bg-tertiary: #2f3336;
-  --x-border-color: #2f3336;
-  --x-text-primary: #e7e9ea;
-  --x-text-secondary: #71767b;
-  --x-text-muted: #71767b;
-  --x-accent-blue: #1d9bf0;
-  --x-accent-blue-hover: #1a8cd8;
-  --x-like-color: #f91880;
-  --x-retweet-color: #00ba7c;
-  --x-reply-color: #71767b;
-  --x-view-color: #71767b;
+  --x-bg-primary: var(--color-twitter-black);
+  --x-bg-secondary: var(--color-twitter-dark-surface);
+  --x-bg-tertiary: var(--color-twitter-dark-border);
+  --x-border-color: var(--color-twitter-dark-border);
+  --x-text-primary: var(--color-twitter-dark-text-primary);
+  --x-text-secondary: var(--color-twitter-dark-text-secondary);
+  --x-text-muted: var(--color-twitter-dark-text-secondary);
+  --x-accent-blue: var(--color-twitter-blue);
+  --x-accent-blue-hover: var(--color-twitter-blue-dark);
+  --x-like-color: var(--color-twitter-pink);
+  --x-retweet-color: var(--color-twitter-green);
+  --x-reply-color: var(--color-twitter-dark-text-secondary);
+  --x-view-color: var(--color-twitter-dark-text-secondary);
 }
 
 /* Twitter/X Theme Variables - Light Mode */
 [data-theme='light'] {
-  --twitter-bg: #ffffff;
-  --twitter-surface: #f7f9f9;
-  --twitter-border: #eff3f4;
-  --twitter-text-primary: #0f1419;
-  --twitter-text-secondary: #536471;
-  --twitter-text-muted: #536471;
-  --twitter-accent: #1d9bf0;
-  --twitter-accent-bg: #1a8cd8;
-  --twitter-link-color: #1d9bf0;
-  --twitter-divider: #eff3f4;
-  --twitter-input-bg: #ffffff;
-  --twitter-overlay: rgba(0, 0, 0, 0.1);
+  --twitter-bg: var(--color-bg-light-primary);
+  --twitter-surface: var(--color-twitter-light-surface);
+  --twitter-border: var(--color-twitter-light-border);
+  --twitter-text-primary: var(--color-twitter-light-text-primary);
+  --twitter-text-secondary: var(--color-twitter-light-text-secondary);
+  --twitter-text-muted: var(--color-twitter-light-text-secondary);
+  --twitter-accent: var(--color-twitter-blue);
+  --twitter-accent-bg: var(--color-twitter-blue-dark);
+  --twitter-link-color: var(--color-twitter-blue);
+  --twitter-divider: var(--color-twitter-light-border);
+  --twitter-input-bg: var(--color-bg-light-primary);
+  --twitter-overlay: var(--color-overlay-light);
   /* X-specific enhanced variables */
-  --x-bg-primary: #ffffff;
-  --x-bg-secondary: #f7f9f9;
-  --x-bg-tertiary: #eff3f4;
-  --x-border-color: #eff3f4;
-  --x-text-primary: #0f1419;
-  --x-text-secondary: #536471;
-  --x-text-muted: #536471;
-  --x-accent-blue: #1d9bf0;
-  --x-accent-blue-hover: #1a8cd8;
-  --x-like-color: #f91880;
-  --x-retweet-color: #00ba7c;
-  --x-reply-color: #536471;
-  --x-view-color: #536471;
+  --x-bg-primary: var(--color-bg-light-primary);
+  --x-bg-secondary: var(--color-twitter-light-surface);
+  --x-bg-tertiary: var(--color-twitter-light-border);
+  --x-border-color: var(--color-twitter-light-border);
+  --x-text-primary: var(--color-twitter-light-text-primary);
+  --x-text-secondary: var(--color-twitter-light-text-secondary);
+  --x-text-muted: var(--color-twitter-light-text-secondary);
+  --x-accent-blue: var(--color-twitter-blue);
+  --x-accent-blue-hover: var(--color-twitter-blue-dark);
+  --x-like-color: var(--color-twitter-pink);
+  --x-retweet-color: var(--color-twitter-green);
+  --x-reply-color: var(--color-twitter-light-text-secondary);
+  --x-view-color: var(--color-twitter-light-text-secondary);
 }
 
 /* ============================================================================

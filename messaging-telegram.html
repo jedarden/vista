@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Telegram Context Frame</title>
+  <link rel="stylesheet" href="src/public/messaging-base.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+      background: #1c1c1e;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .telegram-context {
+      width: 100%;
+      max-width: 375px;
+      background: #1c1c1e;
+      border-radius: 0;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Telegram Header */
+    .tg-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: #1c1c1e;
+      border-bottom: 1px solid #2c2c2e;
+    }
+
+    .tg-header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tg-back-btn {
+      color: #0a84ff;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .tg-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: #ffffff;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #3390ec, #1a73e8);
+    }
+
+    .tg-contact-info {
+      flex: 1;
+    }
+
+    .tg-contact-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    .tg-contact-status {
+      font-size: 12px;
+      color: #8e8e93;
+      margin-top: 2px;
+    }
+
+    .tg-header-icons {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .tg-icon {
+      color: #0a84ff;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    /* Telegram Chat Container */
+    .tg-chat-container {
+      padding: 12px;
+      min-height: 450px;
+      background: #0d0d0d;
+    }
+
+    /* Date separator */
+    .tg-date-separator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 12px 0;
+    }
+
+    .tg-date-separator-text {
+      font-size: 11px;
+      color: #8e8e93;
+      background: #1c1c1e;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-weight: 500;
+    }
+
+    /* Message container */
+    .tg-message-row {
+      display: flex;
+      margin-bottom: 8px;
+    }
+
+    .tg-message-row.received {
+      justify-content: flex-start;
+    }
+
+    .tg-message-row.sent {
+      justify-content: flex-end;
+    }
+
+    .tg-message-row .tg-message-content {
+      display: flex;
+      max-width: 75%;
+      flex-direction: column;
+    }
+
+    .tg-message-row.received .tg-message-content {
+      align-items: flex-start;
+    }
+
+    .tg-message-row.sent .tg-message-content {
+      align-items: flex-end;
+    }
+
+    /* Avatar styles */
+    .tg-avatar-small {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 600;
+      color: #ffffff;
+      flex-shrink: 0;
+      margin-right: 6px;
+      margin-top: 4px;
+    }
+
+    /* Message with avatar container */
+    .tg-message-with-avatar {
+      display: flex;
+      align-items: flex-end;
+    }
+
+    /* Message bubbles - Telegram styling */
+    .tg-bubble {
+      padding: 6px 10px 8px 10px;
+      border-radius: 12px;
+      position: relative;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      font-size: 14px;
+      line-height: 1.4;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .tg-message-row.received .tg-bubble {
+      background: #2c2c2e;
+      color: #ffffff;
+      border-bottom-left-radius: 4px;
+    }
+
+    .tg-message-row.sent .tg-bubble {
+      background: #3390ec;
+      color: #ffffff;
+      border-bottom-right-radius: 4px;
+    }
+
+    /* Reply context bar */
+    .tg-reply-context {
+      display: flex;
+      align-items: center;
+      padding: 6px 10px;
+      background: rgba(255, 255, 255, 0.1);
+      border-left: 3px solid #0a84ff;
+      border-radius: 4px;
+      margin-bottom: 6px;
+      font-size: 12px;
+    }
+
+    .tg-message-row.sent .tg-reply-context {
+      background: rgba(0, 0, 0, 0.2);
+      border-left-color: #ffffff;
+    }
+
+    .tg-reply-avatar {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8px;
+      font-weight: 600;
+      color: #ffffff;
+      margin-right: 6px;
+      flex-shrink: 0;
+    }
+
+    .tg-reply-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .tg-reply-name {
+      font-weight: 600;
+      color: #0a84ff;
+      margin-bottom: 2px;
+    }
+
+    .tg-message-row.sent .tg-reply-name {
+      color: #ffffff;
+    }
+
+    .tg-reply-text {
+      color: #8e8e93;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Forward arrow indicator */
+    .tg-forwarded {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 4px;
+      font-size: 11px;
+      color: #0a84ff;
+    }
+
+    .tg-forward-icon::before {
+      content: '→';
+    }
+
+    .tg-message-row.sent .tg-forwarded {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    /* Message metadata footer */
+    .tg-message-footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    .tg-timestamp {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.5);
+      white-space: nowrap;
+    }
+
+    /* Edited marker */
+    .tg-edited {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.5);
+      font-style: italic;
+    }
+
+    /* Channel/group badge */
+    .tg-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 6px;
+      background: #0a84ff;
+      color: #ffffff;
+      font-size: 9px;
+      font-weight: 600;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-left: 6px;
+    }
+
+    /* Input area */
+    .tg-input-area {
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      background: #1c1c1e;
+      gap: 8px;
+    }
+
+    .tg-input-btn {
+      color: #8e8e93;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .tg-input-field {
+      flex: 1;
+      background: #2c2c2e;
+      border: none;
+      border-radius: 20px;
+      padding: 8px 16px;
+      color: #ffffff;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .tg-input-field::placeholder {
+      color: #8e8e93;
+    }
+
+    .tg-send-btn {
+      color: #0a84ff;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    /* Light theme overrides */
+    [data-theme="light"] body {
+      background: #f5f5f7;
+    }
+
+    [data-theme="light"] .telegram-context {
+      background: #ffffff;
+    }
+
+    [data-theme="light"] .tg-header {
+      background: #ffffff;
+      border-bottom-color: #e5e5ea;
+    }
+
+    [data-theme="light"] .tg-contact-name {
+      color: #000000;
+    }
+
+    [data-theme="light"] .tg-contact-status {
+      color: #8e8e93;
+    }
+
+    [data-theme="light"] .tg-chat-container {
+      background: #f5f5f7;
+    }
+
+    [data-theme="light"] .tg-date-separator-text {
+      background: #ffffff;
+      color: #8e8e93;
+    }
+
+    [data-theme="light"] .tg-message-row.received .tg-bubble {
+      background: #ffffff;
+      color: #000000;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    [data-theme="light"] .tg-message-row.sent .tg-bubble {
+      background: #3390ec;
+      color: #ffffff;
+    }
+
+    [data-theme="light"] .tg-timestamp {
+      color: rgba(0, 0, 0, 0.5);
+    }
+
+    [data-theme="light"] .tg-message-row.sent .tg-timestamp {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    [data-theme="light"] .tg-input-area {
+      background: #ffffff;
+    }
+
+    [data-theme="light"] .tg-input-field {
+      background: #f0f0f0;
+      color: #000000;
+    }
+
+    [data-theme="light"] .tg-input-field::placeholder {
+      color: #8e8e93;
+    }
+
+    [data-theme="light"] .tg-input-btn {
+      color: #8e8e93;
+    }
+  </style>
+</head>
+<body>
+  <div class="telegram-context">
+    <!-- Header -->
+    <div class="tg-header">
+      <div class="tg-header-left">
+        <span class="tg-back-btn">‹</span>
+        <div class="tg-avatar">TC</div>
+        <div class="tg-contact-info">
+          <div class="tg-contact-name">Tech Channel <span class="tg-badge">Group</span></div>
+          <div class="tg-contact-status">152 members, 12 online</div>
+        </div>
+      </div>
+      <div class="tg-header-icons">
+        <span class="tg-icon">🔍</span>
+        <span class="tg-icon">⋮</span>
+      </div>
+    </div>
+
+    <!-- Chat Container -->
+    <div class="tg-chat-container">
+      <!-- Date separator -->
+      <div class="tg-date-separator">
+        <span class="tg-date-separator-text">Today</span>
+      </div>
+
+      <!-- Received message with avatar -->
+      <div class="tg-message-row received">
+        <div class="tg-message-content">
+          <div class="tg-message-with-avatar">
+            <div class="tg-avatar-small" style="background: linear-gradient(135deg, #ff6b6b, #ee5a6f);">JD</div>
+            <div class="tg-bubble">
+              Hey everyone! Check out this amazing resource for web development 🚀
+              <div class="tg-message-footer">
+                <span class="tg-timestamp">10:30 AM</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Received message with forward indicator -->
+      <div class="tg-message-row received">
+        <div class="tg-message-content">
+          <div class="tg-message-with-avatar">
+            <div class="tg-avatar-small" style="background: linear-gradient(135deg, #4ecdc4, #44a08d);">SM</div>
+            <div>
+              <div class="tg-forwarded">
+                <span class="tg-forward-icon"></span>
+                <span>Forwarded from Dev Community</span>
+              </div>
+              <div class="tg-bubble">
+                This article on modern CSS techniques is fantastic!
+                <div class="tg-message-footer">
+                  <span class="tg-timestamp">10:32 AM</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sent message -->
+      <div class="tg-message-row sent">
+        <div class="tg-message-content">
+          <div class="tg-bubble">
+            Thanks for sharing! This looks really interesting. Let me take a look.
+            <div class="tg-message-footer">
+              <span class="tg-timestamp">10:33 AM</span>
+              <span class="tg-edited">edited</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sent message with reply context -->
+      <div class="tg-message-row sent">
+        <div class="tg-message-content">
+          <div class="tg-reply-context">
+            <div class="tg-reply-avatar">SM</div>
+            <div class="tg-reply-info">
+              <div class="tg-reply-name">Sarah Miller</div>
+              <div class="tg-reply-text">This article on modern CSS techniques is fantastic!</div>
+            </div>
+          </div>
+          <div class="tg-bubble">
+            Actually, I found another great resource that complements this perfectly. Check out the CSS Grid guide from CSS-Tricks.
+            <div class="tg-message-footer">
+              <span class="tg-timestamp">10:35 AM</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Received message with reply context -->
+      <div class="tg-message-row received">
+        <div class="tg-message-content">
+          <div class="tg-message-with-avatar">
+            <div class="tg-avatar-small" style="background: linear-gradient(135deg, #667eea, #764ba2);">AK</div>
+            <div>
+              <div class="tg-reply-context">
+                <div class="tg-reply-avatar" style="background: #3390ec;">Me</div>
+                <div class="tg-reply-info">
+                  <div class="tg-reply-name">You</div>
+                  <div class="tg-reply-text">Actually, I found another great resource...</div>
+                </div>
+              </div>
+              <div class="tg-bubble">
+                Perfect! This is exactly what I needed for my current project. Thanks! 🎉
+                <div class="tg-message-footer">
+                  <span class="tg-timestamp">10:37 AM</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sent message -->
+      <div class="tg-message-row sent">
+        <div class="tg-message-content">
+          <div class="tg-bubble">
+            You're welcome! Let me know if you need any help with the implementation. Happy coding! 💻
+            <div class="tg-message-footer">
+              <span class="tg-timestamp">10:38 AM</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input Area -->
+    <div class="tg-input-area">
+      <span class="tg-input-btn">📎</span>
+      <input type="text" class="tg-input-field" placeholder="Message">
+      <span class="tg-input-btn">😊</span>
+      <span class="tg-send-btn">➤</span>
+    </div>
+  </div>
+
+  <script>
+    // Theme toggle for testing
+    let currentTheme = 'dark';
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 't' || e.key === 'T') {
+        currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        console.log(`Theme switched to ${currentTheme} mode`);
+      }
+    });
+    console.log('Telegram frame loaded. Press T to toggle theme.');
+  </script>
+</body>
+</html>

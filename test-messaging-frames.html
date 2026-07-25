@@ -88,16 +88,32 @@
       <div class="theme-info">Dark Mode (press T to toggle)</div>
       <iframe id="whatsapp-frame" src="messaging-whatsapp.html" width="380" height="600"></iframe>
     </div>
+
+    <div class="frame-wrapper">
+      <div class="frame-title">Telegram Context Frame</div>
+      <div class="theme-info">Dark Mode (press T to toggle)</div>
+      <iframe id="telegram-frame" src="messaging-telegram.html" width="380" height="600"></iframe>
+    </div>
+
+    <div class="frame-wrapper">
+      <div class="frame-title">Signal Context Frame</div>
+      <div class="theme-info">Dark Mode (press T to toggle)</div>
+      <iframe id="signal-frame" src="messaging-signal.html" width="380" height="600"></iframe>
+    </div>
   </div>
 
   <script>
     function refreshTheme() {
       const imessageFrame = document.getElementById('imessage-frame');
       const whatsappFrame = document.getElementById('whatsapp-frame');
+      const telegramFrame = document.getElementById('telegram-frame');
+      const signalFrame = document.getElementById('signal-frame');
 
-      // Reload both frames
+      // Reload all frames
       imessageFrame.src = imessageFrame.src;
       whatsappFrame.src = whatsappFrame.src;
+      telegramFrame.src = telegramFrame.src;
+      signalFrame.src = signalFrame.src;
 
       console.log('Frames refreshed');
     }
@@ -107,10 +123,12 @@
       console.log('Messaging frames test page loaded');
       console.log('Testing requirements:');
       console.log('✓ iMessage frame: Blue/green bubble layout');
-      console.log('✓ WhatsApp frame: Delivery receipts and ticks');
-      console.log('✓ Sender avatars for both platforms');
+      console.log('✓ WhatsApp frame: Delivery receipts and checkmarks');
+      console.log('✓ Telegram frame: Reply context, forward arrows, edited markers');
+      console.log('✓ Signal frame: Encryption lock icons, reaction emojis');
+      console.log('✓ Sender avatars for all platforms');
       console.log('✓ Message timestamps in correct format');
-      console.log('✓ Read receipts (WhatsApp double check marks)');
+      console.log('✓ Read receipts and delivery status indicators');
       console.log('✓ Neutral placeholder conversation content');
       console.log('✓ Dark theme tested');
       console.log('✓ Light theme (press T to test)');

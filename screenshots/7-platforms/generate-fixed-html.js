@@ -1,9 +1,37 @@
-<!DOCTYPE html>
+#!/usr/bin/env node
+
+/**
+ * Fix platform screenshot HTML files to include platform frames module
+ */
+
+const fs = require('fs');
+const path = require('path');
+
+// Platforms to fix
+const PLATFORMS = [
+  { id: 'twitter', name: 'X (Twitter)', category: 'Social' },
+  { id: 'facebook', name: 'Facebook', category: 'Social' },
+  { id: 'youtube', name: 'YouTube', category: 'Video' },
+  { id: 'slack', name: 'Slack', category: 'Messaging' },
+  { id: 'github', name: 'GitHub', category: 'Developer' },
+  { id: 'gmail', name: 'Gmail', category: 'Email' },
+  { id: 'reddit', name: 'Reddit', category: 'Discussion' }
+];
+
+const THEMES = ['light', 'dark'];
+
+const outputDir = path.join(__dirname);
+
+// Generate HTML for a platform and theme
+function createPlatformHTML(platform, theme) {
+  const themeClass = theme === 'dark' ? 'dark-theme' : 'light-theme';
+
+  return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gmail - Dark Theme</title>
+  <title>${platform.name} - ${theme.charAt(0).toUpperCase() + theme.slice(1)} Theme</title>
   <style>
     * {
       margin: 0;
@@ -13,7 +41,7 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-      background: #1a1a1a;
+      background: ${theme === 'dark' ? '#1a1a1a' : '#f5f5f5'};
       padding: 20px;
       display: flex;
       flex-direction: column;
@@ -24,7 +52,7 @@
     .screenshot-header {
       text-align: center;
       margin-bottom: 20px;
-      color: #e0e0e0;
+      color: ${theme === 'dark' ? '#e0e0e0' : '#333'};
     }
 
     .screenshot-header h1 {
@@ -40,7 +68,7 @@
     .platform-frame-container {
       width: 100%;
       max-width: 600px;
-      background: #2a2a2a;
+      background: ${theme === 'dark' ? '#2a2a2a' : '#ffffff'};
       border-radius: 8px;
       overflow: hidden;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
@@ -49,15 +77,15 @@
     .screenshot-footer {
       margin-top: 20px;
       text-align: center;
-      color: #888;
+      color: ${theme === 'dark' ? '#888' : '#666'};
       font-size: 12px;
     }
   </style>
 </head>
-<body class="dark-theme">
+<body class="${themeClass}">
   <div class="screenshot-header">
-    <h1>Gmail Platform Frame</h1>
-    <p>Theme: Dark | Category: Email</p>
+    <h1>${platform.name} Platform Frame</h1>
+    <p>Theme: ${theme.charAt(0).toUpperCase() + theme.slice(1)} | Category: ${platform.category}</p>
   </div>
 
   <div class="platform-frame-container" id="frame-container">
@@ -91,8 +119,8 @@
     };
 
     // Render the platform frame
-    const platformId = 'gmail';
-    const theme = 'dark';
+    const platformId = '${platform.id}';
+    const theme = '${theme}';
     const container = document.getElementById('frame-container');
 
     try {
@@ -112,4 +140,29 @@
     }
   </script>
 </body>
-</html>
+</html>`;
+}
+
+// Generate all HTML files
+console.log('🔧 Fixing platform screenshot HTML files...\n');
+
+let updatedCount = 0;
+
+PLATFORMS.forEach(platform => {
+  THEMES.forEach(theme => {
+    const filename = `${platform.id}-${theme}.html`;
+    const filepath = path.join(outputDir, filename);
+
+    const html = createPlatformHTML(platform, theme);
+    fs.writeFileSync(filepath, html);
+
+    console.log(`✅ Updated: ${filename}`);
+    updatedCount++;
+  });
+});
+
+console.log(`\n✨ Updated ${updatedCount} HTML files successfully!`);
+console.log('\n📋 Next steps:');
+console.log('1. Open index.html in a browser to test each platform');
+console.log('2. Use ADB to capture screenshots of each platform in both themes');
+console.log('3. Verify visual appearance and frame rendering');

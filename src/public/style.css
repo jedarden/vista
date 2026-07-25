@@ -1473,25 +1473,25 @@ body.has-results { padding-bottom: 48px; }
 .fb-post-stats { display: flex; gap: 16px; padding: 8px 12px; background: var(--frame-surface); color: var(--frame-text-secondary); font-size: 13px; }
 
 /* Twitter/X Context */
-.twitter-context { max-width: 500px; background: var(--frame-bg); }
+.twitter-context { max-width: 500px; background: var(--x-bg-primary, var(--frame-bg)); }
 .tw-post-header { display: flex; gap: 10px; padding: 12px; align-items: flex-start; }
-.tw-avatar { width: 40px; height: 40px; background: var(--frame-text-muted); border-radius: 50%; flex-shrink: 0; }
+.tw-avatar { width: 40px; height: 40px; background: var(--x-avatar-bg, var(--frame-text-muted)); border-radius: 50%; flex-shrink: 0; }
 .tw-post-meta { display: flex; flex-direction: row; flex: 1; align-items: center; gap: 4px; flex-wrap: wrap; }
-.tw-author-name { font-weight: 700; color: var(--frame-text-primary); font-size: 15px; }
-.tw-author-handle { color: var(--frame-text-secondary); font-size: 15px; }
-.tw-post-time { color: var(--frame-text-secondary); font-size: 15px; }
-.tw-verified { color: var(--frame-accent); font-size: 14px; font-weight: bold; }
-.tw-post-content { padding: 0 12px 8px 52px; color: var(--frame-text-primary); font-size: 15px; line-height: 1.5; }
-.tw-link-card { margin: 8px 12px 8px 52px; border-radius: 14px; overflow: hidden; border: 1px solid var(--frame-border); background: var(--frame-surface); }
+.tw-author-name { font-weight: 700; color: var(--x-text-primary, var(--frame-text-primary)); font-size: 15px; }
+.tw-author-handle { color: var(--x-text-secondary, var(--frame-text-secondary)); font-size: 15px; }
+.tw-post-time { color: var(--x-text-secondary, var(--frame-text-secondary)); font-size: 15px; }
+.tw-verified { color: var(--x-accent-blue, var(--frame-accent)); font-size: 14px; font-weight: bold; }
+.tw-post-content { padding: 0 12px 8px 52px; color: var(--x-text-primary, var(--frame-text-primary)); font-size: 15px; line-height: 1.5; }
+.tw-link-card { margin: 8px 12px 8px 52px; border-radius: 14px; overflow: hidden; border: 1px solid var(--x-border-color, var(--frame-border)); background: var(--x-bg-secondary, var(--frame-surface)); }
 .tw-context-image img { width: 100%; aspect-ratio: 1.91/1; object-fit: cover; }
-.tw-context-placeholder { width: 100%; aspect-ratio: 1.91/1; background: var(--frame-border); }
+.tw-context-placeholder { width: 100%; aspect-ratio: 1.91/1; background: var(--x-placeholder-bg, var(--frame-border)); }
 .tw-context-meta { padding: 10px 14px; }
-.tw-context-title { font-weight: 700; color: var(--frame-text-primary); font-size: 15px; margin-bottom: 3px; }
-.tw-context-domain { color: var(--frame-text-secondary); font-size: 13px; }
-.tw-post-actions { display: flex; gap: 16px; padding: 8px 12px 8px 52px; color: var(--frame-text-secondary); font-size: 13px; align-items: center; }
+.tw-context-title { font-weight: 700; color: var(--x-text-primary, var(--frame-text-primary)); font-size: 15px; margin-bottom: 3px; }
+.tw-context-domain { color: var(--x-text-secondary, var(--frame-text-secondary)); font-size: 13px; }
+.tw-post-actions { display: flex; gap: 16px; padding: 8px 12px 8px 52px; color: var(--x-text-secondary, var(--frame-text-secondary)); font-size: 13px; align-items: center; }
 .tw-post-action-item { display: flex; align-items: center; gap: 4px; cursor: pointer; transition: color 0.2s ease; }
 .tw-action-icon { font-size: 16px; }
-.tw-action-count { font-size: 13px; color: var(--frame-text-secondary); }
+.tw-action-count { font-size: 13px; color: var(--x-text-secondary, var(--frame-text-secondary)); }
 
 /* X/Twitter Enhanced Styling */
 .twitter-context {
@@ -1501,19 +1501,46 @@ body.has-results { padding-bottom: 48px; }
   border: 1px solid var(--frame-border);
 }
 
+/* ============================================================================
+   Twitter/X Dark Theme Variables
+   X/Twitter-specific design tokens for dark mode context frames
+   These variables match Twitter's official dark theme color palette
+   ============================================================================ */
 .twitter-context.dark-theme {
-  --x-bg-primary: #000000;
-  --x-bg-secondary: #16181c;
-  --x-bg-tertiary: #2f3336;
-  --x-border-color: #2f3336;
-  --x-text-primary: #e7e9ea;
-  --x-text-secondary: #71767b;
-  --x-accent-blue: #1d9bf0;
-  --x-accent-blue-hover: #1a8cd8;
-  --x-like-color: #f91880;
-  --x-retweet-color: #00ba7c;
-  --x-reply-color: #71767b;
-  --x-view-color: #71767b;
+  /* Background Colors - layered for elevation and hierarchy */
+  --x-bg-primary: #000000;      /* Main frame background, base layer */
+  --x-bg-secondary: #16181c;    /* Hover states, cards, elevated surfaces */
+  --x-bg-tertiary: #2f3336;      /* Active states, button backgrounds */
+
+  /* Structural Elements */
+  --x-border-color: #2f3336;     /* Frame borders, dividers, separators */
+
+  /* Text Colors - hierarchy for visual emphasis */
+  --x-text-primary: #e7e9ea;     /* Author names, post content, titles */
+  --x-text-secondary: #71767b;   /* Handles, timestamps, counts, domains */
+
+  /* Accent Colors - interactive elements and brand colors */
+  --x-accent-blue: #1d9bf0;      /* Twitter blue - verified badge, links, actions */
+  --x-accent-blue-hover: #1a8cd8; /* Hover state for accent elements */
+
+  /* Engagement Action Colors */
+  --x-like-color: #f91880;       /* Like button - Twitter's pink/red */
+  --x-retweet-color: #00ba7c;    /* Retweet button - Twitter's green */
+  --x-reply-color: #71767b;      /* Reply button - neutral gray */
+  --x-view-color: #71767b;       /* View count - neutral gray */
+
+  /* Avatar System Variables */
+  --x-avatar-bg: #71767b;        /* Avatar placeholder background - neutral gray */
+  --x-avatar-border: #2f3336;     /* Avatar border - subtle dark border */
+
+  /* Placeholder Elements */
+  --x-placeholder-bg: #2f3336;    /* Context card placeholder background */
+  --x-placeholder-gradient: linear-gradient(135deg, #2f3336 0%, #3d4145 100%); /* Placeholder gradient for visual interest */
+
+  /* Hover State Enhancement */
+  --x-hover-bg: rgba(255, 255, 255, 0.03);      /* Subtle hover background for interactive elements */
+  --x-hover-subtle: rgba(255, 255, 255, 0.015);   /* Extra subtle hover for less emphasized elements */
+  --x-link-card-hover-border: #1d9bf0;            /* Link card hover border - X blue */
 }
 
 .twitter-context.light-theme {
@@ -1529,6 +1556,19 @@ body.has-results { padding-bottom: 48px; }
   --x-retweet-color: #00ba7c;
   --x-reply-color: #536471;
   --x-view-color: #536471;
+
+  /* Avatar System Variables */
+  --x-avatar-bg: #536471;        /* Avatar placeholder background - darker gray for contrast */
+  --x-avatar-border: #eff3f4;     /* Avatar border - light border */
+
+  /* Placeholder Elements */
+  --x-placeholder-bg: #eff3f4;    /* Context card placeholder background */
+  --x-placeholder-gradient: linear-gradient(135deg, #eff3f4 0%, #e3e7e9 100%); /* Placeholder gradient for visual interest */
+
+  /* Hover State Enhancement */
+  --x-hover-bg: rgba(0, 0, 0, 0.04);           /* Subtle hover background for interactive elements */
+  --x-hover-subtle: rgba(0, 0, 0, 0.02);        /* Extra subtle hover for less emphasized elements */
+  --x-link-card-hover-border: #1d9bf0;          /* Link card hover border - X blue (same) */
 }
 
 /* Enhanced X Verified Badge */
@@ -1577,20 +1617,20 @@ body.has-results { padding-bottom: 48px; }
 /* X Typography Enhancements */
 .tw-author-name {
   font-weight: 700;
-  color: var(--frame-text-primary);
+  color: var(--x-text-primary, var(--frame-text-primary));
   font-size: 15px;
   letter-spacing: -0.01em;
 }
 
 .tw-author-handle {
-  color: var(--frame-text-secondary);
+  color: var(--x-text-secondary, var(--frame-text-secondary));
   font-size: 15px;
   font-weight: 400;
 }
 
 .tw-post-content {
   padding: 0 12px 8px 52px;
-  color: var(--frame-text-primary);
+  color: var(--x-text-primary, var(--frame-text-primary));
   font-size: 15px;
   line-height: 1.5;
   letter-spacing: -0.01em;
@@ -1602,20 +1642,21 @@ body.has-results { padding-bottom: 48px; }
   margin: 8px 12px 8px 52px;
   border-radius: 16px;
   overflow: hidden;
-  border: 1px solid var(--frame-border);
-  background: var(--frame-surface);
+  border: 1px solid var(--x-border-color, var(--frame-border));
+  background: var(--x-bg-secondary, var(--frame-surface));
   transition: background-color 0.2s ease, border-color 0.2s ease;
   cursor: pointer;
 }
 
 .tw-link-card:hover {
   background: var(--x-bg-tertiary);
+  border-color: var(--x-link-card-hover-border, var(--frame-accent));
 }
 
 .tw-context-placeholder {
   width: 100%;
   aspect-ratio: 1.91/1;
-  background: linear-gradient(135deg, var(--frame-border) 0%, var(--frame-surface) 100%);
+  background: var(--x-placeholder-gradient, linear-gradient(135deg, var(--frame-border) 0%, var(--frame-surface) 100%));
   position: relative;
 }
 
@@ -1627,7 +1668,7 @@ body.has-results { padding-bottom: 48px; }
   transform: translate(-50%, -50%);
   width: 48px;
   height: 48px;
-  background: var(--frame-accent);
+  background: var(--x-accent-blue, var(--frame-accent));
   border-radius: 50%;
   opacity: 0.1;
 }
@@ -1639,7 +1680,7 @@ body.has-results { padding-bottom: 48px; }
 
 .tw-context-title {
   font-weight: 700;
-  color: var(--frame-text-primary);
+  color: var(--x-text-primary, var(--frame-text-primary));
   font-size: 15px;
   margin-bottom: 4px;
   line-height: 1.3;
@@ -1647,7 +1688,7 @@ body.has-results { padding-bottom: 48px; }
 }
 
 .tw-context-domain {
-  color: var(--frame-text-secondary);
+  color: var(--x-text-secondary, var(--frame-text-secondary));
   font-size: 14px;
   font-weight: 400;
   text-transform: lowercase;
@@ -1657,7 +1698,7 @@ body.has-results { padding-bottom: 48px; }
 .tw-avatar {
   width: 40px;
   height: 40px;
-  background: var(--frame-text-muted);
+  background: var(--x-avatar-bg, var(--frame-text-muted));
   border-radius: 50%;
   flex-shrink: 0;
   position: relative;
@@ -1671,7 +1712,7 @@ body.has-results { padding-bottom: 48px; }
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, var(--frame-accent) 0%, var(--frame-surface) 100%);
+  background: linear-gradient(135deg, var(--x-accent-blue, var(--frame-accent)) 0%, var(--x-bg-secondary, var(--frame-surface)) 100%);
   opacity: 0.2;
 }
 
@@ -1693,7 +1734,7 @@ body.has-results { padding-bottom: 48px; }
   display: flex;
   gap: 4px;
   padding: 12px 12px 12px 52px;
-  color: var(--frame-text-secondary);
+  color: var(--x-text-secondary, var(--frame-text-secondary));
   font-size: 13px;
   align-items: center;
   border-top: 1px solid transparent;

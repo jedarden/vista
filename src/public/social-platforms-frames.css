@@ -418,6 +418,94 @@
 }
 
 /* ============================================================================
+   INSTAGRAM FRAME CHROME ELEMENTS
+   ============================================================================ */
+
+/**
+ * Instagram frame chrome - professional UI chrome for headers, navigation, footers
+ * These elements provide Instagram-specific styling for frame chrome elements
+ */
+.instagram-context .frame-chrome {
+  background: var(--color-instagram-dark-surface);
+  border-bottom: 1px solid var(--color-instagram-dark-border);
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.instagram-context.light-theme .frame-chrome {
+  background: var(--color-instagram-light-surface);
+  border-bottom-color: var(--color-instagram-light-border);
+}
+
+.instagram-context .frame-chrome-header {
+  color: var(--color-instagram-dark-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  transition: color 0.2s ease;
+}
+
+.instagram-context.light-theme .frame-chrome-header {
+  color: var(--color-instagram-light-text-primary);
+}
+
+.instagram-context .frame-chrome-navigation {
+  gap: 8px;
+}
+
+.instagram-context .frame-chrome-navigation button,
+.instagram-context .frame-chrome-navigation .nav-item {
+  color: var(--color-instagram-dark-text-primary);
+  background: transparent;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.instagram-context.light-theme .frame-chrome-navigation button,
+.instagram-context.light-theme .frame-chrome-navigation .nav-item {
+  color: var(--color-instagram-light-text-primary);
+}
+
+.instagram-context .frame-chrome-navigation button:hover,
+.instagram-context .frame-chrome-navigation .nav-item:hover {
+  background: var(--color-instagram-dark-hover-bg);
+  color: var(--color-instagram-accent);
+}
+
+.instagram-context.light-theme .frame-chrome-navigation button:hover,
+.instagram-context.light-theme .frame-chrome-navigation .nav-item:hover {
+  background: var(--color-instagram-light-hover-bg);
+  color: var(--color-instagram-accent);
+}
+
+.instagram-context .frame-chrome-navigation button.active {
+  background: var(--color-instagram-accent);
+  color: var(--color-white);
+}
+
+.instagram-context.light-theme .frame-chrome-navigation button.active {
+  background: var(--color-instagram-accent);
+  color: var(--color-white);
+}
+
+.instagram-context .frame-chrome-footer {
+  background: var(--color-instagram-dark-surface);
+  border-top: 1px solid var(--color-instagram-dark-border);
+  color: var(--color-instagram-dark-text-secondary);
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.instagram-context.light-theme .frame-chrome-footer {
+  background: var(--color-instagram-light-surface);
+  border-top-color: var(--color-instagram-light-border);
+  color: var(--color-instagram-light-text-secondary);
+}
+
+/* ============================================================================
    LINKEDIN CONTEXT FRAME IMPLEMENTATION
    ============================================================================ */
 
@@ -613,6 +701,99 @@
 .linkedin-context.light-theme .li-post-stats span:hover {
   background: var(--linkedin-hover-bg, var(--color-linkedin-light-hover-bg));
   color: var(--color-linkedin-light-text-primary);
+}
+
+/* ============================================================================
+   LINKEDIN FRAME CHROME ELEMENTS
+   ============================================================================ */
+
+/**
+ * LinkedIn frame chrome - professional UI chrome for headers, navigation, footers
+ * These elements provide LinkedIn-specific styling for frame chrome elements
+ */
+.linkedin-context .frame-chrome {
+  background: var(--color-linkedin-dark-surface);
+  border-bottom: 1px solid var(--color-linkedin-dark-border);
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.linkedin-context.light-theme .frame-chrome {
+  background: var(--color-linkedin-light-surface);
+  border-bottom-color: var(--color-linkedin-light-border);
+}
+
+.linkedin-context .frame-chrome-header {
+  color: var(--color-linkedin-dark-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  transition: color 0.2s ease;
+}
+
+.linkedin-context.light-theme .frame-chrome-header {
+  color: var(--color-linkedin-light-text-primary);
+}
+
+.linkedin-context .frame-chrome-navigation {
+  gap: 6px;
+}
+
+.linkedin-context .frame-chrome-navigation button,
+.linkedin-context .frame-chrome-navigation .nav-item {
+  color: var(--color-linkedin-dark-text-secondary);
+  background: transparent;
+  border: 1px solid var(--color-linkedin-dark-border);
+  padding: 6px 14px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.linkedin-context.light-theme .frame-chrome-navigation button,
+.linkedin-context.light-theme .frame-chrome-navigation .nav-item {
+  color: var(--color-linkedin-light-text-secondary);
+  border-color: var(--color-linkedin-light-border);
+}
+
+.linkedin-context .frame-chrome-navigation button:hover,
+.linkedin-context .frame-chrome-navigation .nav-item:hover {
+  background: var(--color-linkedin-hover-bg);
+  border-color: var(--color-linkedin-accent);
+  color: var(--color-linkedin-accent);
+}
+
+.linkedin-context.light-theme .frame-chrome-navigation button:hover,
+.linkedin-context.light-theme .frame-chrome-navigation .nav-item:hover {
+  background: var(--color-linkedin-light-hover-bg);
+  border-color: var(--color-linkedin-accent);
+  color: var(--color-linkedin-accent);
+}
+
+.linkedin-context .frame-chrome-navigation button.active {
+  background: var(--color-linkedin-accent);
+  border-color: var(--color-linkedin-accent);
+  color: var(--color-white);
+}
+
+.linkedin-context.light-theme .frame-chrome-navigation button.active {
+  background: var(--color-linkedin-accent);
+  border-color: var(--color-linkedin-accent);
+  color: var(--color-white);
+}
+
+.linkedin-context .frame-chrome-footer {
+  background: var(--color-linkedin-dark-surface);
+  border-top: 1px solid var(--color-linkedin-dark-border);
+  color: var(--color-linkedin-dark-text-secondary);
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.linkedin-context.light-theme .frame-chrome-footer {
+  background: var(--color-linkedin-light-surface);
+  border-top-color: var(--color-linkedin-light-border);
+  color: var(--color-linkedin-light-text-secondary);
 }
 
 /* ============================================================================
@@ -939,6 +1120,99 @@
 
 .reddit-context.light-theme .reddit-comment-text {
   color: var(--color-reddit-light-text-primary);
+}
+
+/* ============================================================================
+   REDDIT FRAME CHROME ELEMENTS
+   ============================================================================ */
+
+/**
+ * Reddit frame chrome - professional UI chrome for headers, navigation, footers
+ * These elements provide Reddit-specific styling for frame chrome elements
+ */
+.reddit-context .frame-chrome {
+  background: var(--color-reddit-dark-surface);
+  border-bottom: 1px solid var(--color-reddit-dark-border);
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.reddit-context.light-theme .frame-chrome {
+  background: var(--color-reddit-light-surface);
+  border-bottom-color: var(--color-reddit-light-border);
+}
+
+.reddit-context .frame-chrome-header {
+  color: var(--color-reddit-dark-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  transition: color 0.2s ease;
+}
+
+.reddit-context.light-theme .frame-chrome-header {
+  color: var(--color-reddit-light-text-primary);
+}
+
+.reddit-context .frame-chrome-navigation {
+  gap: 8px;
+}
+
+.reddit-context .frame-chrome-navigation button,
+.reddit-context .frame-chrome-navigation .nav-item {
+  color: var(--color-reddit-dark-text-secondary);
+  background: transparent;
+  border: 1px solid var(--color-reddit-dark-border);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.reddit-context.light-theme .frame-chrome-navigation button,
+.reddit-context.light-theme .frame-chrome-navigation .nav-item {
+  color: var(--color-reddit-light-text-secondary);
+  border-color: var(--color-reddit-light-border);
+}
+
+.reddit-context .frame-chrome-navigation button:hover,
+.reddit-context .frame-chrome-navigation .nav-item:hover {
+  background: var(--color-reddit-orange);
+  border-color: var(--color-reddit-orange);
+  color: var(--color-white);
+}
+
+.reddit-context.light-theme .frame-chrome-navigation button:hover,
+.reddit-context.light-theme .frame-chrome-navigation .nav-item:hover {
+  background: var(--color-reddit-orange);
+  border-color: var(--color-reddit-orange);
+  color: var(--color-white);
+}
+
+.reddit-context .frame-chrome-navigation button.active {
+  background: var(--color-reddit-orange);
+  border-color: var(--color-reddit-orange);
+  color: var(--color-white);
+}
+
+.reddit-context.light-theme .frame-chrome-navigation button.active {
+  background: var(--color-reddit-orange);
+  border-color: var(--color-reddit-orange);
+  color: var(--color-white);
+}
+
+.reddit-context .frame-chrome-footer {
+  background: var(--color-reddit-dark-surface);
+  border-top: 1px solid var(--color-reddit-dark-border);
+  color: var(--color-reddit-dark-text-secondary);
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.reddit-context.light-theme .frame-chrome-footer {
+  background: var(--color-reddit-light-surface);
+  border-top-color: var(--color-reddit-light-border);
+  color: var(--color-reddit-light-text-secondary);
 }
 
 /* ============================================================================
@@ -2063,6 +2337,94 @@
 }
 
 /* ============================================================================
+   TIKTOK FRAME CHROME ELEMENTS
+   ============================================================================ */
+
+/**
+ * TikTok frame chrome - professional UI chrome for headers, navigation, footers
+ * These elements provide TikTok-specific styling for frame chrome elements
+ */
+.tiktok-context .frame-chrome {
+  background: var(--color-tiktok-dark-surface);
+  border-bottom: 1px solid var(--color-tiktok-dark-border);
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.tiktok-context.light-theme .frame-chrome {
+  background: var(--color-tiktok-light-surface);
+  border-bottom-color: var(--color-tiktok-light-border);
+}
+
+.tiktok-context .frame-chrome-header {
+  color: var(--color-tiktok-dark-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  transition: color 0.2s ease;
+}
+
+.tiktok-context.light-theme .frame-chrome-header {
+  color: var(--color-tiktok-light-text-primary);
+}
+
+.tiktok-context .frame-chrome-navigation {
+  gap: 8px;
+}
+
+.tiktok-context .frame-chrome-navigation button,
+.tiktok-context .frame-chrome-navigation .nav-item {
+  color: var(--color-tiktok-dark-text-secondary);
+  background: transparent;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tiktok-context.light-theme .frame-chrome-navigation button,
+.tiktok-context.light-theme .frame-chrome-navigation .nav-item {
+  color: var(--color-tiktok-light-text-secondary);
+}
+
+.tiktok-context .frame-chrome-navigation button:hover,
+.tiktok-context .frame-chrome-navigation .nav-item:hover {
+  background: var(--color-tiktok-accent);
+  color: var(--color-white);
+}
+
+.tiktok-context.light-theme .frame-chrome-navigation button:hover,
+.tiktok-context.light-theme .frame-chrome-navigation .nav-item:hover {
+  background: var(--color-tiktok-accent);
+  color: var(--color-white);
+}
+
+.tiktok-context .frame-chrome-navigation button.active {
+  background: var(--color-tiktok-accent);
+  color: var(--color-white);
+}
+
+.tiktok-context.light-theme .frame-chrome-navigation button.active {
+  background: var(--color-tiktok-accent);
+  color: var(--color-white);
+}
+
+.tiktok-context .frame-chrome-footer {
+  background: var(--color-tiktok-dark-surface);
+  border-top: 1px solid var(--color-tiktok-dark-border);
+  color: var(--color-tiktok-dark-text-secondary);
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.tiktok-context.light-theme .frame-chrome-footer {
+  background: var(--color-tiktok-light-surface);
+  border-top-color: var(--color-tiktok-light-border);
+  color: var(--color-tiktok-light-text-secondary);
+}
+
+/* ============================================================================
    TWITTER/X CONTEXT FRAME IMPLEMENTATION
    ============================================================================ */
 
@@ -2359,6 +2721,99 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+/* ============================================================================
+   TWITTER/X FRAME CHROME ELEMENTS
+   ============================================================================ */
+
+/**
+ * Twitter/X frame chrome - professional UI chrome for headers, navigation, footers
+ * These elements provide Twitter/X-specific styling for frame chrome elements
+ */
+.twitter-context .frame-chrome {
+  background: var(--color-twitter-dark-surface);
+  border-bottom: 1px solid var(--color-twitter-dark-border);
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.twitter-context.light-theme .frame-chrome {
+  background: var(--color-twitter-light-surface);
+  border-bottom-color: var(--color-twitter-light-border);
+}
+
+.twitter-context .frame-chrome-header {
+  color: var(--color-twitter-dark-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  transition: color 0.2s ease;
+}
+
+.twitter-context.light-theme .frame-chrome-header {
+  color: var(--color-twitter-light-text-primary);
+}
+
+.twitter-context .frame-chrome-navigation {
+  gap: 8px;
+}
+
+.twitter-context .frame-chrome-navigation button,
+.twitter-context .frame-chrome-navigation .nav-item {
+  color: var(--color-twitter-dark-text-secondary);
+  background: transparent;
+  border: 1px solid var(--color-twitter-dark-border);
+  padding: 8px 16px;
+  border-radius: 9999px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.twitter-context.light-theme .frame-chrome-navigation button,
+.twitter-context.light-theme .frame-chrome-navigation .nav-item {
+  color: var(--color-twitter-light-text-secondary);
+  border-color: var(--color-twitter-light-border);
+}
+
+.twitter-context .frame-chrome-navigation button:hover,
+.twitter-context .frame-chrome-navigation .nav-item:hover {
+  background: var(--color-twitter-blue);
+  border-color: var(--color-twitter-blue);
+  color: var(--color-white);
+}
+
+.twitter-context.light-theme .frame-chrome-navigation button:hover,
+.twitter-context.light-theme .frame-chrome-navigation .nav-item:hover {
+  background: var(--color-twitter-blue);
+  border-color: var(--color-twitter-blue);
+  color: var(--color-white);
+}
+
+.twitter-context .frame-chrome-navigation button.active {
+  background: var(--color-twitter-blue);
+  border-color: var(--color-twitter-blue);
+  color: var(--color-white);
+}
+
+.twitter-context.light-theme .frame-chrome-navigation button.active {
+  background: var(--color-twitter-blue);
+  border-color: var(--color-twitter-blue);
+  color: var(--color-white);
+}
+
+.twitter-context .frame-chrome-footer {
+  background: var(--color-twitter-dark-surface);
+  border-top: 1px solid var(--color-twitter-dark-border);
+  color: var(--color-twitter-dark-text-secondary);
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.twitter-context.light-theme .frame-chrome-footer {
+  background: var(--color-twitter-light-surface);
+  border-top-color: var(--color-twitter-light-border);
+  color: var(--color-twitter-light-text-secondary);
 }
 
 /* ============================================================================

@@ -77,8 +77,9 @@ export class TwitterFrame implements BasePlatformFrame {
    * Render Twitter/X post frame
    */
   render(content: FrameContentData, theme: ThemeMode = 'dark'): string {
+    const themeClass = theme === 'light' ? 'light-theme' : 'dark-theme';
     return `
-      <div class="tw-frame tw-frame-${theme}" style="${this.getFrameStyles(theme)}">
+      <div class="twitter-context ${themeClass} platform-frame">
         <div class="tw-post-card">
           <!-- Post Header -->
           <div class="tw-post-header">
@@ -127,8 +128,9 @@ export class TwitterFrame implements BasePlatformFrame {
    * Render Twitter/X chrome (frame without content)
    */
   renderChrome(theme: ThemeMode = 'dark'): string {
+    const themeClass = theme === 'light' ? 'light-theme' : 'dark-theme';
     return `
-      <div class="tw-frame tw-frame-${theme}">
+      <div class="twitter-context ${themeClass} platform-frame">
         <div class="tw-post-card">
           <div class="tw-post-header">
             <div class="tw-avatar"></div>
@@ -169,20 +171,9 @@ export class TwitterFrame implements BasePlatformFrame {
    * Get theme variables for Twitter/X
    */
   getThemeVars(theme: ThemeMode = 'dark'): Record<string, string> {
-    const isDark = theme === 'dark';
-
-    return {
-      '--tw-bg': '#000000',
-      '--tw-surface': isDark ? '#16181C' : '#F7F9F9',
-      '--tw-border': '#2F3336',
-      '--tw-text-primary': '#E7E9EA',
-      '--tw-text-secondary': '#71767B',
-      '--tw-text-muted': '#71767B',
-      '--tw-primary': '#1D9BF0',
-      '--tw-accent': '#1D9BF0',
-      '--tw-success': '#00BA7C',
-      '--tw-error': '#F4212E',
-    };
+    // Twitter now uses CSS context classes, so this returns empty
+    // The theme variables are applied via .twitter-context and theme classes
+    return {};
   }
 
   /**

@@ -78,8 +78,9 @@ export class TikTokFrame implements BasePlatformFrame {
    * Render TikTok video frame
    */
   render(content: FrameContentData, theme: ThemeMode = 'dark'): string {
+    const themeClass = theme === 'light' ? 'light-theme' : 'dark-theme';
     return `
-      <div class="tt-frame tt-frame-${theme}" style="${this.getFrameStyles(theme)}">
+      <div class="tiktok-context ${themeClass} platform-frame">
         <div class="tt-video-card">
           <!-- Video Container -->
           <div class="tt-video-container">
@@ -122,8 +123,9 @@ export class TikTokFrame implements BasePlatformFrame {
    * Render TikTok chrome (frame without content)
    */
   renderChrome(theme: ThemeMode = 'dark'): string {
+    const themeClass = theme === 'light' ? 'light-theme' : 'dark-theme';
     return `
-      <div class="tt-frame tt-frame-${theme}">
+      <div class="tiktok-context ${themeClass} platform-frame">
         <div class="tt-video-card">
           <div class="tt-video-container">
             <div class="tt-video-placeholder"></div>
@@ -161,19 +163,9 @@ export class TikTokFrame implements BasePlatformFrame {
    * Get theme variables for TikTok
    */
   getThemeVars(theme: ThemeMode = 'dark'): Record<string, string> {
-    return {
-      '--tt-bg': '#000000',
-      '--tt-surface': '#121212',
-      '--tt-border': '#2A2A2A',
-      '--tt-text-primary': '#FFFFFF',
-      '--tt-text-secondary': '#A8A8A8',
-      '--tt-text-muted': '#6A6A6A',
-      '--tt-primary': '#000000',
-      '--tt-link': '#FFFFFF',
-      '--tt-accent': '#FE2C55',
-      '--tt-success': '#00C853',
-      '--tt-error': '#FF3D00',
-    };
+    // TikTok now uses CSS context classes, so this returns empty
+    // The theme variables are applied via .tiktok-context and theme classes
+    return {};
   }
 
   /**

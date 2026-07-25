@@ -77,10 +77,10 @@ export class RedditFrame implements BasePlatformFrame {
    * Render Reddit post frame
    */
   render(content: FrameContentData, theme: ThemeMode = 'light'): string {
-    const isLight = theme === 'light';
+    const themeClass = theme === 'light' ? 'light-theme' : 'dark-theme';
 
     return `
-      <div class="rd-frame rd-frame-${theme}" style="${this.getFrameStyles(theme)}">
+      <div class="reddit-context ${themeClass} platform-frame">
         <div class="rd-post-card">
           <!-- Subreddit Header -->
           <div class="rd-subreddit-header">
@@ -145,8 +145,9 @@ export class RedditFrame implements BasePlatformFrame {
    * Render Reddit chrome (frame without content)
    */
   renderChrome(theme: ThemeMode = 'light'): string {
+    const themeClass = theme === 'light' ? 'light-theme' : 'dark-theme';
     return `
-      <div class="rd-frame rd-frame-${theme}">
+      <div class="reddit-context ${themeClass} platform-frame">
         <div class="rd-post-card">
           <div class="rd-subreddit-header">
             <div class="rd-subreddit-icon">r/</div>
@@ -188,21 +189,9 @@ export class RedditFrame implements BasePlatformFrame {
    * Get theme variables for Reddit
    */
   getThemeVars(theme: ThemeMode = 'light'): Record<string, string> {
-    const isLight = theme === 'light';
-
-    return {
-      '--rd-bg': isLight ? '#FFFFFF' : '#0B1416',
-      '--rd-surface': isLight ? '#DAE0E6' : '#1A1A1B',
-      '--rd-border': isLight ? '#CCCCCC' : '#343536',
-      '--rd-text-primary': isLight ? '#1C1C1C' : '#D7DADC',
-      '--rd-text-secondary': isLight ? '#7C7C7C' : '#818384',
-      '--rd-text-muted': isLight ? '#878A8C' : '#7C7C7C',
-      '--rd-primary': '#FF4500',
-      '--rd-link': '#0079D3',
-      '--rd-accent': '#FF4500',
-      '--rd-success': '#24A0ED',
-      '--rd-error': '#CC3700',
-    };
+    // Reddit now uses CSS context classes, so this returns empty
+    // The theme variables are applied via .reddit-context and theme classes
+    return {};
   }
 
   /**

@@ -77,10 +77,10 @@ export class InstagramFrame implements BasePlatformFrame {
    * Render Instagram post frame
    */
   render(content: FrameContentData, theme: ThemeMode = 'light'): string {
-    const isLight = theme === 'light';
+    const themeClass = theme === 'light' ? 'light-theme' : 'dark-theme';
 
     return `
-      <div class="ig-frame ig-frame-${theme}" style="${this.getFrameStyles(theme)}">
+      <div class="instagram-context ${themeClass} platform-frame">
         <div class="ig-post-card">
           <!-- Post Header -->
           <div class="ig-post-header">
@@ -119,8 +119,9 @@ export class InstagramFrame implements BasePlatformFrame {
    * Render Instagram chrome (frame without content)
    */
   renderChrome(theme: ThemeMode = 'light'): string {
+    const themeClass = theme === 'light' ? 'light-theme' : 'dark-theme';
     return `
-      <div class="ig-frame ig-frame-${theme}">
+      <div class="instagram-context ${themeClass} platform-frame">
         <div class="ig-post-card">
           <div class="ig-post-header">
             <div class="ig-avatar"></div>
@@ -154,21 +155,9 @@ export class InstagramFrame implements BasePlatformFrame {
    * Get theme variables for Instagram
    */
   getThemeVars(theme: ThemeMode = 'light'): Record<string, string> {
-    const isLight = theme === 'light';
-
-    return {
-      '--ig-bg': isLight ? '#FFFFFF' : '#000000',
-      '--ig-surface': isLight ? '#FAFAFA' : '#121212',
-      '--ig-border': isLight ? '#DBDBDB' : '#262626',
-      '--ig-text-primary': isLight ? '#262626' : '#F5F5F5',
-      '--ig-text-secondary': isLight ? '#8E8E8E' : '#A8A8A8',
-      '--ig-text-muted': isLight ? '#C7C7C7' : '#8E8E8E',
-      '--ig-primary': '#E4405F',
-      '--ig-link': isLight ? '#00376B' : '#C7D2E4',
-      '--ig-accent': '#E4405F',
-      '--ig-success': '#0095F6',
-      '--ig-error': '#ED4956',
-    };
+    // Instagram now uses CSS context classes, so this returns empty
+    // The theme variables are applied via .instagram-context and theme classes
+    return {};
   }
 
   /**

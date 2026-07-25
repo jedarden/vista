@@ -2178,9 +2178,9 @@ function buildCard(pid, scoreData, data, animDelay, groupId) {
 
   if (cardContextState[pid].context) {
     body.innerHTML = renderPlatformWithContext(pid, data.meta, data.imageProbe, data.finalUrl, cardContextState[pid].theme, data.dominantColor);
-    // Subscribe frame to theme changes for first batch of platforms
-    // First batch: twitter, facebook, linkedin (most commonly used)
-    if (['twitter', 'facebook', 'linkedin'].includes(pid)) {
+    // Subscribe frame to theme changes for all 7 platform frames
+    // All platforms: twitter, facebook, linkedin, reddit, youtube, instagram, tiktok
+    if (['twitter', 'facebook', 'linkedin', 'reddit', 'youtube', 'instagram', 'tiktok'].includes(pid)) {
       subscribeFrameToTheme(pid);
     }
   } else {
@@ -2283,8 +2283,8 @@ function toggleCardContext(pid, data) {
   if (body) {
     if (cardContextState[pid].context) {
       body.innerHTML = renderPlatformWithContext(pid, data.meta, data.imageProbe, data.finalUrl, cardContextState[pid].theme, data.dominantColor);
-      // Subscribe frame to theme changes for first batch of platforms
-      if (['twitter', 'facebook', 'linkedin'].includes(pid)) {
+      // Subscribe frame to theme changes for all 7 platform frames
+      if (['twitter', 'facebook', 'linkedin', 'reddit', 'youtube', 'instagram', 'tiktok'].includes(pid)) {
         subscribeFrameToTheme(pid);
       }
     } else {
@@ -2317,8 +2317,8 @@ function toggleCardTheme(pid, data) {
     const body = document.getElementById(`card-body-${pid}`);
     if (body) {
       body.innerHTML = renderPlatformWithContext(pid, data.meta, data.imageProbe, data.finalUrl, cardContextState[pid].theme, data.dominantColor);
-      // Subscribe frame to theme changes for first batch of platforms
-      if (['twitter', 'facebook', 'linkedin'].includes(pid)) {
+      // Subscribe frame to theme changes for all 7 platform frames
+      if (['twitter', 'facebook', 'linkedin', 'reddit', 'youtube', 'instagram', 'tiktok'].includes(pid)) {
         subscribeFrameToTheme(pid);
       }
     } else {

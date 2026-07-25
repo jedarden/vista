@@ -3,6 +3,9 @@
 ## Status
 **BLOCKED** - Cannot complete without Cloudflare API credentials.
 
+**Last verified:** 2026-07-24 21:39 UTC
+**CNAME status:** Still does not exist (`host -t CNAME vista.jedarden.com` returns "has no CNAME record")
+
 ## Summary
 Task requires creating a CNAME record in Cloudflare DNS to point `vista.jedarden.com` to the apexalgo-iad ingress.
 

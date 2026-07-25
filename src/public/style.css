@@ -1517,7 +1517,7 @@ body.has-results { padding-bottom: 48px; }
 
   /* Text Colors - hierarchy for visual emphasis */
   --x-text-primary: #e7e9ea;     /* Author names, post content, titles */
-  --x-text-secondary: #71767b;   /* Handles, timestamps, counts, domains */
+  --x-text-secondary: #8899a6;   /* Handles, timestamps, counts, domains - WCAG AA compliant */
 
   /* Accent Colors - interactive elements and brand colors */
   --x-accent-blue: #1d9bf0;      /* Twitter blue - verified badge, links, actions */
@@ -1526,11 +1526,11 @@ body.has-results { padding-bottom: 48px; }
   /* Engagement Action Colors */
   --x-like-color: #f91880;       /* Like button - Twitter's pink/red */
   --x-retweet-color: #00ba7c;    /* Retweet button - Twitter's green */
-  --x-reply-color: #71767b;      /* Reply button - neutral gray */
-  --x-view-color: #71767b;       /* View count - neutral gray */
+  --x-reply-color: #8899a6;      /* Reply button - WCAG AA compliant */
+  --x-view-color: #8899a6;       /* View count - WCAG AA compliant */
 
   /* Avatar System Variables */
-  --x-avatar-bg: #71767b;        /* Avatar placeholder background - neutral gray */
+  --x-avatar-bg: #8899a6;        /* Avatar placeholder background - WCAG AA compliant */
   --x-avatar-border: #2f3336;     /* Avatar border - subtle dark border */
 
   /* Placeholder Elements */
@@ -5521,8 +5521,8 @@ html[data-theme='light'] .pin-image-placeholder {
   --frame-surface: #16181c;
   --frame-border: #2f3336;
   --frame-text-primary: #e7e9ea;
-  --frame-text-secondary: #71767b;
-  --frame-text-muted: #71767b;
+  --frame-text-secondary: #8899a6; /* WCAG AA compliant */
+  --frame-text-muted: #8899a6; /* WCAG AA compliant */
   --frame-accent: #1d9bf0;
   --frame-accent-bg: #1d9bf0;
   --frame-link-color: #1d9bf0;

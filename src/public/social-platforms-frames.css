@@ -58,12 +58,12 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #1877f2 0%, #42a5f5 100%);
+  background: var(--facebook-gradient-hover, linear-gradient(135deg, #1877f2 0%, #42a5f5 100%));
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: var(--color-text-light-primary, white);
   font-weight: 600;
   font-size: 16px;
 }
@@ -153,11 +153,11 @@
 .facebook-context .fb-context-placeholder {
   width: 100%;
   height: 200px;
-  background: linear-gradient(135deg, #2d88ff 0%, #1877f2 100%);
+  background: var(--facebook-gradient, linear-gradient(135deg, #2d88ff 0%, #1877f2 100%));
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: var(--color-text-light-primary, white);
   font-size: 48px;
   transition: background 0.2s ease;
 }
@@ -242,7 +242,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: var(--color-text-light-primary, white);
   font-weight: 600;
   font-size: 14px;
 }
@@ -295,7 +295,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: var(--color-text-light-primary, white);
   font-size: 64px;
   transition: background 0.2s ease;
 }
@@ -400,12 +400,12 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #0a66c2 0%, #004182 100%);
+  background: var(--linkedin-gradient, linear-gradient(135deg, #0a66c2 0%, #004182 100%));
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: var(--color-text-light-primary, white);
   font-weight: 600;
   font-size: 18px;
 }
@@ -462,11 +462,11 @@
 .linkedin-context .li-context-placeholder {
   width: 100%;
   aspect-ratio: 1.91/1;
-  background: linear-gradient(135deg, #0a66c2 0%, #004182 100%);
+  background: var(--linkedin-gradient, linear-gradient(135deg, #0a66c2 0%, #004182 100%));
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: var(--color-text-light-primary, white);
   font-size: 48px;
   transition: background 0.2s ease;
 }

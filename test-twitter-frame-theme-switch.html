@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twitter/X Frame Theme Switch Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            transition: background-color 0.3s ease;
+        }
+
+        html[data-theme='dark'] body {
+            background-color: #1a1a1e;
+            color: #e4e4e7;
+        }
+
+        html[data-theme='light'] body {
+            background-color: #f8f9fa;
+            color: #1f2937;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            background: #1d9bf0;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            z-index: 1000;
+            transition: transform 0.1s ease;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.05);
+        }
+
+        .theme-toggle:active {
+            transform: scale(0.95);
+        }
+
+        .test-section {
+            margin: 20px 0;
+            padding: 24px;
+            border-radius: 12px;
+            transition: background-color 0.3s ease;
+        }
+
+        html[data-theme='dark'] .test-section {
+            background-color: #25252a;
+            border: 1px solid #3a3a3f;
+        }
+
+        html[data-theme='light'] .test-section {
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+        }
+
+        .test-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        /* Twitter Context Frame Styles */
+        .twitter-context {
+            max-width: 500px;
+            background: var(--x-bg-primary);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--x-border-color);
+        }
+
+        .tw-post-header {
+            display: flex;
+            gap: 12px;
+            padding: 12px;
+            align-items: flex-start;
+        }
+
+        .tw-avatar {
+            width: 40px;
+            height: 40px;
+            background: var(--x-avatar-bg);
+            border-radius: 50%;
+            flex-shrink: 0;
+            transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .tw-post-meta {
+            display: flex;
+            flex-direction: row;
+            flex: 1;
+            align-items: center;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .tw-author-name {
+            font-weight: 700;
+            color: var(--x-text-primary);
+            font-size: 15px;
+            transition: color 0.3s ease;
+        }
+
+        .tw-author-handle {
+            color: var(--x-text-secondary);
+            font-size: 15px;
+            transition: color 0.3s ease;
+        }
+
+        .tw-post-time {
+            color: var(--x-text-secondary);
+            font-size: 15px;
+            transition: color 0.3s ease;
+        }
+
+        .tw-verified {
+            color: var(--x-accent-blue);
+            font-size: 14px;
+            font-weight: bold;
+            transition: color 0.3s ease;
+            margin-left: auto;
+        }
+
+        .tw-post-content {
+            padding: 4px 12px 12px 52px;
+            color: var(--x-text-primary);
+            font-size: 15px;
+            line-height: 1.5;
+            transition: color 0.3s ease;
+        }
+
+        .tw-link-card {
+            margin: 8px 12px 8px 52px;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid var(--x-border-color);
+            background: var(--x-bg-secondary);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .tw-context-image {
+            width: 100%;
+            aspect-ratio: 1.91/1;
+            background: var(--x-placeholder-bg);
+            transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--x-text-secondary);
+            font-size: 14px;
+        }
+
+        .tw-context-meta {
+            padding: 12px 16px;
+        }
+
+        .tw-context-title {
+            font-weight: 700;
+            color: var(--x-text-primary);
+            font-size: 15px;
+            margin-bottom: 4px;
+            transition: color 0.3s ease;
+        }
+
+        .tw-context-domain {
+            color: var(--x-text-secondary);
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+
+        .tw-post-actions {
+            display: flex;
+            gap: 16px;
+            padding: 12px 12px 12px 52px;
+            color: var(--x-text-secondary);
+            font-size: 14px;
+            align-items: center;
+            transition: color 0.3s ease;
+        }
+
+        .tw-action {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+        }
+
+        /* Dark Theme Variables */
+        .twitter-context.dark-theme {
+            --x-bg-primary: #000000;
+            --x-bg-secondary: #16181c;
+            --x-bg-tertiary: #2f3336;
+            --x-border-color: #2f3336;
+            --x-text-primary: #e7e9ea;
+            --x-text-secondary: #71767b;
+            --x-accent-blue: #1d9bf0;
+            --x-avatar-bg: #536471;
+            --x-placeholder-bg: #2f3336;
+        }
+
+        /* Light Theme Variables */
+        .twitter-context.light-theme {
+            --x-bg-primary: #ffffff;
+            --x-bg-secondary: #f7f9f9;
+            --x-bg-tertiary: #eff3f4;
+            --x-border-color: #eff3f4;
+            --x-text-primary: #0f1419;
+            --x-text-secondary: #536471;
+            --x-accent-blue: #1d9bf0;
+            --x-avatar-bg: #e7e9ea;
+            --x-placeholder-bg: #eff3f4;
+        }
+
+        .verification-panel {
+            margin-top: 24px;
+            padding: 20px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        html[data-theme='dark'] .verification-panel {
+            background-color: #0d0d10;
+            border: 1px solid #2a2a2f;
+        }
+
+        html[data-theme='light'] .verification-panel {
+            background-color: #f0f2f5;
+            border: 1px solid #d1d5db;
+        }
+
+        .check-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            font-size: 14px;
+        }
+
+        .check-icon {
+            margin-right: 12px;
+            font-size: 18px;
+        }
+
+        .status-panel {
+            margin-top: 20px;
+            padding: 16px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 13px;
+        }
+
+        .status-panel.dark {
+            background-color: #0d0d10;
+            color: #e7e9ea;
+            border: 1px solid #2a2a2f;
+        }
+
+        .status-panel.light {
+            background-color: #ffffff;
+            color: #0f1419;
+            border: 1px solid #eff3f4;
+        }
+
+        .element-demo {
+            display: inline-block;
+            margin: 4px 8px 4px 0;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .color-swatch {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            margin-right: 6px;
+            vertical-align: middle;
+            border: 1px solid rgba(128,128,128,0.3);
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()">🔄 Toggle Theme</button>
+
+    <div class="test-section">
+        <div class="test-title">Twitter/X Frame Theme Switch Test</div>
+
+        <div class="status-panel" id="statusPanel">
+            <div><strong>Current Theme:</strong> <span id="currentTheme">dark</span></div>
+            <div><strong>Theme Switches:</strong> <span id="switchCount">0</span></div>
+            <div><strong>Last Switch:</strong> <span id="lastSwitch">-</span></div>
+        </div>
+
+        <div class="context-frame twitter-context dark-theme" id="twitterFrame">
+            <div class="tw-post-header">
+                <div class="tw-avatar">AJ</div>
+                <div class="tw-post-meta">
+                    <span class="tw-author-name">Alex Johnson</span>
+                    <span class="tw-author-handle">@alexj</span>
+                    <span class="tw-post-time">· 2h</span>
+                </div>
+                <span class="tw-verified">✓</span>
+            </div>
+            <div class="tw-post-content">Check out this amazing article! 📰</div>
+            <div class="tw-link-card">
+                <div class="tw-context-image">
+                    <span>Image Preview</span>
+                </div>
+                <div class="tw-context-meta">
+                    <div class="tw-context-title">Understanding CSS Custom Properties</div>
+                    <div class="tw-context-domain">css-tricks.com</div>
+                </div>
+            </div>
+            <div class="tw-post-actions">
+                <span class="tw-action">💬 12</span>
+                <span class="tw-action">🔁 34</span>
+                <span class="tw-action">❤️ 128</span>
+                <span class="tw-action">📤 15</span>
+            </div>
+        </div>
+
+        <div class="verification-panel">
+            <div style="font-weight: 600; margin-bottom: 12px;">Live Verification Checklist:</div>
+            <div class="check-item">
+                <span class="check-icon">✓</span>
+                <span>All text elements update color on theme switch</span>
+            </div>
+            <div class="check-item">
+                <span class="check-icon">✓</span>
+                <span>Icons (verified badge, action icons) update correctly</span>
+            </div>
+            <div class="check-item">
+                <span class="check-icon">✓</span>
+                <span>Background colors transition smoothly (dark ↔ light)</span>
+            </div>
+            <div class="check-item">
+                <span class="check-icon">✓</span>
+                <span>Borders and separators visible in both themes</span>
+            </div>
+            <div class="check-item">
+                <span class="check-icon">✓</span>
+                <span>Avatar background updates appropriately</span>
+            </div>
+            <div class="check-item">
+                <span class="check-icon">✓</span>
+                <span>No visual glitches during transition</span>
+            </div>
+            <div class="check-item">
+                <span class="check-icon">✓</span>
+                <span>Link preview card elements update correctly</span>
+            </div>
+            <div class="check-item">
+                <span class="check-icon">✓</span>
+                <span>Transitions are smooth (0.3s ease)</span>
+            </div>
+        </div>
+
+        <div class="status-panel" id="colorDemo">
+            <div><strong>Current Theme Colors:</strong></div>
+            <div style="margin-top: 8px;">
+                <span class="element-demo" id="primaryTextDemo">Primary Text</span>
+                <span class="element-demo" id="secondaryTextDemo">Secondary Text</span>
+                <span class="element-demo" id="accentDemo">Accent</span>
+                <span class="element-demo" id="bgDemo">Background</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTheme = 'dark';
+        let switchCount = 0;
+
+        function toggleTheme() {
+            currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            switchCount++;
+            const now = new Date().toLocaleTimeString();
+
+            document.documentElement.setAttribute('data-theme', currentTheme);
+
+            // Update the Twitter frame theme class
+            const frame = document.getElementById('twitterFrame');
+            frame.classList.remove('dark-theme', 'light-theme');
+            frame.classList.add(currentTheme + '-theme');
+
+            // Update status panel
+            document.getElementById('currentTheme').textContent = currentTheme;
+            document.getElementById('switchCount').textContent = switchCount;
+            document.getElementById('lastSwitch').textContent = now;
+
+            const statusPanel = document.getElementById('statusPanel');
+            statusPanel.classList.remove('dark', 'light');
+            statusPanel.classList.add(currentTheme);
+
+            // Update color demo
+            updateColorDemo();
+
+            // Log for verification
+            console.log(`Theme switched to: ${currentTheme}`);
+            console.log(`Total switches: ${switchCount}`);
+        }
+
+        function updateColorDemo() {
+            const frame = document.getElementById('twitterFrame');
+            const styles = getComputedStyle(frame);
+
+            const primaryText = styles.getPropertyValue('--x-text-primary').trim();
+            const secondaryText = styles.getPropertyValue('--x-text-secondary').trim();
+            const accent = styles.getPropertyValue('--x-accent-blue').trim();
+            const bg = styles.getPropertyValue('--x-bg-primary').trim();
+
+            document.getElementById('primaryTextDemo').style.color = primaryText;
+            document.getElementById('secondaryTextDemo').style.color = secondaryText;
+            document.getElementById('accentDemo').style.color = accent;
+            document.getElementById('bgDemo').style.backgroundColor = bg;
+            document.getElementById('bgDemo').style.color = primaryText;
+        }
+
+        // Initialize
+        console.log('Twitter/X Frame Theme Switch Test loaded');
+        console.log('Initial theme:', currentTheme);
+        updateColorDemo();
+
+        // Verify all CSS variables are defined
+        function verifyThemeVariables() {
+            const frame = document.getElementById('twitterFrame');
+            const styles = getComputedStyle(frame);
+
+            const requiredVars = [
+                '--x-bg-primary',
+                '--x-bg-secondary',
+                '--x-text-primary',
+                '--x-text-secondary',
+                '--x-accent-blue',
+                '--x-border-color',
+                '--x-avatar-bg'
+            ];
+
+            const missing = requiredVars.filter(varName => {
+                const value = styles.getPropertyValue(varName).trim();
+                return !value || value === '';
+            });
+
+            if (missing.length > 0) {
+                console.warn('Missing CSS variables:', missing);
+            } else {
+                console.log('✓ All required CSS variables are defined');
+            }
+
+            return missing.length === 0;
+        }
+
+        // Run verification
+        setTimeout(() => {
+            verifyThemeVariables();
+            console.log('✓ Theme switch verification ready');
+        }, 100);
+    </script>
+</body>
+</html>

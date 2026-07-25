@@ -1920,6 +1920,18 @@ function buildTextOnlyCard(pid, scoreData, data, animDelay, groupId) {
     card.appendChild(footer);
   }
 
+  // Event listeners for toggles
+  const screenshotBtn = header.querySelector('.card-screenshot-btn');
+  screenshotBtn.addEventListener('click', () => downloadScreenshot(pid, data));
+
+  const contextToggle = header.querySelector('.card-context-toggle');
+  contextToggle.addEventListener('click', () => toggleCardContext(pid, data));
+
+  const themeToggle = header.querySelector('.card-theme-toggle');
+  if (themeToggle) {
+    themeToggle.addEventListener('click', () => toggleCardTheme(pid, data));
+  }
+
   return card;
 }
 

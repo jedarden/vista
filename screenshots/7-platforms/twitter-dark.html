@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>X (Twitter) - Dark Theme Screenshot Test</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: #1a1a1a;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .test-header {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #e0e0e0;
+      padding: 10px;
+    }
+
+    .test-header h1 {
+      font-size: 18px;
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+
+    .test-header p {
+      font-size: 12px;
+      opacity: 0.7;
+    }
+
+    .platform-frame-container {
+      width: 100%;
+      max-width: 600px;
+      background: #2a2a2a;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .test-footer {
+      margin-top: 20px;
+      text-align: center;
+      color: #888;
+      font-size: 11px;
+    }
+  </style>
+</head>
+<body class="dark-theme">
+  <div class="test-header">
+    <h1>X (Twitter) - Dark Theme</h1>
+    <p>Platform: X (Twitter) (social) | Theme Support: Yes</p>
+  </div>
+
+  <div class="platform-frame-container" id="frame-container">
+    <!-- Frame will be rendered here by renderPlatformWithContext -->
+  </div>
+
+  <div class="test-footer">
+    Vista Platform Screenshot Test Infrastructure | Bead bf-5sbzv
+  </div>
+
+  <script>
+    // Load platform frames module
+  </script>
+  <script src="../src/public/app.js"></script>
+  <script>
+    // Sample content matching TEST_CONTENT
+    const sampleContent = {"meta":{"og":{"title":"Platform Screenshot Test - Comprehensive Frame Verification","description":"This is a detailed description used to test how different platform frames handle content rendering with both light and dark modes.","image":"https://picsum.photos/800/600","site_name":"VistaPlatformTest"},"title":"Platform Screenshot Test - Comprehensive Frame Verification","description":"This is a detailed description used to test how different platform frames handle content rendering with both light and dark modes.","themeColor":"#5865f2"},"imageProbe":{"dominantColor":"#667eea"},"baseUrl":"https://example.com/platform-test-article"};
+
+    // Render platform frame with context
+    const platformId = 'twitter';
+    const theme = 'dark';
+    const container = document.getElementById('frame-container');
+
+    try {
+      // Call renderPlatformWithContext wrapper function
+      const html = renderPlatformWithContext(
+        platformId,
+        sampleContent.meta,
+        sampleContent.imageProbe,
+        sampleContent.baseUrl,
+        theme,
+        sampleContent.imageProbe.dominantColor
+      );
+
+      if (html) {
+        container.innerHTML = html;
+        console.log('Frame rendered successfully for twitter (dark theme)');
+      } else {
+        container.innerHTML = '<div style="padding: 20px; color: red;">Error: renderPlatformWithContext returned empty HTML</div>';
+        console.error('renderPlatformWithContext returned empty HTML');
+      }
+    } catch (error) {
+      container.innerHTML = '<div style="padding: 20px; color: red;">Error rendering frame: ' + error.message + '</div>';
+      console.error('Frame rendering error:', error);
+    }
+  </script>
+</body>
+</html>

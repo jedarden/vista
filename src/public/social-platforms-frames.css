@@ -1543,6 +1543,94 @@
 }
 
 /* ============================================================================
+   YOUTUBE FRAME CHROME ELEMENTS
+   ============================================================================ */
+
+/**
+ * YouTube frame chrome - top-level container styling for headers, navigation, footers
+ * These elements provide the YouTube-specific UI chrome that surrounds content
+ */
+.youtube-context .frame-chrome {
+  background: var(--color-youtube-dark-surface);
+  border-bottom: 1px solid var(--color-youtube-dark-border);
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.youtube-context.light-theme .frame-chrome {
+  background: var(--color-youtube-light-surface);
+  border-bottom-color: var(--color-youtube-light-border);
+}
+
+.youtube-context .frame-chrome-header {
+  color: var(--color-white);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: color 0.2s ease;
+}
+
+.youtube-context.light-theme .frame-chrome-header {
+  color: var(--color-youtube-light-text-primary);
+}
+
+.youtube-context .frame-chrome-navigation {
+  gap: 8px;
+}
+
+.youtube-context .frame-chrome-navigation button,
+.youtube-context .frame-chrome-navigation .nav-item {
+  color: var(--color-youtube-dark-text-secondary);
+  background: transparent;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 18px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.youtube-context.light-theme .frame-chrome-navigation button,
+.youtube-context.light-theme .frame-chrome-navigation .nav-item {
+  color: var(--color-youtube-light-text-secondary);
+}
+
+.youtube-context .frame-chrome-navigation button:hover,
+.youtube-context .frame-chrome-navigation .nav-item:hover {
+  background: var(--color-youtube-dark-border);
+  color: var(--color-white);
+}
+
+.youtube-context.light-theme .frame-chrome-navigation button:hover,
+.youtube-context.light-theme .frame-chrome-navigation .nav-item:hover {
+  background: var(--color-youtube-light-border);
+  color: var(--color-youtube-light-text-primary);
+}
+
+.youtube-context .frame-chrome-navigation button.active {
+  background: var(--color-youtube-red);
+  color: var(--color-white);
+}
+
+.youtube-context.light-theme .frame-chrome-navigation button.active {
+  background: var(--color-youtube-red-dark);
+  color: var(--color-white);
+}
+
+.youtube-context .frame-chrome-footer {
+  background: var(--color-youtube-dark-surface);
+  border-top: 1px solid var(--color-youtube-dark-border);
+  color: var(--color-youtube-dark-text-secondary);
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.youtube-context.light-theme .frame-chrome-footer {
+  background: var(--color-youtube-light-surface);
+  border-top-color: var(--color-youtube-light-border);
+  color: var(--color-youtube-light-text-secondary);
+}
+
+/* ============================================================================
    TIKTOK CONTEXT FRAME IMPLEMENTATION
    ============================================================================ */
 

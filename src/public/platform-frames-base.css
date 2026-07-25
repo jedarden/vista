@@ -759,8 +759,29 @@
   --frame-border: var(--color-linkedin-dark-border);
   --frame-text-primary: var(--color-linkedin-dark-text-primary);
   --frame-text-secondary: var(--color-linkedin-dark-text-secondary);
+  --frame-text-muted: var(--color-linkedin-dark-text-muted);
   --frame-accent: var(--color-linkedin-accent);
   --frame-link-color: var(--color-linkedin-accent);
+  --frame-divider: var(--color-linkedin-dark-border);
+  --frame-input-bg: var(--color-linkedin-dark-surface);
+  --frame-overlay: var(--color-overlay-dark);
+  --linkedin-hover-bg: var(--color-linkedin-hover-bg);
+}
+
+.linkedin-context.light-theme,
+.linkedin-context[data-theme='light'] {
+  --frame-bg: var(--color-linkedin-light-bg);
+  --frame-surface: var(--color-linkedin-light-surface);
+  --frame-border: var(--color-linkedin-light-border);
+  --frame-text-primary: var(--color-linkedin-light-text-primary);
+  --frame-text-secondary: var(--color-linkedin-light-text-secondary);
+  --frame-text-muted: var(--color-linkedin-light-text-muted);
+  --frame-accent: var(--color-linkedin-accent);
+  --frame-link-color: var(--color-linkedin-accent);
+  --frame-divider: var(--color-linkedin-light-border);
+  --frame-input-bg: var(--color-linkedin-light-bg);
+  --frame-overlay: var(--color-overlay-light);
+  --linkedin-hover-bg: var(--color-linkedin-light-hover-bg);
 }
 
 /* Messaging Platforms */

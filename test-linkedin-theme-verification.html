@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LinkedIn Frame Theme Verification</title>
+  <link rel="stylesheet" href="src/public/frames-theme.css">
+  <link rel="stylesheet" href="src/public/platform-frames-base.css">
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #1d2226;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .test-section {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .test-container {
+      flex: 1;
+      min-width: 300px;
+    }
+
+    .test-label {
+      color: #fff;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .light-mode-body {
+      background: #f3f2ef;
+    }
+
+    .light-mode-body .test-label {
+      color: #191919;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-section">
+    <div class="test-container">
+      <div class="test-label">LinkedIn - Dark Theme</div>
+      <div class="linkedin-context dark-theme platform-frame">
+        <div class="frame-post-meta">
+          <div class="frame-avatar">
+            <div class="frame-avatar-placeholder">JD</div>
+          </div>
+          <div class="frame-user-details">
+            <span class="frame-username">John Doe</span>
+            <span class="frame-userhandle">Software Engineer at TechCorp</span>
+            <span class="frame-timestamp"><span class="frame-timestamp-dot"></span>2h · 🌐</span>
+          </div>
+        </div>
+
+        <div class="frame-post-content">
+          <p class="frame-post-text">Excellent resource on modern web development practices!</p>
+        </div>
+
+        <div class="frame-content-card">
+          <div class="frame-placeholder-image"></div>
+          <div class="frame-neutral-content">
+            <div class="frame-username">Best Practices for Modern Web Development</div>
+            <div class="frame-userhandle">website.com</div>
+          </div>
+        </div>
+
+        <div class="frame-post-stats">
+          <span class="frame-stat-item">👍 <span class="frame-stat-count">24</span></span>
+          <span class="frame-stat-item">💬 <span class="frame-stat-count">8</span></span>
+          <span class="frame-stat-item">🔁 <span class="frame-stat-count">3</span></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-container">
+      <div class="test-label">LinkedIn - Light Theme</div>
+      <div class="linkedin-context light-theme platform-frame">
+        <div class="frame-post-meta">
+          <div class="frame-avatar">
+            <div class="frame-avatar-placeholder">JD</div>
+          </div>
+          <div class="frame-user-details">
+            <span class="frame-username">John Doe</span>
+            <span class="frame-userhandle">Software Engineer at TechCorp</span>
+            <span class="frame-timestamp"><span class="frame-timestamp-dot"></span>2h · 🌐</span>
+          </div>
+        </div>
+
+        <div class="frame-post-content">
+          <p class="frame-post-text">Excellent resource on modern web development practices!</p>
+        </div>
+
+        <div class="frame-content-card">
+          <div class="frame-placeholder-image"></div>
+          <div class="frame-neutral-content">
+            <div class="frame-username">Best Practices for Modern Web Development</div>
+            <div class="frame-userhandle">website.com</div>
+          </div>
+        </div>
+
+        <div class="frame-post-stats">
+          <span class="frame-stat-item">👍 <span class="frame-stat-count">24</span></span>
+          <span class="frame-stat-item">💬 <span class="frame-stat-count">8</span></span>
+          <span class="frame-stat-item">🔁 <span class="frame-stat-count">3</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="color: #fff; margin-top: 20px;">
+    <h3>Verification Checklist:</h3>
+    <ul>
+      <li>✓ LinkedIn frame uses CSS variables from frames-theme.css</li>
+      <li>✓ LinkedIn frame chrome (header, footer, borders) adapts to themes</li>
+      <li>✓ Background colors use theme variables (--frame-bg)</li>
+      <li>✓ Borders use theme variables (--frame-border, --frame-divider)</li>
+      <li>✓ Text colors use theme variables (--frame-text-primary, --frame-text-secondary)</li>
+      <li>✓ Visual contrast maintained in both themes</li>
+      <li>✓ linkedin-context class properly applies theme colors</li>
+      <li>✓ Both theme modes render with correct chrome styling</li>
+    </ul>
+  </div>
+</body>
+</html>

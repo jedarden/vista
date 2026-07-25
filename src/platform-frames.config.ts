@@ -142,9 +142,33 @@ export const PLATFORM_FRAMES_CONFIG: PlatformFramesConfig = {
     hasThemeSupport: true,
     aspectRatio: '1.91:1',
     structure: FRAME_TYPE_REQUIREMENTS['social-feed'],
+    chrome: `<div class="tw-post-header">
+        <div class="tw-avatar"></div>
+        <div class="tw-post-meta">
+          <span class="tw-author-name">{{author}}</span>
+          <span class="tw-verified">✓</span>
+          <span class="tw-author-handle">@{{handle}}</span>
+          <span class="tw-post-time">· {{timeAgo}}</span>
+        </div>
+      </div>
+      <div class="tw-post-content">{{userMessage}}</div>
+      <div class="tw-link-card">
+        <div class="tw-context-placeholder"></div>
+        <div class="tw-context-meta">
+          <div class="tw-context-title">{{title}}</div>
+          <div class="tw-context-domain">{{domain}}</div>
+        </div>
+      </div>
+      <div class="tw-post-actions">
+        <div class="tw-post-action-item"><span class="tw-action-icon">💬</span> <span class="tw-action-count">{{replyCount}}</span></div>
+        <div class="tw-post-action-item"><span class="tw-action-icon">🔁</span> <span class="tw-action-count">{{retweetCount}}</span></div>
+        <div class="tw-post-action-item"><span class="tw-action-icon">❤️</span> <span class="tw-action-count">{{likeCount}}</span></div>
+        <div class="tw-post-action-item"><span class="tw-action-icon">👁️</span> <span class="tw-action-count">{{viewCount}}</span></div>
+      </div>`,
+    neutralContent: `Check this out!`,
     placeholderFrame: {
-      isStub: true,
-      implementationNotes: 'Tweet layout with avatar, handle, timestamp, link preview card',
+      isStub: false,
+      implementationNotes: 'Complete with realistic chrome - avatar, name, handle, verified badge, timestamp, content, link preview card, reply/retweet/like actions',
     },
   },
 

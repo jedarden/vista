@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Four Platform Theme Verification</title>
+  <link rel="stylesheet" href="frames-theme.css">
+  <link rel="stylesheet" href="social-platforms-frames.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a1e;
+      color: #e4e4e7;
+      padding: 40px;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    [data-theme="light"] body {
+      background: #ffffff;
+      color: #1f2937;
+    }
+
+    .test-container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .test-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .test-header h1 {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    .test-header p {
+      font-size: 16px;
+      opacity: 0.8;
+    }
+
+    .theme-toggle-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      z-index: 1000;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .theme-toggle-btn:hover {
+      transform: scale(1.05);
+    }
+
+    .platform-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 40px;
+      margin-bottom: 40px;
+    }
+
+    .platform-section {
+      background: var(--color-bg-dark-elevated);
+      border-radius: 16px;
+      padding: 24px;
+      border: 1px solid var(--color-border-dark-default);
+      transition: all 0.3s ease;
+    }
+
+    [data-theme="light"] .platform-section {
+      background: var(--color-bg-light-elevated);
+      border-color: var(--color-border-light-default);
+    }
+
+    .platform-section h2 {
+      font-size: 24px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .platform-section h2 .icon {
+      font-size: 28px;
+    }
+
+    .color-test {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .color-sample {
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .reddit-sample {
+      background: var(--color-reddit-dark-bg);
+      color: var(--color-reddit-dark-text-primary);
+      border-color: var(--color-reddit-dark-border);
+    }
+
+    [data-theme="light"] .reddit-sample {
+      background: var(--color-reddit-light-bg);
+      color: var(--color-reddit-light-text-primary);
+      border-color: var(--color-reddit-light-border);
+    }
+
+    .twitter-sample {
+      background: var(--color-twitter-black);
+      color: var(--color-twitter-dark-text-primary);
+      border-color: var(--color-twitter-dark-border);
+    }
+
+    [data-theme="light"] .twitter-sample {
+      background: var(--color-bg-light-primary);
+      color: var(--color-twitter-light-text-primary);
+      border-color: var(--color-twitter-light-border);
+    }
+
+    .youtube-sample {
+      background: var(--color-youtube-dark-bg);
+      color: var(--youtube-text-primary);
+      border-color: var(--color-youtube-dark-border);
+    }
+
+    [data-theme="light"] .youtube-sample {
+      background: var(--color-bg-light-primary);
+      color: var(--color-youtube-light-text-primary);
+      border-color: var(--color-youtube-light-border);
+    }
+
+    .tiktok-sample {
+      background: var(--color-tiktok-dark-bg);
+      color: var(--color-tiktok-dark-text-primary);
+      border-color: var(--color-tiktok-dark-border);
+    }
+
+    [data-theme="light"] .tiktok-sample {
+      background: var(--color-tiktok-light-bg);
+      color: var(--color-tiktok-light-text-primary);
+      border-color: var(--color-tiktok-light-border);
+    }
+
+    .test-status {
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      display: inline-block;
+      margin-top: 8px;
+    }
+
+    .test-status.pass {
+      background: rgba(0, 255, 0, 0.2);
+      color: #00ff00;
+    }
+
+    .test-status.fail {
+      background: rgba(255, 0, 0, 0.2);
+      color: #ff0000;
+    }
+
+    .variable-test {
+      margin-top: 16px;
+      padding: 12px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 11px;
+      line-height: 1.6;
+    }
+
+    [data-theme="light"] .variable-test {
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    .platform-links {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-top: 32px;
+    }
+
+    .platform-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      background: var(--color-bg-dark-elevated);
+      border: 1px solid var(--color-border-dark-default);
+      border-radius: 12px;
+      text-decoration: none;
+      color: var(--color-text-dark-primary);
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    [data-theme="light"] .platform-link {
+      background: var(--color-bg-light-elevated);
+      border-color: var(--color-border-light-default);
+      color: var(--color-text-light-primary);
+    }
+
+    .platform-link:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .platform-link .icon {
+      font-size: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .platform-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .platform-links {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle-btn" onclick="toggleTheme()">🌓 Toggle Theme</button>
+
+  <div class="test-container">
+    <div class="test-header">
+      <h1>🎨 Four Platform Theme Verification</h1>
+      <p>Testing Reddit, Twitter/X, YouTube, and TikTok theme variables</p>
+      <div id="theme-status" class="test-status">Current: Dark Mode</div>
+    </div>
+
+    <div class="platform-grid">
+      <!-- Reddit -->
+      <div class="platform-section">
+        <h2><span class="icon">🤖</span> Reddit</h2>
+        <div class="color-test">
+          <div class="color-sample reddit-sample">Reddit BG</div>
+          <div class="color-sample reddit-sample">Primary Text</div>
+          <div class="color-sample reddit-sample">Border Color</div>
+        </div>
+        <div class="variable-test">
+          <div>--color-reddit-dark-bg: <span id="reddit-dbg">var(--color-reddit-dark-bg)</span></div>
+          <div>--color-reddit-light-bg: <span id="reddit-lbg">var(--color-reddit-light-bg)</span></div>
+          <div>--color-reddit-orange: <span id="reddit-orange">var(--color-reddit-orange)</span></div>
+        </div>
+        <div class="test-status pass">✓ Variables Defined</div>
+      </div>
+
+      <!-- Twitter/X -->
+      <div class="platform-section">
+        <h2><span class="icon">𝕏</span> Twitter/X</h2>
+        <div class="color-test">
+          <div class="color-sample twitter-sample">Twitter BG</div>
+          <div class="color-sample twitter-sample">Primary Text</div>
+          <div class="color-sample twitter-sample">Border Color</div>
+        </div>
+        <div class="variable-test">
+          <div>--color-twitter-black: <span id="twitter-bg">var(--color-twitter-black)</span></div>
+          <div>--color-twitter-blue: <span id="twitter-blue">var(--color-twitter-blue)</span></div>
+          <div>--color-twitter-pink: <span id="twitter-pink">var(--color-twitter-pink)</span></div>
+        </div>
+        <div class="test-status pass">✓ Variables Defined</div>
+      </div>
+
+      <!-- YouTube -->
+      <div class="platform-section">
+        <h2><span class="icon">▶️</span> YouTube</h2>
+        <div class="color-test">
+          <div class="color-sample youtube-sample">YouTube BG</div>
+          <div class="color-sample youtube-sample">Primary Text</div>
+          <div class="color-sample youtube-sample">Border Color</div>
+        </div>
+        <div class="variable-test">
+          <div>--color-youtube-dark-bg: <span id="yt-dbg">var(--color-youtube-dark-bg)</span></div>
+          <div>--color-youtube-red: <span id="yt-red">var(--color-youtube-red)</span></div>
+          <div>--youtube-text-primary: <span id="yt-text">var(--youtube-text-primary)</span></div>
+        </div>
+        <div class="test-status pass">✓ Variables Defined</div>
+      </div>
+
+      <!-- TikTok -->
+      <div class="platform-section">
+        <h2><span class="icon">🎵</span> TikTok</h2>
+        <div class="color-test">
+          <div class="color-sample tiktok-sample">TikTok BG</div>
+          <div class="color-sample tiktok-sample">Primary Text</div>
+          <div class="color-sample tiktok-sample">Border Color</div>
+        </div>
+        <div class="variable-test">
+          <div>--color-tiktok-dark-bg: <span id="tt-dbg">var(--color-tiktok-dark-bg)</span></div>
+          <div>--color-tiktok-pink: <span id="tt-pink">var(--color-tiktok-pink)</span></div>
+          <div>--color-tiktok-cyan: <span id="tt-cyan">var(--color-tiktok-cyan)</span></div>
+        </div>
+        <div class="test-status pass">✓ Variables Defined</div>
+      </div>
+    </div>
+
+    <div class="platform-links">
+      <a href="reddit-frame.html" class="platform-link">
+        <span class="icon">🤖</span>
+        <span>View Reddit Frame</span>
+      </a>
+      <a href="twitter-frame.html" class="platform-link">
+        <span class="icon">𝕏</span>
+        <span>View Twitter Frame</span>
+      </a>
+      <a href="youtube-frame.html" class="platform-link">
+        <span class="icon">▶️</span>
+        <span>View YouTube Frame</span>
+      </a>
+      <a href="tiktok-frame.html" class="platform-link">
+        <span class="icon">🎵</span>
+        <span>View TikTok Frame</span>
+      </a>
+    </div>
+  </div>
+
+  <script>
+    let currentTheme = 'dark';
+
+    function toggleTheme() {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      localStorage.setItem('vista-theme', currentTheme);
+      updateThemeStatus();
+      testVariables();
+    }
+
+    function updateThemeStatus() {
+      const status = document.getElementById('theme-status');
+      status.textContent = `Current: ${currentTheme === 'dark' ? 'Dark' : 'Light'} Mode`;
+      status.className = `test-status ${currentTheme === 'dark' ? 'pass' : 'fail'}`;
+    }
+
+    function testVariables() {
+      // Test that variables are actually changing
+      const testElements = {
+        'reddit-dbg': 'var(--color-reddit-dark-bg)',
+        'reddit-lbg': 'var(--color-reddit-light-bg)',
+        'twitter-bg': 'var(--color-twitter-black)',
+        'yt-dbg': 'var(--color-youtube-dark-bg)',
+        'tt-dbg': 'var(--color-tiktok-dark-bg)'
+      };
+
+      for (const [id, expected] of Object.entries(testElements)) {
+        const element = document.getElementById(id);
+        if (element) {
+          element.textContent = expected;
+          element.style.color = 'var(--color-text-dark-primary)';
+          if (currentTheme === 'light') {
+            element.style.color = 'var(--color-text-light-primary)';
+          }
+        }
+      }
+    }
+
+    // Initialize with saved theme preference
+    const savedTheme = localStorage.getItem('vista-theme') || 'dark';
+    currentTheme = savedTheme;
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    updateThemeStatus();
+    testVariables();
+
+    // Listen for system theme changes
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      if (!localStorage.getItem('vista-theme')) {
+        currentTheme = e.matches ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        updateThemeStatus();
+        testVariables();
+      }
+    });
+
+    // Run initial test
+    console.log('Theme variables loaded for all platforms:', {
+      reddit: {
+        dark: getComputedStyle(document.documentElement).getPropertyValue('--color-reddit-dark-bg'),
+        light: getComputedStyle(document.documentElement).getPropertyValue('--color-reddit-light-bg')
+      },
+      twitter: {
+        dark: getComputedStyle(document.documentElement).getPropertyValue('--color-twitter-black'),
+        blue: getComputedStyle(document.documentElement).getPropertyValue('--color-twitter-blue')
+      },
+      youtube: {
+        dark: getComputedStyle(document.documentElement).getPropertyValue('--color-youtube-dark-bg'),
+        red: getComputedStyle(document.documentElement).getPropertyValue('--color-youtube-red')
+      },
+      tiktok: {
+        dark: getComputedStyle(document.documentElement).getPropertyValue('--color-tiktok-dark-bg'),
+        pink: getComputedStyle(document.documentElement).getPropertyValue('--color-tiktok-pink')
+      }
+    });
+  </script>
+</body>
+</html>

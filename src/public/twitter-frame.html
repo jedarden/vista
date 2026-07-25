@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Twitter/X Platform Frame</title>
+  <link rel="stylesheet" href="frames-theme.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: var(--twitter-bg);
+      color: var(--twitter-text-primary);
+      padding: 20px;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    .twitter-context {
+      max-width: 600px;
+      background: var(--twitter-bg);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: background 0.3s ease;
+    }
+
+    /* Tweet Container */
+    .tweet-container {
+      background: var(--twitter-bg);
+      border: 1px solid var(--twitter-border);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 12px;
+      transition: background 0.3s ease, border-color 0.3s ease;
+    }
+
+    .tweet-container:hover {
+      background: var(--twitter-surface);
+    }
+
+    /* Author Section */
+    .tweet-author {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .tweet-avatar {
+      width: 48px;
+      height: 48px;
+      background: var(--x-avatar-bg);
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--twitter-text-primary);
+      font-size: 18px;
+      font-weight: 700;
+      border: 2px solid var(--x-avatar-border);
+    }
+
+    .tweet-meta {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .tweet-header {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 2px;
+    }
+
+    .tweet-author-name {
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--twitter-text-primary);
+      transition: color 0.3s ease;
+    }
+
+    .tweet-verified-badge {
+      width: 18px;
+      height: 18px;
+      background: var(--x-accent-blue);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .tweet-verified-badge::after {
+      content: '✓';
+      color: white;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .tweet-author-handle {
+      font-size: 15px;
+      color: var(--twitter-text-secondary);
+      transition: color 0.3s ease;
+    }
+
+    .tweet-timestamp {
+      font-size: 15px;
+      color: var(--twitter-text-secondary);
+      margin-left: 4px;
+      transition: color 0.3s ease;
+    }
+
+    .tweet-more-options {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--twitter-text-secondary);
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.3s ease;
+      flex-shrink: 0;
+    }
+
+    .tweet-more-options:hover {
+      background: var(--x-hover-bg);
+    }
+
+    /* Tweet Content */
+    .tweet-content {
+      margin-bottom: 12px;
+      padding-left: 60px;
+    }
+
+    .tweet-text {
+      font-size: 15px;
+      line-height: 1.5;
+      color: var(--twitter-text-primary);
+      margin-bottom: 12px;
+      transition: color 0.3s ease;
+    }
+
+    .tweet-text .hashtag {
+      color: var(--x-accent-blue);
+      cursor: pointer;
+    }
+
+    .tweet-text .hashtag:hover {
+      text-decoration: underline;
+    }
+
+    .tweet-text .mention {
+      color: var(--x-accent-blue);
+      cursor: pointer;
+    }
+
+    .tweet-text .mention:hover {
+      text-decoration: underline;
+    }
+
+    .tweet-text .link {
+      color: var(--x-accent-blue);
+      cursor: pointer;
+    }
+
+    .tweet-text .link:hover {
+      text-decoration: underline;
+    }
+
+    /* Tweet Image */
+    .tweet-image {
+      width: 100%;
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 12px;
+      border: 1px solid var(--twitter-border);
+    }
+
+    .tweet-image img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .tweet-image-placeholder {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: var(--x-placeholder-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--twitter-text-secondary);
+      font-size: 32px;
+    }
+
+    /* Tweet Actions */
+    .tweet-actions {
+      display: flex;
+      justify-content: space-between;
+      padding-left: 60px;
+      gap: 8px;
+    }
+
+    .tweet-action {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      font-size: 13px;
+      color: var(--twitter-text-secondary);
+      background: transparent;
+      border: none;
+    }
+
+    .tweet-action:hover {
+      background: var(--x-hover-bg);
+    }
+
+    .tweet-action .icon {
+      font-size: 18px;
+    }
+
+    .tweet-action .count {
+      font-weight: 500;
+      min-width: 16px;
+    }
+
+    .tweet-action.reply:hover {
+      color: var(--x-reply-color);
+      background: rgba(29, 155, 240, 0.1);
+    }
+
+    .tweet-action.retweet:hover {
+      color: var(--x-retweet-color);
+      background: rgba(0, 186, 124, 0.1);
+    }
+
+    .tweet-action.like:hover {
+      color: var(--x-like-color);
+      background: rgba(249, 24, 128, 0.1);
+    }
+
+    .tweet-action.view:hover {
+      color: var(--x-accent-blue);
+      background: rgba(29, 155, 240, 0.1);
+    }
+
+    .tweet-action.share:hover {
+      color: var(--x-accent-blue);
+      background: rgba(29, 155, 240, 0.1);
+    }
+
+    /* Tweet with quoted tweet */
+    .quoted-tweet {
+      background: var(--twitter-surface);
+      border: 1px solid var(--twitter-border);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: background 0.2s ease, border-color 0.3s ease;
+    }
+
+    .quoted-tweet:hover {
+      background: var(--twitter-bg);
+    }
+
+    .quoted-tweet-header {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .quoted-tweet-avatar {
+      width: 20px;
+      height: 20px;
+      background: var(--x-avatar-bg);
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--twitter-text-primary);
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .quoted-tweet-meta {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .quoted-tweet-name {
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--twitter-text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: color 0.3s ease;
+    }
+
+    .quoted-tweet-handle {
+      font-size: 13px;
+      color: var(--twitter-text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: color 0.3s ease;
+    }
+
+    .quoted-tweet-content {
+      font-size: 14px;
+      color: var(--twitter-text-primary);
+      line-height: 1.4;
+      transition: color 0.3s ease;
+    }
+
+    /* Tweet with poll */
+    .tweet-poll {
+      background: var(--twitter-surface);
+      border: 1px solid var(--twitter-border);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 12px;
+      transition: background 0.3s ease, border-color 0.3s ease;
+    }
+
+    .poll-option {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      background: var(--twitter-bg);
+      border: 1px solid var(--twitter-border);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: background 0.2s ease, border-color 0.3s ease;
+    }
+
+    .poll-option:hover {
+      background: var(--x-hover-bg);
+    }
+
+    .poll-option-label {
+      font-size: 14px;
+      color: var(--twitter-text-primary);
+      font-weight: 500;
+      transition: color 0.3s ease;
+    }
+
+    .poll-option-bar {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      background: var(--x-accent-blue);
+      opacity: 0.2;
+      border-radius: 8px;
+      transition: background 0.3s ease;
+    }
+
+    .poll-option-votes {
+      font-size: 13px;
+      color: var(--twitter-text-secondary);
+      transition: color 0.3s ease;
+    }
+
+    .poll-footer {
+      font-size: 13px;
+      color: var(--twitter-text-secondary);
+      margin-top: 8px;
+      transition: color 0.3s ease;
+    }
+
+    /* Link Preview Card */
+    .tweet-link-card {
+      background: var(--twitter-surface);
+      border: 1px solid var(--twitter-border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: background 0.2s ease, border-color 0.3s ease;
+    }
+
+    .tweet-link-card:hover {
+      background: var(--twitter-bg);
+      border-color: var(--x-link-card-hover-border);
+    }
+
+    .tweet-link-card-image {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: var(--x-placeholder-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--twitter-text-secondary);
+      font-size: 24px;
+    }
+
+    .tweet-link-card-content {
+      padding: 12px;
+    }
+
+    .tweet-link-card-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--twitter-text-primary);
+      margin-bottom: 4px;
+      line-height: 1.3;
+      transition: color 0.3s ease;
+    }
+
+    .tweet-link-card-description {
+      font-size: 14px;
+      color: var(--twitter-text-secondary);
+      margin-bottom: 8px;
+      line-height: 1.4;
+      transition: color 0.3s ease;
+    }
+
+    .tweet-link-card-domain {
+      font-size: 12px;
+      color: var(--twitter-text-secondary);
+      transition: color 0.3s ease;
+    }
+
+    /* Stats Section */
+    .tweet-stats {
+      display: flex;
+      gap: 16px;
+      padding: 12px 0;
+      border-top: 1px solid var(--twitter-border);
+      margin-top: 12px;
+    }
+
+    .tweet-stat {
+      display: flex;
+      gap: 4px;
+      font-size: 14px;
+      color: var(--twitter-text-secondary);
+      transition: color 0.3s ease;
+    }
+
+    .tweet-stat-value {
+      font-weight: 700;
+      color: var(--twitter-text-primary);
+      transition: color 0.3s ease;
+    }
+
+    /* Thread Connector */
+    .thread-connector {
+      display: flex;
+      gap: 12px;
+      padding: 0 16px;
+    }
+
+    .thread-line {
+      width: 2px;
+      background: var(--twitter-border);
+      margin-left: 22px;
+      position: relative;
+    }
+
+    .thread-line::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 8px;
+      height: 8px;
+      background: var(--twitter-border);
+      border-radius: 50%;
+    }
+
+    /* Theme Toggle Button */
+    .theme-toggle-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      background: var(--x-accent-blue);
+      color: white;
+      border: none;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      z-index: 1000;
+      transition: background 0.3s ease, transform 0.1s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .theme-toggle-btn:hover {
+      transform: scale(1.05);
+      background: var(--x-accent-blue-hover);
+    }
+
+    /* Header */
+    .twitter-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      border-bottom: 1px solid var(--twitter-border);
+      background: var(--twitter-bg);
+      transition: background 0.3s ease, border-color 0.3s ease;
+    }
+
+    .twitter-logo {
+      width: 32px;
+      height: 32px;
+      background: var(--twitter-text-primary);
+      mask: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>') no-repeat center;
+      -webkit-mask: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>') no-repeat center;
+    }
+
+    .twitter-nav-tabs {
+      display: flex;
+      gap: 16px;
+    }
+
+    .twitter-nav-tab {
+      padding: 12px 16px;
+      background: transparent;
+      border: none;
+      color: var(--twitter-text-secondary);
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: color 0.2s ease;
+      position: relative;
+    }
+
+    .twitter-nav-tab:hover {
+      color: var(--twitter-text-primary);
+    }
+
+    .twitter-nav-tab.active {
+      color: var(--twitter-text-primary);
+      font-weight: 700;
+    }
+
+    .twitter-nav-tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--x-accent-blue);
+      border-radius: 2px;
+    }
+
+    /* Ensure smooth transitions for theme changes */
+    .twitter-context,
+    .twitter-context * {
+      transition-property: background, color, border-color, background-color;
+      transition-duration: 0.3s;
+      transition-timing-function: ease;
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle-btn" onclick="toggleTheme()">🌓 Toggle Theme</button>
+
+  <div class="twitter-context">
+    <!-- Header -->
+    <div class="twitter-header">
+      <div class="twitter-logo"></div>
+      <div class="twitter-nav-tabs">
+        <button class="twitter-nav-tab active">For you</button>
+        <button class="twitter-nav-tab">Following</button>
+      </div>
+    </div>
+
+    <!-- Main Tweet -->
+    <div class="tweet-container">
+      <div class="tweet-author">
+        <div class="tweet-avatar">JD</div>
+        <div class="tweet-meta">
+          <div class="tweet-header">
+            <span class="tweet-author-name">Jane Developer</span>
+            <div class="tweet-verified-badge"></div>
+            <span class="tweet-author-handle">@janedev</span>
+            <span class="tweet-timestamp">· 2h</span>
+          </div>
+        </div>
+        <div class="tweet-more-options">⋮</div>
+      </div>
+
+      <div class="tweet-content">
+        <div class="tweet-text">
+          Just shipped a major feature! 🚀 Building great products takes time, patience, and an amazing team.
+          <span class="hashtag">#webdev</span> <span class="hashtag">#startup</span> <span class="hashtag">#shipping</span>
+        </div>
+
+        <div class="tweet-image">
+          <div class="tweet-image-placeholder">📸</div>
+        </div>
+
+        <div class="tweet-link-card">
+          <div class="tweet-link-card-image">
+            <span>🔗</span>
+          </div>
+          <div class="tweet-link-card-content">
+            <div class="tweet-link-card-title">How We Built Our Product in 90 Days</div>
+            <div class="tweet-link-card-description">A deep dive into our development process, tools, and lessons learned along the way...</div>
+            <div class="tweet-link-card-domain">techblog.example.com</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tweet-actions">
+        <button class="tweet-action reply">
+          <span class="icon">💬</span>
+          <span class="count">124</span>
+        </button>
+        <button class="tweet-action retweet">
+          <span class="icon">🔁</span>
+          <span class="count">892</span>
+        </button>
+        <button class="tweet-action like">
+          <span class="icon">❤️</span>
+          <span class="count">4.2K</span>
+        </button>
+        <button class="tweet-action view">
+          <span class="icon">👁️</span>
+          <span class="count">1.1M</span>
+        </button>
+        <button class="tweet-action share">
+          <span class="icon">↗️</span>
+        </button>
+      </div>
+
+      <div class="tweet-stats">
+        <div class="tweet-stat">
+          <span class="tweet-stat-value">892</span>
+          <span>Reposts</span>
+        </div>
+        <div class="tweet-stat">
+          <span class="tweet-stat-value">124</span>
+          <span>Quotes</span>
+        </div>
+        <div class="tweet-stat">
+          <span class="tweet-stat-value">4.2K</span>
+          <span>Likes</span>
+        </div>
+        <div class="tweet-stat">
+          <span class="tweet-stat-value">1.1M</span>
+          <span>Views</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tweet with Quote -->
+    <div class="tweet-container">
+      <div class="tweet-author">
+        <div class="tweet-avatar">TC</div>
+        <div class="tweet-meta">
+          <div class="tweet-header">
+            <span class="tweet-author-name">Tech Creator</span>
+            <div class="tweet-verified-badge"></div>
+            <span class="tweet-author-handle">@techcreator</span>
+            <span class="tweet-timestamp">· 5h</span>
+          </div>
+        </div>
+        <div class="tweet-more-options">⋮</div>
+      </div>
+
+      <div class="tweet-content">
+        <div class="tweet-text">
+          This is amazing work! 🎉 Congrats to the entire team!
+        </div>
+
+        <div class="quoted-tweet">
+          <div class="quoted-tweet-header">
+            <div class="quoted-tweet-avatar">JD</div>
+            <div class="quoted-tweet-meta">
+              <div class="quoted-tweet-name">Jane Developer</div>
+              <div class="quoted-tweet-handle">@janedev</div>
+            </div>
+          </div>
+          <div class="quoted-tweet-content">
+            Just shipped a major feature! 🚀 Building great products takes time, patience, and an amazing team.
+          </div>
+        </div>
+      </div>
+
+      <div class="tweet-actions">
+        <button class="tweet-action reply">
+          <span class="icon">💬</span>
+          <span class="count">23</span>
+        </button>
+        <button class="tweet-action retweet">
+          <span class="icon">🔁</span>
+          <span class="count">156</span>
+        </button>
+        <button class="tweet-action like">
+          <span class="icon">❤️</span>
+          <span class="count">892</span>
+        </button>
+        <button class="tweet-action view">
+          <span class="icon">👁️</span>
+          <span class="count">45K</span>
+        </button>
+        <button class="tweet-action share">
+          <span class="icon">↗️</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Tweet with Poll -->
+    <div class="tweet-container">
+      <div class="tweet-author">
+        <div class="tweet-avatar">PS</div>
+        <div class="tweet-meta">
+          <div class="tweet-header">
+            <span class="tweet-author-name">Product Survey</span>
+            <span class="tweet-author-handle">@productsurvey</span>
+            <span class="tweet-timestamp">· 8h</span>
+          </div>
+        </div>
+        <div class="tweet-more-options">⋮</div>
+      </div>
+
+      <div class="tweet-content">
+        <div class="tweet-text">
+          What's your favorite JavaScript framework? 🤔
+          <span class="hashtag">#javascript</span> <span class="hashtag">#webdev</span> <span class="hashtag">#poll</span>
+        </div>
+
+        <div class="tweet-poll">
+          <div class="poll-option">
+            <div class="poll-option-bar" style="width: 45%;"></div>
+            <span class="poll-option-label">React</span>
+            <span class="poll-option-votes">45%</span>
+          </div>
+          <div class="poll-option">
+            <div class="poll-option-bar" style="width: 28%;"></div>
+            <span class="poll-option-label">Vue.js</span>
+            <span class="poll-option-votes">28%</span>
+          </div>
+          <div class="poll-option">
+            <div class="poll-option-bar" style="width: 15%;"></div>
+            <span class="poll-option-label">Angular</span>
+            <span class="poll-option-votes">15%</span>
+          </div>
+          <div class="poll-option">
+            <div class="poll-option-bar" style="width: 12%;"></div>
+            <span class="poll-option-label">Svelte</span>
+            <span class="poll-option-votes">12%</span>
+          </div>
+          <div class="poll-footer">2,847 votes · 2 days left</div>
+        </div>
+      </div>
+
+      <div class="tweet-actions">
+        <button class="tweet-action reply">
+          <span class="icon">💬</span>
+          <span class="count">342</span>
+        </button>
+        <button class="tweet-action retweet">
+          <span class="icon">🔁</span>
+          <span class="count">1.2K</span>
+        </button>
+        <button class="tweet-action like">
+          <span class="icon">❤️</span>
+          <span class="count">3.4K</span>
+        </button>
+        <button class="tweet-action view">
+          <span class="icon">👁️</span>
+          <span class="count">156K</span>
+        </button>
+        <button class="tweet-action share">
+          <span class="icon">↗️</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Tweet with Multiple Images -->
+    <div class="tweet-container">
+      <div class="tweet-author">
+        <div class="tweet-avatar">DW</div>
+        <div class="tweet-meta">
+          <div class="tweet-header">
+            <span class="tweet-author-name">Design Weekly</span>
+            <div class="tweet-verified-badge"></div>
+            <span class="tweet-author-handle">@designweekly</span>
+            <span class="tweet-timestamp">· 12h</span>
+          </div>
+        </div>
+        <div class="tweet-more-options">⋮</div>
+      </div>
+
+      <div class="tweet-content">
+        <div class="tweet-text">
+          Beautiful UI inspirations from this week ✨
+          <span class="hashtag">#design</span> <span class="hashtag">#ui</span> <span class="hashtag">#ux</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+          <div class="tweet-image-placeholder" style="aspect-ratio: 1/1; border-radius: 8px; font-size: 24px;">🎨</div>
+          <div class="tweet-image-placeholder" style="aspect-ratio: 1/1; border-radius: 8px; font-size: 24px;">🖼️</div>
+          <div class="tweet-image-placeholder" style="aspect-ratio: 1/1; border-radius: 8px; font-size: 24px;">📱</div>
+          <div class="tweet-image-placeholder" style="aspect-ratio: 1/1; border-radius: 8px; font-size: 24px;">💻</div>
+        </div>
+      </div>
+
+      <div class="tweet-actions">
+        <button class="tweet-action reply">
+          <span class="icon">💬</span>
+          <span class="count">89</span>
+        </button>
+        <button class="tweet-action retweet">
+          <span class="icon">🔁</span>
+          <span class="count">567</span>
+        </button>
+        <button class="tweet-action like">
+          <span class="icon">❤️</span>
+          <span class="count">2.3K</span>
+        </button>
+        <button class="tweet-action view">
+          <span class="icon">👁️</span>
+          <span class="count">89K</span>
+        </button>
+        <button class="tweet-action share">
+          <span class="icon">↗️</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentTheme = 'dark';
+
+    function toggleTheme() {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      localStorage.setItem('vista-theme', currentTheme);
+    }
+
+    // Initialize with saved theme preference
+    const savedTheme = localStorage.getItem('vista-theme') || 'dark';
+    currentTheme = savedTheme;
+    document.documentElement.setAttribute('data-theme', currentTheme);
+
+    // Listen for system theme changes
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      if (!localStorage.getItem('vista-theme')) {
+        currentTheme = e.matches ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', currentTheme);
+      }
+    });
+
+    // Tab switching
+    document.querySelectorAll('.twitter-nav-tab').forEach(tab => {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.twitter-nav-tab').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+
+    // Tweet action interactions
+    document.querySelectorAll('.tweet-action').forEach(action => {
+      action.addEventListener('click', function() {
+        const countEl = this.querySelector('.count');
+        if (countEl && this.classList.contains('like')) {
+          // Toggle like animation
+          const icon = this.querySelector('.icon');
+          if (icon.textContent === '❤️') {
+            icon.textContent = '🤍';
+            this.classList.add('liked');
+          } else {
+            icon.textContent = '❤️';
+            this.classList.remove('liked');
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>

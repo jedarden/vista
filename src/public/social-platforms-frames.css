@@ -1249,6 +1249,299 @@
   transition: color 0.2s ease;
 }
 
+/* Enhanced YouTube video player elements */
+.youtube-context .yt-video-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #0f0f0f 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 64px;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.youtube-context .yt-video-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+  padding: 12px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.youtube-context .yt-video-player:hover .yt-video-overlay {
+  opacity: 1;
+}
+
+.youtube-context .yt-progress-bar {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+
+.youtube-context .yt-progress-filled {
+  height: 100%;
+  background: #ff0000;
+  border-radius: 2px;
+  position: relative;
+}
+
+.youtube-context .yt-progress-filled::after {
+  content: '';
+  position: absolute;
+  right: -6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 12px;
+  height: 12px;
+  background: #ff0000;
+  border-radius: 50%;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+}
+
+.youtube-context .yt-player-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.youtube-context .yt-control-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px;
+  transition: color 0.2s ease;
+}
+
+.youtube-context .yt-control-btn:hover {
+  color: #fff;
+}
+
+.youtube-context .yt-volume-control {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.youtube-context .yt-volume-slider {
+  width: 60px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.youtube-context .yt-volume-level {
+  height: 100%;
+  background: #fff;
+  border-radius: 2px;
+}
+
+.youtube-context .yt-time-display {
+  margin-left: auto;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.youtube-context .yt-fullscreen-btn {
+  font-size: 20px;
+}
+
+/* YouTube video header */
+.youtube-context .yt-video-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 0;
+  margin-bottom: 8px;
+}
+
+.youtube-context .yt-channel-meta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.youtube-context .yt-actions-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.youtube-context .yt-action-icon {
+  font-size: 20px;
+}
+
+.youtube-context .yt-action-label {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.youtube-context .yt-description-text {
+  font-size: 14px;
+  color: var(--youtube-text-primary);
+  line-height: 1.4;
+  margin-bottom: 8px;
+  transition: color 0.2s ease;
+}
+
+.youtube-context .yt-description-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--youtube-text-secondary);
+  margin-top: 8px;
+  transition: color 0.2s ease;
+}
+
+.youtube-context .yt-comment-header {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--youtube-text-primary);
+  margin-bottom: 16px;
+  transition: color 0.2s ease;
+}
+
+.youtube-context .yt-comment {
+  display: flex;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-youtube-dark-border);
+}
+
+.youtube-context.light-theme .yt-comment {
+  border-bottom-color: var(--color-youtube-light-border);
+}
+
+.youtube-context .yt-comment-dim {
+  opacity: 0.7;
+}
+
+.youtube-context .yt-comment-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #555 0%, #333 100%);
+  flex-shrink: 0;
+}
+
+.youtube-context .yt-comment-meta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.youtube-context .yt-comment-author {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--youtube-text-primary);
+  transition: color 0.2s ease;
+}
+
+.youtube-context .yt-comment-time {
+  font-size: 12px;
+  color: var(--youtube-text-secondary);
+  margin-left: 8px;
+  transition: color 0.2s ease;
+}
+
+.youtube-context .yt-comment-text {
+  font-size: 14px;
+  color: var(--youtube-text-primary);
+  line-height: 1.4;
+  transition: color 0.2s ease;
+}
+
+.youtube-context .yt-comment-actions {
+  font-size: 12px;
+  color: var(--youtube-text-secondary);
+  margin-top: 4px;
+  transition: color 0.2s ease;
+}
+
+/* YouTube link card */
+.youtube-context .yt-link-card {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  background: var(--color-youtube-dark-surface);
+  border-radius: 8px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.youtube-context.light-theme .yt-link-card {
+  background: var(--color-youtube-light-surface);
+}
+
+.youtube-context .yt-link-card:hover {
+  background: var(--color-youtube-dark-border);
+}
+
+.youtube-context.light-theme .yt-link-card:hover {
+  background: var(--color-youtube-light-border);
+}
+
+.youtube-context .yt-link-card-image {
+  width: 80px;
+  height: 60px;
+  background: linear-gradient(135deg, #333 0%, #222 100%);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.youtube-context .yt-link-card-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.youtube-context .yt-link-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--youtube-text-primary);
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  transition: color 0.2s ease;
+}
+
+.youtube-context .yt-link-card-description {
+  font-size: 12px;
+  color: var(--youtube-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 0.2s ease;
+}
+
+.youtube-context .yt-link-card-domain {
+  font-size: 11px;
+  color: var(--youtube-text-muted);
+  transition: color 0.2s ease;
+}
+
 /* ============================================================================
    TIKTOK CONTEXT FRAME IMPLEMENTATION
    ============================================================================ */
@@ -1354,6 +1647,95 @@
 
 .tiktok-context .tt-action-btn {
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.tiktok-context .tt-action-btn:hover {
+  transform: scale(1.1);
+}
+
+.tiktok-context .tt-action-icon {
+  font-size: 32px;
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.tiktok-context .tt-action-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+.tiktok-context.light-theme .tt-action-count {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* TikTok bottom overlay */
+.tiktok-context .tt-bottom-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 60px;
+  padding: 16px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+  color: #fff;
+}
+
+.tiktok-context.light-theme .tt-bottom-overlay {
+  background: linear-gradient(transparent, rgba(255, 255, 255, 0.3));
+}
+
+.tiktok-context .tt-username {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #fff;
+}
+
+.tiktok-context.light-theme .tt-username {
+  color: #000;
+}
+
+.tiktok-context .tt-caption {
+  font-size: 14px;
+  line-height: 1.4;
+  margin-bottom: 8px;
+  color: #fff;
+}
+
+.tiktok-context.light-theme .tt-caption {
+  color: rgba(0, 0, 0, 0.9);
+}
+
+.tiktok-context .tt-music {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tiktok-context.light-theme .tt-music {
+  color: rgba(0, 0, 0, 0.7);
+}
+
+/* TikTok video meta */
+.tiktok-context .tt-video-meta {
+  position: absolute;
+  bottom: 60px;
+  left: 12px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.tiktok-context.light-theme .tt-video-meta {
+  color: rgba(0, 0, 0, 0.6);
+}
   flex-direction: column;
   align-items: center;
   gap: 4px;

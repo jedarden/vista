@@ -208,9 +208,102 @@ export const PLATFORM_FRAMES_CONFIG: PlatformFramesConfig = {
     hasThemeSupport: true,
     aspectRatio: '16:9',
     structure: FRAME_TYPE_REQUIREMENTS['video-platform'],
+    chrome: `<div class="yt-video-player">
+        <div class="yt-video-placeholder">▶</div>
+        <div class="yt-video-overlay">
+          <div class="yt-progress-bar">
+            <div class="yt-progress-filled" style="width: 35%;"></div>
+          </div>
+          <div class="yt-player-controls">
+            <button class="yt-control-btn">⏮</button>
+            <button class="yt-control-btn">▶️</button>
+            <button class="yt-control-btn">⏭</button>
+            <div class="yt-volume-control">
+              <button class="yt-control-btn">🔊</button>
+              <div class="yt-volume-slider">
+                <div class="yt-volume-level" style="width: 70%;"></div>
+              </div>
+            </div>
+            <div class="yt-time-display">3:45 / 10:23</div>
+            <button class="yt-control-btn">⚙️</button>
+            <button class="yt-control-btn yt-fullscreen-btn">⛶</button>
+          </div>
+        </div>
+      </div>
+      <div class="yt-video-header">
+        <div class="yt-channel-avatar"></div>
+        <div class="yt-channel-meta">
+          <span class="yt-channel-name">TechChannel</span>
+          <span class="yt-subscriber-count">1.2M subscribers</span>
+        </div>
+        <button class="yt-subscribe-btn">Subscribe</button>
+      </div>
+      <div class="yt-video-title">Amazing Tutorial - Learn in 10 Minutes!</div>
+      <div class="yt-video-stats">234K views · 3 hours ago</div>
+      <div class="yt-actions-bar">
+        <button class="yt-action-btn">
+          <span class="yt-action-icon">👍</span>
+          <span class="yt-action-label">Like</span>
+        </button>
+        <button class="yt-action-btn">
+          <span class="yt-action-icon">👎</span>
+          <span class="yt-action-label">Dislike</span>
+        </button>
+        <button class="yt-action-btn">
+          <span class="yt-action-icon">↗️</span>
+          <span class="yt-action-label">Share</span>
+        </button>
+        <button class="yt-action-btn">
+          <span class="yt-action-icon">⬇️</span>
+          <span class="yt-action-label">Download</span>
+        </button>
+        <button class="yt-action-btn">
+          <span class="yt-action-icon">✂️</span>
+          <span class="yt-action-label">Clip</span>
+        </button>
+        <button class="yt-action-btn">
+          <span class="yt-action-icon">💾</span>
+          <span class="yt-action-label">Save</span>
+        </button>
+        <button class="yt-action-btn">
+          <span class="yt-action-icon">•••</span>
+          <span class="yt-action-label">More</span>
+        </button>
+      </div>
+      <div class="yt-description-section">
+        <div class="yt-description-text">In this video, I'll show you how to get started with this amazing tool. Perfect for beginners! #tutorial #howto</div>
+        <div class="yt-description-meta">
+          <span>👍 12K</span>
+          <span>👁️ 234K views</span>
+          <span>📅 3 hours ago</span>
+        </div>
+        {{linkCards}}
+      </div>
+      <div class="yt-comments-section">
+        <div class="yt-comment-header">Comments</div>
+        <div class="yt-comment yt-comment-dim">
+          <div class="yt-comment-avatar"></div>
+          <div class="yt-comment-meta">
+            <span class="yt-comment-author">User123</span>
+            <span class="yt-comment-time">2 hours ago</span>
+            <div class="yt-comment-text">This was really helpful, thanks!</div>
+            <div class="yt-comment-actions">👍 45 · 💬 Reply</div>
+          </div>
+        </div>
+        {{userComment}}
+      </div>`,
+    neutralContent: `<div class="yt-comment">
+        <div class="yt-comment-avatar"></div>
+        <div class="yt-comment-meta">
+          <span class="yt-comment-author">You</span>
+          <span class="yt-comment-time">Just now</span>
+          <div class="yt-comment-text">{{description}}</div>
+          <div class="yt-comment-actions">👍 0 · 💬 Reply</div>
+        </div>
+      </div>`,
     placeholderFrame: {
-      isStub: true,
-      implementationNotes: 'Video thumbnail with title, channel, views, timestamp',
+      isStub: false,
+      implementationNotes: 'Complete with realistic chrome - video player with controls, channel avatar/name/subscriber count/subscribe button, video title, view count and timestamp, like/dislike/share/download/clip/save actions, description section with hashtags and metadata, comments section with user comments',
     },
   },
 
@@ -250,9 +343,37 @@ export const PLATFORM_FRAMES_CONFIG: PlatformFramesConfig = {
     hasThemeSupport: true,
     aspectRatio: '9:16',
     structure: FRAME_TYPE_REQUIREMENTS['video-platform'],
+    chrome: `<div class="tt-video-container">
+        <div class="tt-video-placeholder"></div>
+        <div class="tt-right-sidebar">
+          <div class="tt-action-btn">
+            <span class="tt-action-icon">♡</span>
+            <span class="tt-action-count">24K</span>
+          </div>
+          <div class="tt-action-btn">
+            <span class="tt-action-icon">💬</span>
+            <span class="tt-action-count">1.2K</span>
+          </div>
+          <div class="tt-action-btn">
+            <span class="tt-action-icon">↗</span>
+            <span class="tt-action-count">8.5K</span>
+          </div>
+          <div class="tt-action-btn">
+            <span class="tt-action-icon">💾</span>
+            <span class="tt-action-count">3.2K</span>
+          </div>
+        </div>
+        <div class="tt-bottom-overlay">
+          <div class="tt-username">@tiktok_creator</div>
+          <div class="tt-caption">Check out this amazing content! 🔗 #fyp #viral #trending</div>
+          <div class="tt-music">🎵 Original Sound - Artist Name</div>
+          <div class="tt-video-meta">2.3M views · Posted 3 hours ago</div>
+        </div>
+      </div>`,
+    neutralContent: '',
     placeholderFrame: {
-      isStub: true,
-      implementationNotes: 'Portrait video with username, description, likes, comments',
+      isStub: false,
+      implementationNotes: 'Complete with realistic chrome - vertical video container, right sidebar with like/comment/share/save buttons and counts, bottom overlay with username, caption with hashtags, music info, and view count/timestamp',
     },
   },
 

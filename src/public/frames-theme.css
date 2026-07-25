@@ -1014,6 +1014,23 @@
   --frame-overlay: var(--twitter-overlay, var(--frame-overlay-global));
 }
 
+.twitter-context[data-theme='light'],
+.twitter-context.light-theme {
+  --frame-bg: var(--color-bg-light-primary, var(--frame-bg-global));
+  --frame-surface: var(--color-twitter-light-surface, var(--frame-surface-global));
+  --frame-border: var(--color-twitter-light-border, var(--frame-border-global));
+  --frame-text-primary: var(--color-twitter-light-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--color-twitter-light-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--color-twitter-light-text-secondary, var(--frame-text-muted-global));
+  --frame-accent: var(--color-twitter-blue, var(--frame-accent-global));
+  --frame-accent-bg: var(--color-twitter-blue-dark, var(--frame-accent-bg-global));
+  --frame-link-color: var(--color-twitter-blue, var(--frame-link-color-global));
+  --frame-divider: var(--color-twitter-light-border, var(--frame-divider-global));
+  --frame-input-bg: var(--color-twitter-light-surface, var(--frame-input-bg-global));
+  --frame-overlay: var(--color-overlay-light, var(--frame-overlay-global));
+  --twitter-hover-bg: rgba(0, 0, 0, 0.04);
+}
+
 /* LinkedIn Context */
 .linkedin-context {
   --frame-bg: var(--color-linkedin-dark-bg);
@@ -1564,6 +1581,23 @@
   --frame-divider: var(--youtube-divider, var(--frame-divider-global));
   --frame-input-bg: var(--youtube-input-bg, var(--frame-input-bg-global));
   --frame-overlay: var(--youtube-overlay, var(--frame-overlay-global));
+}
+
+.youtube-context[data-theme='light'],
+.youtube-context.light-theme {
+  --frame-bg: var(--color-youtube-light-bg, var(--frame-bg-global));
+  --frame-surface: var(--color-youtube-light-surface, var(--frame-surface-global));
+  --frame-border: var(--color-youtube-light-border, var(--frame-border-global));
+  --frame-text-primary: var(--color-youtube-light-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--color-youtube-light-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--color-youtube-light-text-secondary, var(--frame-text-muted-global));
+  --frame-accent: var(--color-youtube-red-dark, var(--frame-accent-global));
+  --frame-accent-bg: var(--color-youtube-red, var(--frame-accent-bg-global));
+  --frame-link-color: var(--color-youtube-link-blue, var(--frame-link-color-global));
+  --frame-divider: var(--color-youtube-light-border, var(--frame-divider-global));
+  --frame-input-bg: var(--color-youtube-light-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--color-overlay-light, var(--frame-overlay-global));
+  --youtube-hover-bg: rgba(0, 0, 0, 0.05);
 }
 
 /* Teams Context */

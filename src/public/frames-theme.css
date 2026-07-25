@@ -181,6 +181,42 @@
   --color-stackoverflow-error-dark: #f85149;
   --color-stackoverflow-error-light: #cf222e;
 
+  /* Reddit Colors */
+  --color-reddit-orange: #ff4500;
+  --color-reddit-orange-dark: #cc3700;
+  --color-reddit-blue: #7193ff;
+  --color-reddit-blue-dark: #5a7ae6;
+  --color-reddit-dark-bg: #0b1416;
+  --color-reddit-dark-surface: #1a1a1b;
+  --color-reddit-dark-border: #343536;
+  --color-reddit-dark-text-primary: #d7dadc;
+  --color-reddit-dark-text-secondary: #818384;
+  --color-reddit-dark-text-muted: #575757;
+  --color-reddit-light-bg: #ffffff;
+  --color-reddit-light-surface: #f6f7f8;
+  --color-reddit-light-border: #ccc;
+  --color-reddit-light-text-primary: #1c1c1c;
+  --color-reddit-light-text-secondary: #7c7c7c;
+  --color-reddit-light-text-muted: #575757;
+
+  /* TikTok Colors */
+  --color-tiktok-pink: #ff0050;
+  --color-tiktok-pink-dark: #e60048;
+  --color-tiktok-cyan: #00f2ea;
+  --color-tiktok-cyan-dark: #00d9d2;
+  --color-tiktok-dark-bg: #121212;
+  --color-tiktok-dark-surface: #1a1a1a;
+  --color-tiktok-dark-border: #2f2f2f;
+  --color-tiktok-dark-text-primary: #ffffff;
+  --color-tiktok-dark-text-secondary: #a0a0a0;
+  --color-tiktok-dark-text-muted: #757575;
+  --color-tiktok-light-bg: #ffffff;
+  --color-tiktok-light-surface: #f8f8f8;
+  --color-tiktok-light-border: #e0e0e0;
+  --color-tiktok-light-text-primary: #121212;
+  --color-tiktok-light-text-secondary: #757575;
+  --color-tiktok-light-text-muted: #a0a0a0;
+
   /* Code Syntax Highlighting Colors - Dark Theme */
   --color-syntax-comment-dark: #6a9955;
   --color-syntax-keyword-dark: #569cd6;
@@ -263,7 +299,7 @@
 
 /* YouTube Theme Variables - Light Mode */
 [data-theme='light'] {
-  --youtube-bg: var(--color-bg-light-primary);
+  --youtube-bg: var(--color-youtube-light-bg);
   --youtube-surface: var(--color-youtube-light-surface);
   --youtube-border: var(--color-youtube-light-border);
   --youtube-text-primary: var(--color-youtube-light-text-primary);
@@ -273,7 +309,7 @@
   --youtube-accent-bg: var(--color-youtube-red);
   --youtube-link-color: var(--color-youtube-link-blue);
   --youtube-divider: var(--color-youtube-light-border);
-  --youtube-input-bg: var(--color-bg-light-primary);
+  --youtube-input-bg: var(--color-youtube-light-bg);
   --youtube-overlay: var(--color-overlay-light);
 }
 
@@ -931,18 +967,36 @@
 
 /* Reddit Context */
 .reddit-context {
-  --frame-bg: var(--reddit-bg, var(--frame-bg-global));
-  --frame-surface: var(--reddit-surface, var(--frame-surface-global));
-  --frame-border: var(--reddit-border, var(--frame-border-global));
-  --frame-text-primary: var(--reddit-text-primary, var(--frame-text-primary-global));
-  --frame-text-secondary: var(--reddit-text-secondary, var(--frame-text-secondary-global));
-  --frame-text-muted: var(--reddit-text-muted, var(--frame-text-muted-global));
-  --frame-accent: var(--reddit-accent, var(--frame-accent-global));
-  --frame-accent-bg: var(--reddit-accent-bg, var(--frame-accent-bg-global));
-  --frame-link-color: var(--reddit-link-color, var(--frame-link-color-global));
-  --frame-divider: var(--reddit-divider, var(--frame-divider-global));
-  --frame-input-bg: var(--reddit-input-bg, var(--frame-input-bg-global));
-  --frame-overlay: var(--reddit-overlay, var(--frame-overlay-global));
+  --frame-bg: var(--reddit-dark-bg, var(--frame-bg-global));
+  --frame-surface: var(--reddit-dark-surface, var(--frame-surface-global));
+  --frame-border: var(--reddit-dark-border, var(--frame-border-global));
+  --frame-text-primary: var(--reddit-dark-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--reddit-dark-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--reddit-dark-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--color-reddit-orange, var(--frame-accent-global));
+  --frame-accent-bg: var(--color-reddit-orange-dark, var(--frame-accent-bg-global));
+  --frame-link-color: var(--color-reddit-blue, var(--frame-link-color-global));
+  --frame-divider: var(--reddit-dark-border, var(--frame-divider-global));
+  --frame-input-bg: var(--reddit-dark-surface, var(--frame-input-bg-global));
+  --frame-overlay: var(--color-overlay-dark, var(--frame-overlay-global));
+  --reddit-hover-bg: rgba(255, 69, 0, 0.1);
+}
+
+.reddit-context[data-theme='light'],
+.reddit-context.light-theme {
+  --frame-bg: var(--reddit-light-bg, var(--frame-bg-global));
+  --frame-surface: var(--reddit-light-surface, var(--frame-surface-global));
+  --frame-border: var(--reddit-light-border, var(--frame-border-global));
+  --frame-text-primary: var(--reddit-light-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--reddit-light-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--reddit-light-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--color-reddit-orange, var(--frame-accent-global));
+  --frame-accent-bg: var(--color-reddit-orange-dark, var(--frame-accent-bg-global));
+  --frame-link-color: var(--color-reddit-blue, var(--frame-link-color-global));
+  --frame-divider: var(--reddit-light-border, var(--frame-divider-global));
+  --frame-input-bg: var(--reddit-light-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--color-overlay-light, var(--frame-overlay-global));
+  --reddit-hover-bg: rgba(255, 69, 0, 0.08);
 }
 
 /* Instagram Context */
@@ -1317,18 +1371,36 @@
 
 /* TikTok Context */
 .tiktok-context {
-  --frame-bg: var(--tiktok-bg, var(--frame-bg-global));
-  --frame-surface: var(--tiktok-surface, var(--frame-surface-global));
-  --frame-border: var(--tiktok-border, var(--frame-border-global));
-  --frame-text-primary: var(--tiktok-text-primary, var(--frame-text-primary-global));
-  --frame-text-secondary: var(--tiktok-text-secondary, var(--frame-text-secondary-global));
-  --frame-text-muted: var(--tiktok-text-muted, var(--frame-text-muted-global));
-  --frame-accent: var(--tiktok-accent, var(--frame-accent-global));
-  --frame-accent-bg: var(--tiktok-accent-bg, var(--frame-accent-bg-global));
-  --frame-link-color: var(--tiktok-link-color, var(--frame-link-color-global));
-  --frame-divider: var(--tiktok-divider, var(--frame-divider-global));
-  --frame-input-bg: var(--tiktok-input-bg, var(--frame-input-bg-global));
-  --frame-overlay: var(--tiktok-overlay, var(--frame-overlay-global));
+  --frame-bg: var(--color-tiktok-dark-bg, var(--frame-bg-global));
+  --frame-surface: var(--color-tiktok-dark-surface, var(--frame-surface-global));
+  --frame-border: var(--color-tiktok-dark-border, var(--frame-border-global));
+  --frame-text-primary: var(--color-tiktok-dark-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--color-tiktok-dark-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--color-tiktok-dark-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--color-tiktok-pink, var(--frame-accent-global));
+  --frame-accent-bg: var(--color-tiktok-pink-dark, var(--frame-accent-bg-global));
+  --frame-link-color: var(--color-tiktok-cyan, var(--frame-link-color-global));
+  --frame-divider: var(--color-tiktok-dark-border, var(--frame-divider-global));
+  --frame-input-bg: var(--color-tiktok-dark-surface, var(--frame-input-bg-global));
+  --frame-overlay: var(--color-overlay-dark-heavy, var(--frame-overlay-global));
+  --tiktok-hover-bg: rgba(255, 255, 255, 0.1);
+}
+
+.tiktok-context[data-theme='light'],
+.tiktok-context.light-theme {
+  --frame-bg: var(--color-tiktok-light-bg, var(--frame-bg-global));
+  --frame-surface: var(--color-tiktok-light-surface, var(--frame-surface-global));
+  --frame-border: var(--color-tiktok-light-border, var(--frame-border-global));
+  --frame-text-primary: var(--color-tiktok-light-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--color-tiktok-light-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--color-tiktok-light-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--color-tiktok-pink, var(--frame-accent-global));
+  --frame-accent-bg: var(--color-tiktok-pink-dark, var(--frame-accent-bg-global));
+  --frame-link-color: var(--color-tiktok-cyan, var(--frame-link-color-global));
+  --frame-divider: var(--color-tiktok-light-border, var(--frame-divider-global));
+  --frame-input-bg: var(--color-tiktok-light-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--color-overlay-light, var(--frame-overlay-global));
+  --tiktok-hover-bg: rgba(0, 0, 0, 0.05);
 }
 
 /* WhatsApp Context */

@@ -616,6 +616,983 @@
 }
 
 /* ============================================================================
+   REDDIT CONTEXT FRAME IMPLEMENTATION
+   ============================================================================ */
+
+/**
+ * Reddit frame container with realistic styling
+ */
+.context-frame.reddit-context {
+  background: var(--color-reddit-dark-bg);
+  border: 1px solid var(--color-reddit-dark-border);
+  border-radius: 12px;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.context-frame.reddit-context.light-theme {
+  background: var(--color-reddit-light-bg);
+  border: 1px solid var(--color-reddit-light-border);
+}
+
+/* Reddit header/navigation bar */
+.reddit-context .reddit-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--color-reddit-dark-surface);
+  border-bottom: 1px solid var(--color-reddit-dark-border);
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.reddit-context.light-theme .reddit-header {
+  background: var(--color-reddit-light-surface);
+  border-bottom: 1px solid var(--color-reddit-light-border);
+}
+
+.reddit-context .reddit-logo {
+  width: 32px;
+  height: 32px;
+  background: var(--color-reddit-orange);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.reddit-context .reddit-search-bar {
+  flex: 1;
+  background: var(--color-reddit-dark-bg);
+  border: 1px solid var(--color-reddit-dark-border);
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 14px;
+  color: var(--color-reddit-dark-text-primary);
+  transition: all 0.2s ease;
+}
+
+.reddit-context.light-theme .reddit-search-bar {
+  background: var(--color-reddit-light-bg);
+  border-color: var(--color-reddit-light-border);
+  color: var(--color-reddit-light-text-primary);
+}
+
+/* Reddit post container */
+.reddit-context .reddit-post {
+  background: var(--color-reddit-dark-bg);
+  border: 1px solid var(--color-reddit-dark-border);
+  border-radius: 8px;
+  margin: 16px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.reddit-context.light-theme .reddit-post {
+  background: var(--color-reddit-light-bg);
+  border-color: var(--color-reddit-light-border);
+}
+
+/* Reddit voting section */
+.reddit-context .reddit-voting-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 8px;
+  background: var(--color-reddit-dark-surface);
+  min-width: 48px;
+  gap: 4px;
+  transition: background 0.2s ease;
+}
+
+.reddit-context.light-theme .reddit-voting-section {
+  background: var(--color-reddit-light-surface);
+}
+
+.reddit-context .reddit-vote-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.reddit-context .reddit-vote-btn:hover {
+  background: var(--reddit-hover-bg);
+}
+
+.reddit-context .reddit-upvote {
+  color: #ff4500;
+}
+
+.reddit-context .reddit-downvote {
+  color: #7193ff;
+}
+
+.reddit-context .reddit-vote-count {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-reddit-dark-text-primary);
+  transition: color 0.2s ease;
+}
+
+.reddit-context.light-theme .reddit-vote-count {
+  color: var(--color-reddit-light-text-primary);
+}
+
+/* Reddit post content */
+.reddit-context .reddit-post-content {
+  flex: 1;
+  padding: 12px 16px;
+}
+
+.reddit-context .reddit-post-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+
+.reddit-context .reddit-subreddit-link {
+  color: var(--color-reddit-dark-text-primary);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.reddit-context.light-theme .reddit-subreddit-link {
+  color: var(--color-reddit-light-text-primary);
+}
+
+.reddit-context .reddit-subreddit-link:hover {
+  text-decoration: underline;
+}
+
+.reddit-context .reddit-post-meta {
+  color: var(--color-reddit-dark-text-secondary);
+  font-size: 12px;
+  transition: color 0.2s ease;
+}
+
+.reddit-context.light-theme .reddit-post-meta {
+  color: var(--color-reddit-light-text-secondary);
+}
+
+.reddit-context .reddit-post-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-reddit-dark-text-primary);
+  line-height: 1.4;
+  margin-bottom: 8px;
+  transition: color 0.2s ease;
+}
+
+.reddit-context.light-theme .reddit-post-title {
+  color: var(--color-reddit-light-text-primary);
+}
+
+.reddit-context .reddit-post-text {
+  font-size: 14px;
+  color: var(--color-reddit-dark-text-primary);
+  line-height: 1.6;
+  margin-bottom: 12px;
+  transition: color 0.2s ease;
+}
+
+.reddit-context.light-theme .reddit-post-text {
+  color: var(--color-reddit-light-text-primary);
+}
+
+/* Reddit post actions */
+.reddit-context .reddit-post-actions {
+  display: flex;
+  gap: 4px;
+  padding: 8px 0;
+  border-top: 1px solid var(--color-reddit-dark-border);
+  margin-top: 8px;
+  transition: border-color 0.2s ease;
+}
+
+.reddit-context.light-theme .reddit-post-actions {
+  border-top-color: var(--color-reddit-light-border);
+}
+
+.reddit-context .reddit-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-reddit-dark-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.reddit-context.light-theme .reddit-action-btn {
+  color: var(--color-reddit-light-text-secondary);
+}
+
+.reddit-context .reddit-action-btn:hover {
+  background: var(--reddit-hover-bg);
+}
+
+.reddit-context .reddit-action-btn .icon {
+  font-size: 16px;
+}
+
+/* Reddit comments section */
+.reddit-context .reddit-comments-section {
+  background: var(--color-reddit-dark-bg);
+  border: 1px solid var(--color-reddit-dark-border);
+  border-radius: 8px;
+  margin: 0 16px 16px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.reddit-context.light-theme .reddit-comments-section {
+  background: var(--color-reddit-light-bg);
+  border-color: var(--color-reddit-light-border);
+}
+
+.reddit-context .reddit-comments-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-reddit-dark-border);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-reddit-dark-text-primary);
+  transition: all 0.2s ease;
+}
+
+.reddit-context.light-theme .reddit-comments-header {
+  border-bottom-color: var(--color-reddit-light-border);
+  color: var(--color-reddit-light-text-primary);
+}
+
+.reddit-context .reddit-comment {
+  display: flex;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-reddit-dark-border);
+  transition: border-color 0.2s ease;
+}
+
+.reddit-context.light-theme .reddit-comment {
+  border-bottom-color: var(--color-reddit-light-border);
+}
+
+.reddit-context .reddit-comment:last-child {
+  border-bottom: none;
+}
+
+.reddit-context .reddit-comment-avatar {
+  width: 32px;
+  height: 32px;
+  background: var(--color-reddit-dark-surface);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-reddit-orange);
+  flex-shrink: 0;
+  transition: background 0.2s ease;
+}
+
+.reddit-context.light-theme .reddit-comment-avatar {
+  background: var(--color-reddit-light-surface);
+}
+
+.reddit-context .reddit-comment-author {
+  font-weight: 600;
+  color: var(--color-reddit-dark-text-primary);
+  transition: color 0.2s ease;
+}
+
+.reddit-context.light-theme .reddit-comment-author {
+  color: var(--color-reddit-light-text-primary);
+}
+
+.reddit-context .reddit-comment-text {
+  font-size: 14px;
+  color: var(--color-reddit-dark-text-primary);
+  line-height: 1.5;
+  margin-bottom: 8px;
+  transition: color 0.2s ease;
+}
+
+.reddit-context.light-theme .reddit-comment-text {
+  color: var(--color-reddit-light-text-primary);
+}
+
+/* ============================================================================
+   YOUTUBE CONTEXT FRAME IMPLEMENTATION
+   ============================================================================ */
+
+/**
+ * YouTube frame container with realistic styling
+ */
+.context-frame.youtube-context {
+  background: var(--color-youtube-dark-bg);
+  border: 1px solid var(--color-youtube-dark-border);
+  border-radius: 12px;
+  overflow: hidden;
+  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.context-frame.youtube-context.light-theme {
+  background: var(--color-youtube-light-bg);
+  border: 1px solid var(--color-youtube-light-border);
+}
+
+/* YouTube video player section */
+.youtube-context .yt-video-player {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: #000;
+  overflow: hidden;
+}
+
+.youtube-context .yt-video-thumbnail {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.youtube-context .yt-play-button {
+  width: 68px;
+  height: 48px;
+  background: rgba(255, 0, 0, 0.9);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.youtube-context .yt-play-button:hover {
+  background: rgba(255, 0, 0, 1);
+  transform: scale(1.05);
+}
+
+.youtube-context .yt-play-button::after {
+  content: '';
+  width: 0;
+  height: 0;
+  border-left: 18px solid #fff;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  margin-left: 4px;
+}
+
+.youtube-context .yt-video-duration {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* YouTube video info section */
+.youtube-context .yt-video-info {
+  padding: 16px 0;
+  background: var(--color-youtube-dark-bg);
+  transition: background 0.2s ease;
+}
+
+.youtube-context.light-theme .yt-video-info {
+  background: var(--color-youtube-light-bg);
+}
+
+.youtube-context .yt-video-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--youtube-text-primary);
+  line-height: 1.3;
+  margin-bottom: 8px;
+  transition: color 0.2s ease;
+}
+
+.youtube-context .yt-video-stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--youtube-text-secondary);
+  margin-bottom: 12px;
+  transition: color 0.2s ease;
+}
+
+/* YouTube channel section */
+.youtube-context .yt-channel-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.youtube-context .yt-channel-avatar {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.youtube-context .yt-channel-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--youtube-text-primary);
+  transition: color 0.2s ease;
+}
+
+.youtube-context .yt-subscriber-count {
+  font-size: 12px;
+  color: var(--youtube-text-secondary);
+  transition: color 0.2s ease;
+}
+
+.youtube-context .yt-subscribe-btn {
+  padding: 10px 16px;
+  background: var(--youtube-text-primary);
+  color: var(--youtube-bg);
+  border: none;
+  border-radius: 18px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.youtube-context .yt-subscribe-btn:hover {
+  opacity: 0.9;
+}
+
+/* YouTube action buttons */
+.youtube-context .yt-action-buttons {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.youtube-context .yt-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--color-youtube-dark-surface);
+  border: none;
+  border-radius: 18px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--youtube-text-primary);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.youtube-context.light-theme .yt-action-btn {
+  background: var(--color-youtube-light-surface);
+}
+
+.youtube-context .yt-action-btn:hover {
+  background: var(--color-youtube-dark-border);
+}
+
+.youtube-context.light-theme .yt-action-btn:hover {
+  background: var(--color-youtube-light-border);
+}
+
+.youtube-context .yt-action-btn .icon {
+  font-size: 20px;
+}
+
+/* YouTube description section */
+.youtube-context .yt-description-section {
+  background: var(--color-youtube-dark-surface);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 16px;
+  transition: background 0.2s ease;
+}
+
+.youtube-context.light-theme .yt-description-section {
+  background: var(--color-youtube-light-surface);
+}
+
+.youtube-context .yt-description-text {
+  font-size: 14px;
+  color: var(--youtube-text-primary);
+  line-height: 1.6;
+  margin-bottom: 12px;
+  transition: color 0.2s ease;
+}
+
+.youtube-context .yt-description-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--youtube-text-secondary);
+  flex-wrap: wrap;
+  transition: color 0.2s ease;
+}
+
+/* YouTube link preview */
+.youtube-context .yt-link-preview {
+  background: var(--color-youtube-dark-bg);
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 12px 0;
+  display: flex;
+  border: 1px solid var(--color-youtube-dark-border);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.youtube-context.light-theme .yt-link-preview {
+  background: var(--color-youtube-light-bg);
+  border-color: var(--color-youtube-light-border);
+}
+
+.youtube-context .yt-link-preview:hover {
+  background: var(--color-youtube-dark-surface);
+}
+
+.youtube-context.light-theme .yt-link-preview:hover {
+  background: var(--color-youtube-light-surface);
+}
+
+.youtube-context .yt-link-preview-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--youtube-text-primary);
+  margin-bottom: 4px;
+  line-height: 1.3;
+  transition: color 0.2s ease;
+}
+
+.youtube-context .yt-link-preview-meta {
+  font-size: 12px;
+  color: var(--youtube-text-secondary);
+  transition: color 0.2s ease;
+}
+
+/* YouTube comments section */
+.youtube-context .yt-comments-section {
+  padding: 16px 0;
+  background: var(--color-youtube-dark-bg);
+}
+
+.youtube-context.light-theme .yt-comments-section {
+  background: var(--color-youtube-light-bg);
+}
+
+.youtube-context .yt-comments-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--youtube-text-primary);
+  transition: color 0.2s ease;
+}
+
+.youtube-context .yt-comments-count {
+  font-size: 14px;
+  color: var(--youtube-text-secondary);
+  transition: color 0.2s ease;
+}
+
+.youtube-context .yt-comment-author {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--youtube-text-primary);
+  transition: color 0.2s ease;
+}
+
+.youtube-context .yt-comment-text {
+  font-size: 14px;
+  color: var(--youtube-text-primary);
+  line-height: 1.4;
+  margin-bottom: 8px;
+  transition: color 0.2s ease;
+}
+
+/* ============================================================================
+   TIKTOK CONTEXT FRAME IMPLEMENTATION
+   ============================================================================ */
+
+/**
+ * TikTok frame container with realistic styling
+ */
+.context-frame.tiktok-context {
+  background: var(--color-tiktok-dark-bg);
+  border: 1px solid var(--color-tiktok-dark-border);
+  border-radius: 8px;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.context-frame.tiktok-context.light-theme {
+  background: var(--color-tiktok-light-bg);
+  border: 1px solid var(--color-tiktok-light-border);
+}
+
+/* TikTok video container */
+.tiktok-context .tt-video-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 9/16;
+  background: #000;
+  overflow: hidden;
+}
+
+.tiktok-context .tt-video-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.tiktok-context .tt-play-button {
+  width: 80px;
+  height: 80px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.tiktok-context .tt-play-button:hover {
+  transform: scale(1.1);
+  background: rgba(255, 255, 255, 1);
+}
+
+.tiktok-context .tt-play-button::after {
+  content: '';
+  width: 0;
+  height: 0;
+  border-left: 24px solid #000;
+  border-top: 14px solid transparent;
+  border-bottom: 14px solid transparent;
+  margin-left: 6px;
+}
+
+.tiktok-context.light-theme .tt-play-button {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.tiktok-context.light-theme .tt-play-button::after {
+  border-left-color: #fff;
+}
+
+/* TikTok progress bar */
+.tiktok-context .tt-progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.tiktok-context .tt-progress-fill {
+  height: 100%;
+  background: #fff;
+  width: 45%;
+}
+
+/* TikTok right sidebar actions */
+.tiktok-context .tt-right-sidebar {
+  position: absolute;
+  right: 12px;
+  bottom: 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  z-index: 10;
+}
+
+.tiktok-context .tt-action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.tiktok-context .tt-action-btn:hover {
+  transform: scale(1.1);
+}
+
+.tiktok-context .tt-action-icon {
+  font-size: 32px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.tiktok-context .tt-action-count {
+  font-size: 12px;
+  color: #fff;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.tiktok-context.light-theme .tt-action-count {
+  color: #000;
+  text-shadow: none;
+}
+
+/* TikTok bottom overlay */
+.tiktok-context .tt-bottom-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 60px;
+  padding: 16px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8) 60%);
+  color: #fff;
+  z-index: 5;
+}
+
+.tiktok-context.light-theme .tt-bottom-overlay {
+  background: linear-gradient(transparent, rgba(255, 255, 255, 0.9) 60%);
+}
+
+.tiktok-context .tt-avatar {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #ff0050 0%, #00f2ea 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  border: 2px solid #fff;
+  flex-shrink: 0;
+}
+
+.tiktok-context .tt-username {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tiktok-context.light-theme .tt-username {
+  color: #000;
+}
+
+.tiktok-context .tt-verified {
+  font-size: 14px;
+  color: #00f2ea;
+}
+
+.tiktok-context .tt-caption {
+  font-size: 14px;
+  color: #fff;
+  line-height: 1.4;
+  margin-bottom: 12px;
+  max-height: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tiktok-context.light-theme .tt-caption {
+  color: #000;
+}
+
+.tiktok-context .tt-hashtags {
+  color: #fff;
+  font-weight: 600;
+}
+
+.tiktok-context.light-theme .tt-hashtags,
+.tiktok-context.light-theme .tt-username,
+.tiktok-context.light-theme .tt-caption {
+  color: #000;
+}
+
+.tiktok-context .tt-music {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.tiktok-context.light-theme .tt-music {
+  color: rgba(0, 0, 0, 0.7);
+}
+
+/* TikTok link card */
+.tiktok-context .tt-link-card {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border-radius: 8px;
+  padding: 12px;
+  margin: 8px 0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.tiktok-context.light-theme .tt-link-card {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.tiktok-context .tt-link-card:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.tiktok-context.light-theme .tt-link-card:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.tiktok-context .tt-link-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.tiktok-context.light-theme .tt-link-card-title {
+  color: #000;
+}
+
+.tiktok-context .tt-link-card-desc {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.tiktok-context.light-theme .tt-link-card-desc {
+  color: rgba(0, 0, 0, 0.7);
+}
+
+/* TikTok comments section */
+.tiktok-context .tt-comments-section {
+  padding: 16px;
+  background: var(--color-tiktok-dark-bg);
+  border-top: 1px solid var(--color-tiktok-dark-border);
+}
+
+.tiktok-context.light-theme .tt-comments-section {
+  background: var(--color-tiktok-light-bg);
+  border-top-color: var(--color-tiktok-light-border);
+}
+
+.tiktok-context .tt-comments-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-tiktok-dark-text-primary);
+}
+
+.tiktok-context.light-theme .tt-comments-title {
+  color: var(--color-tiktok-light-text-primary);
+}
+
+.tiktok-context .tt-comments-count {
+  font-size: 14px;
+  color: var(--color-tiktok-dark-text-secondary);
+}
+
+.tiktok-context.light-theme .tt-comments-count {
+  color: var(--color-tiktok-light-text-secondary);
+}
+
+.tiktok-context .tt-comment-author {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-tiktok-dark-text-primary);
+}
+
+.tiktok-context.light-theme .tt-comment-author {
+  color: var(--color-tiktok-light-text-primary);
+}
+
+.tiktok-context .tt-comment-text {
+  font-size: 14px;
+  color: var(--color-tiktok-dark-text-primary);
+  line-height: 1.4;
+}
+
+.tiktok-context.light-theme .tt-comment-text {
+  color: var(--color-tiktok-light-text-primary);
+}
+
+.tiktok-context .tt-comment-action {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--color-tiktok-dark-text-secondary);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.tiktok-context.light-theme .tt-comment-action {
+  color: var(--color-tiktok-light-text-secondary);
+}
+
+.tiktok-context .tt-comment-action:hover {
+  color: var(--color-tiktok-dark-text-primary);
+}
+
+.tiktok-context.light-theme .tt-comment-action:hover {
+  color: var(--color-tiktok-light-text-primary);
+}
+
+/* ============================================================================
    TWITTER/X CONTEXT FRAME IMPLEMENTATION
    ============================================================================ */
 

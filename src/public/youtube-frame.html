@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube Platform Frame</title>
+  <link rel="stylesheet" href="frames-theme.css">
+  <link rel="stylesheet" href="social-platforms-frames.css">
+  <style>
+    /* Base styles - reset and body */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      background: var(--color-youtube-dark-bg);
+      color: var(--youtube-text-primary);
+      padding: 20px;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    .youtube-context {
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    /* Theme Toggle Button */
+    .theme-toggle-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      background: var(--color-youtube-red);
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      z-index: 1000;
+      transition: background 0.3s ease, transform 0.1s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .theme-toggle-btn:hover {
+      transform: scale(1.05);
+    }
+
+    /* YouTube specific inline styles */
+    .yt-video-player {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: #000;
+      overflow: hidden;
+    }
+
+    .yt-video-thumbnail {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .yt-play-button {
+      width: 68px;
+      height: 48px;
+      background: rgba(255, 0, 0, 0.9);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.1s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .yt-play-button:hover {
+      background: rgba(255, 0, 0, 1);
+      transform: scale(1.05);
+    }
+
+    .yt-play-button::after {
+      content: '';
+      width: 0;
+      height: 0;
+      border-left: 18px solid #fff;
+      border-top: 10px solid transparent;
+      border-bottom: 10px solid transparent;
+      margin-left: 4px;
+    }
+
+    .yt-video-duration {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      background: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      padding: 3px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .yt-video-controls {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+      padding: 8px 16px;
+    }
+
+    .yt-progress-container {
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 2px;
+      margin-bottom: 8px;
+      cursor: pointer;
+    }
+
+    .yt-progress-bar {
+      width: 45%;
+      height: 100%;
+      background: var(--color-youtube-red);
+      border-radius: 2px;
+    }
+
+    .yt-controls-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .yt-controls-left,
+    .yt-controls-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .yt-control-btn {
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 4px;
+      transition: transform 0.1s ease;
+    }
+
+    .yt-control-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .yt-volume-slider {
+      width: 60px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 2px;
+      position: relative;
+    }
+
+    .yt-volume-level {
+      width: 70%;
+      height: 100%;
+      background: #fff;
+      border-radius: 2px;
+    }
+
+    .yt-video-stats-divider {
+      width: 2px;
+      height: 2px;
+      background: var(--youtube-text-secondary);
+      border-radius: 50%;
+    }
+
+    .yt-channel-meta {
+      flex: 1;
+      padding: 0 12px;
+    }
+
+    .yt-description-meta {
+      display: flex;
+      gap: 16px;
+      font-size: 12px;
+      color: var(--youtube-text-secondary);
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .yt-link-preview {
+      background: var(--color-youtube-dark-surface);
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 12px 0;
+      display: flex;
+      border: 1px solid var(--color-youtube-dark-border);
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .yt-link-preview:hover {
+      background: var(--color-youtube-dark-bg);
+    }
+
+    .yt-link-preview-image {
+      width: 120px;
+      background: var(--color-youtube-dark-surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .duration {
+      position: absolute;
+      bottom: 4px;
+      right: 4px;
+      background: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .yt-link-preview-content {
+      flex: 1;
+      padding: 12px;
+    }
+
+    .show-more {
+      color: var(--youtube-text-secondary);
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .show-more:hover {
+      color: var(--youtube-text-primary);
+    }
+
+    .yt-comments-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .yt-comments-count {
+      color: var(--youtube-text-secondary);
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .yt-comment {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .yt-comment-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .yt-comment-header {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .yt-comment-time {
+      font-size: 12px;
+      color: var(--youtube-text-secondary);
+    }
+
+    .yt-comment-actions {
+      display: flex;
+      gap: 16px;
+      margin-top: 8px;
+    }
+
+    .yt-comment-action {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      color: var(--youtube-text-secondary);
+      cursor: pointer;
+      background: transparent;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 18px;
+      transition: background 0.2s ease;
+    }
+
+    .yt-comment-action:hover {
+      background: var(--color-youtube-dark-surface);
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle-btn" onclick="toggleTheme()">🌓 Toggle Theme</button>
+
+  <div class="youtube-context context-frame">
+    <!-- Video Player Section -->
+    <div class="yt-video-player">
+      <div class="yt-video-thumbnail">
+        <div class="yt-play-button"></div>
+        <div class="yt-video-duration">10:35</div>
+      </div>
+
+      <div class="yt-video-controls">
+        <div class="yt-progress-container">
+          <div class="yt-progress-bar"></div>
+        </div>
+
+        <div class="yt-controls-row">
+          <div class="yt-controls-left">
+            <button class="yt-control-btn">⏮</button>
+            <button class="yt-control-btn">▶️</button>
+            <button class="yt-control-btn">⏭</button>
+            <button class="yt-control-btn">🔊</button>
+            <div class="yt-volume-slider">
+              <div class="yt-volume-level"></div>
+            </div>
+          </div>
+          <div class="yt-controls-right">
+            <button class="yt-control-btn">⚙️</button>
+            <button class="yt-control-btn">⛶</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Video Info Section -->
+    <div class="yt-video-info" style="padding: 16px;">
+      <div class="yt-video-title">Complete Web Development Tutorial - Build a Full Stack App from Scratch</div>
+
+      <div class="yt-video-stats">
+        <span>1.2M views</span>
+        <div class="yt-video-stats-divider"></div>
+        <span>3 days ago</span>
+        <div class="yt-video-stats-divider"></div>
+        <span>#webdev #tutorial #javascript</span>
+      </div>
+
+      <!-- Channel Section -->
+      <div class="yt-channel-section">
+        <div class="yt-channel-info">
+          <div class="yt-channel-avatar">TC</div>
+          <div class="yt-channel-meta">
+            <div class="yt-channel-name">TechCode Academy</div>
+            <div class="yt-subscriber-count">2.4M subscribers</div>
+          </div>
+        </div>
+        <button class="yt-subscribe-btn">Subscribe</button>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="yt-action-buttons">
+        <button class="yt-action-btn">
+          <span class="icon">👍</span>
+          <span>42K</span>
+        </button>
+        <button class="yt-action-btn">
+          <span class="icon">👎</span>
+          <span></span>
+        </button>
+        <button class="yt-action-btn">
+          <span class="icon">↗️</span>
+          <span>Share</span>
+        </button>
+        <button class="yt-action-btn">
+          <span class="icon">⬇️</span>
+          <span>Download</span>
+        </button>
+        <button class="yt-action-btn">
+          <span class="icon">✂️</span>
+          <span>Clip</span>
+        </button>
+        <button class="yt-action-btn">
+          <span class="icon">💾</span>
+          <span>Save</span>
+        </button>
+        <button class="yt-action-btn">
+          <span class="icon">⋮</span>
+        </button>
+      </div>
+
+      <!-- Description Section -->
+      <div class="yt-description-section">
+        <div class="yt-description-text">
+          In this comprehensive tutorial, we'll build a complete full-stack web application from scratch using modern technologies. You'll learn everything from setup to deployment.
+          <span class="show-more">...more</span>
+        </div>
+
+        <div class="yt-description-meta">
+          <span>👁️ 1.2M views</span>
+          <span>📅 3 days ago</span>
+          <span>🔗 #webdev #tutorial #javascript #react #nodejs</span>
+        </div>
+
+        <!-- Embedded Link Preview 1 -->
+        <div class="yt-link-preview">
+          <div class="yt-link-preview-image">
+            <span style="font-size: 24px;">▶️</span>
+            <div class="duration">8:24</div>
+          </div>
+          <div class="yt-link-preview-content">
+            <div class="yt-link-preview-title">Part 1: Setting Up Your Development Environment</div>
+            <div class="yt-link-preview-meta">
+              <span class="channel">TechCode Academy</span>
+              <span>•</span>
+              <span>856K views</span>
+              <span>•</span>
+              <span>1 week ago</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Embedded Link Preview 2 -->
+        <div class="yt-link-preview">
+          <div class="yt-link-preview-image">
+            <span style="font-size: 24px;">📄</span>
+          </div>
+          <div class="yt-link-preview-content">
+            <div class="yt-link-preview-title">GitHub Repository - Complete Source Code</div>
+            <div class="yt-link-preview-meta">
+              <span class="channel">github.com</span>
+              <span>•</span>
+              <span>External Link</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Comments Section -->
+    <div class="yt-comments-section" style="padding: 16px;">
+      <div class="yt-comments-header">
+        <div class="yt-comments-title">2,847 Comments</div>
+        <div class="yt-comments-count">🕐 Sort by</div>
+      </div>
+
+      <div class="yt-comment">
+        <div class="yt-comment-avatar">JD</div>
+        <div class="yt-comment-meta">
+          <div class="yt-comment-header">
+            <span class="yt-comment-author">JohnDeveloper</span>
+            <span class="yt-comment-time">2 hours ago</span>
+          </div>
+          <div class="yt-comment-text">This is exactly what I needed! The explanation is so clear and thorough. Finally understand how everything connects together.</div>
+          <div class="yt-comment-actions">
+            <div class="yt-comment-action">👍 234</div>
+            <div class="yt-comment-action">👎</div>
+            <div class="yt-comment-action">💬 Reply</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="yt-comment">
+        <div class="yt-comment-avatar">SC</div>
+        <div class="yt-comment-meta">
+          <div class="yt-comment-header">
+            <span class="yt-comment-author">SarahCoder</span>
+            <span class="yt-comment-time">5 hours ago</span>
+          </div>
+          <div class="yt-comment-text">Can you please make a follow-up video on authentication? That would be amazing!</div>
+          <div class="yt-comment-actions">
+            <div class="yt-comment-action">👍 156</div>
+            <div class="yt-comment-action">👎</div>
+            <div class="yt-comment-action">💬 Reply</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="yt-comment">
+        <div class="yt-comment-avatar">ME</div>
+        <div class="yt-comment-meta">
+          <div class="yt-comment-header">
+            <span class="yt-comment-author">MikeEngineer</span>
+            <span class="yt-comment-time">1 day ago</span>
+          </div>
+          <div class="yt-comment-text">Been following your channel for years. This is your best tutorial yet! The production quality and teaching style are top-notch.</div>
+          <div class="yt-comment-actions">
+            <div class="yt-comment-action">👍 89</div>
+            <div class="yt-comment-action">👎</div>
+            <div class="yt-comment-action">💬 Reply</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentTheme = 'dark';
+
+    function toggleTheme() {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      localStorage.setItem('vista-theme', currentTheme);
+    }
+
+    // Initialize with saved theme preference
+    const savedTheme = localStorage.getItem('vista-theme') || 'dark';
+    currentTheme = savedTheme;
+    document.documentElement.setAttribute('data-theme', currentTheme);
+
+    // Listen for system theme changes
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      if (!localStorage.getItem('vista-theme')) {
+        currentTheme = e.matches ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', currentTheme);
+      }
+    });
+  </script>
+</body>
+</html>

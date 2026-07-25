@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Four Platforms Integration</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a1e;
+      color: #e4e4e7;
+      padding: 20px;
+    }
+
+    .test-container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .test-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .test-header h1 {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .test-header p {
+      color: #a1a1aa;
+      font-size: 16px;
+    }
+
+    .platform-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .platform-frame {
+      border: 2px solid #3a3a3f;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #0f0f0f;
+    }
+
+    .platform-frame-header {
+      background: #25252a;
+      padding: 12px 16px;
+      border-bottom: 1px solid #3a3a3f;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .platform-name {
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .platform-status {
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      background: #2d2d33;
+    }
+
+    .platform-status.success {
+      background: #1a472a;
+      color: #4ade80;
+    }
+
+    .platform-frame-content {
+      height: 400px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .platform-frame-content iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .test-controls {
+      background: #25252a;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    .test-controls h3 {
+      margin-bottom: 15px;
+      font-size: 18px;
+    }
+
+    .control-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .control-btn {
+      padding: 10px 20px;
+      background: #4f46e5;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background 0.2s ease;
+    }
+
+    .control-btn:hover {
+      background: #4338ca;
+    }
+
+    .control-btn.secondary {
+      background: #3a3a3f;
+    }
+
+    .control-btn.secondary:hover {
+      background: #4a4a4f;
+    }
+
+    .test-results {
+      background: #25252a;
+      padding: 20px;
+      border-radius: 12px;
+    }
+
+    .test-results h3 {
+      margin-bottom: 15px;
+      font-size: 18px;
+    }
+
+    .result-item {
+      padding: 10px;
+      margin-bottom: 8px;
+      background: #2d2d33;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .result-item.success {
+      border-left: 3px solid #4ade80;
+    }
+
+    .result-item.error {
+      border-left: 3px solid #ef4444;
+    }
+
+    .result-icon {
+      font-size: 18px;
+    }
+
+    .result-text {
+      flex: 1;
+      font-size: 14px;
+    }
+
+    .theme-indicator {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+
+    .theme-indicator.dark {
+      background: #0f0f0f;
+      border: 2px solid #3a3a3f;
+    }
+
+    .theme-indicator.light {
+      background: #ffffff;
+      border: 2px solid #e5e7eb;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <div class="test-header">
+      <h1>🧪 Four Platforms Integration Test</h1>
+      <p>Testing Reddit, Twitter/X, YouTube, and TikTok frames with theme switching</p>
+    </div>
+
+    <div class="test-controls">
+      <h3>Test Controls</h3>
+      <div class="control-row">
+        <button class="control-btn" onclick="testThemeSwitching()">🎨 Test Theme Switching</button>
+        <button class="control-btn secondary" onclick="testCSSVariables()">🔍 Test CSS Variables</button>
+        <button class="control-btn secondary" onclick="testFrameStructure()">🏗️ Test Frame Structure</button>
+        <button class="control-btn secondary" onclick="resetAll()">🔄 Reset All</button>
+      </div>
+      <div class="control-row">
+        <button class="control-btn secondary" onclick="setAllDark()">🌙 Set All Dark</button>
+        <button class="control-btn secondary" onclick="setAllLight()">☀️ Set All Light</button>
+      </div>
+    </div>
+
+    <div class="test-results">
+      <h3>Test Results</h3>
+      <div id="results-container">
+        <div class="result-item success">
+          <span class="result-icon">✅</span>
+          <span class="result-text">Test initialized - Ready to run integration tests</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="platform-grid">
+      <div class="platform-frame">
+        <div class="platform-frame-header">
+          <span class="platform-name">📱 Reddit Frame</span>
+          <span class="platform-status" id="reddit-status">Ready</span>
+        </div>
+        <div class="platform-frame-content">
+          <iframe id="reddit-frame" src="reddit-frame.html"></iframe>
+        </div>
+      </div>
+
+      <div class="platform-frame">
+        <div class="platform-frame-header">
+          <span class="platform-name">🐦 Twitter/X Frame</span>
+          <span class="platform-status" id="twitter-status">Ready</span>
+        </div>
+        <div class="platform-frame-content">
+          <iframe id="twitter-frame" src="twitter-frame.html"></iframe>
+        </div>
+      </div>
+
+      <div class="platform-frame">
+        <div class="platform-frame-header">
+          <span class="platform-name">📺 YouTube Frame</span>
+          <span class="platform-status" id="youtube-status">Ready</span>
+        </div>
+        <div class="platform-frame-content">
+          <iframe id="youtube-frame" src="youtube-frame.html"></iframe>
+        </div>
+      </div>
+
+      <div class="platform-frame">
+        <div class="platform-frame-header">
+          <span class="platform-name">🎵 TikTok Frame</span>
+          <span class="platform-status" id="tiktok-status">Ready</span>
+        </div>
+        <div class="platform-frame-content">
+          <iframe id="tiktok-frame" src="tiktok-frame.html"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const platforms = ['reddit', 'twitter', 'youtube', 'tiktok'];
+    let currentTheme = 'dark';
+
+    function addResult(message, success = true) {
+      const container = document.getElementById('results-container');
+      const resultItem = document.createElement('div');
+      resultItem.className = `result-item ${success ? 'success' : 'error'}`;
+      resultItem.innerHTML = `
+        <span class="result-icon">${success ? '✅' : '❌'}</span>
+        <span class="result-text">${message}</span>
+      `;
+      container.insertBefore(resultItem, container.firstChild);
+    }
+
+    function updatePlatformStatus(platform, status, success = true) {
+      const statusEl = document.getElementById(`${platform}-status`);
+      if (statusEl) {
+        statusEl.textContent = status;
+        statusEl.className = `platform-status ${success ? 'success' : ''}`;
+      }
+    }
+
+    function testThemeSwitching() {
+      addResult('🎨 Starting theme switching test...');
+
+      platforms.forEach(platform => {
+        try {
+          const frame = document.getElementById(`${platform}-frame`);
+          if (frame && frame.contentWindow) {
+            // Try to access the iframe's theme toggle
+            frame.contentWindow.postMessage({ type: 'toggle-theme' }, '*');
+            updatePlatformStatus(platform, 'Theme switched', true);
+            addResult(`${platform.charAt(0).toUpperCase() + platform.slice(1)}: Theme toggle executed`, true);
+          } else {
+            updatePlatformStatus(platform, 'Frame not ready', false);
+            addResult(`${platform.charAt(0).toUpperCase() + platform.slice(1)}: Frame not accessible`, false);
+          }
+        } catch (error) {
+          updatePlatformStatus(platform, 'Error', false);
+          addResult(`${platform.charAt(0).toUpperCase() + platform.slice(1)}: ${error.message}`, false);
+        }
+      });
+    }
+
+    function testCSSVariables() {
+      addResult('🔍 Testing CSS variable definitions...');
+
+      const testVariables = [
+        'reddit': ['--color-reddit-orange', '--color-reddit-dark-bg', '--color-reddit-light-bg'],
+        'twitter': ['--color-twitter-blue', '--color-twitter-black', '--color-twitter-dark-surface'],
+        'youtube': ['--color-youtube-red', '--color-youtube-dark-bg', '--youtube-text-primary'],
+        'tiktok': ['--color-tiktok-pink', '--color-tiktok-dark-bg', '--color-tiktok-light-bg']
+      ];
+
+      platforms.forEach(platform => {
+        try {
+          const frame = document.getElementById(`${platform}-frame`);
+          if (frame && frame.contentWindow && frame.contentWindow.document) {
+            const doc = frame.contentWindow.document;
+            const vars = testVariables[platform];
+            let allFound = true;
+
+            vars.forEach(varName => {
+              const computed = getComputedStyle(doc.documentElement).getPropertyValue(varName);
+              if (!computed) {
+                allFound = false;
+                addResult(`${platform}: Missing ${varName}`, false);
+              }
+            });
+
+            if (allFound) {
+              updatePlatformStatus(platform, 'CSS OK', true);
+              addResult(`${platform.charAt(0).toUpperCase() + platform.slice(1)}: All CSS variables defined`, true);
+            }
+          }
+        } catch (error) {
+          addResult(`${platform}: Could not access CSS - ${error.message}`, false);
+        }
+      });
+    }
+
+    function testFrameStructure() {
+      addResult('🏗️ Testing frame structure...');
+
+      platforms.forEach(platform => {
+        try {
+          const frame = document.getElementById(`${platform}-frame`);
+          if (frame && frame.contentWindow && frame.contentWindow.document) {
+            const doc = frame.contentWindow.document;
+            const contextFrame = doc.querySelector('.context-frame, .' + platform + '-context');
+            const themeToggle = doc.querySelector('.theme-toggle-btn');
+
+            let issues = [];
+            if (!contextFrame) issues.push('missing context-frame');
+            if (!themeToggle) issues.push('missing theme toggle');
+
+            if (issues.length === 0) {
+              updatePlatformStatus(platform, 'Structure OK', true);
+              addResult(`${platform.charAt(0).toUpperCase() + platform.slice(1)}: Frame structure valid`, true);
+            } else {
+              updatePlatformStatus(platform, 'Issues found', false);
+              addResult(`${platform}: ${issues.join(', ')}`, false);
+            }
+          }
+        } catch (error) {
+          addResult(`${platform}: Structure test failed - ${error.message}`, false);
+        }
+      });
+    }
+
+    function setAllDark() {
+      platforms.forEach(platform => {
+        try {
+          localStorage.setItem('vista-theme', 'dark');
+          const frame = document.getElementById(`${platform}-frame`);
+          if (frame && frame.contentWindow) {
+            frame.contentWindow.postMessage({ type: 'set-theme', theme: 'dark' }, '*');
+          }
+          updatePlatformStatus(platform, 'Dark theme', true);
+        } catch (error) {
+          addResult(`${platform}: Could not set dark theme`, false);
+        }
+      });
+      addResult('🌙 All platforms set to dark theme', true);
+    }
+
+    function setAllLight() {
+      platforms.forEach(platform => {
+        try {
+          localStorage.setItem('vista-theme', 'light');
+          const frame = document.getElementById(`${platform}-frame`);
+          if (frame && frame.contentWindow) {
+            frame.contentWindow.postMessage({ type: 'set-theme', theme: 'light' }, '*');
+          }
+          updatePlatformStatus(platform, 'Light theme', true);
+        } catch (error) {
+          addResult(`${platform}: Could not set light theme`, false);
+        }
+      });
+      addResult('☀️ All platforms set to light theme', true);
+    }
+
+    function resetAll() {
+      localStorage.removeItem('vista-theme');
+      platforms.forEach(platform => {
+        updatePlatformStatus(platform, 'Ready');
+        try {
+          const frame = document.getElementById(`${platform}-frame`);
+          if (frame) {
+            frame.src = frame.src; // Force reload
+          }
+        } catch (error) {
+          // Ignore
+        }
+      });
+
+      document.getElementById('results-container').innerHTML = `
+        <div class="result-item success">
+          <span class="result-icon">✅</span>
+          <span class="result-text">Test reset complete</span>
+        </div>
+      `;
+      addResult('🔄 All platforms reset to default state', true);
+    }
+
+    // Auto-run basic tests when frames load
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        addResult('📋 Frames loaded - Running basic structure check...');
+        testFrameStructure();
+      }, 2000);
+    });
+  </script>
+</body>
+</html>

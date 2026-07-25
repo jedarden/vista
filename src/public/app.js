@@ -2672,56 +2672,63 @@ function renderPlatformWithContext(pid, meta, imageProbe, baseUrl, theme = 'dark
     contentData.cardHTML = '';
   }
 
-  // Use platform-frames configuration system for frame selection
-  // This integrates with the platform-frames.config.ts mapping structure
-  // The JavaScript PLATFORM_FRAMES object mirrors the TypeScript PLATFORM_FRAMES_CONFIG
+  // ── Frame resolution via the centralized platform-frames config ──
+  // PLATFORM_FRAMES_CONFIG (mirrored from src/platform-frames.config.ts and
+  // exposed as the getPlatformFrameConfig() global by platform-frames-config.js)
+  // is the single source of truth for which platforms are "wired" into the
+  // context-frame system. We resolve the platform's frame metadata here and
+  // route rendering through the centralized rendering context.
   try {
-    if (typeof buildContextFrame === 'function' && typeof getPlatformFrame === 'function') {
-      // Validate PLATFORM_FRAMES exists before accessing it
-      if (typeof PLATFORM_FRAMES === 'undefined') {
-        console.warn('[renderPlatformWithContext] PLATFORM_FRAMES not defined, using fallback');
-        return renderPlatformWithContextLegacy(pid, ogTitle, ogDesc, ogImage, domain, ogSite, theme, dominantColor, meta, imageProbe, baseUrl);
-      }
+    // Resolve frame metadata from the config. If the runtime mirror isn't
+    // loaded, treat the platform as absent and fall back safely.
+    const frameConfig = (typeof getPlatformFrameConfig === 'function')
+      ? getPlatformFrameConfig(pid)
+      : undefined;
 
-      // Check if platform exists in PLATFORM_FRAMES mapping BEFORE calling getPlatformFrame
-      // This handles the mapping lookup correctly for all platforms
-      if (!PLATFORM_FRAMES[pid]) {
-        console.warn(`[renderPlatformWithContext] Unknown platform: ${pid}, using fallback frame`);
-        // Use generic fallback frame for unknown platforms
-        return renderGenericContextFrame(pid, contentData, theme);
-      }
-
-      // Platform exists in mapping - now safe to call getPlatformFrame
-      const platformFrame = getPlatformFrame(pid);
-
-      // Validate the returned frame object has required properties
-      if (!platformFrame || typeof platformFrame !== 'object' || !platformFrame.chrome) {
-        console.warn(`[renderPlatformWithContext] Invalid frame configuration for ${pid}, using fallback`);
-        return renderGenericContextFrame(pid, contentData, theme);
-      }
-
-      // Build context frame using platform-specific configuration
-      // Wrap in try-catch for additional safety during frame building
-      try {
-        const frameHTML = buildContextFrame(pid, contentData, theme);
-
-        // Validate that buildContextFrame returned valid HTML
-        if (!frameHTML || typeof frameHTML !== 'string') {
-          console.warn(`[renderPlatformWithContext] buildContextFrame returned invalid result for ${pid}, using fallback`);
-          return renderGenericContextFrame(pid, contentData, theme);
-        }
-
-        // Return the complete frame with embedded card content
-        // The frame structure wraps around the link preview/card content
-        return frameHTML;
-      } catch (buildError) {
-        // Catch errors specifically from buildContextFrame
-        console.warn(`[renderPlatformWithContext] Error building frame for ${pid}: ${buildError.message}, using fallback`);
-        return renderGenericContextFrame(pid, contentData, theme);
-      }
-    } else {
-      // Fallback if platform-frames module not loaded
+    // A platform absent from the config is not wired — fall back to the legacy
+    // renderer (which itself degrades gracefully to a generic frame). Never throw.
+    if (!frameConfig) {
+      console.warn(`[renderPlatformWithContext] Platform "${pid}" not in PLATFORM_FRAMES_CONFIG, using legacy fallback`);
       return renderPlatformWithContextLegacy(pid, ogTitle, ogDesc, ogImage, domain, ogSite, theme, dominantColor, meta, imageProbe, baseUrl);
+    }
+
+    // Wire config-derived metadata into the centralized rendering context so
+    // downstream frame builders (buildContextFrame) receive frameType and
+    // aspectRatio sourced from platform-frames.config.ts.
+    contentData.frameType = frameConfig.frameType;
+    contentData.aspectRatio = frameConfig.aspectRatio;
+    contentData.hasThemeSupport = frameConfig.hasThemeSupport;
+
+    // Route through the centralized rendering context. Require the runtime frame
+    // module (platform-frames.js) to be loaded before proceeding.
+    if (typeof buildContextFrame !== 'function' || typeof getPlatformFrame !== 'function' || typeof PLATFORM_FRAMES === 'undefined') {
+      console.warn('[renderPlatformWithContext] platform-frames runtime not loaded, using legacy fallback');
+      return renderPlatformWithContextLegacy(pid, ogTitle, ogDesc, ogImage, domain, ogSite, theme, dominantColor, meta, imageProbe, baseUrl);
+    }
+
+    // Config says the platform is wired; confirm the runtime has its frame data.
+    const platformFrame = getPlatformFrame(pid);
+    if (!platformFrame || typeof platformFrame !== 'object' || !platformFrame.chrome) {
+      console.warn(`[renderPlatformWithContext] Invalid frame configuration for ${pid}, using fallback`);
+      return renderGenericContextFrame(pid, contentData, theme);
+    }
+
+    // Build the context frame using platform-specific configuration.
+    try {
+      const frameHTML = buildContextFrame(pid, contentData, theme);
+
+      // Validate that buildContextFrame returned valid HTML
+      if (!frameHTML || typeof frameHTML !== 'string') {
+        console.warn(`[renderPlatformWithContext] buildContextFrame returned invalid result for ${pid}, using fallback`);
+        return renderGenericContextFrame(pid, contentData, theme);
+      }
+
+      // Return the complete frame with embedded card content
+      return frameHTML;
+    } catch (buildError) {
+      // Catch errors specifically from buildContextFrame
+      console.warn(`[renderPlatformWithContext] Error building frame for ${pid}: ${buildError.message}, using fallback`);
+      return renderGenericContextFrame(pid, contentData, theme);
     }
   } catch (e) {
     // Final catch-all for any unexpected errors

@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube Video Context Frame</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+      background: #f9f9f9;
+      color: #0f0f0f;
+      padding: 20px;
+    }
+
+    .youtube-context {
+      max-width: 680px;
+      background: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Video Player Chrome Section */
+    .yt-video-player {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: #000;
+      overflow: hidden;
+    }
+
+    .yt-video-thumbnail {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .yt-play-button {
+      width: 68px;
+      height: 48px;
+      background: rgba(255, 0, 0, 0.9);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .yt-play-button:hover {
+      background: rgba(255, 0, 0, 1);
+    }
+
+    .yt-play-button::after {
+      content: '';
+      width: 0;
+      height: 0;
+      border-left: 18px solid #fff;
+      border-top: 10px solid transparent;
+      border-bottom: 10px solid transparent;
+      margin-left: 4px;
+    }
+
+    .yt-video-duration {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      background: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      padding: 3px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    /* Video Controls Overlay */
+    .yt-video-controls {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
+      padding: 12px 16px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .yt-video-player:hover .yt-video-controls {
+      opacity: 1;
+    }
+
+    /* Progress Bar */
+    .yt-progress-container {
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 2px;
+      margin-bottom: 10px;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .yt-progress-bar {
+      height: 100%;
+      background: #ff0000;
+      border-radius: 2px;
+      width: 35%;
+      position: relative;
+    }
+
+    .yt-progress-bar::after {
+      content: '';
+      position: absolute;
+      right: -6px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 12px;
+      height: 12px;
+      background: #ff0000;
+      border-radius: 50%;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .yt-progress-container:hover .yt-progress-bar::after {
+      opacity: 1;
+    }
+
+    /* Control Buttons */
+    .yt-controls-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .yt-controls-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .yt-controls-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .yt-control-btn {
+      width: 32px;
+      height: 32px;
+      background: transparent;
+      border: none;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-radius: 50%;
+      transition: background 0.2s ease;
+      font-size: 16px;
+    }
+
+    .yt-control-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .yt-volume-slider {
+      width: 60px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 2px;
+      position: relative;
+    }
+
+    .yt-volume-level {
+      height: 100%;
+      background: #fff;
+      border-radius: 2px;
+      width: 70%;
+    }
+
+    /* Video Info Section */
+    .yt-video-info {
+      padding: 16px;
+      background: #fff;
+    }
+
+    .yt-video-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #0f0f0f;
+      line-height: 1.4;
+      margin-bottom: 8px;
+    }
+
+    .yt-video-stats {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      color: #606060;
+      margin-bottom: 12px;
+    }
+
+    .yt-video-stats-divider {
+      width: 1px;
+      height: 12px;
+      background: #606060;
+    }
+
+    /* Channel Section */
+    .yt-channel-section {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .yt-channel-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .yt-channel-avatar {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .yt-channel-meta {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .yt-channel-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #0f0f0f;
+    }
+
+    .yt-subscriber-count {
+      font-size: 12px;
+      color: #606060;
+    }
+
+    .yt-subscribe-btn {
+      padding: 8px 16px;
+      background: #000;
+      color: #fff;
+      border: none;
+      border-radius: 18px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .yt-subscribe-btn:hover {
+      background: #303030;
+    }
+
+    /* Action Buttons */
+    .yt-action-buttons {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .yt-action-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      background: #f9f9f9;
+      border: none;
+      border-radius: 18px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #0f0f0f;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .yt-action-btn:hover {
+      background: #e5e5e5;
+    }
+
+    .yt-action-btn .icon {
+      font-size: 16px;
+    }
+
+    /* Description Section */
+    .yt-description-section {
+      background: #f9f9f9;
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 16px;
+    }
+
+    .yt-description-text {
+      font-size: 14px;
+      color: #0f0f0f;
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+
+    .yt-description-text .show-more {
+      color: #0f0f0f;
+      font-weight: 500;
+      cursor: pointer;
+      margin-left: 4px;
+    }
+
+    .yt-description-meta {
+      display: flex;
+      gap: 16px;
+      font-size: 12px;
+      color: #606060;
+      flex-wrap: wrap;
+    }
+
+    .yt-description-meta span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Link Cards in Description */
+    .yt-link-card {
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 12px 0;
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+      transition: box-shadow 0.2s ease;
+    }
+
+    .yt-link-card:hover {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .yt-link-card-image {
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .yt-link-card-image .duration {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      background: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      padding: 3px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .yt-link-card-content {
+      padding: 12px;
+    }
+
+    .yt-link-card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #0f0f0f;
+      margin-bottom: 4px;
+      line-height: 1.3;
+    }
+
+    .yt-link-card-meta {
+      font-size: 12px;
+      color: #606060;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .yt-link-card-meta .channel {
+      font-weight: 500;
+    }
+
+    /* Comments Section */
+    .yt-comments-section {
+      padding: 16px;
+      background: #fff;
+    }
+
+    .yt-comments-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .yt-comments-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #0f0f0f;
+    }
+
+    .yt-comments-count {
+      font-size: 14px;
+      color: #606060;
+    }
+
+    .yt-comment {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .yt-comment-avatar {
+      width: 36px;
+      height: 36px;
+      background: #e0e0e0;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #606060;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .yt-comment-meta {
+      flex: 1;
+    }
+
+    .yt-comment-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .yt-comment-author {
+      font-size: 13px;
+      font-weight: 600;
+      color: #0f0f0f;
+    }
+
+    .yt-comment-time {
+      font-size: 12px;
+      color: #606060;
+    }
+
+    .yt-comment-text {
+      font-size: 14px;
+      color: #0f0f0f;
+      line-height: 1.4;
+      margin-bottom: 8px;
+    }
+
+    .yt-comment-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 12px;
+      color: #606060;
+    }
+
+    .yt-comment-action {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: background 0.2s ease;
+    }
+
+    .yt-comment-action:hover {
+      background: #f9f9f9;
+    }
+  </style>
+</head>
+<body>
+  <div class="youtube-context">
+    <!-- Video Player Chrome Section -->
+    <div class="yt-video-player">
+      <div class="yt-video-thumbnail">
+        <div class="yt-play-button"></div>
+        <div class="yt-video-duration">10:35</div>
+      </div>
+
+      <div class="yt-video-controls">
+        <!-- Progress Bar -->
+        <div class="yt-progress-container">
+          <div class="yt-progress-bar"></div>
+        </div>
+
+        <!-- Control Buttons -->
+        <div class="yt-controls-row">
+          <div class="yt-controls-left">
+            <button class="yt-control-btn">⏮</button>
+            <button class="yt-control-btn">▶️</button>
+            <button class="yt-control-btn">⏭</button>
+            <div class="yt-volume-slider">
+              <div class="yt-volume-level"></div>
+            </div>
+          </div>
+          <div class="yt-controls-right">
+            <button class="yt-control-btn">🔊</button>
+            <button class="yt-control-btn">⚙️</button>
+            <button class="yt-control-btn">⛶</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Video Info Section -->
+    <div class="yt-video-info">
+      <div class="yt-video-title">Complete Web Development Tutorial - Build a Full Stack App from Scratch</div>
+
+      <div class="yt-video-stats">
+        <span>1.2M views</span>
+        <div class="yt-video-stats-divider"></div>
+        <span>3 days ago</span>
+        <div class="yt-video-stats-divider"></div>
+        <span>#webdev #tutorial #javascript</span>
+      </div>
+
+      <!-- Channel Section -->
+      <div class="yt-channel-section">
+        <div class="yt-channel-info">
+          <div class="yt-channel-avatar">TC</div>
+          <div class="yt-channel-meta">
+            <div class="yt-channel-name">TechCode Academy</div>
+            <div class="yt-subscriber-count">2.4M subscribers</div>
+          </div>
+        </div>
+        <button class="yt-subscribe-btn">Subscribe</button>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="yt-action-buttons">
+        <button class="yt-action-btn">
+          <span class="icon">👍</span>
+          <span>42K</span>
+        </button>
+        <button class="yt-action-btn">
+          <span class="icon">👎</span>
+          <span>Dislike</span>
+        </button>
+        <button class="yt-action-btn">
+          <span class="icon">↗️</span>
+          <span>Share</span>
+        </button>
+        <button class="yt-action-btn">
+          <span class="icon">⬇️</span>
+          <span>Download</span>
+        </button>
+        <button class="yt-action-btn">
+          <span class="icon">✂️</span>
+          <span>Clip</span>
+        </button>
+        <button class="yt-action-btn">
+          <span class="yt-control-btn" style="width: 28px; height: 28px;">⋮</span>
+        </button>
+      </div>
+
+      <!-- Description Section with Link Cards -->
+      <div class="yt-description-section">
+        <div class="yt-description-text">
+          In this comprehensive tutorial, we'll build a complete full-stack web application from scratch using modern technologies. You'll learn everything from setup to deployment.
+          <span class="show-more">...more</span>
+        </div>
+
+        <div class="yt-description-meta">
+          <span>👁️ 1.2M views</span>
+          <span>📅 3 days ago</span>
+          <span>🔗 #webdev #tutorial #javascript #react #nodejs</span>
+        </div>
+
+        <!-- Embedded Link Card 1 -->
+        <div class="yt-link-card">
+          <div class="yt-link-card-image">
+            <span style="font-size: 32px; color: #606060;">▶️</span>
+            <div class="duration">8:24</div>
+          </div>
+          <div class="yt-link-card-content">
+            <div class="yt-link-card-title">Part 1: Setting Up Your Development Environment</div>
+            <div class="yt-link-card-meta">
+              <span class="channel">TechCode Academy</span>
+              <span>•</span>
+              <span>856K views</span>
+              <span>•</span>
+              <span>1 week ago</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Embedded Link Card 2 -->
+        <div class="yt-link-card">
+          <div class="yt-link-card-image">
+            <span style="font-size: 32px; color: #606060;">▶️</span>
+            <div class="duration">12:45</div>
+          </div>
+          <div class="yt-link-card-content">
+            <div class="yt-link-card-title">Part 2: React Fundamentals - Complete Beginner's Guide</div>
+            <div class="yt-link-card-meta">
+              <span class="channel">TechCode Academy</span>
+              <span>•</span>
+              <span>1.1M views</span>
+              <span>•</span>
+              <span>2 weeks ago</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Embedded Link Card 3 -->
+        <div class="yt-link-card">
+          <div class="yt-link-card-image">
+            <span style="font-size: 32px; color: #606060;">📄</span>
+          </div>
+          <div class="yt-link-card-content">
+            <div class="yt-link-card-title">GitHub Repository - Complete Source Code</div>
+            <div class="yt-link-card-meta">
+              <span class="channel">github.com</span>
+              <span>•</span>
+              <span>External Link</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Comments Section -->
+    <div class="yt-comments-section">
+      <div class="yt-comments-header">
+        <div class="yt-comments-title">2,847 Comments</div>
+        <div class="yt-comments-count">🕐 Sort by</div>
+      </div>
+
+      <div class="yt-comment">
+        <div class="yt-comment-avatar">JD</div>
+        <div class="yt-comment-meta">
+          <div class="yt-comment-header">
+            <span class="yt-comment-author">JohnDeveloper</span>
+            <span class="yt-comment-time">2 hours ago</span>
+          </div>
+          <div class="yt-comment-text">This is exactly what I needed! The explanation is so clear and thorough. Finally understand how everything connects together.</div>
+          <div class="yt-comment-actions">
+            <div class="yt-comment-action">👍 234</div>
+            <div class="yt-comment-action">👎</div>
+            <div class="yt-comment-action">💬 Reply</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="yt-comment">
+        <div class="yt-comment-avatar">SC</div>
+        <div class="yt-comment-meta">
+          <div class="yt-comment-header">
+            <span class="yt-comment-author">SarahCoder</span>
+            <span class="yt-comment-time">5 hours ago</span>
+          </div>
+          <div class="yt-comment-text">Can you please make a follow-up video on authentication? That would be amazing!</div>
+          <div class="yt-comment-actions">
+            <div class="yt-comment-action">👍 156</div>
+            <div class="yt-comment-action">👎</div>
+            <div class="yt-comment-action">💬 Reply</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="yt-comment">
+        <div class="yt-comment-avatar">ME</div>
+        <div class="yt-comment-meta">
+          <div class="yt-comment-header">
+            <span class="yt-comment-author">MikeEngineer</span>
+            <span class="yt-comment-time">1 day ago</span>
+          </div>
+          <div class="yt-comment-text">Been following your channel for years. This is your best tutorial yet! The production quality and teaching style are top-notch.</div>
+          <div class="yt-comment-actions">
+            <div class="yt-comment-action">👍 89</div>
+            <div class="yt-comment-action">👎</div>
+            <div class="yt-comment-action">💬 Reply</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

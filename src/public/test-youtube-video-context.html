@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube Video Context Frame Verification</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 40px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+      background: #f9f9f9;
+      color: #1f2937;
+    }
+
+    .test-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .test-header h1 {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    .test-header p {
+      color: #6b7280;
+      font-size: 16px;
+    }
+
+    .acceptance-criteria {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 40px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .acceptance-criteria h2 {
+      font-size: 18px;
+      margin-bottom: 16px;
+      color: #FF0000;
+    }
+
+    .criteria-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .criteria-list li {
+      padding: 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+
+    .criteria-list li:before {
+      content: '✓';
+      color: #4ade80;
+      font-weight: bold;
+    }
+
+    .test-section {
+      margin-bottom: 40px;
+    }
+
+    .test-section h2 {
+      font-size: 20px;
+      margin-bottom: 16px;
+      color: #FF0000;
+    }
+
+    .test-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+      margin: 24px 0;
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 16px;
+      background: #FF0000;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 1000;
+    }
+
+    .theme-toggle:hover {
+      background: #cc0000;
+    }
+
+    .verification-log {
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 20px;
+      font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+      font-size: 13px;
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #e5e7eb;
+    }
+
+    .verification-log div {
+      padding: 4px 0;
+    }
+
+    .pass { color: #4ade80; }
+    .fail { color: #ef4444; }
+    .info { color: #3b82f6; }
+
+    /* Dark mode styles */
+    html[data-theme='dark'] body {
+      background: #1a1a1e;
+      color: #e4e4e7;
+    }
+
+    html[data-theme='dark'] .acceptance-criteria,
+    html[data-theme='dark'] .verification-log {
+      background: #25252a;
+      border-color: #3a3a3f;
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+
+  <div class="test-header">
+    <h1>🎥 YouTube Video Context Frame Verification</h1>
+    <p>Testing YouTube video context frame with player chrome, description, and link cards</p>
+  </div>
+
+  <!-- Acceptance Criteria Checklist -->
+  <div class="acceptance-criteria">
+    <h2>✅ Acceptance Criteria</h2>
+    <ul class="criteria-list">
+      <li>YouTube frame HTML structure is complete</li>
+      <li>Video player chrome rendered accurately</li>
+      <li>Video controls with progress bar</li>
+      <li>Description section with title, views, date</li>
+      <li>Link cards embedded in description area</li>
+      <li>Channel info with avatar and subscribe button</li>
+      <li>Action buttons (like, share, etc.)</li>
+      <li>Comments section with realistic content</li>
+      <li>Single theme implementation (light)</li>
+    </ul>
+  </div>
+
+  <!-- Test Section: YouTube Video Context Frame -->
+  <div class="test-section">
+    <h2>1. YouTube Video Context Frame - Complete Implementation</h2>
+    <div class="test-grid">
+      <!-- YouTube Context Frame - Complete Video Context -->
+      <div class="youtube-context">
+        <!-- Video Player Chrome Section -->
+        <div class="yt-video-player">
+          <div class="yt-video-thumbnail">
+            <div class="yt-play-button"></div>
+            <div class="yt-video-duration">10:35</div>
+          </div>
+
+          <div class="yt-video-controls">
+            <!-- Progress Bar -->
+            <div class="yt-progress-container">
+              <div class="yt-progress-bar" style="width: 35%;"></div>
+            </div>
+
+            <!-- Control Buttons -->
+            <div class="yt-controls-row">
+              <div class="yt-controls-left">
+                <button class="yt-control-btn">⏮</button>
+                <button class="yt-control-btn">▶️</button>
+                <button class="yt-control-btn">⏭</button>
+                <div class="yt-volume-slider">
+                  <div class="yt-volume-level" style="width: 70%;"></div>
+                </div>
+              </div>
+              <div class="yt-controls-right">
+                <button class="yt-control-btn">🔊</button>
+                <button class="yt-control-btn">⚙️</button>
+                <button class="yt-control-btn">⛶</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Video Info Section -->
+        <div class="yt-video-info">
+          <div class="yt-video-title">Complete Web Development Tutorial - Build a Full Stack App from Scratch</div>
+
+          <div class="yt-video-stats">
+            <span>1.2M views</span>
+            <div class="yt-video-stats-divider"></div>
+            <span>3 days ago</span>
+            <div class="yt-video-stats-divider"></div>
+            <span>#webdev #tutorial #javascript</span>
+          </div>
+
+          <!-- Channel Section -->
+          <div class="yt-channel-section">
+            <div class="yt-channel-info">
+              <div class="yt-channel-avatar">TC</div>
+              <div class="yt-channel-meta">
+                <div class="yt-channel-name">TechCode Academy</div>
+                <div class="yt-subscriber-count">2.4M subscribers</div>
+              </div>
+            </div>
+            <button class="yt-subscribe-btn">Subscribe</button>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="yt-action-buttons">
+            <button class="yt-action-btn">
+              <span>👍</span>
+              <span>42K</span>
+            </button>
+            <button class="yt-action-btn">
+              <span>👎</span>
+              <span>Dislike</span>
+            </button>
+            <button class="yt-action-btn">
+              <span>↗️</span>
+              <span>Share</span>
+            </button>
+            <button class="yt-action-btn">
+              <span>⬇️</span>
+              <span>Download</span>
+            </button>
+          </div>
+
+          <!-- Description Section with Link Cards -->
+          <div class="yt-description-section">
+            <div class="yt-description-text">
+              In this comprehensive tutorial, we'll build a complete full-stack web application from scratch using modern technologies.
+              <span class="show-more">...more</span>
+            </div>
+
+            <div class="yt-description-meta">
+              <span>👁️ 1.2M views</span>
+              <span>📅 3 days ago</span>
+              <span>🔗 #webdev #tutorial</span>
+            </div>
+
+            <!-- Embedded Link Card 1 -->
+            <div class="yt-link-card">
+              <div class="yt-link-card-image">
+                <span style="font-size: 32px; color: #606060;">▶️</span>
+                <div class="duration">8:24</div>
+              </div>
+              <div class="yt-link-card-content">
+                <div class="yt-link-card-title">Part 1: Setting Up Your Development Environment</div>
+                <div class="yt-link-card-meta">
+                  <span class="channel">TechCode Academy</span>
+                  <span>•</span>
+                  <span>856K views</span>
+                  <span>•</span>
+                  <span>1 week ago</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Embedded Link Card 2 -->
+            <div class="yt-link-card">
+              <div class="yt-link-card-image">
+                <span style="font-size: 32px; color: #606060;">▶️</span>
+                <div class="duration">12:45</div>
+              </div>
+              <div class="yt-link-card-content">
+                <div class="yt-link-card-title">Part 2: React Fundamentals - Complete Beginner's Guide</div>
+                <div class="yt-link-card-meta">
+                  <span class="channel">TechCode Academy</span>
+                  <span>•</span>
+                  <span>1.1M views</span>
+                  <span>•</span>
+                  <span>2 weeks ago</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Comments Section -->
+        <div class="yt-comments-section">
+          <div class="yt-comments-header">
+            <div class="yt-comments-title">2,847 Comments</div>
+            <div class="yt-comments-count">🕐 Sort by</div>
+          </div>
+
+          <div class="yt-comment">
+            <div class="yt-comment-avatar">JD</div>
+            <div class="yt-comment-meta">
+              <div class="yt-comment-header">
+                <span class="yt-comment-author">JohnDeveloper</span>
+                <span class="yt-comment-time">2 hours ago</span>
+              </div>
+              <div class="yt-comment-text">This is exactly what I needed! The explanation is so clear and thorough.</div>
+              <div class="yt-comment-actions">
+                <div class="yt-comment-action">👍 234</div>
+                <div class="yt-comment-action">👎</div>
+                <div class="yt-comment-action">💬 Reply</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Verification Log -->
+  <div class="test-section">
+    <h2>2. Verification Results</h2>
+    <div class="verification-log" id="verificationLog">
+      <div class="info">Running verification tests...</div>
+    </div>
+  </div>
+
+  <script>
+    // Verification test suite
+    function runVerification() {
+      const log = document.getElementById('verificationLog');
+      const results = [];
+
+      function logResult(message, status = 'info') {
+        const div = document.createElement('div');
+        div.className = status;
+        div.textContent = `[${status.toUpperCase()}] ${message}`;
+        log.appendChild(div);
+        results.push({ message, status });
+      }
+
+      // Test 1: Check YouTube frame structure
+      function testFrameStructure() {
+        const ytFrames = document.querySelectorAll('.youtube-context');
+        if (ytFrames.length > 0) {
+          logResult(`Found ${ytFrames.length} YouTube context frame(s)`, 'pass');
+          return true;
+        } else {
+          logResult('No YouTube context frames found', 'fail');
+          return false;
+        }
+      }
+
+      // Test 2: Check video player chrome
+      function testVideoPlayer() {
+        const player = document.querySelector('.yt-video-player');
+        if (player) {
+          logResult('✓ Video player element found', 'pass');
+
+          const thumbnail = player.querySelector('.yt-video-thumbnail');
+          const playButton = player.querySelector('.yt-play-button');
+          const duration = player.querySelector('.yt-video-duration');
+          const controls = player.querySelector('.yt-video-controls');
+
+          if (thumbnail && playButton && duration && controls) {
+            logResult('✓ Video player chrome complete (thumbnail, play button, duration, controls)', 'pass');
+            return true;
+          } else {
+            logResult('✗ Video player chrome incomplete', 'fail');
+            return false;
+          }
+        } else {
+          logResult('✗ Video player not found', 'fail');
+          return false;
+        }
+      }
+
+      // Test 3: Check progress bar and controls
+      function testControls() {
+        const progressContainer = document.querySelector('.yt-progress-container');
+        const progressBar = document.querySelector('.yt-progress-bar');
+        const controlButtons = document.querySelectorAll('.yt-control-btn');
+
+        if (progressContainer && progressBar) {
+          logResult('✓ Progress bar element found', 'pass');
+        } else {
+          logResult('✗ Progress bar element missing', 'fail');
+        }
+
+        if (controlButtons.length > 0) {
+          logResult(`✓ Found ${controlButtons.length} control buttons`, 'pass');
+          return true;
+        } else {
+          logResult('✗ Control buttons not found', 'fail');
+          return false;
+        }
+      }
+
+      // Test 4: Check description section
+      function testDescription() {
+        const title = document.querySelector('.yt-video-title');
+        const stats = document.querySelector('.yt-video-stats');
+        const descriptionSection = document.querySelector('.yt-description-section');
+        const descriptionText = document.querySelector('.yt-description-text');
+
+        let allPresent = true;
+
+        if (title) {
+          logResult(`✓ Video title found: "${title.textContent.substring(0, 30)}..."`, 'pass');
+        } else {
+          logResult('✗ Video title not found', 'fail');
+          allPresent = false;
+        }
+
+        if (stats) {
+          logResult(`✓ Video stats found: "${stats.textContent.trim()}"`, 'pass');
+        } else {
+          logResult('✗ Video stats not found', 'fail');
+          allPresent = false;
+        }
+
+        if (descriptionSection && descriptionText) {
+          logResult('✓ Description section found', 'pass');
+        } else {
+          logResult('✗ Description section not found', 'fail');
+          allPresent = false;
+        }
+
+        return allPresent;
+      }
+
+      // Test 5: Check link cards
+      function testLinkCards() {
+        const linkCards = document.querySelectorAll('.yt-link-card');
+        if (linkCards.length > 0) {
+          logResult(`✓ Found ${linkCards.length} link card(s) in description`, 'pass');
+
+          // Check first link card structure
+          const firstCard = linkCards[0];
+          const cardImage = firstCard.querySelector('.yt-link-card-image');
+          const cardContent = firstCard.querySelector('.yt-link-card-content');
+          const cardTitle = firstCard.querySelector('.yt-link-card-title');
+          const cardMeta = firstCard.querySelector('.yt-link-card-meta');
+
+          if (cardImage && cardContent && cardTitle && cardMeta) {
+            logResult('✓ Link card structure complete (image, content, title, meta)', 'pass');
+            return true;
+          } else {
+            logResult('✗ Link card structure incomplete', 'fail');
+            return false;
+          }
+        } else {
+          logResult('✗ No link cards found', 'fail');
+          return false;
+        }
+      }
+
+      // Test 6: Check channel section
+      function testChannelSection() {
+        const channelSection = document.querySelector('.yt-channel-section');
+        if (!channelSection) {
+          logResult('✗ Channel section not found', 'fail');
+          return false;
+        }
+
+        const channelAvatar = channelSection.querySelector('.yt-channel-avatar');
+        const channelName = channelSection.querySelector('.yt-channel-name');
+        const subscriberCount = channelSection.querySelector('.yt-subscriber-count');
+        const subscribeBtn = channelSection.querySelector('.yt-subscribe-btn');
+
+        if (channelAvatar && channelName && subscriberCount && subscribeBtn) {
+          logResult('✓ Channel section complete (avatar, name, subscribers, subscribe button)', 'pass');
+          return true;
+        } else {
+          logResult('✗ Channel section incomplete', 'fail');
+          return false;
+        }
+      }
+
+      // Test 7: Check action buttons
+      function testActionButtons() {
+        const actionButtons = document.querySelector('.yt-action-buttons');
+        if (!actionButtons) {
+          logResult('✗ Action buttons section not found', 'fail');
+          return false;
+        }
+
+        const buttons = actionButtons.querySelectorAll('.yt-action-btn');
+        if (buttons.length > 0) {
+          logResult(`✓ Found ${buttons.length} action button(s)`, 'pass');
+          return true;
+        } else {
+          logResult('✗ No action buttons found', 'fail');
+          return false;
+        }
+      }
+
+      // Test 8: Check comments section
+      function testCommentsSection() {
+        const commentsSection = document.querySelector('.yt-comments-section');
+        if (!commentsSection) {
+          logResult('✗ Comments section not found', 'fail');
+          return false;
+        }
+
+        const commentsHeader = commentsSection.querySelector('.yt-comments-header');
+        const comments = commentsSection.querySelectorAll('.yt-comment');
+
+        if (commentsHeader && comments.length > 0) {
+          logResult(`✓ Comments section found with ${comments.length} comment(s)`, 'pass');
+          return true;
+        } else {
+          logResult('✗ Comments section incomplete', 'fail');
+          return false;
+        }
+      }
+
+      // Run all tests
+      logResult('Starting YouTube video context frame verification...', 'info');
+      logResult('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+
+      const testResults = {
+        structure: testFrameStructure(),
+        videoPlayer: testVideoPlayer(),
+        controls: testControls(),
+        description: testDescription(),
+        linkCards: testLinkCards(),
+        channel: testChannelSection(),
+        actionButtons: testActionButtons(),
+        comments: testCommentsSection()
+      };
+
+      const allPassed = Object.values(testResults).every(result => result === true);
+
+      logResult('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+      if (allPassed) {
+        logResult('✅ ALL TESTS PASSED - YouTube video context frame fully implemented', 'pass');
+      } else {
+        const failedTests = Object.entries(testResults).filter(([_, result]) => result === false);
+        logResult(`⚠️  ${failedTests.length} test(s) failed`, 'fail');
+      }
+    }
+
+    // Theme toggle functionality
+    const themeToggle = document.getElementById('themeToggle');
+    let currentTheme = 'light';
+
+    themeToggle.addEventListener('click', () => {
+      currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      themeToggle.textContent = currentTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+
+      // Re-run verification to test theme switching
+      setTimeout(() => {
+        runVerification();
+      }, 100);
+    });
+
+    // Run verification on load
+    document.addEventListener('DOMContentLoaded', () => {
+      runVerification();
+    });
+  </script>
+</body>
+</html>

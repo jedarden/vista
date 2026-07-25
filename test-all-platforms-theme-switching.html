@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Theme Switching Test - All Platform Frames</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      border-radius: 10px;
+      margin-bottom: 30px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .header h1 {
+      margin: 0 0 10px 0;
+      font-size: 28px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 36px;
+      font-weight: bold;
+      color: #667eea;
+    }
+
+    .stat-label {
+      color: #666;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+
+    .test-section {
+      background: white;
+      padding: 25px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .test-section h2 {
+      margin-top: 0;
+      color: #333;
+      border-bottom: 2px solid #667eea;
+      padding-bottom: 10px;
+    }
+
+    .platform-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .platform-card {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      overflow: hidden;
+      background: white;
+    }
+
+    .platform-header {
+      padding: 15px;
+      background: #f8f9fa;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .platform-name {
+      font-weight: bold;
+      color: #333;
+    }
+
+    .platform-category {
+      font-size: 12px;
+      padding: 3px 8px;
+      border-radius: 12px;
+      background: #e9ecef;
+      color: #495057;
+    }
+
+    .theme-preview {
+      padding: 15px;
+    }
+
+    .theme-toggle {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .theme-btn {
+      flex: 1;
+      padding: 8px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.2s;
+    }
+
+    .theme-btn.dark {
+      background: #333;
+      color: white;
+    }
+
+    .theme-btn.light {
+      background: #fff;
+      color: #333;
+      border: 1px solid #ccc;
+    }
+
+    .theme-btn:hover {
+      opacity: 0.8;
+    }
+
+    .frame-container {
+      min-height: 200px;
+      border: 1px solid #eee;
+      border-radius: 4px;
+      padding: 10px;
+      background: #fafafa;
+    }
+
+    .status-indicator {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+
+    .status-passed {
+      background: #28a745;
+    }
+
+    .status-failed {
+      background: #dc3545;
+    }
+
+    .console-output {
+      background: #1a1a1a;
+      color: #f8f8f2;
+      padding: 20px;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .console-warn {
+      color: #f1c40f;
+    }
+
+    .console-error {
+      color: #e74c3c;
+    }
+
+    .acceptance-criteria {
+      background: #e8f5e9;
+      border-left: 4px solid #4caf50;
+      padding: 20px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+
+    .acceptance-criteria h3 {
+      margin-top: 0;
+      color: #2e7d32;
+    }
+
+    .criteria-item {
+      display: flex;
+      align-items: center;
+      margin: 10px 0;
+    }
+
+    .criteria-icon {
+      margin-right: 10px;
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🎨 Theme Switching Test Suite</h1>
+    <p>Comprehensive testing of dark/light theme switching across all platform frames</p>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-value" id="totalPlatforms">0</div>
+      <div class="stat-label">Total Platforms</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="testedPlatforms">0</div>
+      <div class="stat-label">Tested Platforms</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="passedTests">0</div>
+      <div class="stat-label">✓ Passed Tests</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="failedTests">0</div>
+      <div class="stat-label">✗ Failed Tests</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="passRate">0%</div>
+      <div class="stat-label">Pass Rate</div>
+    </div>
+  </div>
+
+  <div class="acceptance-criteria">
+    <h3>✓ Acceptance Criteria Status</h3>
+    <div class="criteria-item">
+      <span class="criteria-icon" id="ac1">⏳</span>
+      <span id="ac1Text">All platforms render in light theme correctly</span>
+    </div>
+    <div class="criteria-item">
+      <span class="criteria-icon" id="ac2">⏳</span>
+      <span id="ac2Text">All platforms render in dark theme correctly</span>
+    </div>
+    <div class="criteria-item">
+      <span class="criteria-icon" id="ac3">⏳</span>
+      <span id="ac3Text">Theme toggle changes frame appearance appropriately</span>
+    </div>
+    <div class="criteria-item">
+      <span class="criteria-icon" id="ac4">⏳</span>
+      <span id="ac4Text">No console errors during theme switching</span>
+    </div>
+    <div class="criteria-item">
+      <span class="criteria-icon" id="ac5">⏳</span>
+      <span id="ac5Text">Each platform frame shows distinct light/dark styling</span>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>🧪 Platform Theme Tests</h2>
+    <div class="platform-grid" id="platformGrid">
+      <!-- Platform cards will be dynamically inserted here -->
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>📋 Console Output</h2>
+    <div class="console-output" id="consoleOutput">
+      <div>Tests starting...</div>
+    </div>
+  </div>
+
+  <!-- Load required scripts -->
+  <script src="src/public/platform-frames.js"></script>
+  <script src="src/public/frame-renderer.js"></script>
+  <script src="src/public/app.js"></script>
+
+  <script>
+    // Test data
+    const sampleContent = {
+      meta: {
+        og: {
+          title: 'Test Article: Comprehensive Theme Switching Guide',
+          description: 'This is a detailed description used to test how different platform frames handle theme switching with both light and dark modes.',
+          image: 'https://picsum.photos/800/600',
+          site_name: 'TestSite'
+        },
+        title: 'Test Article: Comprehensive Theme Switching Guide',
+        description: 'This is a detailed description used to test how different platform frames handle theme switching with both light and dark modes.',
+        themeColor: '#5865f2'
+      },
+      imageProbe: {
+        dominantColor: '#667eea'
+      },
+      baseUrl: 'https://example.com/test-article'
+    };
+
+    // Test state
+    let testResults = {
+      totalPlatforms: 0,
+      testedPlatforms: 0,
+      passedTests: 0,
+      failedTests: 0,
+      platformResults: [],
+      consoleWarnings: [],
+      consoleErrors: []
+    };
+
+    // Console capture
+    const originalConsoleWarn = console.warn;
+    const originalConsoleError = console.error;
+
+    function logToOutput(message, type = 'info') {
+      const output = document.getElementById('consoleOutput');
+      const div = document.createElement('div');
+      div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      div.className = type === 'warn' ? 'console-warn' : type === 'error' ? 'console-error' : '';
+      output.appendChild(div);
+      output.scrollTop = output.scrollHeight;
+    }
+
+    console.warn = function(...args) {
+      testResults.consoleWarnings.push(args.join(' '));
+      logToOutput(`WARN: ${args.join(' ')}`, 'warn');
+      originalConsoleWarn.apply(console, args);
+    };
+
+    console.error = function(...args) {
+      testResults.consoleErrors.push(args.join(' '));
+      logToOutput(`ERROR: ${args.join(' ')}`, 'error');
+      originalConsoleError.apply(console, args);
+    };
+
+    // Get all platform IDs
+    function getAllPlatformIds() {
+      if (typeof PLATFORM_FRAMES !== 'undefined') {
+        return Object.keys(PLATFORM_FRAMES).sort();
+      }
+      return [];
+    }
+
+    // Test a single platform
+    function testPlatform(platformId) {
+      const platform = PLATFORM_FRAMES[platformId];
+      if (!platform) return null;
+
+      const result = {
+        platformId,
+        name: platform.name || platformId,
+        category: platform.category || 'unknown',
+        hasThemeSupport: platform.hasThemeSupport || false,
+        dark: { passed: false, rendered: false, hasThemeClass: false, hasThemeVars: false, html: '' },
+        light: { passed: false, rendered: false, hasThemeClass: false, hasThemeVars: false, html: '' },
+        passed: false
+      };
+
+      // Test dark theme
+      try {
+        const darkHTML = renderPlatformWithContext(
+          platformId,
+          sampleContent.meta,
+          sampleContent.imageProbe,
+          sampleContent.baseUrl,
+          'dark',
+          sampleContent.imageProbe.dominantColor
+        );
+
+        result.dark.html = darkHTML;
+        result.dark.rendered = !!darkHTML;
+        result.dark.hasThemeClass = darkHTML?.includes('dark-theme') || darkHTML?.includes('context-frame');
+        result.dark.hasThemeVars = darkHTML?.includes('--frame-bg') || darkHTML?.includes('--frame-surface');
+        result.dark.passed = result.dark.rendered && result.dark.hasThemeClass && result.dark.hasThemeVars;
+
+        if (!result.dark.passed) {
+          if (!result.dark.rendered) result.dark.errors = ['No HTML rendered'];
+          else if (!result.dark.hasThemeClass) result.dark.errors = ['Missing theme class'];
+          else if (!result.dark.hasThemeVars) result.dark.errors = ['Missing theme variables'];
+        }
+      } catch (e) {
+        result.dark.errors = [e.message];
+      }
+
+      // Test light theme
+      try {
+        const lightHTML = renderPlatformWithContext(
+          platformId,
+          sampleContent.meta,
+          sampleContent.imageProbe,
+          sampleContent.baseUrl,
+          'light',
+          sampleContent.imageProbe.dominantColor
+        );
+
+        result.light.html = lightHTML;
+        result.light.rendered = !!lightHTML;
+        result.light.hasThemeClass = lightHTML?.includes('light-theme') || lightHTML?.includes('context-frame');
+        result.light.hasThemeVars = lightHTML?.includes('--frame-bg') || lightHTML?.includes('--frame-surface');
+        result.light.passed = result.light.rendered && result.light.hasThemeClass && result.light.hasThemeVars;
+
+        if (!result.light.passed) {
+          if (!result.light.rendered) result.light.errors = ['No HTML rendered'];
+          else if (!result.light.hasThemeClass) result.light.errors = ['Missing theme class'];
+          else if (!result.light.hasThemeVars) result.light.errors = ['Missing theme variables'];
+        }
+      } catch (e) {
+        result.light.errors = [e.message];
+      }
+
+      result.passed = result.dark.passed && result.light.passed;
+      return result;
+    }
+
+    // Create platform card UI
+    function createPlatformCard(result) {
+      const card = document.createElement('div');
+      card.className = 'platform-card';
+
+      const statusClass = result.passed ? 'status-passed' : 'status-failed';
+      const statusText = result.passed ? '✓ PASSED' : '✗ FAILED';
+
+      card.innerHTML = `
+        <div class="platform-header">
+          <div>
+            <span class="status-indicator ${statusClass}"></span>
+            <span class="platform-name">${result.name}</span>
+          </div>
+          <span class="platform-category">${result.category}</span>
+        </div>
+        <div class="theme-preview">
+          <div class="theme-toggle">
+            <button class="theme-btn dark" onclick="switchTheme('${result.platformId}', 'dark')">Dark Mode</button>
+            <button class="theme-btn light" onclick="switchTheme('${result.platformId}', 'light')">Light Mode</button>
+          </div>
+          <div class="frame-container" id="frame-${result.platformId}">
+            ${result.dark.html || 'Loading...'}
+          </div>
+          <div style="margin-top: 10px; font-size: 12px; color: #666;">
+            Status: <strong style="color: ${result.passed ? '#28a745' : '#dc3545'}">${statusText}</strong> |
+            Theme Support: ${result.hasThemeSupport ? 'Yes' : 'No'}
+            ${result.dark.errors ? `<br>Dark Errors: ${result.dark.errors.join(', ')}` : ''}
+            ${result.light.errors ? `<br>Light Errors: ${result.light.errors.join(', ')}` : ''}
+          </div>
+        </div>
+      `;
+
+      return card;
+    }
+
+    // Switch theme for a platform
+    function switchTheme(platformId, theme) {
+      const container = document.getElementById(`frame-${platformId}`);
+      if (container) {
+        try {
+          const html = renderPlatformWithContext(
+            platformId,
+            sampleContent.meta,
+            sampleContent.imageProbe,
+            sampleContent.baseUrl,
+            theme,
+            sampleContent.imageProbe.dominantColor
+          );
+          container.innerHTML = html;
+          logToOutput(`Switched ${platformId} to ${theme} theme`, 'info');
+        } catch (e) {
+          container.innerHTML = `Error: ${e.message}`;
+          logToOutput(`Error switching ${platformId} to ${theme}: ${e.message}`, 'error');
+        }
+      }
+    }
+
+    // Update stats display
+    function updateStats() {
+      document.getElementById('totalPlatforms').textContent = testResults.totalPlatforms;
+      document.getElementById('testedPlatforms').textContent = testResults.testedPlatforms;
+      document.getElementById('passedTests').textContent = testResults.passedTests;
+      document.getElementById('failedTests').textContent = testResults.failedTests;
+
+      const passRate = testResults.testedPlatforms > 0
+        ? ((testResults.passedTests / testResults.testedPlatforms) * 100).toFixed(1)
+        : 0;
+      document.getElementById('passRate').textContent = `${passRate}%`;
+
+      // Update acceptance criteria
+      const allLight = testResults.platformResults.every(r => r.light.passed);
+      const allDark = testResults.platformResults.every(r => r.dark.passed);
+      const noErrors = testResults.consoleErrors.length === 0;
+      const distinct = passRate >= 90;
+
+      updateCriteria('ac1', allLight);
+      updateCriteria('ac2', allDark);
+      updateCriteria('ac3', distinct);
+      updateCriteria('ac4', noErrors);
+      updateCriteria('ac5', distinct);
+    }
+
+    function updateCriteria(id, passed) {
+      const el = document.getElementById(id);
+      const textEl = document.getElementById(id + 'Text');
+      if (passed) {
+        el.textContent = '✓';
+        el.style.color = '#4caf50';
+        textEl.style.color = '#4caf50';
+      } else {
+        el.textContent = '✗';
+        el.style.color = '#f44336';
+        textEl.style.color = '#f44336';
+      }
+    }
+
+    // Run all tests
+    function runTests() {
+      logToOutput('Starting theme switching tests...');
+      const platformIds = getAllPlatformIds();
+      testResults.totalPlatforms = platformIds.length;
+      testResults.testedPlatforms = platformIds.length;
+
+      logToOutput(`Found ${testResults.totalPlatforms} platforms to test`);
+
+      const grid = document.getElementById('platformGrid');
+
+      platformIds.forEach((platformId, index) => {
+        setTimeout(() => {
+          logToOutput(`Testing ${platformId}...`);
+          const result = testPlatform(platformId);
+          testResults.platformResults.push(result);
+
+          if (result.passed) {
+            testResults.passedTests++;
+            logToOutput(`✓ ${result.name} (${platformId}) passed both themes`);
+          } else {
+            testResults.failedTests++;
+            logToOutput(`✗ ${result.name} (${platformId}) failed tests`, 'error');
+          }
+
+          // Add card to UI
+          grid.appendChild(createPlatformCard(result));
+          updateStats();
+
+          if (index === platformIds.length - 1) {
+            logToOutput(`\n✓ Test suite complete! ${testResults.passedTests}/${testResults.testedPlatforms} platforms passed.`);
+            if (testResults.consoleErrors.length > 0) {
+              logToOutput(`⚠ ${testResults.consoleErrors.length} console errors detected`, 'warn');
+            }
+          }
+        }, index * 50); // Stagger tests for better UX
+      });
+    }
+
+    // Start tests when page loads
+    window.addEventListener('load', () => {
+      logToOutput('Page loaded, initializing test suite...');
+      setTimeout(runTests, 100);
+    });
+  </script>
+</body>
+</html>

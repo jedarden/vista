@@ -4,192 +4,47 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Facebook - Light Mode Frame</title>
+  <link rel="stylesheet" href="platform-frames-base.css">
+  <link rel="stylesheet" href="frames-theme.css">
+  <link rel="stylesheet" href="social-platforms-frames.css">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
       background: #f0f2f5;
-      color: #050505;
-    }
-
-    .facebook-context {
-      display: flex;
-      flex-direction: column;
-      min-height: 400px;
-      background: #ffffff;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    .fb-post-header {
-      padding: 16px;
-      background: #ffffff;
-    }
-
-    .fb-post-author {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-
-    .fb-avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #1877f2 0%, #0d63d3 100%);
+      min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 16px;
-      color: #ffffff;
-    }
-
-    .fb-author-info {
-      flex: 1;
-    }
-
-    .fb-author-name {
-      font-size: 15px;
-      font-weight: 600;
-      color: #050505;
-    }
-
-    .fb-post-time {
-      font-size: 13px;
-      color: #65676b;
-    }
-
-    .fb-post-content {
-      padding: 0 16px 16px;
-    }
-
-    .fb-post-text {
-      font-size: 15px;
-      line-height: 1.5;
-      color: #050505;
-      margin-bottom: 12px;
-    }
-
-    .fb-link-preview {
-      background: #f0f2f5;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    .fb-link-image {
-      width: 100%;
-      height: 200px;
-      background: linear-gradient(135deg, #1877f2 0%, #0d63d3 100%);
-    }
-
-    .fb-link-info {
-      padding: 12px;
-      background: #f0f2f5;
-    }
-
-    .fb-link-domain {
-      font-size: 12px;
-      color: #65676b;
-      margin-bottom: 4px;
-    }
-
-    .fb-link-title {
-      font-size: 15px;
-      font-weight: 600;
-      color: #050505;
-    }
-
-    .fb-comments-section {
-      padding: 16px;
-      background: #ffffff;
-      border-top: 1px solid #ced0d4;
-    }
-
-    .fb-comment {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-
-    .fb-comment-dim {
-      opacity: 0.6;
-    }
-
-    .fb-comment-avatar {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #1877f2 0%, #0d63d3 100%);
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      color: #ffffff;
-    }
-
-    .fb-comment-content {
-      flex: 1;
-    }
-
-    .fb-comment-author {
-      font-size: 13px;
-      font-weight: 600;
-      color: #050505;
-    }
-
-    .fb-comment-text {
-      font-size: 14px;
-      color: #65676b;
-      margin-top: 2px;
     }
   </style>
 </head>
 <body>
-  <div class="facebook-context">
+  <div class="context-frame facebook-context light-theme">
     <div class="fb-post-header">
-      <div class="fb-post-author">
-        <div class="fb-avatar">JD</div>
-        <div class="fb-author-info">
-          <div class="fb-author-name">John Doe</div>
-          <div class="fb-post-time">2 hours ago</div>
-        </div>
+      <div class="fb-avatar">JD</div>
+      <div class="fb-post-meta">
+        <div class="fb-author-name">John Doe</div>
+        <div class="fb-post-time">2h · 🌍</div>
       </div>
+      <div class="fb-menu">⋮</div>
     </div>
 
     <div class="fb-post-content">
-      <div class="fb-post-text">Check out this amazing resource I found!</div>
-      <div class="fb-link-preview">
-        <div class="fb-link-image"></div>
-        <div class="fb-link-info">
-          <div class="fb-link-domain">WEBSITE.COM</div>
-          <div class="fb-link-title">Best Practices for Modern Web Development</div>
-        </div>
-      </div>
+      Check out this amazing resource I found! This is exactly what we've been looking for.
     </div>
 
-    <div class="fb-comments-section">
-      <div class="fb-comment fb-comment-dim">
-        <div class="fb-comment-avatar">S</div>
-        <div class="fb-comment-content">
-          <div class="fb-comment-author">Sarah</div>
-          <div class="fb-comment-text">Thanks for sharing!</div>
-        </div>
-      </div>
+    <div class="fb-link-preview">
+      <div class="fb-context-placeholder">🔗</div>
+      <div class="fb-context-domain">WEBSITE.COM</div>
+      <div class="fb-context-title">Best Practices for Modern Web Development</div>
+      <div class="fb-context-desc">A comprehensive guide to building robust, scalable web applications with modern tools and frameworks.</div>
+    </div>
 
-      <div class="fb-comment">
-        <div class="fb-comment-avatar">Y</div>
-        <div class="fb-comment-content">
-          <div class="fb-comment-author">You</div>
-          <div class="fb-comment-text">Great resource, thanks!</div>
-        </div>
-      </div>
+    <div class="fb-post-stats">
+      <span>👍 🫶 24</span>
+      <span>💬 8 comments</span>
+      <span>🔄 5 shares</span>
     </div>
   </div>
 </body>

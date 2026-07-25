@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Theme Subscription Utility Test</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin: 20px;
+      background: #f5f5f5;
+    }
+
+    .test-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .test-section {
+      margin: 20px 0;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    .test-controls {
+      margin: 20px 0;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 4px;
+    }
+
+    button {
+      padding: 8px 16px;
+      margin: 0 8px 8px 0;
+      border: 1px solid #ddd;
+      background: white;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    button:hover {
+      background: #f0f0f0;
+    }
+
+    .log-output {
+      background: #1a1a1e;
+      color: #e4e4e7;
+      padding: 15px;
+      border-radius: 4px;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 12px;
+      max-height: 300px;
+      overflow-y: auto;
+      margin-top: 20px;
+    }
+
+    .log-entry {
+      margin: 4px 0;
+      padding: 4px 0;
+      border-bottom: 1px solid #2a2a2e;
+    }
+
+    .log-entry.info {
+      color: #8ab4f8;
+    }
+
+    .log-entry.success {
+      color: #4ade80;
+    }
+
+    .log-entry.error {
+      color: #f87171;
+    }
+
+    /* Platform Frame Styles */
+    .twitter-context {
+      border: 1px solid #2f3336;
+      border-radius: 12px;
+      overflow: hidden;
+      max-width: 500px;
+    }
+
+    .dark-theme {
+      background: #000000;
+      color: #e7e9ea;
+    }
+
+    .light-theme {
+      background: #ffffff;
+      color: #0f1419;
+    }
+
+    .frame-content {
+      padding: 16px;
+    }
+
+    .frame-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .frame-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #1d9bf0;
+      margin-right: 12px;
+    }
+
+    .frame-title {
+      font-weight: bold;
+      font-size: 15px;
+    }
+
+    .frame-body {
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+      margin-right: 8px;
+    }
+
+    .status-badge.active {
+      background: #4ade80;
+      color: white;
+    }
+
+    .status-badge.inactive {
+      background: #9ca3af;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <h1>Theme Subscription Utility Test</h1>
+    <p>Testing the ThemeSubscription API for platform frame components</p>
+
+    <div class="test-controls">
+      <h3>Theme Controls</h3>
+      <button onclick="toggleGlobalTheme()">Toggle Global Theme</button>
+      <button onclick="setGlobalTheme('dark')">Set Dark Theme</button>
+      <button onclick="setGlobalTheme('light')">Set Light Theme</button>
+      <button onclick="subscribeToChanges()">Subscribe to Changes</button>
+      <button onclick="unsubscribeFromChanges()">Unsubscribe</button>
+      <button onclick="clearLog()">Clear Log</button>
+
+      <div style="margin-top: 15px;">
+        <strong>Current Theme:</strong> <span id="current-theme-display">dark</span>
+        <strong style="margin-left: 20px;">Subscribers:</strong> <span id="subscriber-count">0</span>
+      </div>
+    </div>
+
+    <div class="test-section">
+      <h3>Platform Frame Test</h3>
+      <p>Twitter frame with automatic theme subscription</p>
+
+      <div id="test-frame" class="twitter-context dark-theme" data-platform="twitter">
+        <div class="frame-content">
+          <div class="frame-header">
+            <div class="frame-avatar"></div>
+            <div class="frame-title">Theme Subscription Test</div>
+          </div>
+          <div class="frame-body">
+            <p>This frame automatically updates its theme when the global theme changes.</p>
+            <p>Status: <span id="frame-status" class="status-badge active">Active</span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-section">
+      <h3>Test Results</h3>
+      <div class="log-output" id="log-output">
+        <div class="log-entry info">[Test] Theme subscription utility test loaded</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load Platform Frames Data -->
+  <script src="src/public/platform-frames.js"></script>
+
+  <!-- Load Theme Subscription Utility -->
+  <script src="src/public/theme-subscription.js"></script>
+
+  <script>
+    let testSubscriberId = null;
+    let frameUnsubscribe = null;
+
+    function log(message, type = 'info') {
+      const logOutput = document.getElementById('log-output');
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      logOutput.appendChild(entry);
+      logOutput.scrollTop = logOutput.scrollHeight;
+    }
+
+    function clearLog() {
+      document.getElementById('log-output').innerHTML = '';
+    }
+
+    function toggleGlobalTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      setGlobalTheme(newTheme);
+    }
+
+    function setGlobalTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      document.getElementById('current-theme-display').textContent = theme;
+      log(`Global theme set to: ${theme}`, 'info');
+    }
+
+    function updateSubscriberCount() {
+      document.getElementById('subscriber-count').textContent =
+        ThemeSubscription.subscriberCount;
+    }
+
+    function subscribeToChanges() {
+      // Test 1: Subscribe to theme changes
+      testSubscriberId = ThemeSubscription.subscribe((theme) => {
+        log(`Theme change callback received: ${theme}`, 'success');
+        updateSubscriberCount();
+      });
+
+      log(`Subscribed to theme changes. ID: ${testSubscriberId}`, 'success');
+
+      // Test 2: Subscribe platform frame
+      frameUnsubscribe = ThemeSubscription.subscribePlatformFrame('twitter', 'test-frame');
+      log(`Subscribed Twitter frame to theme changes`, 'success');
+
+      updateSubscriberCount();
+    }
+
+    function unsubscribeFromChanges() {
+      if (testSubscriberId) {
+        const success = ThemeSubscription.unsubscribe(testSubscriberId);
+        log(`Unsubscribed ${success ? 'successfully' : 'failed'}: ${testSubscriberId}`,
+            success ? 'success' : 'error');
+        testSubscriberId = null;
+      }
+
+      if (frameUnsubscribe) {
+        frameUnsubscribe();
+        log(`Unsubscribed Twitter frame from theme changes`, 'success');
+        frameUnsubscribe = null;
+      }
+
+      updateSubscriberCount();
+    }
+
+    // Initialize test
+    document.addEventListener('DOMContentLoaded', () => {
+      log('DOM loaded, initializing test...', 'info');
+
+      // Check if ThemeSubscription is available
+      if (typeof ThemeSubscription !== 'undefined') {
+        log('ThemeSubscription API available', 'success');
+
+        // Get initial theme
+        const initialTheme = ThemeSubscription.getCurrentTheme();
+        log(`Initial theme: ${initialTheme}`, 'info');
+
+        // Check subscriber count
+        updateSubscriberCount();
+
+        // Test 3: Apply theme to frame manually
+        setTimeout(() => {
+          const frame = document.getElementById('test-frame');
+          ThemeSubscription.applyThemeToFrame(frame, 'twitter', initialTheme);
+          log(`Applied theme to frame manually: ${initialTheme}`, 'success');
+        }, 500);
+
+      } else {
+        log('ERROR: ThemeSubscription API not available', 'error');
+      }
+    });
+  </script>
+</body>
+</html>

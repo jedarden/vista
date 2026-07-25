@@ -1,10 +1,11 @@
-# Task bf-34mk5: Cloudflare DNS CNAME for vista.jedarden.com - BLOCKED
+# Task bf-34mk5: Cloudflare DNS CNAME for vista.jedarden.com - REQUIRES MANUAL SETUP
 
 ## Status
-**BLOCKED** - Cannot complete without Cloudflare API credentials.
+**REQUIRES MANUAL INTERVENTION** - Documentation created, awaiting Cloudflare Dashboard action.
 
-**Last verified:** 2026-07-24 21:39 UTC
-**CNAME status:** Still does not exist (`host -t CNAME vista.jedarden.com` returns "has no CNAME record")
+**Last verified:** 2026-07-24 22:00 UTC
+**CNAME status:** Does not exist (verification script confirms)
+**Action taken:** Created comprehensive manual setup guide and verification script
 
 ## Summary
 Task requires creating a CNAME record in Cloudflare DNS to point `vista.jedarden.com` to the apexalgo-iad ingress.
@@ -21,38 +22,72 @@ Task requires creating a CNAME record in Cloudflare DNS to point `vista.jedarden
 - No `~/.cloudflare-token` file
 - No Cloudflare credentials in environment
 
-## Required Action
-To complete this task, one of the following is needed:
+## Manual Setup Instructions Created
+Comprehensive setup guide created at: `notes/bf-34mk5-manual-setup.md`
 
-### Option 1: Provide API Token
-Set the environment variable:
-```bash
-export CLOUDFLARE_API_TOKEN=<token>
-```
-
-Then the CNAME can be created via Cloudflare API v4.
-
-### Option 2: Manual Creation via Cloudflare Dashboard
-1. Log in to Cloudflare Dashboard
-2. Select zone: jedarden.com
-3. Go to DNS → Records
-4. Add new record:
+**Quick steps:**
+1. Log in to Cloudflare Dashboard → jedarden.com zone
+2. Go to DNS → Records → Add record
+3. Configure:
    - **Type:** CNAME
    - **Name:** vista
    - **Target:** cef7d924-cd61-43dc-89ad-1df7de2699bf.cfargotunnel.com
-   - **TTL:** Auto (or 300)
-   - **Proxy status:** DNS only (not proxied)
+   - **TTL:** Auto
+   - **Proxy status:** DNS only (grey cloud - NOT proxied)
 
-## Verification
-Once created, verify with:
+## Verification Script Created
+Executable script created at: `scripts/verify-dns-cname.sh`
+
+**After manual CNAME creation, run:**
 ```bash
-host -t CNAME vista.jedarden.com
+./scripts/verify-dns-cname.sh
 ```
+
+This script checks:
+- CNAME record exists
+- Points to correct target
+- DNS resolution works
+- HTTPS accessibility
+
+## Current Verification Status
+**All checks FAIL (CNAME not yet created):**
+- ✗ CNAME record does not exist
+- ✗ CNAME target check: N/A
+- ✗ DNS resolution: N/A
+- ✗ HTTPS accessibility: N/A
+
+## After Manual Creation - Run Verification
+```bash
+./scripts/verify-dns-cname.sh
+```
+
+Expected output when CNAME exists:
+```
+✓ PASS: CNAME record exists
+✓ PASS: CNAME points to cef7d924-cd61-43dc-89ad-1df7de2699bf.cfargotunnel.com
+✓ PASS: DNS resolution successful
+✓ PASS: HTTPS accessible (HTTP 407 or 200)
+```
+
+Note: HTTP 407 is expected if Traefik authentication is enabled (as configured in the IngressRoute).
 
 ## Why This Target?
 The target `cef7d924-cd61-43dc-89ad-1df7de2699bf.cfargotunnel.com` is the Cloudflare Tunnel that fronts the Traefik ingress on apexalgo-iad. This is the same target used by all other apexalgo-iad services.
 
-## Related
-- IngressRoute: `/home/coding/declarative-config/k8s/apexalgo-iad/vista/ingressroute.yml`
-- Parent bead: bf-2eu (umbrella deployment task)
-- Next child bead: bf-2k4ei (end-to-end test) - blocked by this DNS record
+## Related Files and Documentation
+- **Manual setup guide:** `/home/coding/vista/notes/bf-34mk5-manual-setup.md`
+- **Verification script:** `/home/coding/vista/scripts/verify-dns-cname.sh` (executable)
+- **IngressRoute:** `/home/coding/declarative-config/k8s/apexalgo-iad/vista/ingressroute.yml`
+- **Parent bead:** bf-2eu (umbrella deployment task)
+- **Next child bead:** bf-2k4ei (end-to-end test) - blocked by this DNS record
+
+## Files Created for This Bead
+1. `notes/bf-34mk5-manual-setup.md` - Comprehensive Cloudflare Dashboard setup instructions
+2. `scripts/verify-dns-cname.sh` - Automated verification script
+3. `notes/bf-34mk5.md` - Updated this file with current status
+
+## Commit Information
+This commit contains documentation and tooling for manual CNAME creation. The actual CNAME record must be created manually via Cloudflare Dashboard by following the instructions in `notes/bf-34mk5-manual-setup.md`.
+
+## Closing This Bead
+This bead should remain OPEN until the CNAME is manually created and verified with `./scripts/verify-dns-cname.sh`. Once verified, update this file and close the bead with `br close bf-34mk5`.

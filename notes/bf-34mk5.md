@@ -3,11 +3,12 @@
 ## Status
 **REQUIRES MANUAL INTERVENTION** - Documentation created, awaiting Cloudflare Dashboard action.
 
-**Last verified:** 2026-07-24 21:47 UTC
+**Last verified:** 2026-07-24 (current session)
 **CNAME status:** Does not exist (confirmed via host command: "vista.jedarden.com has no CNAME record")
 **Blocker:** No Cloudflare API credentials available - requires manual Dashboard intervention
 **Verification check:** Ran `./scripts/verify-dns-cname.sh` - all checks failed due to missing CNAME
-**Action taken:** Created comprehensive manual setup guide and verification script
+**external-dns status:** Not running on apexalgo-iad (no pods in traefik namespace)
+**Action taken:** Comprehensive documentation exists, awaiting manual Cloudflare Dashboard action
 
 ## Summary
 Task requires creating a CNAME record in Cloudflare DNS to point `vista.jedarden.com` to the apexalgo-iad ingress.

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test All Platform Context Frames</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+      background: #1a1a2e;
+      color: #e0e0e0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 32px;
+    }
+
+    .theme-toggle {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+
+    .theme-toggle button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .dark-btn {
+      background: #0f0f0f;
+      color: #ffffff;
+    }
+
+    .light-btn {
+      background: #ffffff;
+      color: #0f0f0f;
+    }
+
+    .platform-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+      gap: 20px;
+    }
+
+    .platform-frame {
+      background: #2d2d3a;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .platform-header {
+      background: #3d3d4d;
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      border-bottom: 1px solid #4d4d5d;
+    }
+
+    .platform-content {
+      width: 100%;
+      height: 300px;
+      border: none;
+    }
+
+    .platform-footer {
+      background: #3d3d4d;
+      padding: 8px 16px;
+      font-size: 12px;
+      color: #a0a0b0;
+      border-top: 1px solid #4d4d5d;
+    }
+
+    .category {
+      grid-column: 1 / -1;
+      font-size: 20px;
+      font-weight: 600;
+      margin: 20px 0 10px;
+      color: #9146ff;
+    }
+  </style>
+</head>
+<body>
+  <h1>All Platform Context Frames</h1>
+
+  <div class="theme-toggle">
+    <button class="dark-btn" onclick="setTheme('dark')">Dark Mode</button>
+    <button class="light-btn" onclick="setTheme('light')">Light Mode</button>
+  </div>
+
+  <div class="platform-grid" id="platformGrid">
+    <div class="category">Developer Platforms</div>
+
+    <div class="platform-frame">
+      <div class="platform-header">GitHub</div>
+      <iframe class="platform-content" data-platform="github" data-theme="dark" src="github-dark.html"></iframe>
+      <div class="platform-footer">Developer platform with code-like formatting</div>
+    </div>
+
+    <div class="platform-frame">
+      <div class="platform-header">GitLab</div>
+      <iframe class="platform-content" data-platform="gitlab" data-theme="dark" src="gitlab-dark.html"></iframe>
+      <div class="platform-footer">Merge request and issue tracking</div>
+    </div>
+
+    <div class="platform-frame">
+      <div class="platform-header">Stack Overflow</div>
+      <iframe class="platform-content" data-platform="stackoverflow" data-theme="dark" src="stackoverflow-dark.html"></iframe>
+      <div class="platform-footer">Q&A with code snippets</div>
+    </div>
+
+    <div class="category">Video Platforms</div>
+
+    <div class="platform-frame">
+      <div class="platform-header">YouTube</div>
+      <iframe class="platform-content" data-platform="youtube" data-theme="dark" src="youtube-dark.html"></iframe>
+      <div class="platform-footer">Video page with description and comments</div>
+    </div>
+
+    <div class="platform-frame">
+      <div class="platform-header">Twitch</div>
+      <iframe class="platform-content" data-platform="twitch" data-theme="dark" src="twitch-dark.html"></iframe>
+      <div class="platform-footer">Stream chat with link card</div>
+    </div>
+
+    <div class="category">Messaging Platforms</div>
+
+    <div class="platform-frame">
+      <div class="platform-header">Discord</div>
+      <iframe class="platform-content" data-platform="discord" data-theme="dark" src="discord-dark.html"></iframe>
+      <div class="platform-footer">Chat server with link embed</div>
+    </div>
+
+    <div class="platform-frame">
+      <div class="platform-header">Slack</div>
+      <iframe class="platform-content" data-platform="slack" data-theme="dark" src="slack-dark.html"></iframe>
+      <div class="platform-footer">Workspace messaging with unfurls</div>
+    </div>
+
+    <div class="platform-frame">
+      <div class="platform-header">Twitter/X</div>
+      <iframe class="platform-content" data-platform="twitter" data-theme="dark" src="twitter-dark.html"></iframe>
+      <div class="platform-footer">Microblog with link cards</div>
+    </div>
+
+    <div class="category">Email & Thread Platforms</div>
+
+    <div class="platform-frame">
+      <div class="platform-header">Gmail</div>
+      <iframe class="platform-content" data-platform="gmail" data-theme="dark" src="gmail-dark.html"></iframe>
+      <div class="platform-footer">Email thread with conversation view</div>
+    </div>
+
+    <div class="platform-frame">
+      <div class="platform-header">Outlook</div>
+      <iframe class="platform-content" data-platform="outlook" data-theme="dark" src="outlook-dark.html"></iframe>
+      <div class="platform-footer">Email client with message threading</div>
+    </div>
+
+    <div class="category">Feed & Aggregator Platforms</div>
+
+    <div class="platform-frame">
+      <div class="platform-header">Hacker News</div>
+      <iframe class="platform-content" data-platform="hackernews" data-theme="dark" src="hackernews-dark.html"></iframe>
+      <div class="platform-footer">Comment thread with voting</div>
+    </div>
+
+    <div class="platform-frame">
+      <div class="platform-header">Feedly</div>
+      <iframe class="platform-content" data-platform="feedly" data-theme="dark" src="feedly-dark.html"></iframe>
+      <div class="platform-footer">RSS feed reader interface</div>
+    </div>
+
+    <div class="platform-frame">
+      <div class="platform-header">Reddit</div>
+      <iframe class="platform-content" data-platform="reddit" data-theme="dark" src="reddit-dark.html"></iframe>
+      <div class="platform-footer">Threaded comment discussions</div>
+    </div>
+  </div>
+
+  <script>
+    function setTheme(theme) {
+      const iframes = document.querySelectorAll('.platform-content');
+      iframes.forEach(iframe => {
+        const platform = iframe.dataset.platform;
+        const currentSrc = iframe.src;
+
+        // Extract base URL and construct new URL
+        if (currentSrc.includes(`${platform}-`)) {
+          const newSrc = `${platform}-${theme}.html`;
+          iframe.src = newSrc;
+        }
+      });
+    }
+  </script>
+</body>
+</html>

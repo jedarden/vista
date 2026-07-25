@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Twitch - Light Mode Frame</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+      background: #ffffff;
+      color: #0e0e10;
+      padding: 20px;
+    }
+
+    .twitch-context.light-theme {
+      display: flex;
+      flex-direction: column;
+      min-height: 500px;
+      background: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #e5e5e5;
+    }
+
+    .twitch-stream-preview {
+      position: relative;
+      width: 100%;
+      height: 200px;
+      background: linear-gradient(135deg, #f7f7f7 0%, #e5e5e5 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .twitch-stream-placeholder {
+      font-size: 18px;
+      font-weight: 600;
+      color: #0e0e10;
+    }
+
+    .twitch-stream-overlay {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .twitch-live-badge {
+      padding: 4px 8px;
+      background: #e91916;
+      color: #ffffff;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .twitch-viewer-count {
+      font-size: 12px;
+      color: #0e0e10;
+      background: rgba(0, 0, 0, 0.75);
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
+    .twitch-stream-info {
+      padding: 16px;
+      background: #ffffff;
+      border-bottom: 1px solid #e5e5e5;
+    }
+
+    .twitch-stream-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #0e0e10;
+      margin-bottom: 12px;
+    }
+
+    .twitch-streamer {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .twitch-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #9146ff 0%, #772ce8 100%);
+      flex-shrink: 0;
+    }
+
+    .twitch-streamer-meta {
+      flex: 1;
+    }
+
+    .twitch-streamer-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #0e0e10;
+    }
+
+    .twitch-game {
+      font-size: 12px;
+      color: #53535f;
+      margin-top: 2px;
+    }
+
+    .twitch-follow-btn {
+      padding: 8px 16px;
+      background: #9146ff;
+      color: #ffffff;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .twitch-follow-btn:hover {
+      background: #772ce8;
+    }
+
+    .twitch-chat-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #f7f7f7;
+      overflow: hidden;
+    }
+
+    .twitch-chat-header {
+      padding: 12px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #0e0e10;
+      background: #f7f7f7;
+      border-bottom: 1px solid #e5e5e5;
+    }
+
+    .twitch-chat-messages {
+      flex: 1;
+      padding: 12px 16px;
+      overflow-y: auto;
+    }
+
+    .twitch-chat-message {
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+
+    .twitch-chat-dim {
+      opacity: 0.7;
+    }
+
+    .twitch-username {
+      font-size: 13px;
+      font-weight: 600;
+      margin-right: 4px;
+    }
+
+    .twitch-user-color-1 {
+      color: #ff6e9f;
+    }
+
+    .twitch-user-color-2 {
+      color: #0099ff;
+    }
+
+    .twitch-user-color-you {
+      color: #9146ff;
+    }
+
+    .twitch-message-text {
+      font-size: 13px;
+      color: #0e0e10;
+    }
+
+    .twitch-link-card {
+      margin-top: 8px;
+      background: #ffffff;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid #e5e5e5;
+    }
+
+    .twitch-card-image {
+      width: 100%;
+      height: 120px;
+      background: linear-gradient(135deg, #e5e5e5 0%, #f7f7f7 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #9e9ea7;
+      font-size: 14px;
+    }
+
+    .twitch-card-meta {
+      padding: 12px;
+    }
+
+    .twitch-card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #0e0e10;
+      margin-bottom: 6px;
+    }
+
+    .twitch-card-description {
+      font-size: 12px;
+      color: #53535f;
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+
+    .twitch-card-domain {
+      font-size: 11px;
+      color: #9e9ea7;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <div class="twitch-context light-theme">
+    <div class="twitch-stream-preview">
+      <div class="twitch-stream-placeholder">Live Stream</div>
+      <div class="twitch-stream-overlay">
+        <span class="twitch-live-badge">LIVE</span>
+        <span class="twitch-viewer-count">12,453 viewers</span>
+      </div>
+    </div>
+
+    <div class="twitch-stream-info">
+      <div class="twitch-stream-title">🔴 Gaming Marathon - Charity Stream!</div>
+      <div class="twitch-streamer">
+        <div class="twitch-avatar"></div>
+        <div class="twitch-streamer-meta">
+          <span class="twitch-streamer-name">ProGamer123</span>
+          <div class="twitch-game">Minecraft</div>
+        </div>
+        <button class="twitch-follow-btn">Follow</button>
+      </div>
+    </div>
+
+    <div class="twitch-chat-section">
+      <div class="twitch-chat-header">Stream Chat</div>
+      <div class="twitch-chat-messages">
+        <div class="twitch-chat-message twitch-chat-dim">
+          <span class="twitch-username twitch-user-color-1">Viewer1</span>
+          <span class="twitch-message-text">This stream is amazing!</span>
+        </div>
+        <div class="twitch-chat-message twitch-chat-dim">
+          <span class="twitch-username twitch-user-color-2">Viewer2</span>
+          <span class="twitch-message-text">Check out this cool guide!</span>
+        </div>
+        <div class="twitch-chat-message">
+          <span class="twitch-username twitch-user-color-you">You</span>
+          <span class="twitch-message-text">Here's a helpful resource:</span>
+          <div class="twitch-link-card">
+            <div class="twitch-card-image">🔗 Link Preview</div>
+            <div class="twitch-card-meta">
+              <div class="twitch-card-title">Complete Guide to Gaming Setup</div>
+              <div class="twitch-card-description">Learn how to optimize your gaming experience with the best equipment and settings.</div>
+              <div class="twitch-card-domain">example.com</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

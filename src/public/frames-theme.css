@@ -171,6 +171,29 @@
   /* StackOverflow Colors */
   --color-stackoverflow-accent: #f48024;
   --color-stackoverflow-link: #5ebaff;
+  --color-stackoverflow-badge-gold: #ffcc01;
+  --color-stackoverflow-badge-silver: #b4b8bc;
+  --color-stackoverflow-badge-bronze: #cd7f32;
+  --color-stackoverflow-success-dark: #3fb950;
+  --color-stackoverflow-success-light: #2da44e;
+  --color-stackoverflow-error-dark: #f85149;
+  --color-stackoverflow-error-light: #cf222e;
+
+  /* Code Syntax Highlighting Colors - Dark Theme */
+  --color-syntax-comment-dark: #6a9955;
+  --color-syntax-keyword-dark: #569cd6;
+  --color-syntax-function-dark: #dcdcaa;
+  --color-syntax-string-dark: #ce9178;
+  --color-syntax-number-dark: #b5cea8;
+  --color-syntax-variable-dark: #9cdcfe;
+
+  /* Code Syntax Highlighting Colors - Light Theme */
+  --color-syntax-comment-light: #6a9955;
+  --color-syntax-keyword-light: #0000ff;
+  --color-syntax-function-light: #795e26;
+  --color-syntax-string-light: #a31515;
+  --color-syntax-number-light: #098658;
+  --color-syntax-variable-light: #9cdcfe;
 
   /* Structural Variables */
   --frame-radius-global: 12px;

@@ -616,6 +616,305 @@
 }
 
 /* ============================================================================
+   TWITTER/X CONTEXT FRAME IMPLEMENTATION
+   ============================================================================ */
+
+/**
+ * Twitter/X frame container with realistic styling
+ */
+.context-frame.twitter-context {
+  background: var(--color-twitter-black);
+  border: 1px solid var(--color-twitter-dark-border);
+  border-radius: 16px;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.context-frame.twitter-context.light-theme {
+  background: var(--color-bg-light-primary);
+  border: 1px solid var(--color-twitter-light-border);
+}
+
+/* Twitter/X post header */
+.twitter-context .tw-post-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--color-twitter-black);
+  border-bottom: 1px solid transparent;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.twitter-context.light-theme .tw-post-header {
+  background: var(--color-bg-light-primary);
+  border-bottom: 1px solid transparent;
+}
+
+.twitter-context .tw-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--x-avatar-bg, #71767b);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-white);
+  font-weight: 600;
+  font-size: 16px;
+  border: 2px solid var(--x-avatar-border, #2f3336);
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.twitter-context.light-theme .tw-avatar {
+  background: var(--x-avatar-bg, #536471);
+  border-color: var(--x-avatar-border, #eff3f4);
+  color: var(--color-white);
+}
+
+.twitter-context .tw-post-meta {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.twitter-context .tw-author-name {
+  font-weight: 700;
+  color: var(--color-twitter-dark-text-primary);
+  font-size: 15px;
+  transition: color 0.2s ease;
+}
+
+.twitter-context.light-theme .tw-author-name {
+  color: var(--color-twitter-light-text-primary);
+}
+
+.twitter-context .tw-author-handle {
+  font-size: 15px;
+  color: var(--color-twitter-dark-text-secondary);
+  font-weight: 400;
+  transition: color 0.2s ease;
+}
+
+.twitter-context.light-theme .tw-author-handle {
+  color: var(--color-twitter-light-text-secondary);
+}
+
+.twitter-context .tw-post-time {
+  font-size: 15px;
+  color: var(--color-twitter-dark-text-secondary);
+  font-weight: 400;
+  transition: color 0.2s ease;
+}
+
+.twitter-context.light-theme .tw-post-time {
+  color: var(--color-twitter-light-text-secondary);
+}
+
+.twitter-context .tw-verified {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  background: var(--color-twitter-blue);
+  color: var(--color-white);
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+  transition: background 0.2s ease;
+}
+
+.twitter-context.light-theme .tw-verified {
+  background: var(--color-twitter-blue);
+  color: var(--color-white);
+}
+
+/* Twitter/X post content */
+.twitter-context .tw-post-content {
+  padding: 0 16px 12px 56px;
+  background: var(--color-twitter-black);
+  color: var(--color-twitter-dark-text-primary);
+  font-size: 15px;
+  line-height: 1.5;
+  word-wrap: break-word;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.twitter-context.light-theme .tw-post-content {
+  background: var(--color-bg-light-primary);
+  color: var(--color-twitter-light-text-primary);
+}
+
+/* Twitter/X link card */
+.twitter-context .tw-link-card {
+  background: var(--color-twitter-dark-surface);
+  border: 1px solid var(--color-twitter-dark-border);
+  border-radius: 16px;
+  overflow: hidden;
+  margin: 8px 16px 12px 56px;
+  transition: background 0.2s ease, border-color 0.2s ease;
+  cursor: pointer;
+}
+
+.twitter-context.light-theme .tw-link-card {
+  background: var(--color-twitter-light-surface);
+  border: 1px solid var(--color-twitter-light-border);
+}
+
+.twitter-context .tw-link-card:hover {
+  background: var(--x-hover-bg, rgba(255, 255, 255, 0.03));
+  border-color: var(--x-link-card-hover-border, #1d9bf0);
+}
+
+.twitter-context.light-theme .tw-link-card:hover {
+  background: var(--x-hover-bg, rgba(0, 0, 0, 0.04));
+  border-color: var(--x-link-card-hover-border, #1d9bf0);
+}
+
+.twitter-context .tw-context-placeholder {
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: var(--x-placeholder-gradient, linear-gradient(135deg, #2f3336 0%, #3d4145 100%));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-twitter-dark-text-secondary);
+  font-size: 32px;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.twitter-context.light-theme .tw-context-placeholder {
+  background: var(--x-placeholder-gradient, linear-gradient(135deg, #eff3f4 0%, #e3e7e9 100%));
+  color: var(--color-twitter-light-text-secondary);
+}
+
+.twitter-context .tw-context-meta {
+  padding: 12px;
+}
+
+.twitter-context .tw-context-domain {
+  font-size: 13px;
+  color: var(--color-twitter-dark-text-secondary);
+  font-weight: 400;
+  margin-bottom: 2px;
+  transition: color 0.2s ease;
+}
+
+.twitter-context.light-theme .tw-context-domain {
+  color: var(--color-twitter-light-text-secondary);
+}
+
+.twitter-context .tw-context-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-twitter-dark-text-primary);
+  line-height: 1.3;
+  margin-bottom: 2px;
+  transition: color 0.2s ease;
+}
+
+.twitter-context.light-theme .tw-context-title {
+  color: var(--color-twitter-light-text-primary);
+}
+
+.twitter-context .tw-context-description {
+  font-size: 14px;
+  color: var(--color-twitter-dark-text-secondary);
+  line-height: 1.3;
+  transition: color 0.2s ease;
+}
+
+.twitter-context.light-theme .tw-context-description {
+  color: var(--color-twitter-light-text-secondary);
+}
+
+/* Twitter/X post actions */
+.twitter-context .tw-post-actions {
+  display: flex;
+  gap: 16px;
+  padding: 4px 16px 12px 56px;
+  background: var(--color-twitter-black);
+  color: var(--color-twitter-dark-text-secondary);
+  font-size: 13px;
+  font-weight: 400;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.twitter-context.light-theme .tw-post-actions {
+  background: var(--color-bg-light-primary);
+  color: var(--color-twitter-light-text-secondary);
+}
+
+.twitter-context .tw-post-actions span {
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 9999px;
+  transition: background 0.2s ease, color 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.twitter-context .tw-post-actions span:hover {
+  background: var(--x-hover-bg, rgba(255, 255, 255, 0.1));
+  color: var(--color-twitter-dark-text-primary);
+}
+
+.twitter-context.light-theme .tw-post-actions span:hover {
+  background: var(--x-hover-bg, rgba(0, 0, 0, 0.1));
+  color: var(--color-twitter-light-text-primary);
+}
+
+/* Twitter/X engagement colors */
+.twitter-context .tw-reply-color {
+  color: var(--x-reply-color, var(--color-twitter-dark-text-secondary));
+}
+
+.twitter-context.light-theme .tw-reply-color {
+  color: var(--x-reply-color, var(--color-twitter-light-text-secondary));
+}
+
+.twitter-context .tw-retweet-color {
+  color: var(--x-retweet-color, var(--color-twitter-green));
+}
+
+.twitter-context.light-theme .tw-retweet-color {
+  color: var(--x-retweet-color, var(--color-twitter-green));
+}
+
+.twitter-context .tw-like-color {
+  color: var(--x-like-color, var(--color-twitter-pink));
+}
+
+.twitter-context.light-theme .tw-like-color {
+  color: var(--x-like-color, var(--color-twitter-pink));
+}
+
+.twitter-context .tw-view-color {
+  color: var(--x-view-color, var(--color-twitter-dark-text-secondary));
+}
+
+.twitter-context.light-theme .tw-view-color {
+  color: var(--x-view-color, var(--color-twitter-light-text-secondary));
+}
+
+/* Twitter/X icon styling */
+.twitter-context .tw-icon {
+  font-size: 16px;
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ============================================================================
    RESPONSIVE DESIGN
    ============================================================================ */
 

@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhatsApp Context Frame</title>
+  <link rel="stylesheet" href="src/public/messaging-base.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+      background: #0b141a;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .whatsapp-context {
+      width: 100%;
+      max-width: 375px;
+      background: #0b141a;
+      border-radius: 0;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    /* WhatsApp Header */
+    .wa-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: #202c33;
+      border-bottom: 1px solid #2a3942;
+    }
+
+    .wa-header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .wa-back-btn {
+      color: #aebac1;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .wa-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+      color: #ffffff;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #25d366, #128c7e);
+    }
+
+    .wa-contact-info {
+      flex: 1;
+    }
+
+    .wa-contact-name {
+      font-size: 16px;
+      font-weight: 500;
+      color: #e9edef;
+    }
+
+    .wa-contact-status {
+      font-size: 12px;
+      color: #8696a0;
+      margin-top: 2px;
+    }
+
+    .wa-header-icons {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .wa-icon {
+      color: #aebac1;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    /* WhatsApp Chat Container */
+    .wa-chat-container {
+      position: relative;
+      padding: 16px 12px;
+      min-height: 450px;
+      background: #0b141a;
+    }
+
+    /* Background pattern */
+    .wa-chat-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%232a3942' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      opacity: 0.3;
+      pointer-events: none;
+    }
+
+    /* Date separator */
+    .wa-date-separator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 16px 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    .wa-date-separator-text {
+      font-size: 11px;
+      color: #8696a0;
+      background: #182229;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-weight: 500;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Encryption notice */
+    .wa-encryption-notice {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      margin: 12px 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    .wa-lock-icon {
+      font-size: 12px;
+      color: #8696a0;
+    }
+
+    .wa-encryption-text {
+      font-size: 11px;
+      color: #8696a0;
+      font-weight: 400;
+    }
+
+    /* Message container */
+    .wa-message-row {
+      display: flex;
+      margin-bottom: 4px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .wa-message-row.received {
+      justify-content: flex-start;
+    }
+
+    .wa-message-row.sent {
+      justify-content: flex-end;
+    }
+
+    .wa-message-row .wa-message-content {
+      display: flex;
+      max-width: 80%;
+      flex-direction: column;
+    }
+
+    .wa-message-row.received .wa-message-content {
+      align-items: flex-start;
+    }
+
+    .wa-message-row.sent .wa-message-content {
+      align-items: flex-end;
+    }
+
+    /* Message bubbles - WhatsApp styling */
+    .wa-bubble {
+      padding: 6px 7px 8px 9px;
+      border-radius: 7.5px;
+      position: relative;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      font-size: 14.2px;
+      line-height: 19px;
+      box-shadow: 0 1px 0.5px rgba(0, 0, 0, 0.13);
+    }
+
+    .wa-message-row.received .wa-bubble {
+      background: #202c33;
+      color: #e9edef;
+      border-top-left-radius: 0;
+    }
+
+    .wa-message-row.sent .wa-bubble {
+      background: #005c4b;
+      color: #e9edef;
+      border-top-right-radius: 0;
+    }
+
+    /* Message text with avatar for received messages */
+    .wa-message-with-avatar {
+      display: flex;
+      gap: 6px;
+      align-items: flex-end;
+    }
+
+    .wa-avatar-small {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 600;
+      color: #ffffff;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+    }
+
+    /* Message metadata footer */
+    .wa-message-footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 4px;
+      margin-top: 2px;
+    }
+
+    .wa-timestamp {
+      font-size: 11px;
+      color: #8696a0;
+      white-space: nowrap;
+    }
+
+    .wa-message-row.sent .wa-timestamp {
+      color: rgba(233, 237, 239, 0.6);
+    }
+
+    /* Read receipts - WhatsApp checkmarks */
+    .wa-checkmarks {
+      font-size: 14px;
+      color: #8696a0;
+      line-height: 1;
+    }
+
+    .wa-message-row.sent .wa-checkmarks {
+      color: rgba(233, 237, 239, 0.6);
+    }
+
+    /* Checkmark states */
+    .wa-check-single::before {
+      content: '✓';
+      color: #8696a0;
+    }
+
+    .wa-check-double::before {
+      content: '✓✓';
+      color: #8696a0;
+    }
+
+    .wa-check-read::before {
+      content: '✓✓';
+      color: #53bdeb; /* Blue for read */
+    }
+
+    .wa-message-row.sent .wa-check-single::before,
+    .wa-message-row.sent .wa-check-double::before {
+      color: rgba(233, 237, 239, 0.6);
+    }
+
+    .wa-message-row.sent .wa-check-read::before {
+      color: #53bdeb;
+    }
+
+    /* Link preview */
+    .wa-link-preview {
+      margin-top: 4px;
+      border-radius: 6px;
+      overflow: hidden;
+      background: #202c33;
+      max-width: 280px;
+    }
+
+    .wa-link-image {
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .wa-link-placeholder {
+      width: 100%;
+      height: 140px;
+      background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .wa-link-content {
+      display: flex;
+      padding: 8px;
+      gap: 8px;
+      background: #2a3942;
+    }
+
+    .wa-link-favicon {
+      width: 32px;
+      height: 32px;
+      background: #3a4a52;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 14px;
+    }
+
+    .wa-link-meta {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .wa-link-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: #e9edef;
+      margin-bottom: 2px;
+      line-height: 1.3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .wa-link-domain {
+      font-size: 12px;
+      color: #8696a0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Input area */
+    .wa-input-area {
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      background: #202c33;
+      gap: 8px;
+    }
+
+    .wa-input-btn {
+      color: #8696a0;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .wa-input-field {
+      flex: 1;
+      background: #2a3942;
+      border: none;
+      border-radius: 8px;
+      padding: 9px 12px;
+      color: #e9edef;
+      font-size: 15px;
+      outline: none;
+    }
+
+    .wa-input-field::placeholder {
+      color: #8696a0;
+    }
+
+    .wa-send-btn {
+      color: #8696a0;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    /* Light theme overrides */
+    [data-theme="light"] body {
+      background: #efeae2;
+    }
+
+    [data-theme="light"] .whatsapp-context {
+      background: #efeae2;
+    }
+
+    [data-theme="light"] .wa-header {
+      background: #ffffff;
+      border-bottom-color: #e9edef;
+    }
+
+    [data-theme="light"] .wa-contact-name {
+      color: #111b21;
+    }
+
+    [data-theme="light"] .wa-contact-status {
+      color: #667781;
+    }
+
+    [data-theme="light"] .wa-back-btn,
+    [data-theme="light"] .wa-icon {
+      color: #54656f;
+    }
+
+    [data-theme="light"] .wa-chat-container {
+      background: #efeae2;
+    }
+
+    [data-theme="light"] .wa-chat-container::before {
+      opacity: 0.6;
+    }
+
+    [data-theme="light"] .wa-date-separator-text {
+      background: #ffffff;
+      color: #667781;
+    }
+
+    [data-theme="light"] .wa-lock-icon,
+    [data-theme="light"] .wa-encryption-text {
+      color: #667781;
+    }
+
+    [data-theme="light"] .wa-message-row.received .wa-bubble {
+      background: #ffffff;
+      color: #111b21;
+    }
+
+    [data-theme="light"] .wa-message-row.sent .wa-bubble {
+      background: #d9fdd3;
+      color: #111b21;
+    }
+
+    [data-theme="light"] .wa-timestamp {
+      color: #667781;
+    }
+
+    [data-theme="light"] .wa-message-row.sent .wa-timestamp {
+      color: rgba(17, 27, 33, 0.6);
+    }
+
+    [data-theme="light"] .wa-check-single::before,
+    [data-theme="light"] .wa-check-double::before {
+      color: #667781;
+    }
+
+    [data-theme="light"] .wa-message-row.sent .wa-check-single::before,
+    [data-theme="light"] .wa-message-row.sent .wa-check-double::before {
+      color: rgba(17, 27, 33, 0.6);
+    }
+
+    [data-theme="light"] .wa-link-preview {
+      background: #ffffff;
+    }
+
+    [data-theme="light"] .wa-link-content {
+      background: #f0f2f5;
+    }
+
+    [data-theme="light"] .wa-link-favicon {
+      background: #e9edef;
+    }
+
+    [data-theme="light"] .wa-link-title {
+      color: #111b21;
+    }
+
+    [data-theme="light"] .wa-link-domain {
+      color: #667781;
+    }
+
+    [data-theme="light"] .wa-input-area {
+      background: #ffffff;
+    }
+
+    [data-theme="light"] .wa-input-field {
+      background: #f0f2f5;
+      color: #111b21;
+    }
+
+    [data-theme="light"] .wa-input-field::placeholder {
+      color: #667781;
+    }
+
+    [data-theme="light"] .wa-input-btn,
+    [data-theme="light"] .wa-send-btn {
+      color: #667781;
+    }
+  </style>
+</head>
+<body>
+  <div class="whatsapp-context">
+    <!-- Header -->
+    <div class="wa-header">
+      <div class="wa-header-left">
+        <span class="wa-back-btn">‹</span>
+        <div class="wa-avatar">TC</div>
+        <div class="wa-contact-info">
+          <div class="wa-contact-name">Tech Channel</div>
+          <div class="wa-contact-status">online</div>
+        </div>
+      </div>
+      <div class="wa-header-icons">
+        <span class="wa-icon">📹</span>
+        <span class="wa-icon">⋮</span>
+      </div>
+    </div>
+
+    <!-- Chat Container -->
+    <div class="wa-chat-container">
+      <!-- Date separator -->
+      <div class="wa-date-separator">
+        <span class="wa-date-separator-text">Today</span>
+      </div>
+
+      <!-- Encryption notice -->
+      <div class="wa-encryption-notice">
+        <span class="wa-lock-icon">🔒</span>
+        <span class="wa-encryption-text">Messages and calls are end-to-end encrypted.</span>
+      </div>
+
+      <!-- Received message with avatar -->
+      <div class="wa-message-row received">
+        <div class="wa-message-content">
+          <div class="wa-message-with-avatar">
+            <div class="wa-avatar-small">TC</div>
+            <div class="wa-bubble">
+              Hey everyone! Check out this amazing resource for web development 🚀
+              <div class="wa-message-footer">
+                <span class="wa-timestamp">10:30 AM</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sent message - single checkmark (sent) -->
+      <div class="wa-message-row sent">
+        <div class="wa-message-content">
+          <div class="wa-bubble">
+            Thanks for sharing! This looks really interesting. Let me take a look.
+            <div class="wa-message-footer">
+              <span class="wa-timestamp">10:32 AM</span>
+              <span class="wa-checkmarks wa-check-single"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sent message - double checkmarks (delivered) -->
+      <div class="wa-message-row sent">
+        <div class="wa-message-content">
+          <div class="wa-bubble">
+            Actually, I found another great resource that complements this perfectly:
+            <div class="wa-message-footer">
+              <span class="wa-timestamp">10:33 AM</span>
+              <span class="wa-checkmarks wa-check-double"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sent message with link preview - double blue checkmarks (read) -->
+      <div class="wa-message-row sent">
+        <div class="wa-message-content">
+          <div class="wa-bubble">
+            <div>Here's the link to the CSS Grid guide:</div>
+            <div class="wa-link-preview">
+              <div class="wa-link-placeholder">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                </svg>
+              </div>
+              <div class="wa-link-content">
+                <div class="wa-link-favicon">📄</div>
+                <div class="wa-link-meta">
+                  <div class="wa-link-title">A Complete Guide to CSS Grid Layout</div>
+                  <div class="wa-link-domain">css-tricks.com</div>
+                </div>
+              </div>
+            </div>
+            <div class="wa-message-footer">
+              <span class="wa-timestamp">10:35 AM</span>
+              <span class="wa-checkmarks wa-check-read"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Received message -->
+      <div class="wa-message-row received">
+        <div class="wa-message-content">
+          <div class="wa-message-with-avatar">
+            <div class="wa-avatar-small">TC</div>
+            <div class="wa-bubble">
+              This is perfect! I've been looking for a comprehensive Grid reference. Thanks! 🎉
+              <div class="wa-message-footer">
+                <span class="wa-timestamp">10:36 AM</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sent message - read receipt -->
+      <div class="wa-message-row sent">
+        <div class="wa-message-content">
+          <div class="wa-bubble">
+            You're welcome! Let me know if you need any help with the implementation.
+            <div class="wa-message-footer">
+              <span class="wa-timestamp">10:37 AM</span>
+              <span class="wa-checkmarks wa-check-read"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input Area -->
+    <div class="wa-input-area">
+      <span class="wa-input-btn">😊</span>
+      <input type="text" class="wa-input-field" placeholder="Message">
+      <span class="wa-input-btn">📎</span>
+      <span class="wa-send-btn">➤</span>
+    </div>
+  </div>
+
+  <script>
+    // Theme toggle for testing
+    let currentTheme = 'dark';
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 't' || e.key === 'T') {
+        currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        console.log(`Theme switched to ${currentTheme} mode`);
+      }
+    });
+    console.log('WhatsApp frame loaded. Press T to toggle theme.');
+  </script>
+</body>
+</html>

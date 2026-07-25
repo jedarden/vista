@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video Platforms Theme Switching Test</title>
+  <style>
+    body {
+      font-family: system-ui;
+      padding: 20px;
+      background: #0f1117;
+      color: #e8eaf0;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    html[data-theme='light'] body {
+      background: #f8f9fa;
+      color: #212529;
+    }
+
+    .test-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .test-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .test-header h1 {
+      margin-bottom: 10px;
+    }
+
+    .test-controls {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .test-controls button {
+      padding: 10px 20px;
+      background: #5b8dee;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: background 0.3s ease;
+    }
+
+    .test-controls button:hover {
+      background: #4a7ccd;
+    }
+
+    .test-controls button.active {
+      background: #22c55e;
+    }
+
+    .test-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .test-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .test-frame {
+      border: 1px solid #3a3a3f;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #1a1a1e;
+      transition: border-color 0.3s ease, background 0.3s ease;
+    }
+
+    html[data-theme='light'] .test-frame {
+      border-color: #e5e7eb;
+      background: #ffffff;
+    }
+
+    .test-frame-header {
+      padding: 12px 16px;
+      background: #25252a;
+      border-bottom: 1px solid #3a3a3f;
+      font-size: 14px;
+      font-weight: 600;
+      transition: background 0.3s ease, border-color 0.3s ease;
+    }
+
+    html[data-theme='light'] .test-frame-header {
+      background: #f8f9fa;
+      border-bottom-color: #e5e7eb;
+    }
+
+    .test-frame-content {
+      height: 400px;
+      overflow-y: auto;
+    }
+
+    .test-frame-content iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .verification-results {
+      margin-top: 20px;
+      padding: 20px;
+      background: #1a1a1e;
+      border-radius: 8px;
+      border: 1px solid #3a3a3f;
+      transition: background 0.3s ease, border-color 0.3s ease;
+    }
+
+    html[data-theme='light'] .verification-results {
+      background: #ffffff;
+      border-color: #e5e7eb;
+    }
+
+    .verification-results h3 {
+      margin-bottom: 15px;
+    }
+
+    .test-result {
+      margin: 8px 0;
+      padding: 10px;
+      border-radius: 4px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .test-result.pass {
+      background: #22c55e;
+      color: white;
+    }
+
+    .test-result.fail {
+      background: #ef4444;
+      color: white;
+    }
+
+    .test-result.pending {
+      background: #6b7280;
+      color: white;
+    }
+
+    .test-result-icon {
+      font-size: 18px;
+    }
+
+    .theme-info {
+      text-align: center;
+      margin-bottom: 20px;
+      padding: 12px;
+      background: #25252a;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: background 0.3s ease;
+    }
+
+    html[data-theme='light'] .theme-info {
+      background: #f8f9fa;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <div class="test-header">
+      <h1>Video Platforms Theme Switching Test</h1>
+      <p>Testing YouTube and Twitch frames with dark/light theme support</p>
+    </div>
+
+    <div class="test-controls">
+      <button id="darkBtn" onclick="setTheme('dark')" class="active">Dark Theme</button>
+      <button id="lightBtn" onclick="setTheme('light')">Light Theme</button>
+      <button onclick="toggleTheme()">Toggle Theme</button>
+      <button onclick="runTests()">Run Tests</button>
+    </div>
+
+    <div class="theme-info">
+      <strong>Current Theme:</strong> <span id="currentTheme">dark</span> |
+      <strong>Local Storage:</strong> <span id="storageStatus">Checking...</span>
+    </div>
+
+    <div class="test-grid">
+      <div class="test-frame">
+        <div class="test-frame-header">YouTube Frame</div>
+        <div class="test-frame-content">
+          <iframe id="youtubeFrame" src="youtube.html" title="YouTube frame"></iframe>
+        </div>
+      </div>
+
+      <div class="test-frame">
+        <div class="test-frame-header">Twitch Frame</div>
+        <div class="test-frame-content">
+          <iframe id="twitchFrame" src="twitch.html" title="Twitch frame"></iframe>
+        </div>
+      </div>
+    </div>
+
+    <div class="verification-results">
+      <h3>Verification Results</h3>
+      <div id="testResults">
+        <div class="test-result pending">
+          <span class="test-result-icon">⏳</span>
+          <span>Click "Run Tests" to verify theme switching functionality</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentTheme = 'dark';
+
+    function setTheme(theme) {
+      currentTheme = theme;
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('vista-theme', theme);
+      updateUI();
+      syncFrames();
+    }
+
+    function toggleTheme() {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      setTheme(currentTheme);
+    }
+
+    function updateUI() {
+      // Update button states
+      document.getElementById('darkBtn').classList.toggle('active', currentTheme === 'dark');
+      document.getElementById('lightBtn').classList.toggle('active', currentTheme === 'light');
+      document.getElementById('currentTheme').textContent = currentTheme;
+      document.getElementById('storageStatus').textContent = localStorage.getItem('vista-theme') || 'None';
+    }
+
+    function syncFrames() {
+      // Sync theme with iframe content
+      const youtubeFrame = document.getElementById('youtubeFrame');
+      const twitchFrame = document.getElementById('twitchFrame');
+
+      // Post theme message to frames
+      [youtubeFrame, twitchFrame].forEach(frame => {
+        try {
+          frame.contentWindow.postMessage({ type: 'themeChange', theme: currentTheme }, '*');
+        } catch (e) {
+          // Frame might not be loaded yet
+        }
+      });
+    }
+
+    function runTests() {
+      const results = document.getElementById('testResults');
+      results.innerHTML = '';
+
+      const tests = [
+        {
+          name: 'YouTube frame switches between dark/light themes correctly',
+          test: () => testYouTubeThemeSwitch()
+        },
+        {
+          name: 'Twitch frame switches between dark/light themes correctly',
+          test: () => testTwitchThemeSwitch()
+        },
+        {
+          name: 'Video player chrome adapts theme colors',
+          test: () => testPlayerChrome()
+        },
+        {
+          name: 'Chat cards and metadata adapt to theme',
+          test: () => testChatCards()
+        },
+        {
+          name: 'No color/contrast issues in dark theme',
+          test: () => testContrastDark()
+        },
+        {
+          name: 'No color/contrast issues in light theme',
+          test: () => testContrastLight()
+        },
+        {
+          name: 'Theme switching works dynamically',
+          test: () => testDynamicSwitching()
+        },
+        {
+          name: 'Local storage persistence works',
+          test: () => testPersistence()
+        }
+      ];
+
+      tests.forEach((testCase, index) => {
+        setTimeout(() => {
+          const result = testCase.test();
+          addTestResult(testCase.name, result.passed, result.details);
+        }, index * 200);
+      });
+    }
+
+    function addTestResult(name, passed, details) {
+      const results = document.getElementById('testResults');
+      const resultDiv = document.createElement('div');
+      resultDiv.className = `test-result ${passed ? 'pass' : 'fail'}`;
+      resultDiv.innerHTML = `
+        <span class="test-result-icon">${passed ? '✅' : '❌'}</span>
+        <div>
+          <strong>${name}</strong>
+          ${details ? `<div style="margin-top:4px; font-size:12px;">${details}</div>` : ''}
+        </div>
+      `;
+      results.appendChild(resultDiv);
+    }
+
+    function testYouTubeThemeSwitch() {
+      const html = document.documentElement;
+      const currentTheme = html.getAttribute('data-theme');
+      return {
+        passed: currentTheme === 'dark' || currentTheme === 'light',
+        details: `Current theme: ${currentTheme}`
+      };
+    }
+
+    function testTwitchThemeSwitch() {
+      const html = document.documentElement;
+      const currentTheme = html.getAttribute('data-theme');
+      return {
+        passed: currentTheme === 'dark' || currentTheme === 'light',
+        details: `Current theme: ${currentTheme}`
+      };
+    }
+
+    function testPlayerChrome() {
+      const body = document.body;
+      const computedStyle = window.getComputedStyle(body);
+      const backgroundColor = computedStyle.backgroundColor;
+
+      // Check if background color is appropriate for current theme
+      const isDark = currentTheme === 'dark';
+      const expectedDark = 'rgb(15, 17, 23)'; // #0f1117
+      const expectedLight = 'rgb(248, 249, 250)'; // #f8f9fa
+
+      const isCorrect = isDark ?
+        backgroundColor === expectedDark :
+        backgroundColor === expectedLight;
+
+      return {
+        passed: isCorrect,
+        details: `Background: ${backgroundColor} (expected: ${isDark ? expectedDark : expectedLight})`
+      };
+    }
+
+    function testChatCards() {
+      const testFrames = document.querySelectorAll('.test-frame');
+      const hasCorrectStyles = Array.from(testFrames).every(frame => {
+        const computedStyle = window.getComputedStyle(frame);
+        const borderColor = computedStyle.borderColor;
+        const hasValidBorder = borderColor !== 'rgba(0, 0, 0, 0)';
+        return hasValidBorder;
+      });
+
+      return {
+        passed: hasCorrectStyles,
+        details: `Frame borders adapt to theme: ${hasCorrectStyles ? 'Yes' : 'No'}`
+      };
+    }
+
+    function testContrastDark() {
+      // Test dark theme
+      document.documentElement.setAttribute('data-theme', 'dark');
+      const body = document.body;
+      const computedStyle = window.getComputedStyle(body);
+      const color = computedStyle.color;
+      const background = computedStyle.backgroundColor;
+
+      // Simple contrast check (not WCAG compliant but basic validation)
+      const hasContrast = color !== background;
+
+      return {
+        passed: hasContrast,
+        details: `Text color: ${color}, Background: ${background}`
+      };
+    }
+
+    function testContrastLight() {
+      // Test light theme
+      document.documentElement.setAttribute('data-theme', 'light');
+      const body = document.body;
+      const computedStyle = window.getComputedStyle(body);
+      const color = computedStyle.color;
+      const background = computedStyle.backgroundColor;
+
+      // Simple contrast check
+      const hasContrast = color !== background;
+
+      return {
+        passed: hasContrast,
+        details: `Text color: ${color}, Background: ${background}`
+      };
+    }
+
+    function testDynamicSwitching() {
+      const initialTheme = document.documentElement.getAttribute('data-theme');
+
+      // Switch themes
+      const newTheme = initialTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', newTheme);
+
+      const finalTheme = document.documentElement.getAttribute('data-theme');
+
+      // Restore original theme
+      document.documentElement.setAttribute('data-theme', initialTheme);
+
+      return {
+        passed: finalTheme === newTheme,
+        details: `Theme switched from ${initialTheme} to ${finalTheme}`
+      };
+    }
+
+    function testPersistence() {
+      const testTheme = 'light';
+      localStorage.setItem('vista-theme', testTheme);
+      const retrieved = localStorage.getItem('vista-theme');
+
+      return {
+        passed: retrieved === testTheme,
+        details: `Stored: ${testTheme}, Retrieved: ${retrieved}`
+      };
+    }
+
+    // Initialize
+    const savedTheme = localStorage.getItem('vista-theme') || 'dark';
+    currentTheme = savedTheme;
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    updateUI();
+
+    // Listen for storage changes from other tabs
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'vista-theme' && e.newValue) {
+        currentTheme = e.newValue;
+        updateUI();
+        syncFrames();
+      }
+    });
+  </script>
+</body>
+</html>

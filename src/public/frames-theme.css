@@ -51,6 +51,74 @@
 }
 
 /* ============================================================================
+   PLATFORM-SPECIFIC THEME VARIABLES
+   ============================================================================ */
+
+/* YouTube Theme Variables - Dark Mode */
+:root {
+  --youtube-bg: #0f0f0f;
+  --youtube-surface: #1a1a1a;
+  --youtube-border: #303030;
+  --youtube-text-primary: #ffffff;
+  --youtube-text-secondary: #aaaaaa;
+  --youtube-text-muted: #666666;
+  --youtube-accent: #ff0000;
+  --youtube-accent-bg: #cc0000;
+  --youtube-link-color: #3ea6ff;
+  --youtube-divider: #303030;
+  --youtube-input-bg: #1a1a1a;
+  --youtube-overlay: rgba(0, 0, 0, 0.8);
+}
+
+/* YouTube Theme Variables - Light Mode */
+[data-theme='light'] {
+  --youtube-bg: #ffffff;
+  --youtube-surface: #f9f9f9;
+  --youtube-border: #e5e5e5;
+  --youtube-text-primary: #0f0f0f;
+  --youtube-text-secondary: #606060;
+  --youtube-text-muted: #999999;
+  --youtube-accent: #cc0000;
+  --youtube-accent-bg: #ff0000;
+  --youtube-link-color: #065fd4;
+  --youtube-divider: #e5e5e5;
+  --youtube-input-bg: #ffffff;
+  --youtube-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* Twitch Theme Variables - Dark Mode */
+:root {
+  --twitch-bg: #0e0e10;
+  --twitch-surface: #18181b;
+  --twitch-border: #2d2d31;
+  --twitch-text-primary: #efeff1;
+  --twitch-text-secondary: #b5b5b5;
+  --twitch-text-muted: #71717a;
+  --twitch-accent: #9146ff;
+  --twitch-accent-bg: #772ce8;
+  --twitch-link-color: #9146ff;
+  --twitch-divider: #2d2d31;
+  --twitch-input-bg: #18181b;
+  --twitch-overlay: rgba(0, 0, 0, 0.75);
+}
+
+/* Twitch Theme Variables - Light Mode */
+[data-theme='light'] {
+  --twitch-bg: #ffffff;
+  --twitch-surface: #f7f7f7;
+  --twitch-border: #e5e5e5;
+  --twitch-text-primary: #0e0e10;
+  --twitch-text-secondary: #53535f;
+  --twitch-text-muted: #9e9ea7;
+  --twitch-accent: #9146ff;
+  --twitch-accent-bg: #e9d5ff;
+  --twitch-link-color: #9146ff;
+  --twitch-divider: #e5e5e5;
+  --twitch-input-bg: #ffffff;
+  --twitch-overlay: rgba(0, 0, 0, 0.5);
+}
+
+/* ============================================================================
    BASE FRAME STRUCTURE
    ============================================================================ */
 
@@ -984,6 +1052,22 @@
   --frame-divider: var(--teams-divider, var(--frame-divider-global));
   --frame-input-bg: var(--teams-input-bg, var(--frame-input-bg-global));
   --frame-overlay: var(--teams-overlay, var(--frame-overlay-global));
+}
+
+/* Twitch Context */
+.twitch-context {
+  --frame-bg: var(--twitch-bg, var(--frame-bg-global));
+  --frame-surface: var(--twitch-surface, var(--frame-surface-global));
+  --frame-border: var(--twitch-border, var(--frame-border-global));
+  --frame-text-primary: var(--twitch-text-primary, var(--frame-text-primary-global));
+  --frame-text-secondary: var(--twitch-text-secondary, var(--frame-text-secondary-global));
+  --frame-text-muted: var(--twitch-text-muted, var(--frame-text-muted-global));
+  --frame-accent: var(--twitch-accent, var(--frame-accent-global));
+  --frame-accent-bg: var(--twitch-accent-bg, var(--frame-accent-bg-global));
+  --frame-link-color: var(--twitch-link-color, var(--frame-link-color-global));
+  --frame-divider: var(--twitch-divider, var(--frame-divider-global));
+  --frame-input-bg: var(--twitch-input-bg, var(--frame-input-bg-global));
+  --frame-overlay: var(--twitch-overlay, var(--frame-overlay-global));
 }
 
 /* Google Chat Context */

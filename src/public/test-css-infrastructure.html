@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSS Infrastructure Test</title>
+  <link rel="stylesheet" href="frames-theme.css">
+  <link rel="stylesheet" href="frame-layouts.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #1a1a1e;
+    }
+    [data-theme="light"] body {
+      background: #f8f9fa;
+    }
+    .demo-section {
+      margin-bottom: 40px;
+    }
+    .demo-title {
+      color: var(--frame-text-primary-global, #e4e4e7);
+      margin-bottom: 16px;
+    }
+    [data-theme="light"] .demo-title {
+      color: var(--frame-text-primary-global, #1f2937);
+    }
+    .controls {
+      margin-bottom: 20px;
+      padding: 16px;
+      background: var(--frame-surface-global, #25252a);
+      border-radius: 8px;
+    }
+    [data-theme="light"] .controls {
+      background: var(--frame-surface-global, #f8f9fa);
+    }
+    button {
+      padding: 8px 16px;
+      margin-right: 8px;
+      background: var(--frame-accent-global, #6366f1);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    [data-theme="light"] button {
+      background: var(--frame-accent-global, #4f46e5);
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+  <h1 style="color: var(--frame-text-primary-global, #e4e4e7);">Platform Frame CSS Infrastructure Test</h1>
+
+  <div class="controls">
+    <button onclick="setTheme('dark')">Dark Theme</button>
+    <button onclick="setTheme('light')">Light Theme</button>
+    <span id="current-theme" style="margin-left: 16px; color: var(--frame-text-secondary-global, #a1a1aa);">Current: dark</span>
+  </div>
+
+  <!-- Test 1: Base Frame Structure -->
+  <div class="demo-section">
+    <h2 class="demo-title">1. Base Frame Structure</h2>
+    <div class="frame-base" style="max-width: 400px;">
+      <header class="frame-header">
+        📱 Frame Header
+      </header>
+      <div class="frame-body">
+        <p style="margin: 0; color: var(--frame-text-primary);">Frame body content</p>
+      </div>
+      <footer class="frame-footer">
+        <span>Item 1</span>
+        <span>Item 2</span>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Test 2: Avatar and Typography -->
+  <div class="demo-section">
+    <h2 class="demo-title">2. Avatar and Typography Utilities</h2>
+    <div style="display: flex; gap: 20px; align-items: center;">
+      <div class="frame-avatar frame-avatar-sm">👤</div>
+      <div class="frame-avatar">👤</div>
+      <div class="frame-avatar frame-avatar-lg">👤</div>
+      <div>
+        <p class="frame-text-primary">Primary text</p>
+        <p class="frame-text-secondary">Secondary text</p>
+        <p class="frame-text-muted">Muted text</p>
+        <p class="frame-text-accent">Accent text</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Test 3: Post Header Component -->
+  <div class="demo-section">
+    <h2 class="demo-title">3. Post Header Component</h2>
+    <div class="frame-post-header" style="max-width: 400px;">
+      <div class="frame-avatar">👤</div>
+      <div class="frame-post-meta">
+        <span class="frame-author-name">John Doe</span>
+        <span class="frame-author-handle">@johndoe</span>
+        <span class="frame-post-time">2 hours ago</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Test 4: Link Preview Component -->
+  <div class="demo-section">
+    <h2 class="demo-title">4. Link Preview Component</h2>
+    <div class="frame-link-preview" style="max-width: 400px;">
+      <div class="frame-link-preview-header">EXAMPLE.COM</div>
+      <div class="frame-link-preview-title">Example Website Title</div>
+      <div class="frame-link-preview-desc">This is a description of the link preview content.</div>
+      <div class="frame-link-preview-placeholder">🖼️</div>
+    </div>
+  </div>
+
+  <!-- Test 5: Platform Context Variables -->
+  <div class="demo-section">
+    <h2 class="demo-title">5. Platform Context (YouTube)</h2>
+    <div class="frame-base youtube-context" style="max-width: 400px;">
+      <header class="frame-header">
+        📺 YouTube Frame
+      </header>
+      <div class="frame-body">
+        <p style="margin: 0; color: var(--frame-text-primary);">YouTube-specific content with platform colors</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Test 6: Platform Context (Twitch) -->
+  <div class="demo-section">
+    <h2 class="demo-title">6. Platform Context (Twitch)</h2>
+    <div class="frame-base twitch-context" style="max-width: 400px;">
+      <header class="frame-header">
+        🎮 Twitch Frame
+      </header>
+      <div class="frame-body">
+        <p style="margin: 0; color: var(--frame-text-primary);">Twitch-specific content with platform colors</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Test 7: Message Component -->
+  <div class="demo-section">
+    <h2 class="demo-title">7. Message Component</h2>
+    <div class="frame-message" style="max-width: 400px;">
+      <div class="frame-avatar">👤</div>
+      <div class="frame-message-content">
+        <div style="display: flex; align-items: baseline; gap: 8px;">
+          <span class="frame-message-author">User Name</span>
+          <span class="frame-message-time">10:30 AM</span>
+        </div>
+        <div class="frame-message-body">This is a message in a conversation.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Test 8: Responsive Layout -->
+  <div class="demo-section">
+    <h2 class="demo-title">8. Responsive Grid Layout</h2>
+    <div class="frame-grid" style="max-width: 900px;">
+      <div class="frame-base">
+        <header class="frame-header">Card 1</header>
+        <div class="frame-body">Content 1</div>
+      </div>
+      <div class="frame-base">
+        <header class="frame-header">Card 2</header>
+        <div class="frame-body">Content 2</div>
+      </div>
+      <div class="frame-base">
+        <header class="frame-header">Card 3</header>
+        <div class="frame-body">Content 3</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Test 9: Surface and Divider -->
+  <div class="demo-section">
+    <h2 class="demo-title">9. Surface and Divider</h2>
+    <div class="frame-surface" style="max-width: 400px;">
+      <p style="margin: 0 0 12px 0; color: var(--frame-text-primary);">Surface card content</p>
+      <div class="frame-divider"></div>
+      <p style="margin: 12px 0 0 0; color: var(--frame-text-secondary);">Content after divider</p>
+    </div>
+  </div>
+
+  <!-- Test 10: Badge Component -->
+  <div class="demo-section">
+    <h2 class="demo-title">10. Badge Component</h2>
+    <div>
+      <span class="frame-badge">NEW</span>
+      <span class="frame-badge" style="margin-left: 8px;">UPDATED</span>
+      <span class="frame-badge" style="margin-left: 8px;">FEATURED</span>
+    </div>
+  </div>
+
+  <script src="frames-theme.js"></script>
+  <script>
+    function setTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      document.getElementById('current-theme').textContent = 'Current: ' + theme;
+
+      // Update all frames with platform-specific vars
+      if (typeof FrameTheme !== 'undefined') {
+        FrameTheme.applyPlatformTheme('youtube', theme);
+        FrameTheme.applyPlatformTheme('twitch', theme);
+      }
+    }
+
+    // Initialize with default theme
+    setTheme('dark');
+  </script>
+</body>
+</html>

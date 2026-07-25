@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Developer Platform Frames - Theme Switching Test</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+      background: #0d1117;
+      color: #c9d1d9;
+      padding: 20px;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    [data-theme='light'] body {
+      background: #ffffff;
+      color: #24292f;
+    }
+
+    .test-container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .test-header {
+      text-align: center;
+      padding: 40px 20px;
+      background: var(--header-bg, #161b22);
+      border-radius: 12px;
+      margin-bottom: 30px;
+      border: 1px solid var(--border-color, #30363d);
+      transition: background 0.3s, border-color 0.3s;
+    }
+
+    [data-theme='light'] .test-header {
+      background: var(--header-bg, #f6f8fa);
+      border-color: var(--border-color, #d0d7de);
+    }
+
+    .test-header h1 {
+      font-size: 36px;
+      margin-bottom: 12px;
+      color: var(--accent-color, #58a6ff);
+    }
+
+    [data-theme='light'] .test-header h1 {
+      color: var(--accent-color, #0969da);
+    }
+
+    .test-header p {
+      font-size: 16px;
+      color: var(--text-muted, #8b949e);
+      margin-bottom: 20px;
+    }
+
+    [data-theme='light'] .test-header p {
+      color: var(--text-muted, #57606a);
+    }
+
+    .theme-controls {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .theme-btn {
+      padding: 12px 24px;
+      border: 2px solid var(--border-color, #30363d);
+      border-radius: 8px;
+      background: var(--button-bg, #21262d);
+      color: var(--text-primary, #c9d1d9);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    [data-theme='light'] .theme-btn {
+      border-color: var(--border-color, #d0d7de);
+      background: var(--button-bg, #ffffff);
+      color: var(--text-primary, #24292f);
+    }
+
+    .theme-btn:hover {
+      background: var(--button-hover-bg, #30363d);
+      transform: translateY(-1px);
+    }
+
+    [data-theme='light'] .theme-btn:hover {
+      background: var(--button-hover-bg, #f3f4f6);
+    }
+
+    .theme-btn.active {
+      border-color: var(--accent-color, #58a6ff);
+      background: var(--accent-color, rgba(88, 166, 255, 0.1));
+    }
+
+    [data-theme='light'] .theme-btn.active {
+      border-color: var(--accent-color, #0969da);
+      background: var(--accent-color, rgba(9, 105, 218, 0.1));
+    }
+
+    .acceptance-criteria {
+      background: var(--criteria-bg, #161b22);
+      border: 1px solid var(--border-color, #30363d);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 30px;
+    }
+
+    [data-theme='light'] .acceptance-criteria {
+      background: var(--criteria-bg, #f6f8fa);
+      border-color: var(--border-color, #d0d7de);
+    }
+
+    .acceptance-criteria h2 {
+      font-size: 20px;
+      margin-bottom: 16px;
+      color: var(--accent-color, #58a6ff);
+    }
+
+    [data-theme='light'] .acceptance-criteria h2 {
+      color: var(--accent-color, #0969da);
+    }
+
+    .criteria-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .criteria-list li {
+      padding: 8px 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .criteria-list li:before {
+      content: '✓';
+      color: var(--success-color, #3fb950);
+      font-weight: bold;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .platforms-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+      gap: 30px;
+      margin-bottom: 40px;
+    }
+
+    .platform-section {
+      background: var(--section-bg, #161b22);
+      border: 1px solid var(--border-color, #30363d);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: background 0.3s, border-color 0.3s;
+    }
+
+    [data-theme='light'] .platform-section {
+      background: var(--section-bg, #ffffff);
+      border-color: var(--border-color, #d0d7de);
+    }
+
+    .platform-header {
+      padding: 16px 20px;
+      background: var(--platform-header-bg, #21262d);
+      border-bottom: 1px solid var(--border-color, #30363d);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    [data-theme='light'] .platform-header {
+      background: var(--platform-header-bg, #f6f8fa);
+      border-bottom-color: var(--border-color, #d0d7de);
+    }
+
+    .platform-icon {
+      font-size: 24px;
+    }
+
+    .platform-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary, #c9d1d9);
+    }
+
+    [data-theme='light'] .platform-title {
+      color: var(--text-primary, #24292f);
+    }
+
+    .platform-badge {
+      margin-left: auto;
+      padding: 4px 12px;
+      background: var(--badge-bg, #238636);
+      color: #ffffff;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .platform-content {
+      padding: 20px;
+    }
+
+    /* Verification Results */
+    .verification-section {
+      background: var(--section-bg, #161b22);
+      border: 1px solid var(--border-color, #30363d);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 30px;
+    }
+
+    [data-theme='light'] .verification-section {
+      background: var(--section-bg, #f6f8fa);
+      border-color: var(--border-color, #d0d7de);
+    }
+
+    .verification-section h2 {
+      font-size: 20px;
+      margin-bottom: 16px;
+      color: var(--accent-color, #58a6ff);
+    }
+
+    [data-theme='light'] .verification-section h2 {
+      color: var(--accent-color, #0969da);
+    }
+
+    .verification-log {
+      background: var(--log-bg, #0d1117);
+      border: 1px solid var(--border-color, #30363d);
+      border-radius: 8px;
+      padding: 16px;
+      font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+      font-size: 13px;
+      max-height: 300px;
+      overflow-y: auto;
+      line-height: 1.6;
+    }
+
+    [data-theme='light'] .verification-log {
+      background: var(--log-bg, #f6f8fa);
+      border-color: var(--border-color, #d0d7de);
+    }
+
+    .verification-log div {
+      padding: 4px 0;
+    }
+
+    .log-pass { color: #3fb950; }
+    .log-fail { color: #f85149; }
+    .log-info { color: #58a6ff; }
+    .log-warn { color: #d29922; }
+
+    [data-theme='light'] .log-pass { color: #1a7f37; }
+    [data-theme='light'] .log-fail { color: #cf222e; }
+    [data-theme='light'] .log-info { color: #0969da; }
+    [data-theme='light'] .log-warn { color: #9a6700; }
+
+    .test-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .summary-card {
+      background: var(--summary-bg, #21262d);
+      border: 1px solid var(--border-color, #30363d);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    [data-theme='light'] .summary-card {
+      background: var(--summary-bg, #ffffff);
+      border-color: var(--border-color, #d0d7de);
+    }
+
+    .summary-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--accent-color, #58a6ff);
+      margin-bottom: 8px;
+    }
+
+    [data-theme='light'] .summary-value {
+      color: var(--accent-color, #0969da);
+    }
+
+    .summary-label {
+      font-size: 14px;
+      color: var(--text-muted, #8b949e);
+    }
+
+    [data-theme='light'] .summary-label {
+      color: var(--text-muted, #57606a);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .platforms-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .test-header h1 {
+        font-size: 28px;
+      }
+
+      .theme-controls {
+        flex-direction: column;
+      }
+    }
+
+    /* CSS Custom Properties for theming */
+    :root {
+      --header-bg: #161b22;
+      --border-color: #30363d;
+      --accent-color: #58a6ff;
+      --text-muted: #8b949e;
+      --text-primary: #c9d1d9;
+      --button-bg: #21262d;
+      --button-hover-bg: #30363d;
+      --criteria-bg: #161b22;
+      --section-bg: #161b22;
+      --platform-header-bg: #21262d;
+      --badge-bg: #238636;
+      --log-bg: #0d1117;
+      --summary-bg: #21262d;
+      --success-color: #3fb950;
+    }
+
+    [data-theme='light'] {
+      --header-bg: #f6f8fa;
+      --border-color: #d0d7de;
+      --accent-color: #0969da;
+      --text-muted: #57606a;
+      --text-primary: #24292f;
+      --button-bg: #ffffff;
+      --button-hover-bg: #f3f4f6;
+      --criteria-bg: #f6f8fa;
+      --section-bg: #ffffff;
+      --platform-header-bg: #f6f8fa;
+      --badge-bg: #1a7f37;
+      --log-bg: #f6f8fa;
+      --summary-bg: #ffffff;
+      --success-color: #1a7f37;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <div class="test-header">
+      <h1>🎨 Developer Platform Frames - Theme Switching Test</h1>
+      <p>Comprehensive testing of dark/light theme switching for all developer platform context frames</p>
+
+      <div class="theme-controls">
+        <button class="theme-btn active" onclick="setTheme('dark')">
+          🌙 Dark Mode
+        </button>
+        <button class="theme-btn" onclick="setTheme('light')">
+          ☀️ Light Mode
+        </button>
+        <button class="theme-btn" onclick="runFullVerification()">
+          🧪 Run Tests
+        </button>
+      </div>
+    </div>
+
+    <div class="acceptance-criteria">
+      <h2>✅ Acceptance Criteria</h2>
+      <ul class="criteria-list">
+        <li>All developer platform frames (GitHub README, GitHub Issue, GitLab MR, GitLab Issue, Stack Overflow) render correctly in dark theme with proper contrast and colors</li>
+        <li>All frames render correctly in light theme with proper contrast and colors matching their actual platform appearance</li>
+        <li>Theme switching works smoothly without visual glitches across all frames</li>
+        <li>Code blocks maintain syntax highlighting in both dark and light themes</li>
+        <li>Link cards are visible and properly styled in both themes</li>
+        <li>Platform-specific color schemes (GitHub blue, GitLab orange, Stack Overflow orange) are maintained in both themes</li>
+        <li>All interactive elements (buttons, badges, reactions) are properly themed</li>
+        <li>Theme persistence and visual consistency across all frame types</li>
+      </ul>
+    </div>
+
+    <div class="platforms-grid">
+      <!-- GitHub README Frame -->
+      <div class="platform-section">
+        <div class="platform-header">
+          <span class="platform-icon">📄</span>
+          <span class="platform-title">GitHub README Frame</span>
+          <span class="platform-badge">README</span>
+        </div>
+        <div class="platform-content">
+          <iframe src="src/public/github-readme-frame.html"
+                  width="100%"
+                  height="600"
+                  frameborder="0"
+                  id="github-readme-frame"
+                  onload="frameLoaded('github-readme')"></iframe>
+        </div>
+      </div>
+
+      <!-- GitHub Issue Frame -->
+      <div class="platform-section">
+        <div class="platform-header">
+          <span class="platform-icon">💬</span>
+          <span class="platform-title">GitHub Issue Frame</span>
+          <span class="platform-badge">Issue</span>
+        </div>
+        <div class="platform-content">
+          <iframe src="src/public/github-issue-frame.html"
+                  width="100%"
+                  height="600"
+                  frameborder="0"
+                  id="github-issue-frame"
+                  onload="frameLoaded('github-issue')"></iframe>
+        </div>
+      </div>
+
+      <!-- GitLab MR Frame -->
+      <div class="platform-section">
+        <div class="platform-header">
+          <span class="platform-icon">🔄</span>
+          <span class="platform-title">GitLab Merge Request Frame</span>
+          <span class="platform-badge">MR</span>
+        </div>
+        <div class="platform-content">
+          <iframe src="src/public/gitlab-mr-frame.html"
+                  width="100%"
+                  height="600"
+                  frameborder="0"
+                  id="gitlab-mr-frame"
+                  onload="frameLoaded('gitlab-mr')"></iframe>
+        </div>
+      </div>
+
+      <!-- GitLab Issue Frame -->
+      <div class="platform-section">
+        <div class="platform-header">
+          <span class="platform-icon">🐛</span>
+          <span class="platform-title">GitLab Issue Frame</span>
+          <span class="platform-badge">Issue</span>
+        </div>
+        <div class="platform-content">
+          <iframe src="src/public/gitlab-issue-frame.html"
+                  width="100%"
+                  height="600"
+                  frameborder="0"
+                  id="gitlab-issue-frame"
+                  onload="frameLoaded('gitlab-issue')"></iframe>
+        </div>
+      </div>
+
+      <!-- Stack Overflow Frame -->
+      <div class="platform-section">
+        <div class="platform-header">
+          <span class="platform-icon">📚</span>
+          <span class="platform-title">Stack Overflow Frame</span>
+          <span class="platform-badge">Q&A</span>
+        </div>
+        <div class="platform-content">
+          <iframe src="stackoverflow-frame.html"
+                  width="100%"
+                  height="600"
+                  frameborder="0"
+                  id="stackoverflow-frame"
+                  onload="frameLoaded('stackoverflow')"></iframe>
+        </div>
+      </div>
+    </div>
+
+    <div class="verification-section">
+      <h2>🧪 Verification Results</h2>
+      <div class="verification-log" id="verificationLog">
+        <div class="log-info">[INFO] Theme switching test page loaded</div>
+        <div class="log-info">[INFO] Click "Run Tests" to verify theme switching across all frames</div>
+      </div>
+
+      <div class="test-summary">
+        <div class="summary-card">
+          <div class="summary-value" id="framesLoaded">0/5</div>
+          <div class="summary-label">Frames Loaded</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-value" id="themesTested">0/2</div>
+          <div class="summary-label">Themes Tested</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-value" id="elementsPassed">0</div>
+          <div class="summary-label">Elements Passed</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-value" id="overallScore">0%</div>
+          <div class="summary-label">Overall Score</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentTheme = 'dark';
+    let loadedFrames = new Set();
+    let testResults = {
+      framesLoaded: 0,
+      themesTested: 0,
+      elementsPassed: 0,
+      totalTests: 0
+    };
+
+    function log(message, type = 'info') {
+      const log = document.getElementById('verificationLog');
+      const div = document.createElement('div');
+      div.className = `log-${type}`;
+      div.textContent = `[${type.toUpperCase()}] ${message}`;
+      log.appendChild(div);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    function frameLoaded(frameId) {
+      loadedFrames.add(frameId);
+      testResults.framesLoaded = loadedFrames.size;
+      updateSummary();
+      log(`Frame loaded: ${frameId}`, 'pass');
+
+      // Sync theme to newly loaded frame
+      syncThemeToFrame(frameId);
+    }
+
+    function setTheme(theme) {
+      currentTheme = theme;
+      document.documentElement.setAttribute('data-theme', theme);
+
+      // Update active button
+      document.querySelectorAll('.theme-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+
+      // Sync theme to all frames
+      syncThemeToAllFrames();
+
+      log(`Theme switched to ${theme} mode`, 'info');
+    }
+
+    function syncThemeToAllFrames() {
+      const frames = ['github-readme', 'github-issue', 'gitlab-mr', 'gitlab-issue', 'stackoverflow'];
+      frames.forEach(frameId => syncThemeToFrame(frameId));
+    }
+
+    function syncThemeToFrame(frameId) {
+      try {
+        const frame = document.getElementById(`${frameId}-frame`);
+        if (frame && frame.contentWindow) {
+          // For Stack Overflow frame
+          if (frameId === 'stackoverflow') {
+            frame.contentWindow.postMessage({
+              type: 'themeChange',
+              theme: currentTheme
+            }, '*');
+          } else {
+            // For GitHub/GitLab frames
+            const frameDoc = frame.contentWindow.document;
+            if (frameDoc && frameDoc.documentElement) {
+              frameDoc.documentElement.setAttribute('data-theme', currentTheme);
+            }
+          }
+        }
+      } catch (error) {
+        // Frame might not be loaded yet, will be synced when loaded
+        log(`Could not sync theme to ${frameId} frame (not loaded yet)`, 'warn');
+      }
+    }
+
+    function updateSummary() {
+      document.getElementById('framesLoaded').textContent =
+        `${testResults.framesLoaded}/5`;
+      document.getElementById('themesTested').textContent =
+        `${testResults.themesTested}/2`;
+      document.getElementById('elementsPassed').textContent =
+        testResults.elementsPassed;
+
+      const score = testResults.totalTests > 0
+        ? Math.round((testResults.elementsPassed / testResults.totalTests) * 100)
+        : 0;
+      document.getElementById('overallScore').textContent = `${score}%`;
+    }
+
+    async function runFullVerification() {
+      log('Starting comprehensive theme switching verification...', 'info');
+      log('═'.repeat(60), 'info');
+
+      testResults.themesTested = 0;
+      testResults.elementsPassed = 0;
+      testResults.totalTests = 0;
+
+      // Test both themes
+      for (const theme of ['dark', 'light']) {
+        log(`Testing ${theme} theme...`, 'info');
+        await testTheme(theme);
+        testResults.themesTested++;
+      }
+
+      log('═'.repeat(60), 'info');
+
+      const score = testResults.totalTests > 0
+        ? Math.round((testResults.elementsPassed / testResults.totalTests) * 100)
+        : 0;
+
+      if (score >= 95) {
+        log(`✅ ALL TESTS PASSED - ${score}% score achieved`, 'pass');
+      } else if (score >= 80) {
+        log(`⚠️  MOSTLY PASSED - ${score}% score, some issues detected`, 'warn');
+      } else {
+        log(`❌ TESTS FAILED - ${score}% score, significant issues detected`, 'fail');
+      }
+
+      updateSummary();
+    }
+
+    async function testTheme(theme) {
+      const tests = [
+        { name: 'GitHub README Frame', check: () => checkFrameElements('github-readme', theme) },
+        { name: 'GitHub Issue Frame', check: () => checkFrameElements('github-issue', theme) },
+        { name: 'GitLab MR Frame', check: () => checkFrameElements('gitlab-mr', theme) },
+        { name: 'GitLab Issue Frame', check: () => checkFrameElements('gitlab-issue', theme) },
+        { name: 'Stack Overflow Frame', check: () => checkFrameElements('stackoverflow', theme) }
+      ];
+
+      for (const test of tests) {
+        testResults.totalTests += 10; // 10 checks per frame
+        try {
+          const result = await test.check();
+          if (result) {
+            testResults.elementsPassed += 10;
+            log(`✓ ${test.name} - ${theme} theme: PASSED`, 'pass');
+          } else {
+            log(`✗ ${test.name} - ${theme} theme: FAILED`, 'fail');
+          }
+        } catch (error) {
+          log(`✗ ${test.name} - ${theme} theme: ERROR - ${error.message}`, 'fail');
+        }
+      }
+    }
+
+    function checkFrameElements(frameId, theme) {
+      return new Promise((resolve) => {
+        try {
+          const frame = document.getElementById(`${frameId}-frame`);
+          if (!frame || !frame.contentWindow) {
+            log(`Frame ${frameId} not available for testing`, 'warn');
+            resolve(false);
+            return;
+          }
+
+          const frameDoc = frame.contentWindow.document;
+          const frameElement = frame.contentWindow.document.documentElement;
+
+          // Check theme attribute
+          const hasTheme = frameElement.getAttribute('data-theme') === theme;
+          if (!hasTheme) {
+            log(`Frame ${frameId} theme attribute incorrect`, 'warn');
+          }
+
+          // Check for key elements based on frame type
+          let checksPassed = 0;
+          let totalChecks = 9;
+
+          const checks = [
+            // Check for theme-specific CSS variables
+            () => {
+              const styles = frame.contentWindow.getComputedStyle(frameElement);
+              return styles.getPropertyValue('--gh-bg') ||
+                     styles.getPropertyValue('--gl-bg') ||
+                     styles.getPropertyValue('--frame-bg');
+            },
+            // Check for code blocks
+            () => frameDoc.querySelector('.gh-code-block, .gl-code-block, .so-code-block'),
+            // Check for syntax highlighting
+            () => frameDoc.querySelector('.gh-code-keyword, .gl-code-keyword, .keyword'),
+            // Check for link cards
+            () => frameDoc.querySelector('.gh-link-card, .gl-link-card, .so-link-card'),
+            // Check for headers
+            () => frameDoc.querySelector('.gh-readme-header, .gh-issue-header, .gl-mr-header, .gl-issue-header, .so-question-header'),
+            // Check for user/author elements
+            () => frameDoc.querySelector('.gh-avatar, .gl-avatar, .so-user-avatar'),
+            // Check for buttons/interactive elements
+            () => frameDoc.querySelector('.theme-toggle, .gh-reaction-btn, .gl-reaction-btn, .so-upvote'),
+            // Check for badges/labels
+            () => frameDoc.querySelector('.gh-badge, .gh-label, .gl-label, .so-badge'),
+            // Check for content sections
+            () => frameDoc.querySelector('.gh-readme-content, .gh-comments-list, .gl-discussion-list, .so-answers-list')
+          ];
+
+          checks.forEach((check, index) => {
+            try {
+              if (check()) {
+                checksPassed++;
+              }
+            } catch (error) {
+              // Check failed
+            }
+          });
+
+          const success = hasTheme && (checksPassed >= totalChecks * 0.8); // 80% pass rate
+          resolve(success);
+
+        } catch (error) {
+          log(`Error checking frame ${frameId}: ${error.message}`, 'fail');
+          resolve(false);
+        }
+      });
+    }
+
+    // Listen for messages from Stack Overflow frame
+    window.addEventListener('message', (event) => {
+      if (event.data.type === 'themeChange') {
+        // Stack Overflow frame is requesting theme sync
+        syncThemeToFrame('stackoverflow');
+      }
+    });
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      log('Developer Platform Frames Theme Switching Test initialized', 'info');
+      log('Waiting for all frames to load...', 'info');
+
+      // Run initial verification after frames load
+      setTimeout(() => {
+        if (loadedFrames.size >= 5) {
+          log('All frames loaded successfully! Ready for testing.', 'pass');
+        } else {
+          log(`Only ${loadedFrames.size}/5 frames loaded. Some may be delayed.`, 'warn');
+        }
+      }, 3000);
+    });
+  </script>
+</body>
+</html>

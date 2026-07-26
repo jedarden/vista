@@ -516,116 +516,6 @@ const PLATFORM_NAMES = window.PLATFORM_NAMES || {
 };
 
 // =============================================================================
-// 4. QR Code for Shareable Link
-// =============================================================================
-
-/**
- * Generate QR code for shareable link using client-side library
- */
-function generateQRCode(url) {
-  // qrcode.js will generate the QR code on a canvas element
-  // This function now just returns the URL for display purposes
-  return url;
-}
-
-/**
- * Show QR code modal with client-side generated QR code
- */
-function showQRCodeModal() {
-  const shareUrl = window.location.href;
-
-  // Create modal if it doesn't exist
-  let modal = document.getElementById('qrModal');
-  if (!modal) {
-    modal = document.createElement('div');
-    modal.className = 'modal-overlay hidden';
-    modal.id = 'qrModal';
-    modal.setAttribute('role', 'dialog');
-    modal.setAttribute('aria-modal', 'true');
-    modal.setAttribute('aria-label', 'Share via QR Code');
-    modal.innerHTML = `
-      <div class="modal">
-        <div class="modal-header">
-          <h3>Share via QR Code</h3>
-          <button class="modal-close" id="qrModalClose" aria-label="Close QR code modal">&times;</button>
-        </div>
-        <div class="modal-body qr-modal-body">
-          <div id="qrCodeContainer"></div>
-          <p class="qr-url">${shareUrl}</p>
-          <div class="qr-actions">
-            <button class="action-btn primary" id="qrDownloadBtn">&#128190; Download QR Code</button>
-            <button class="action-btn" id="qrCopyUrlBtn">&#128203; Copy URL</button>
-          </div>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(modal);
-
-    // Add event listeners
-    document.getElementById('qrModalClose').addEventListener('click', () => modal.classList.add('hidden'));
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) modal.classList.add('hidden');
-    });
-    document.getElementById('qrDownloadBtn').addEventListener('click', downloadQRCode);
-    document.getElementById('qrCopyUrlBtn').addEventListener('click', () => {
-      navigator.clipboard.writeText(shareUrl);
-      showToast('URL copied to clipboard', 2000);
-    });
-  }
-
-  // Clear any existing QR code and generate new one
-  const qrContainer = document.getElementById('qrCodeContainer');
-  qrContainer.innerHTML = '';
-
-  // Generate QR code using qrcode.js
-  new QRCode(qrContainer, {
-    text: shareUrl,
-    width: 200,
-    height: 200,
-    colorDark: '#000000',
-    colorLight: '#ffffff',
-    correctLevel: QRCode.CorrectLevel.H
-  });
-
-  // Update URL display
-  document.querySelector('.qr-url').textContent = shareUrl;
-
-  modal.classList.remove('hidden');
-}
-
-/**
- * Download QR code image from canvas
- */
-function downloadQRCode() {
-  const qrContainer = document.getElementById('qrCodeContainer');
-  if (!qrContainer) return;
-
-  // Find the canvas or img element created by qrcode.js
-  const canvas = qrContainer.querySelector('canvas');
-  const img = qrContainer.querySelector('img');
-
-  let dataUrl;
-  if (canvas) {
-    dataUrl = canvas.toDataURL('image/png');
-  } else if (img) {
-    dataUrl = img.src;
-  } else {
-    showToast('Error: QR code not found', 2000);
-    return;
-  }
-
-  // Create download link
-  const a = document.createElement('a');
-  a.href = dataUrl;
-  a.download = 'vista-qr-code.png';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-
-  showToast('QR Code downloaded!', 2000);
-}
-
-// =============================================================================
 // 5. URL-based Score Badge API Enhancement
 // =============================================================================
 
@@ -1248,16 +1138,8 @@ function initPhase4Features() {
     // Hook into renderPreviews for editor preview sync
     hookRenderPreviews();
 
-    // Add QR code button to share actions
-    const shareBtn = document.getElementById('shareBtn');
-    if (shareBtn && !document.getElementById('qrCodeBtn')) {
-      const qrBtn = document.createElement('button');
-      qrBtn.className = 'action-btn';
-      qrBtn.innerHTML = '&#128241; QR Code';
-      qrBtn.id = 'qrCodeBtn';
-      qrBtn.addEventListener('click', showQRCodeModal);
-      shareBtn.parentNode.insertBefore(qrBtn, shareBtn.nextSibling);
-    }
+    // (QR code button is the static #qrBtn in index.html, wired to openQrModal
+    //  in app.js. Do not re-inject a duplicate here — see app.js QR Code Modal.)
 
     // Hook into existing app functions
     if (typeof window.handleResult === 'function') {

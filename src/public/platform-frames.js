@@ -3610,6 +3610,30 @@ function buildLinkPreviewHTML(platformId, content, theme = 'dark') {
         </div>
       `;
 
+    case 'reddit':
+      // Reddit link card — paired with .rd-link-preview CSS
+      // (social-platforms-frames.css), incl. light-theme + hover variants.
+      return `
+        <div class="rd-link-preview">
+          ${image ? `<div class="rd-link-image img-loading-container" style="background:${dominantColor || '#FF4500'}"><img src="${esc(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" /></div>` : ''}
+          <div class="rd-link-content">
+            <div class="rd-link-title">${esc(trunc(title, 70))}</div>
+            ${description ? `<div class="rd-link-description">${esc(trunc(description, 120))}</div>` : ''}
+            <div class="rd-link-domain">${esc(domain || site)}</div>
+          </div>
+        </div>
+      `;
+
+    case 'tiktok':
+      // TikTok link card — paired with .tt-link-card CSS
+      // (social-platforms-frames.css), incl. light-theme + hover variants.
+      return `
+        <div class="tt-link-card">
+          <div class="tt-link-card-title">${esc(trunc(title, 60))}</div>
+          ${description ? `<div class="tt-link-card-desc">${esc(trunc(description, 90))}</div>` : ''}
+        </div>
+      `;
+
     case 'imessage':
       return `
         <div class="im-link-preview">

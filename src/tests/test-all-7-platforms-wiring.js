@@ -8,11 +8,14 @@
  *
  * Verifies the full routing pipeline the way renderPlatformWithContext (app.js)
  * drives it: every platform is resolved through the centralized config
- * (platform-frames-config.js, mirror of src/config/platform-frames.config.ts),
+ * (platform-frames-config.js, mirror of src/platform-frames.config.ts),
  * then rendered through buildContextFrame (platform-frames.js) with the
  * config-sourced frameType/aspectRatio, yielding platform-specific chrome, an
  * embedded card, theme-aware bg, and no unfilled placeholders — in both dark
- * and light themes. Aggregates the per-frameType sibling tests
+ * and light themes. Also asserts each platform's link preview (the cardHTML
+ * fallback produced by buildLinkPreviewHTML) is platform-specific, not the
+ * generic default — covers the reddit/tiktok link-preview wiring (bf-4ih34).
+ * Aggregates the per-frameType sibling tests
  * (social-feed / link-aggregator / video-platform / image-focused).
  *
  * Run: node src/tests/test-all-7-platforms-wiring.js
@@ -45,6 +48,18 @@ const SIGNATURE = {
   youtube:   { chrome: 'yt-video-player', frameType: 'video-platform'   },
   instagram: { chrome: 'ig-post-header',  frameType: 'image-focused'    },
   tiktok:    { chrome: 'tt-video-container', frameType: 'video-platform' },
+};
+
+// The platform-specific link-preview class each platform's cardHTML (the
+// buildLinkPreviewHTML fallback) must carry — never the generic default.
+const LINK_PREVIEW = {
+  facebook:  'fb-link-preview',
+  twitter:   'tw-link-card',
+  linkedin:  'li-link-preview',
+  reddit:    'rd-link-preview',
+  youtube:   'yt-link-card',
+  instagram: 'ig-link-preview',
+  tiktok:    'tt-link-card',
 };
 
 // --- Load platform-frames-config.js (exports only to `window`) ---
@@ -131,6 +146,11 @@ for (const pid of PLATFORMS) {
 
   // AC: embedded card appears inside the frame chrome
   check(`CARD ${tag} embedded card present`, /link-preview|link-card|context-image|context-placeholder|context-meta|rd-post-title|yt-link-card/.test(d));
+
+  // AC: the cardHTML fallback (buildLinkPreviewHTML) is platform-specific,
+  // not the generic default — closes the reddit/tiktok link-preview gap.
+  check(`LINK ${tag} platform-specific link preview (${LINK_PREVIEW[pid]})`, new RegExp(LINK_PREVIEW[pid]).test(d));
+  check(`LINK ${tag} not generic-link-preview fallback`, !/generic-link-preview/.test(d));
 
   // AC: theme-aware bg via inline --frame-bg var; both themes render; bg differs
   const dv = (d.match(/--frame-bg:([^;]+)/) || [])[1];

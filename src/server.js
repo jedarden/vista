@@ -527,7 +527,10 @@ app.get('/api/sitemap', async (req, res) => {
  * Query params: url, platform, theme (light|dark), scale (1x|2x), format (svg|png)
  */
 app.get('/api/screenshot', async (req, res) => {
-  const { url, platform, theme = 'dark', scale = '1x', format = 'svg' } = req.query;
+  // PNG is the primary deliverable of this endpoint (per docs/plan.md "Card
+  // Screenshot API" — response is image/png via SVG→sharp). format=svg remains
+  // an explicit opt-in for callers who want raw SVG. (bf-25mc)
+  const { url, platform, theme = 'dark', scale = '1x', format = 'png' } = req.query;
 
   // Rate limiting
   const clientIp = req.ip || req.connection.remoteAddress || 'unknown';
@@ -838,7 +841,9 @@ app.get('/api/screenshots', async (req, res) => {
  * Body params: platform, url, meta, imageProbe, withFrame, format, theme, scale
  */
 app.post('/api/screenshot', async (req, res) => {
-  const { platform, url, meta, imageProbe, withFrame = false, format = 'svg', theme = 'dark', scale = '1x' } = req.body;
+  // PNG is the default here too, matching the GET endpoint and the plan's
+  // "PNG primary deliverable"; format=svg is an explicit opt-in. (bf-25mc)
+  const { platform, url, meta, imageProbe, withFrame = false, format = 'png', theme = 'dark', scale = '1x' } = req.body;
 
   // Rate limiting
   const clientIp = req.ip || req.connection.remoteAddress || 'unknown';

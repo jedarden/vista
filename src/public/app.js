@@ -2281,7 +2281,7 @@ async function downloadScreenshot(pid, data) {
         meta: data.meta,
         imageProbe: data.imageProbe,
         url: data.finalUrl || data.url,
-        format: 'svg',
+        format: 'png',
       }),
     });
 
@@ -2297,7 +2297,7 @@ async function downloadScreenshot(pid, data) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${pid}-card.svg`;
+    a.download = `${pid}-card.png`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

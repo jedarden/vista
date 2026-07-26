@@ -1487,6 +1487,22 @@ body.has-results { padding-bottom: 48px; }
 .context-frame.frame-type-video-platform .yt-video-title,
 .context-frame.frame-type-video-platform .tt-caption { word-break: break-word; }
 
+/* Shared image-focused frame chrome — driven by the frameType config
+   (instagram carries frameType: 'image-focused'). Symmetric counterpart to
+   the frame-type-social-feed (bf-51k74), frame-type-link-aggregator (bf-o164e),
+   and frame-type-video-platform (bf-4fddf) blocks. The existing
+   .instagram-context bg rules responded only to the GLOBAL page theme
+   (html[data-theme]), not the per-frame theme the centralized rendering context
+   sets via the inline --frame-bg var — so a per-frame dark/light toggle rendered
+   with the wrong background when it disagreed with the page theme. The new
+   .context-frame.frame-type-image-focused rule sources bg from --frame-bg
+   (higher specificity than the per-platform .instagram-context base rule),
+   making instagram correctly per-frame theme-aware, plus rounded framing and
+   word-wrapped captions. Purely additive: no per-platform overrides removed. */
+.context-frame.frame-type-image-focused { border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px var(--frame-overlay, rgba(0,0,0,0.15)); background: var(--frame-bg); }
+.context-frame.frame-type-image-focused .ig-caption,
+.context-frame.frame-type-image-focused .ig-hashtags { word-break: break-word; }
+
 /* TikTok play overlay — the centered ▶ affordance on the poster area, the
    video-platform equivalent of YouTube's ▶ placeholder. Positioned against
    the .tt-video-container (position: relative) so it floats over the gradient

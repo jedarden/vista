@@ -59,7 +59,7 @@ const PLATFORM_FRAMES = {
   google: {
     name: 'Google Search',
     category: 'social',
-    hasThemeSupport: false,
+    hasThemeSupport: true,
     aspectRatio: 'variable',
     chrome: `
       <div class="google-search-bar">

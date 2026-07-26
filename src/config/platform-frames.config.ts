@@ -408,7 +408,7 @@ export const PLATFORM_FRAMES_CONFIG: PlatformFramesConfig = {
     aspectRatio: '9:16',
     structure: FRAME_TYPE_REQUIREMENTS['video-platform'],
     chrome: `<div class="tt-video-container">
-        <div class="tt-video-placeholder"></div>
+        <div class="tt-video-placeholder"><span class="tt-play-overlay">▶</span></div>
         <div class="tt-right-sidebar">
           <div class="tt-action-btn">
             <span class="tt-action-icon">♡</span>

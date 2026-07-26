@@ -1473,6 +1473,43 @@ body.has-results { padding-bottom: 48px; }
 .context-frame.frame-type-link-aggregator .rd-post-main { padding-right: 8px; }
 .context-frame.frame-type-link-aggregator .rd-post-title { word-break: break-word; }
 
+/* Shared video-platform frame chrome — driven by the frameType config
+   (youtube 16:9 and tiktok 9:16 both carry frameType: 'video-platform').
+   Provides consistent video framing on top of each platform's own -context
+   rules: the theme-aware bg sourced from the inline --frame-bg var (set
+   per-theme by the centralized rendering context — independent of the page's
+   global theme, so a per-frame dark/light toggle renders correctly even when
+   the page theme disagrees), rounded framing, and word-wrapped titles. The
+   youtube/tiktok video areas keep their own #000 player surface; this bg
+   governs the surrounding chrome. Purely additive: no per-platform overrides
+   are removed. */
+.context-frame.frame-type-video-platform { border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px var(--frame-overlay, rgba(0,0,0,0.15)); background: var(--frame-bg); }
+.context-frame.frame-type-video-platform .yt-video-title,
+.context-frame.frame-type-video-platform .tt-caption { word-break: break-word; }
+
+/* TikTok play overlay — the centered ▶ affordance on the poster area, the
+   video-platform equivalent of YouTube's ▶ placeholder. Positioned against
+   the .tt-video-container (position: relative) so it floats over the gradient
+   poster regardless of the 9:16 aspect ratio. */
+.tt-play-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 26px;
+  padding-left: 4px;
+  z-index: 2;
+}
+
 /* Facebook Context */
 .facebook-context { background: var(--frame-bg); max-width: 500px; }
 .fb-post-header { display: flex; gap: 10px; padding: 12px; background: var(--frame-surface); }

@@ -1374,7 +1374,7 @@ const PLATFORM_FRAMES = {
     aspectRatio: '9:16',
     chrome: `
       <div class="tt-video-container">
-        <div class="tt-video-placeholder"></div>
+        <div class="tt-video-placeholder"><span class="tt-play-overlay">▶</span></div>
         <div class="tt-right-sidebar">
           <div class="tt-action-btn">
             <span class="tt-action-icon">♡</span>

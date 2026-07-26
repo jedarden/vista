@@ -557,6 +557,166 @@
   --gitlab-overlay: rgba(0, 0, 0, 0.4);
 }
 
+/* Medium Theme Variables - Dark Mode (default) */
+:root {
+  --medium-bg: #000000;
+  --medium-surface: #1a1a1a;
+  --medium-border: #2a2a2a;
+  --medium-text-primary: #ffffff;
+  --medium-text-secondary: #a0a0a0;
+  --medium-text-muted: #6a6a6a;
+  --medium-accent: #1a8917;
+  --medium-accent-bg: #1a8917;
+  --medium-link-color: #1a8917;
+  --medium-divider: #2a2a2a;
+  --medium-input-bg: #1a1a1a;
+  --medium-overlay: rgba(0, 0, 0, 0.6);
+}
+
+/* Medium Theme Variables - Light Mode */
+[data-theme='light'] {
+  --medium-bg: #ffffff;
+  --medium-surface: #f9f9f9;
+  --medium-border: #e0e0e0;
+  --medium-text-primary: #242424;
+  --medium-text-secondary: #6b6b6b;
+  --medium-text-muted: #9e9e9e;
+  --medium-accent: #1a8917;
+  --medium-accent-bg: #e8f5e9;
+  --medium-link-color: #1a8917;
+  --medium-divider: #e0e0e0;
+  --medium-input-bg: #ffffff;
+  --medium-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* Dev.to Theme Variables - Dark Mode (default) */
+:root {
+  --devto-bg: #1a1a1a;
+  --devto-surface: #242424;
+  --devto-border: #3a3a3a;
+  --devto-text-primary: #e1e1e1;
+  --devto-text-secondary: #a3a3a3;
+  --devto-text-muted: #7a7a7a;
+  --devto-accent: #3b49df;
+  --devto-accent-bg: #3b49df;
+  --devto-link-color: #3b49df;
+  --devto-divider: #3a3a3a;
+  --devto-input-bg: #2a2a2a;
+  --devto-overlay: rgba(0, 0, 0, 0.6);
+}
+
+/* Dev.to Theme Variables - Light Mode */
+[data-theme='light'] {
+  --devto-bg: #ffffff;
+  --devto-surface: #f9f9f9;
+  --devto-border: #e6e6e6;
+  --devto-text-primary: #171717;
+  --devto-text-secondary: #575757;
+  --devto-text-muted: #9e9e9e;
+  --devto-accent: #3b49df;
+  --devto-accent-bg: #e8ecff;
+  --devto-link-color: #3b49df;
+  --devto-divider: #e6e6e6;
+  --devto-input-bg: #ffffff;
+  --devto-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* Hacker News Theme Variables - Dark Mode (default) */
+:root {
+  --hackernews-bg: #1a1a1a;
+  --hackernews-surface: #242424;
+  --hackernews-border: #3a3a3a;
+  --hackernews-text-primary: #dddddd;
+  --hackernews-text-secondary: #828282;
+  --hackernews-text-muted: #626262;
+  --hackernews-accent: #ff6600;
+  --hackernews-accent-bg: #ff6600;
+  --hackernews-link-color: #ff6600;
+  --hackernews-divider: #3a3a3a;
+  --hackernews-input-bg: #2a2a2a;
+  --hackernews-overlay: rgba(0, 0, 0, 0.6);
+}
+
+/* Hacker News Theme Variables - Light Mode */
+[data-theme='light'] {
+  --hackernews-bg: #ffffff;
+  --hackernews-surface: #f6f6ef;
+  --hackernews-border: #d4d4d4;
+  --hackernews-text-primary: #222222;
+  --hackernews-text-secondary: #828282;
+  --hackernews-text-muted: #999999;
+  --hackernews-accent: #ff6600;
+  --hackernews-accent-bg: #fff0e6;
+  --hackernews-link-color: #ff6600;
+  --hackernews-divider: #d4d4d4;
+  --hackernews-input-bg: #ffffff;
+  --hackernews-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* Product Hunt Theme Variables - Dark Mode (default) */
+:root {
+  --producthunt-bg: #1a1a1a;
+  --producthunt-surface: #2a2a2a;
+  --producthunt-border: #3a3a3a;
+  --producthunt-text-primary: #ffffff;
+  --producthunt-text-secondary: #999999;
+  --producthunt-text-muted: #666666;
+  --producthunt-accent: #da552f;
+  --producthunt-accent-bg: #da552f;
+  --producthunt-link-color: #da552f;
+  --producthunt-divider: #3a3a3a;
+  --producthunt-input-bg: #2a2a2a;
+  --producthunt-overlay: rgba(0, 0, 0, 0.6);
+}
+
+/* Product Hunt Theme Variables - Light Mode */
+[data-theme='light'] {
+  --producthunt-bg: #ffffff;
+  --producthunt-surface: #f8f8f8;
+  --producthunt-border: #e8e8e8;
+  --producthunt-text-primary: #21293c;
+  --producthunt-text-secondary: #5f6b7c;
+  --producthunt-text-muted: #9ea7b5;
+  --producthunt-accent: #da552f;
+  --producthunt-accent-bg: #fff0eb;
+  --producthunt-link-color: #da552f;
+  --producthunt-divider: #e8e8e8;
+  --producthunt-input-bg: #ffffff;
+  --producthunt-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* Pinterest Theme Variables - Dark Mode (default) */
+:root {
+  --pinterest-bg: #1a1a1a;
+  --pinterest-surface: #242424;
+  --pinterest-border: #333333;
+  --pinterest-text-primary: #e0e0e0;
+  --pinterest-text-secondary: #999999;
+  --pinterest-text-muted: #666666;
+  --pinterest-accent: #E60023;
+  --pinterest-accent-bg: #E60023;
+  --pinterest-link-color: #E60023;
+  --pinterest-divider: #333333;
+  --pinterest-input-bg: #242424;
+  --pinterest-overlay: rgba(0, 0, 0, 0.6);
+}
+
+/* Pinterest Theme Variables - Light Mode */
+[data-theme='light'] {
+  --pinterest-bg: #ffffff;
+  --pinterest-surface: #f8f8f8;
+  --pinterest-border: #e5e5e5;
+  --pinterest-text-primary: #111111;
+  --pinterest-text-secondary: #767676;
+  --pinterest-text-muted: #999999;
+  --pinterest-accent: #E60023;
+  --pinterest-accent-bg: #E60023;
+  --pinterest-link-color: #E60023;
+  --pinterest-divider: #e5e5e5;
+  --pinterest-input-bg: #f8f8f8;
+  --pinterest-overlay: rgba(0, 0, 0, 0.1);
+}
+
 /* ============================================================================
    BASE FRAME STRUCTURE
    ============================================================================ */

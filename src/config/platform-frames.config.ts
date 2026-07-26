@@ -116,8 +116,8 @@ export const PLATFORM_FRAMES_CONFIG: PlatformFramesConfig = {
         <div class="rd-subreddit-info">
           <div class="rd-subreddit-icon">r/</div>
           <div class="rd-subreddit-details">
-            <div class="rd-subreddit-name">r/{{subreddit}}</div>
-            <div class="rd-subreddit-meta">{{memberCount}} members · {{onlineCount}} online</div>
+            <div class="rd-subreddit-name">r/webdev</div>
+            <div class="rd-subreddit-meta">4.2m members · 3.1k online</div>
           </div>
           <button class="rd-join-btn">Join</button>
         </div>
@@ -125,19 +125,19 @@ export const PLATFORM_FRAMES_CONFIG: PlatformFramesConfig = {
       <div class="rd-main-post">
         <div class="rd-upvote-section">
           <div class="rd-upvote-arrow">▲</div>
-          <div class="rd-vote-count">{{upvotes}}</div>
+          <div class="rd-vote-count">2.4k</div>
           <div class="rd-downvote-arrow">▼</div>
         </div>
         <div class="rd-post-main">
           <div class="rd-post-meta">
-            <span class="rd-subreddit-link">r/{{subreddit}}</span>
-            <span class="rd-post-author">• Posted by u/{{author}}</span>
-            <span class="rd-post-time">• {{timeAgo}}</span>
+            <span class="rd-subreddit-link">r/webdev</span>
+            <span class="rd-post-author">• Posted by u/dev_enthusiast</span>
+            <span class="rd-post-time">• 5h ago</span>
           </div>
           <div class="rd-post-title">{{title}}</div>
           {{linkPreview}}
           <div class="rd-post-actions">
-            <span>💬 {{commentCount}} comments</span>
+            <span>💬 387 comments</span>
             <span>🔗 Share</span>
             <span>💾 Save</span>
           </div>
@@ -150,7 +150,7 @@ export const PLATFORM_FRAMES_CONFIG: PlatformFramesConfig = {
           <div class="rd-comment-content">
             <div class="rd-comment-meta">
               <span class="rd-comment-author">Redditor</span>
-              <span class="rd-comment-time">{{timeAgo}}</span>
+              <span class="rd-comment-time">2h ago</span>
             </div>
             <div class="rd-comment-body">Great discussion topic! Thanks for posting.</div>
           </div>

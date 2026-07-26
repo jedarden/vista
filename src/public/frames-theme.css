@@ -717,6 +717,134 @@
   --pinterest-overlay: rgba(0, 0, 0, 0.1);
 }
 
+/* Notion Theme Variables - Dark Mode (default) */
+:root {
+  --notion-bg: #191919;
+  --notion-surface: #2f2f2f;
+  --notion-border: #3f3f3f;
+  --notion-text-primary: #e6e6e6;
+  --notion-text-secondary: #9a9a9a;
+  --notion-text-muted: #6a6a6a;
+  --notion-accent: #2383e2;
+  --notion-accent-bg: #2383e2;
+  --notion-link-color: #2383e2;
+  --notion-divider: #3f3f3f;
+  --notion-input-bg: #2f2f2f;
+  --notion-overlay: rgba(0, 0, 0, 0.6);
+}
+
+/* Notion Theme Variables - Light Mode */
+[data-theme='light'] {
+  --notion-bg: #ffffff;
+  --notion-surface: #f7f7f5;
+  --notion-border: #e6e6e6;
+  --notion-text-primary: #37352f;
+  --notion-text-secondary: #787774;
+  --notion-text-muted: #9b9a97;
+  --notion-accent: #2383e2;
+  --notion-accent-bg: #e8f0fe;
+  --notion-link-color: #2383e2;
+  --notion-divider: #e6e6e6;
+  --notion-input-bg: #ffffff;
+  --notion-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* Evernote Theme Variables - Dark Mode (default) */
+:root {
+  --evernote-bg: #1a1a1a;
+  --evernote-surface: #2a2a2a;
+  --evernote-border: #3a3a3a;
+  --evernote-text-primary: #e0e0e0;
+  --evernote-text-secondary: #a0a0a0;
+  --evernote-text-muted: #6a6a6a;
+  --evernote-accent: #00a82d;
+  --evernote-accent-bg: #00a82d;
+  --evernote-link-color: #00a82d;
+  --evernote-divider: #3a3a3a;
+  --evernote-input-bg: #2a2a2a;
+  --evernote-overlay: rgba(0, 0, 0, 0.6);
+}
+
+/* Evernote Theme Variables - Light Mode */
+[data-theme='light'] {
+  --evernote-bg: #ffffff;
+  --evernote-surface: #f8f8f8;
+  --evernote-border: #e0e0e0;
+  --evernote-text-primary: #2c2c2c;
+  --evernote-text-secondary: #6a6a6a;
+  --evernote-text-muted: #9a9a9a;
+  --evernote-accent: #00a82d;
+  --evernote-accent-bg: #e8f5e9;
+  --evernote-link-color: #00a82d;
+  --evernote-divider: #e0e0e0;
+  --evernote-input-bg: #ffffff;
+  --evernote-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* VS Code Theme Variables - Dark Mode (default) */
+:root {
+  --vscode-bg: #1e1e1e;
+  --vscode-surface: #252526;
+  --vscode-border: #3e3e42;
+  --vscode-text-primary: #d4d4d4;
+  --vscode-text-secondary: #858585;
+  --vscode-text-muted: #6e6e6e;
+  --vscode-accent: #0078d4;
+  --vscode-accent-bg: #0078d4;
+  --vscode-link-color: #3794ff;
+  --vscode-divider: #3e3e42;
+  --vscode-input-bg: #3c3c3c;
+  --vscode-overlay: rgba(0, 0, 0, 0.6);
+}
+
+/* VS Code Theme Variables - Light Mode */
+[data-theme='light'] {
+  --vscode-bg: #ffffff;
+  --vscode-surface: #f3f3f3;
+  --vscode-border: #e4e4e4;
+  --vscode-text-primary: #333333;
+  --vscode-text-secondary: #616161;
+  --vscode-text-muted: #9e9e9e;
+  --vscode-accent: #005fb8;
+  --vscode-accent-bg: #e8f0fe;
+  --vscode-link-color: #0066cc;
+  --vscode-divider: #e4e4e4;
+  --vscode-input-bg: #ffffff;
+  --vscode-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* JetBrains IDE Theme Variables - Dark Mode (default) */
+:root {
+  --jetbrains-bg: #2b2b2b;
+  --jetbrains-surface: #313335;
+  --jetbrains-border: #4e5254;
+  --jetbrains-text-primary: #a9b7c6;
+  --jetbrains-text-secondary: #808080;
+  --jetbrains-text-muted: #6e6e6e;
+  --jetbrains-accent: #6c8eba;
+  --jetbrains-accent-bg: #4e6a91;
+  --jetbrains-link-color: #589df6;
+  --jetbrains-divider: #4e5254;
+  --jetbrains-input-bg: #3c3f41;
+  --jetbrains-overlay: rgba(0, 0, 0, 0.6);
+}
+
+/* JetBrains IDE Theme Variables - Light Mode */
+[data-theme='light'] {
+  --jetbrains-bg: #ffffff;
+  --jetbrains-surface: #f5f5f5;
+  --jetbrains-border: #dcdcdc;
+  --jetbrains-text-primary: #1a1a1a;
+  --jetbrains-text-secondary: #6e6e6e;
+  --jetbrains-text-muted: #9e9e9e;
+  --jetbrains-accent: #6c8eba;
+  --jetbrains-accent-bg: #e8f0fe;
+  --jetbrains-link-color: #0066cc;
+  --jetbrains-divider: #dcdcdc;
+  --jetbrains-input-bg: #ffffff;
+  --jetbrains-overlay: rgba(0, 0, 0, 0.1);
+}
+
 /* ============================================================================
    BASE FRAME STRUCTURE
    ============================================================================ */

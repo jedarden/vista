@@ -1,6 +1,6 @@
 # bf-1p2uq — Add productivity and note-taking platform frames
 
-**Type:** task · **Status:** already complete (duplicate of committed work)
+**Type:** task · **Status:** complete (CSS gap filled + verified)
 
 ## Task
 
@@ -14,49 +14,70 @@ Add context frames for 4 productivity / note-taking platforms:
 Each with platform-appropriate chrome, neutral placeholder content, and dark/light
 mode support.
 
-## Verification result — ALREADY IMPLEMENTED AND COMMITTED
+## What was already done (no JS changes needed)
 
-All four platforms are present, complete, and committed in `b9bcf8a`
-(`feat(bf-12zpw): implement developer platform context frames`, 3 days ago — tracked
-under the sibling bead `bf-12zpw`). Neither `src/public/platform-frames.js` nor
-`src/public/frames-theme.css` is modified in the working tree, so `bf-1p2uq` is an
-auto-split of already-complete work. No new code changes were required.
+The four platform entries in `src/public/platform-frames.js` were already complete and
+committed in `b9bcf8a` (`feat(bf-12zpw)`, 3 days ago). Each has full `chrome`,
+`neutralContent`, and `dark`+`light` `themeVars`:
 
-This matches the recorded pattern in
-`bead-autosplit-fires-on-complete-work`: a task bead dispatched for work that was
-already finished in a prior bead.
+| Platform | Line | Chrome | Distinct class prefix |
+|----------|------|--------|-----------------------|
+| Notion    | 2574 | page header + content blocks + callout; link-preview neutralContent | `.no-*` |
+| Evernote  | 2642 | notebook header + note list; link-card neutralContent            | `.ev-*` |
+| VS Code   | 2706 | activity bar + explorer + tabs + editor + terminal; comment neutralContent | `.vs-*` |
+| JetBrains | 2787 | menu bar + file tree + tabs + editor + status bar; comment neutralContent   | `.jb-*` |
 
-### Acceptance criteria — each satisfied
+VS Code / JetBrains embed pasted content as a code `//` comment (so they intentionally
+have no entry in the link-preview switch and fall to the default) — Notion / Evernote
+render a link card and have explicit switch cases.
+
+## The gap this bead filled — CSS theme variables
+
+Per the recorded lesson in `bead-autosplit-fires-on-complete-work` (*"when work looks
+complete, still grep for the gap... CSS vars referenced but never defined"*), a
+`grep -- "--notion-bg:" src/public/frames-theme.css` came back **empty**. All four
+platforms had `.X-context` hooks referencing `--notion-bg`, `--evernote-bg`,
+`--vscode-bg`, `--jetbrains-bg` (and the other 11 properties) that were **never
+defined** — so they silently fell back to the generic `--frame-*-global` tokens,
+losing each platform's brand palette in any CSS-driven rendering path (the acceptance
+harness, static renders, non-inline-style contexts). This is the same gap `bf-2foil`
+fixed for Medium / Dev.to / Hacker News / Product Hunt / Pinterest.
+
+Added `:root` (dark) + `[data-theme='light']` blocks for all 4 platforms in
+`frames-theme.css`, values sourced verbatim from each platform's `themeVars` (the
+single source of truth):
+
+```
+--notion-bg / --notion-surface / ... (12 properties × dark + light)
+--evernote-bg / ...
+--vscode-bg / ...
+--jetbrains-bg / ...
+```
+
++128 lines, matching the established GitHub/Reddit/Medium pattern. Brace balance
+verified (139/139); each platform now has exactly 24 base-var definitions
+(12 properties × 2 modes).
+
+## Verification — render test (`~/scratch/verify-bf-1p2uq.js`)
+
+Drives the real render API (`buildContextFrame`, `getInlineThemeStyles`,
+`getThemeVars`, `hasThemeSupport`) for all 4 platforms in both themes:
+
+```
+Criteria 1 & 2 — frames present & visually distinct      (chrome markers, -context class)
+Distinctness   — chrome markers unique per platform      (no cross-platform bleed)
+Criterion 3    — dark/light mode works for all 4         (themeVars differ, inline --frame-bg correct, data-theme tags, light-theme class)
+Completeness   — all 12 frame vars defined per platform/theme
+
+RESULT: 84 passed, 0 failed
+BANNER: PASS — all 4 platforms render correctly in both themes
+```
+
+## Acceptance criteria — all satisfied
 
 | # | Criterion | Result |
 |---|-----------|--------|
-| 1 | All 4 platforms have context frames in `platform-frames.js` | ✅ notion (L2574), evernote (L2642), vscode (L2706), jetbrains (L2787) |
-| 2 | Each frame is visually distinct & platform-appropriate | ✅ unique class prefixes + platform-specific layouts (see below) |
-| 3 | Dark/light mode works for all 4 | ✅ `themeVars.dark` + `themeVars.light` for each; CSS context hooks present |
-| 4 | Each frame renders correctly | ✅ `node -c` passes; helper switch covers the link-preview platforms |
-
-### Per-platform detail (from the committed code)
-
-- **Notion** — `.no-*` chrome: page header (icon/title/author/time), content blocks with
-  a callout, link-preview neutralContent (`notion` case in the link-preview switch).
-- **Evernote** — `.ev-*` chrome: notebook header + note list, link-card neutralContent
-  (`evernote` case in the switch).
-- **VS Code** — `.vs-*` chrome: activity bar, explorer sidebar, tab bar, editor content,
-  terminal panel; comment-based neutralContent (embeds pasted content as a `//` comment,
-  so it intentionally has no link-preview switch case — falls to default).
-- **JetBrains** — `.jb-*` chrome: top menu bar, project file tree, tab bar, editor content,
-  status bar (line/encoding/indent); comment-based neutralContent (same default path).
-
-### Dark/light mode mechanism
-
-Each platform's `themeVars` defines all 12 `--frame-*` custom properties for **both**
-`dark` and `light`. The CSS exposes them via the context hooks
-(`.notion-context`, `.evernote-context`, `.vscode-context`, `.jetbrains-context` at
-`frames-theme.css:1522/1538/1554/1586`), which fall back to the `--frame-*-global`
-tokens that flip under `[data-theme='light']`. So both modes resolve correctly with no
-platform-specific base-variable definitions needed — the same pattern used by the
-majority of platforms in the file (Slack, Discord, Gmail, etc.).
-
-## Action
-
-No file changes produced. Recorded this verification and committing the note only.
+| 1 | All 4 platforms have context frames in `platform-frames.js` | ✅ (b9bcf8a / bf-12zpw) |
+| 2 | Each frame is visually distinct & platform-appropriate | ✅ distinct `.no-/.ev-/.vs-/.jb-` chrome |
+| 3 | Dark/light mode works for all 4 | ✅ themeVars (JS) **+** now-defined CSS vars |
+| 4 | Each frame renders correctly | ✅ 84-assertion render test, 0 failures |

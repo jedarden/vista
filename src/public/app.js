@@ -103,20 +103,36 @@ function announce(message, priority = 'polite') {
 function initTheme() {
   const savedTheme = localStorage.getItem('vista-theme');
   if (savedTheme) {
+    // Explicit user choice wins and persists over the system preference.
     globalTheme = savedTheme;
+    applyTheme(globalTheme);
   } else {
-    // Check system preference
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
-      globalTheme = 'light';
-    }
+    // No explicit choice yet: follow the OS color-scheme WITHOUT persisting,
+    // so a later system change (see listener below) keeps taking effect.
+    const sysLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+    globalTheme = sysLight ? 'light' : globalTheme;
+    applyTheme(globalTheme, { persist: false });
   }
-  applyTheme(globalTheme);
+
+  // Live-track the OS color-scheme for as long as the user hasn't made an
+  // explicit choice. The guard short-circuits once they toggle the theme
+  // manually (which persists 'vista-theme'), so their choice then wins.
+  const schemeMql = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)');
+  if (schemeMql && typeof schemeMql.addEventListener === 'function' && !window.__vistaSchemeListener) {
+    schemeMql.addEventListener('change', (e) => {
+      if (localStorage.getItem('vista-theme')) return; // user choice wins
+      applyTheme(e.matches ? 'light' : 'dark', { persist: false });
+    });
+    window.__vistaSchemeListener = true;
+  }
 }
 
-function applyTheme(theme) {
+function applyTheme(theme, { persist = true } = {}) {
   globalTheme = theme;
   document.documentElement.setAttribute('data-theme', theme);
-  localStorage.setItem('vista-theme', theme);
+  // Only persist when the user makes an explicit choice; system-derived themes
+  // stay transient so prefers-color-scheme changes can keep re-applying.
+  if (persist) localStorage.setItem('vista-theme', theme);
 
   // Update theme toggle icon and accessible label
   const themeToggle = document.getElementById('globalThemeToggle');
@@ -9721,6 +9737,33 @@ function initGlobalKeyboardShortcuts() {
         const direction = e.key === 'ArrowRight' ? 1 : -1;
         focusCard(focusedCardIndex + direction);
       }
+      return;
+    }
+
+    // Arrow keys ↑ ↓ navigate between grid rows when a card is focused.
+    // Columns are derived from the visible cards' offsetTop so the jump is
+    // correct regardless of the active column-count setting (2/3/4). Movement
+    // is clamped at the top/bottom row (no wrap-around) for natural feel.
+    if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && !cmdOrCtrl && !e.shiftKey && !e.altKey) {
+      const allCards = getFocusableCards();
+      if (allCards.length === 0 || !document.activeElement.classList.contains('platform-card')) return;
+      e.preventDefault();
+      const visible = allCards.filter(c => c.offsetParent !== null);
+      if (visible.length === 0) return;
+      // Columns = number of visible cards sharing the first row's offsetTop.
+      const firstTop = visible[0].offsetTop;
+      let cols = 0;
+      for (const c of visible) {
+        if (c.offsetTop === firstTop) cols++;
+        else break;
+      }
+      cols = Math.max(1, cols);
+      const curVisibleIdx = visible.indexOf(document.activeElement);
+      if (curVisibleIdx < 0) return;
+      const delta = e.key === 'ArrowDown' ? cols : -cols;
+      const next = curVisibleIdx + delta;
+      if (next < 0 || next >= visible.length) return; // at first/last row
+      focusCard(allCards.indexOf(visible[next]));
       return;
     }
 

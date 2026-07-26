@@ -599,6 +599,12 @@ html[data-theme='light'] .theme-icon-dark { display: inline; }
     transition: none !important;
   }
 
+  /* Disable the perfect-score pulsing glow (it is an animation, not a
+     transition, so the rule above does not catch it). */
+  .perfect-score-glow {
+    animation: none !important;
+  }
+
   /* Override keyframe animations to no-op */
   @keyframes skeletonIn {
     from, to {
@@ -743,6 +749,15 @@ html[data-theme='light'] .theme-icon-dark { display: inline; }
   .skeleton-text-favicon, .skeleton-text-domain, .skeleton-text-title, .skeleton-text-desc, .skeleton-text-desc-short,
   .skeleton-issue {
     background-position: 0% 0 !important;
+  }
+
+  /* Disable the image-diff loading shimmer. Its @keyframes loading-shimmer is
+     declared later in source order than this media block, so the keyframe
+     overrides above cannot win — disabling the animation on the pseudo-element
+     is the reliable fix. */
+  .image-diff-overlay::before,
+  .image-diff-side::before {
+    animation: none !important;
   }
 }
 
@@ -5540,6 +5555,32 @@ html[data-theme='light'] .pin-image-placeholder {
   }
   .platform-card.swiping {
     transition: transform 0.2s ease;
+  }
+  /* WCAG 2.5.5 / 2.5.8 — minimum 44×44px tap targets on touch devices.
+     Several interactive controls are intentionally compact on desktop (icon
+     buttons rendered at ~16–24px). On touch they must meet the 44px minimum. */
+  .nav-btn,
+  .action-btn,
+  .inspect-btn,
+  .theme-toggle,
+  .feedback-fab,
+  .card-theme-toggle,
+  .card-screenshot-btn,
+  .card-context-toggle,
+  .card-favorite-btn,
+  .suggestion-dismiss,
+  .toast-dismiss {
+    min-height: 44px;
+  }
+  /* Icon-only buttons also need a minimum width so the whole target is tappable. */
+  .theme-toggle,
+  .card-theme-toggle,
+  .card-screenshot-btn,
+  .card-context-toggle,
+  .card-favorite-btn,
+  .suggestion-dismiss,
+  .toast-dismiss {
+    min-width: 44px;
   }
 }
 

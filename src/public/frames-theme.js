@@ -452,6 +452,58 @@ function applyPlatformTheme(platform, theme) {
 }
 
 /**
+ * Update ALL rendered platform context frames to a theme, in place.
+ *
+ * Invoked when the global theme changes (see the theme observer in app.js).
+ * Iterates every platform context frame currently in the DOM — the
+ * `.context-frame[data-platform]` elements emitted by platform-frames.js
+ * buildContextFrame — and re-themes each one: swaps the dark-theme/light-theme
+ * class, updates the data-theme / data-frame-theme attributes, and reapplies
+ * the platform's theme CSS variables.
+ *
+ * This guarantees the theme switch is synchronized across every platform
+ * (facebook, twitter, linkedin, reddit, youtube, instagram, tiktok) and that
+ * no frame is left rendering in the stale theme after a global toggle.
+ *
+ * @param {string} theme - Theme to apply ('dark' or 'light')
+ * @returns {number} Number of frames updated
+ */
+function updateAllPlatformFrames(theme) {
+  if (typeof document === 'undefined') return 0;
+
+  if (theme !== THEME_TYPES.DARK && theme !== THEME_TYPES.LIGHT) {
+    console.warn(`[FrameTheme] updateAllPlatformFrames: invalid theme "${theme}"`);
+    return 0;
+  }
+
+  // Select every platform context frame currently rendered. buildContextFrame
+  // emits <div class="context-frame {platform}-context {theme}-theme"
+  //        data-platform="..." data-theme="...">, so this matches all 7.
+  const frames = document.querySelectorAll('.context-frame[data-platform]');
+  let updated = 0;
+
+  frames.forEach(frame => {
+    const platform = frame.getAttribute('data-platform');
+    if (!platform) return;
+
+    // Swap the theme class (remove whichever theme class is present)
+    frame.classList.remove(`${THEME_TYPES.DARK}-theme`, `${THEME_TYPES.LIGHT}-theme`);
+    frame.classList.add(`${theme}-theme`);
+
+    // Update theme attributes so CSS [data-theme='...'] selectors and the
+    // theme-subscription system see the new theme.
+    frame.setAttribute('data-theme', theme);
+    frame.setAttribute('data-frame-theme', theme);
+
+    // Reapply the platform's theme CSS variables for the new theme
+    updateFramePlatformVars(frame, theme);
+    updated++;
+  });
+
+  return updated;
+}
+
+/**
  * Export for use in other modules
  */
 if (typeof module !== 'undefined' && module.exports) {
@@ -470,6 +522,7 @@ if (typeof module !== 'undefined' && module.exports) {
     getAllFrames,
     getFramesByPlatform,
     applyPlatformTheme,
+    updateAllPlatformFrames,
     globalTheme: () => globalTheme
   };
 }
@@ -490,7 +543,8 @@ if (typeof window !== 'undefined') {
     generateLinkPreview,
     getAllFrames,
     getFramesByPlatform,
-    applyPlatformTheme
+    applyPlatformTheme,
+    updateAllPlatformFrames
   };
 
   // Auto-initialize with current theme from localStorage or default to dark

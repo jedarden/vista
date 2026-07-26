@@ -31,6 +31,7 @@ let compareData = { before: null, after: null, swapped: false }; // Comparison s
 let hasCelebratedPerfectScore = false; // Track one-time celebration per session
 let isFreshFetch = true; // Track whether current inspection is a fresh fetch (vs page load auto-inspect)
 let currentTab = 'previews'; // Active tab state for hash encoding
+let tabRestoredFromHash = false; // True when initial load restored #tab= — prevents results render from clobbering it
 let pendingWhatIfTags = null; // Store pending What If tags from hash before data loads
 
 // ── Platform Config (fetched from server) ──
@@ -513,7 +514,11 @@ function updateHash(options = {}) {
   }
 
   const hash = parts.length > 0 ? `#${parts.join('&')}` : '';
-  history.replaceState(null, null, hash);
+  // Rebuild the URL from pathname + search so the ?url= query param is preserved
+  // while the hash is replaced. An empty `hash` must clear the fragment — passing
+  // '' to replaceState resolves against the current URL and would leave a stale #…
+  // behind (e.g. switching back to the default tab must drop #tab=diagnostics).
+  history.replaceState(null, null, window.location.pathname + window.location.search + hash);
 }
 
 /**
@@ -526,6 +531,8 @@ function restoreHashState() {
   if (state.tab) {
     const tabBtn = document.querySelector(`.tab-btn[data-tab="${state.tab}"]`);
     if (tabBtn) {
+      // Remember we restored a tab so the results render doesn't clobber it
+      tabRestoredFromHash = true;
       switchTab(state.tab);
     }
   }
@@ -803,7 +810,13 @@ async function progressiveLoad({ url, html, base }) {
   hero.classList.add('compact');
   document.body.classList.add('has-results');
   resultsSection.classList.remove('hidden');
-  switchTab('previews');
+  // Respect a tab restored from #tab= on initial load; otherwise default to previews.
+  // Consume the flag here so subsequent (user-initiated) inspections reset to previews.
+  if (tabRestoredFromHash) {
+    tabRestoredFromHash = false;
+  } else {
+    switchTab('previews');
+  }
 
   // Render summary bar and text-based previews
   renderSummaryBar(metaData);
@@ -811,7 +824,7 @@ async function progressiveLoad({ url, html, base }) {
 
   // Update URL for sharing
   if (metaData.url && metaData.url !== window.location.href) {
-	history.pushState({}, '', '/?url=' + encodeURIComponent(metaData.url));
+	history.pushState({}, '', '/?url=' + encodeURIComponent(metaData.url) + window.location.hash);
   }
 
   // Step 3: Fetch images and headers in parallel, update UI as each completes
@@ -940,6 +953,10 @@ async function finalizeProgressiveLoad(metaData, imagesData, headersData, startT
   initEditor(completeData);
   initCacheHub();
   generateCodeSnippet();
+
+  // Apply What If disabled tags (#without=) that were pending before data loaded.
+  // handleResult is no longer reached in the progressive flow, so apply here once data is ready.
+  applyPendingWhatIfTags();
 
   // Announce final results
   if (completeData.scoring) {

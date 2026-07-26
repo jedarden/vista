@@ -3323,7 +3323,7 @@ const PLATFORM_FRAMES = {
   generic: {
     name: 'Generic Platform',
     category: 'other',
-    hasThemeSupport: false,
+    hasThemeSupport: true,
     aspectRatio: 'variable',
     chrome: `
       <div class="context-header"><span class="context-title">{{platformName}}</span></div>

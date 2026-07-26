@@ -1463,6 +1463,16 @@ body.has-results { padding-bottom: 48px; }
 .context-frame.frame-type-social-feed .fb-post-content,
 .context-frame.frame-type-social-feed .li-post-content { word-break: break-word; }
 
+/* Shared link-aggregator frame chrome — driven by the frameType config
+   (reddit carries frameType: 'link-aggregator'). Provides consistent
+   link-aggregator framing on top of the platform's own -context rules: the
+   theme-aware bg sourced from the inline --frame-bg var (set per-theme by the
+   centralized rendering context), the embedded card padding, and word-wrapping.
+   Purely additive: no per-platform overrides are removed. */
+.context-frame.frame-type-link-aggregator { border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px var(--frame-overlay, rgba(0,0,0,0.15)); background: var(--frame-bg); }
+.context-frame.frame-type-link-aggregator .rd-post-main { padding-right: 8px; }
+.context-frame.frame-type-link-aggregator .rd-post-title { word-break: break-word; }
+
 /* Facebook Context */
 .facebook-context { background: var(--frame-bg); max-width: 500px; }
 .fb-post-header { display: flex; gap: 10px; padding: 12px; background: var(--frame-surface); }

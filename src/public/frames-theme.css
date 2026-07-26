@@ -845,6 +845,134 @@
   --jetbrains-overlay: rgba(0, 0, 0, 0.1);
 }
 
+/* Jira Theme Variables - Dark Mode (default) */
+:root {
+  --jira-bg: #0d1216;
+  --jira-surface: #1a2129;
+  --jira-border: #2e3947;
+  --jira-text-primary: #b6c2cf;
+  --jira-text-secondary: #7a869a;
+  --jira-text-muted: #5c6779;
+  --jira-accent: #0052cc;
+  --jira-accent-bg: #0052cc;
+  --jira-link-color: #579dff;
+  --jira-divider: #2e3947;
+  --jira-input-bg: #1a2129;
+  --jira-overlay: rgba(0, 0, 0, 0.6);
+}
+
+/* Jira Theme Variables - Light Mode */
+[data-theme='light'] {
+  --jira-bg: #ffffff;
+  --jira-surface: #f4f5f7;
+  --jira-border: #dfe1e6;
+  --jira-text-primary: #172b4d;
+  --jira-text-secondary: #5e6c84;
+  --jira-text-muted: #9fadbd;
+  --jira-accent: #0052cc;
+  --jira-accent-bg: #deebff;
+  --jira-link-color: #0052cc;
+  --jira-divider: #dfe1e6;
+  --jira-input-bg: #ffffff;
+  --jira-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* Trello Theme Variables - Dark Mode (default) */
+:root {
+  --trello-bg: #1e1e1e;
+  --trello-surface: #2a2a2a;
+  --trello-border: #3a3a3a;
+  --trello-text-primary: #e0e0e0;
+  --trello-text-secondary: #a0a0a0;
+  --trello-text-muted: #6a6a6a;
+  --trello-accent: #0079bf;
+  --trello-accent-bg: #0079bf;
+  --trello-link-color: #0079bf;
+  --trello-divider: #3a3a3a;
+  --trello-input-bg: #2a2a2a;
+  --trello-overlay: rgba(0, 0, 0, 0.6);
+}
+
+/* Trello Theme Variables - Light Mode */
+[data-theme='light'] {
+  --trello-bg: #ffffff;
+  --trello-surface: #f4f5f7;
+  --trello-border: #dfe1e6;
+  --trello-text-primary: #172b4d;
+  --trello-text-secondary: #5e6c84;
+  --trello-text-muted: #9fadbd;
+  --trello-accent: #0079bf;
+  --trello-accent-bg: #e6f0ff;
+  --trello-link-color: #0079bf;
+  --trello-divider: #dfe1e6;
+  --trello-input-bg: #ffffff;
+  --trello-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* Asana Theme Variables - Dark Mode (default) */
+:root {
+  --asana-bg: #1f1f1f;
+  --asana-surface: #2a2a2a;
+  --asana-border: #3a3a3a;
+  --asana-text-primary: #e0e0e0;
+  --asana-text-secondary: #a0a0a0;
+  --asana-text-muted: #6a6a6a;
+  --asana-accent: #7f54b3;
+  --asana-accent-bg: #7f54b3;
+  --asana-link-color: #4da3ff;
+  --asana-divider: #3a3a3a;
+  --asana-input-bg: #2a2a2a;
+  --asana-overlay: rgba(0, 0, 0, 0.6);
+}
+
+/* Asana Theme Variables - Light Mode */
+[data-theme='light'] {
+  --asana-bg: #ffffff;
+  --asana-surface: #f9f9f9;
+  --asana-border: #d8d8d8;
+  --asana-text-primary: #222222;
+  --asana-text-secondary: #6e6e6e;
+  --asana-text-muted: #9e9e9e;
+  --asana-accent: #7f54b3;
+  --asana-accent-bg: #f4ebff;
+  --asana-link-color: #0066cc;
+  --asana-divider: #d8d8d8;
+  --asana-input-bg: #ffffff;
+  --asana-overlay: rgba(0, 0, 0, 0.1);
+}
+
+/* Feedly Theme Variables - Dark Mode (default) */
+:root {
+  --feedly-bg: #1a1a1a;
+  --feedly-surface: #2a2a2a;
+  --feedly-border: #3a3a3a;
+  --feedly-text-primary: #e0e0e0;
+  --feedly-text-secondary: #a0a0a0;
+  --feedly-text-muted: #6a6a6a;
+  --feedly-accent: #2bb24a;
+  --feedly-accent-bg: #2bb24a;
+  --feedly-link-color: #2bb24a;
+  --feedly-divider: #3a3a3a;
+  --feedly-input-bg: #2a2a2a;
+  --feedly-overlay: rgba(0, 0, 0, 0.6);
+}
+
+/* Feedly Theme Variables - Light Mode */
+[data-theme='light'] {
+  --feedly-bg: #ffffff;
+  --feedly-surface: #f4f4f4;
+  --feedly-border: #e0e0e0;
+  --feedly-text-primary: #2a2a2a;
+  --feedly-text-secondary: #666666;
+  --feedly-text-muted: #999999;
+  --feedly-accent: #2bb24a;
+  --feedly-accent-bg: #e8f5e9;
+  --feedly-link-color: #2bb24a;
+  --feedly-divider: #e0e0e0;
+  --feedly-input-bg: #ffffff;
+  --feedly-overlay: rgba(0, 0, 0, 0.1);
+}
+
 /* ============================================================================
    BASE FRAME STRUCTURE
    ============================================================================ */

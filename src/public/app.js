@@ -454,8 +454,10 @@ document.querySelectorAll('.tabs-inner[role="tablist"]').forEach(tablist => {
   });
 });
 
-// Example chips
-document.querySelectorAll('.chip').forEach(chip => {
+// Example chips (URL mode — scoped to [data-url] so the sitemap chips,
+// which use [data-sitemap] and have their own handler below, don't double-fire
+// and trigger inspectUrl(undefined))
+document.querySelectorAll('.chip[data-url]').forEach(chip => {
   chip.addEventListener('click', () => {
     urlInput.value = chip.dataset.url;
     switchMode('url');

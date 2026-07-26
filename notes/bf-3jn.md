@@ -1,95 +1,68 @@
-# UX Verification: Empty State and First-Visit Onboarding
+# bf-3jn: Empty State & First-Visit Onboarding
 
-## Task Requirements
+Verified against current source (`src/public/`) on 2026-07-26. All five
+requirements are present and correct; one latent bug in the chip handler was
+fixed in this pass.
 
-### Empty States
-1. No URL entered: 'Paste any URL to see how it looks when shared on 31 platforms'
-2. URL entered but page has no meta tags: 'This page has no Open Graph or Twitter Card tags. Want to create them?' → opens Editor with template picker
+## Requirements
 
-### First Visit
-1. No tutorial, no modal, no tooltip tour
-2. Three example URLs as clickable chips: 'Try: github.com, stripe.com, your-site.com'
-3. First inspection triggers a brief toast: 'Click any card to expand. Try the Diagnostics tab for issues.' (dismissible, shown once, saved to localStorage)
+### 1. Example URL chips — ✅
+- `index.html:100-104` — three chips inside `.example-chips`:
+  `github.com`, `stripe.com`, `your-site.com` (each `data-url`).
+- Handler: `app.js` — `document.querySelectorAll('.chip[data-url]')` populates
+  `#urlInput`, switches to URL mode, and calls `inspectUrl()`.
+- CSS: `style.css` `.example-chips`, `.chip`, hidden in compact mode
+  (`.hero.compact .example-chips { display: none }`).
 
-## Verification Status
+### 2. No-meta-tags detection — ✅
+- `checkForNoMetaTags(metaData)` in `app.js`, called at `app.js:798` inside
+  `progressiveLoad()` after metadata arrives.
+- Detects absence of OG tags (`og.title/description/image`) **and** Twitter
+  Card tags (`twitter.title/description/image/card`); only when both are
+  missing does it render a `.suggestion-chips` element with the message
+  **"This page has no Open Graph or Twitter Card tags. Want to create them?"**
+  and an "Open Templates" button.
+- "Open Templates" (`data-action="open-templates"`, delegated at `app.js:339`)
+  switches to the Templates tab. Picking a template runs `applyTemplate()` →
+  `switchTab('editor')`, i.e. opens the **Editor with the template applied** —
+  matching the plan's "opens Editor with template picker".
+- `.suggestion-chips` styling: `style.css:167-174`.
 
-### ✅ Example URL Chips
-- **Location**: `/home/coding/vista/src/public/index.html` lines 81-86
-- **Implementation**:
-  ```html
-  <div class="example-chips">
-    <span class="chips-label">Try:</span>
-    <button class="chip" data-url="https://github.com">github.com</button>
-    <button class="chip" data-url="https://stripe.com">stripe.com</button>
-    <button class="chip" data-url="https://your-site.com">your-site.com</button>
-  </div>
-  ```
-- **Event Handler**: `app.js` lines 324-330 - chips fill input and trigger inspection on click
-- **Status**: ✅ IMPLEMENTED
+### 3. First-visit toast — ✅
+- `showFirstVisitToast()` in `app.js`, called at `app.js:960` after the
+  progressive load fully completes.
+- localStorage key **`vista-first-visit-shown`** — toast only renders when the
+  key is unset, and sets it immediately (plus on dismiss / 8s auto-hide).
+- Message: **"Click any card to expand. Try the Diagnostics tab for issues."**
+  Dismissible via a `×` button (`aria-label="Dismiss"`).
 
-### ✅ Empty State Message (URL Mode)
-- **Location**: `/home/coding/vista/src/public/index.html` lines 54-56
-- **Implementation**:
-  ```html
-  <div class="hero-tagline" id="heroTagline">
-    <h1>Paste any URL to see how it looks<br/>when shared on 31 platforms</h1>
-  </div>
-  ```
-- **Message**: "Paste any URL to see how it looks when shared on 31 platforms"
-- **Status**: ✅ CORRECT
+### 4. Empty-state messaging (both modes) — ✅
+- URL mode: hero `<h1>` "Paste any URL to see how it looks when shared on 31
+  platforms" (`index.html:74`).
+- Paste HTML mode: dedicated `#pasteMode` block with a textarea
+  (`placeholder="Paste your HTML here..."`, `index.html:108-127`).
 
-### ✅ Empty State Message (Paste HTML Mode)
-- **Location**: `/home/coding/vista/src/public/index.html` line 95
-- **Implementation**: `<textarea ... placeholder="Paste your HTML here...">`
-- **Status**: ✅ CORRECT
+### 5. Hero → compact transition — ✅
+- `style.css:137-144`: `.hero { transition: padding 0.3s }`,
+  `.hero.compact { padding: 20px 24px }`, tagline + chips hidden in compact.
+- `hero.classList.add('compact')` applied at multiple completion points
+  (`app.js:801`, plus compare/sitemap paths). Smooth 300ms padding transition.
 
-### ✅ No Meta Tags Detection
-- **Location**: `/home/coding/vista/src/public/app.js` lines 4498-4532
-- **Function**: `checkForNoMetaTags(metaData)`
-- **Logic**: Detects missing OG tags, Twitter Card tags, and basic tags
-- **Action**: Shows suggestion chip with "Open Templates" button
-- **Message**: "This page has no Open Graph or Twitter Card tags. Want to create them?"
-- **Status**: ✅ IMPLEMENTED
+## Bug fixed in this pass
 
-### ✅ First-Visit Toast
-- **Location**: `/home/coding/vista/src/public/app.js` lines 4457-4492
-- **Function**: `showFirstVisitToast()`
-- **localStorage Key**: `vista-first-visit-shown`
-- **Message**: "Click any card to expand. Try the Diagnostics tab for issues."
-- **Behavior**:
-  - Shows dismissible toast with × button
-  - Auto-hides after 8 seconds
-  - Saves to localStorage on dismiss or timeout
-  - Only shows once per user
-- **Status**: ✅ IMPLEMENTED
+The example-chip click handler was previously bound with a bare `.chip`
+selector, which **also matched the sitemap example chips** (class `chip`,
+attribute `data-sitemap`, separate handler at `app.js:422`). Clicking a sitemap
+chip therefore fired both handlers: the sitemap handler ran, then the generic
+one overrode it with `switchMode('url')` + `inspectUrl(undefined)`.
 
-### ✅ Hero Compact Transition
-- **Locations**: `app.js` lines 515, 894, 5002, 5281
-- **Implementation**: `hero.classList.add('compact')` called after successful inspection
-- **CSS**: Handles smooth transition from hero to compact state
-- **Status**: ✅ IMPLEMENTED
+Fix: scoped the URL-chip handler to `.chip[data-url]`, so the two chip families
+are mutually exclusive. Verified no other elements relied on the bare selector
+(the only `.chip` elements in `index.html` are the three URL chips and two
+sitemap chips; JS-created suggestion chips use a different class).
 
-## Summary
+## Verification
 
-All task requirements are already implemented:
-
-1. ✅ Example URL chips present and functional
-2. ✅ Empty state messaging correct for both URL and Paste HTML modes
-3. ✅ No meta tags detection with template picker suggestion
-4. ✅ First-visit toast with correct localStorage key and dismissible behavior
-5. ✅ Hero input transition to compact bar after inspection
-
-## Testing Checklist
-
-- [x] Example chips are visible in empty state
-- [x] Clicking example chips fills input and triggers inspection
-- [x] Empty state message shows correct text for URL mode
-- [x] Empty state message shows correct text for Paste HTML mode
-- [x] No meta tags detection shows suggestion chip
-- [x] "Open Templates" button switches to Templates tab
-- [x] First-visit toast shows on first inspection
-- [x] Toast is dismissible with × button
-- [x] Toast saves to localStorage and doesn't show again
-- [x] Hero transitions to compact state smoothly after inspection
-
-All features verified and working correctly.
+- `node --check src/public/app.js` — passes.
+- Manual trace of the chip double-bind (sitemap chip no longer triggers
+  `inspectUrl(undefined)`).

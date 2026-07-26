@@ -1550,9 +1550,14 @@ Object.keys(PLATFORM_CROPS).forEach(pid => cropperState.enabledPlatforms.add(pid
 
 // ── Skeleton Rendering ──
 
-// Get skeleton type for a platform
+// Get skeleton type for a platform.
+// Normalize underscores → hyphens so the client's hyphen comparisons
+// ('text-only') work regardless of whether the value came from the server
+// (skeleton-types.js uses 'text_only') or the fetch fallback ('text-only').
+// Without this, Google's text_only from the server failed the hyphen check
+// and it rendered an empty skeleton body.
 function getSkeletonType(pid) {
-  return PLATFORM_SKELETON_TYPES[pid] || 'tall';
+  return (PLATFORM_SKELETON_TYPES[pid] || 'tall').replace(/_/g, '-');
 }
 
 // Get skeleton HTML for a platform based on its skeleton type

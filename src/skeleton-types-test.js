@@ -25,7 +25,7 @@ function test(description, condition) {
   }
 }
 
-// Test 1: All 31 platforms have a skeleton type mapping
+// Test 1: All platforms have a skeleton type mapping
 console.log('Testing platform coverage...');
 try {
   let allPlatformsMapped = true;
@@ -37,9 +37,9 @@ try {
       allPlatformsMapped = false;
     }
   }
-  test('All 31 platforms have skeleton type mapping', allPlatformsMapped);
+  test(`All ${PLATFORMS.length} platforms have skeleton type mapping`, allPlatformsMapped);
 } catch (e) {
-  test('All 31 platforms have skeleton type mapping', false);
+  test('All platforms have skeleton type mapping', false);
   console.error('Error:', e.message);
 }
 
@@ -64,11 +64,11 @@ const tallPlatforms = getPlatformsBySkeletonType(SKELETON_TYPES.TALL);
 const shortPlatforms = getPlatformsBySkeletonType(SKELETON_TYPES.SHORT);
 const textOnlyPlatforms = getPlatformsBySkeletonType(SKELETON_TYPES.TEXT_ONLY);
 
-test(`Tall platforms count: ${tallPlatforms.length} (expected 11)`, tallPlatforms.length === 11);
-test(`Short platforms count: ${shortPlatforms.length} (expected 19)`, shortPlatforms.length === 19);
+test(`Tall platforms count: ${tallPlatforms.length} (expected 17)`, tallPlatforms.length === 17);
+test(`Short platforms count: ${shortPlatforms.length} (expected 25)`, shortPlatforms.length === 25);
 test(`Text-only platforms count: ${textOnlyPlatforms.length} (expected 1)`, textOnlyPlatforms.length === 1);
-test(`Total platforms: ${tallPlatforms.length + shortPlatforms.length + textOnlyPlatforms.length} (expected 31)`,
-  (tallPlatforms.length + shortPlatforms.length + textOnlyPlatforms.length) === 31);
+test(`Total platforms: ${tallPlatforms.length + shortPlatforms.length + textOnlyPlatforms.length} (expected 43)`,
+  (tallPlatforms.length + shortPlatforms.length + textOnlyPlatforms.length) === 43);
 
 // Test 4: Verify key platforms in each category
 console.log('\nVerifying platform categories...');

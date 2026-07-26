@@ -6001,58 +6001,122 @@ function createHtmlDataUrl(html, backgroundColor = '#5865f2') {
   return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svg)))}`;
 }
 
+/**
+ * Compute a coherent per-platform diff between URL A (before) and URL B (after).
+ *
+ * Combines two signals:
+ *   - META-level changed field paths (e.g. 'meta.og.title') — these match the
+ *     field paths renderPlatformCard()'s highlight() helper checks, so changed
+ *     rendered text lights up green. Derived from flattenMeta() of each meta.
+ *   - SCORE-level missing tags — tags flagged in URL B's platform issues/fixes
+ *     that URL A had, surfaced as red 'missing tag' badges on the card.
+ *
+ * 'identical' is true only when meta, grade, score, AND missing-tags all match,
+ * which is what the summary bar's 'identical vs differ' counts report on.
+ *
+ * @param {string} pid - Platform ID
+ * @param {Object} meta1 - URL A metadata
+ * @param {Object} meta2 - URL B metadata
+ * @param {Object} scores1 - URL A scoring.scores map
+ * @param {Object} scores2 - URL B scoring.scores map
+ * @returns {Object} { changedFields, missingTags, grade1, grade2, gradeChanged, scoreDelta, identical }
+ */
+function buildPlatformDiff(pid, meta1, meta2, scores1, scores2) {
+  const score1 = scores1 && scores1[pid];
+  const score2 = scores2 && scores2[pid];
+
+  // Meta-level diff → field paths in 'meta.<dotted.key>' form (matches renderPlatformCard highlight() calls).
+  // flattenMeta() drops empty/null/undefined, so a present-but-empty value reads as "missing".
+  const flat1 = flattenMeta(meta1 || {});
+  const flat2 = flattenMeta(meta2 || {});
+  const changedFields = [];
+  for (const key of new Set([...Object.keys(flat1), ...Object.keys(flat2)])) {
+    const v1 = key in flat1 ? flat1[key] : null;
+    const v2 = key in flat2 ? flat2[key] : null;
+    if (String(v1 ?? '') !== String(v2 ?? '')) {
+      changedFields.push('meta.' + key);
+    }
+  }
+
+  // Score-level missing tags (tags A had that B lacks), parsed from platform issues/fixes text.
+  let missingTags = [];
+  if (score1 && score2 && typeof window.platformDiff?.missingTags === 'function') {
+    missingTags = window.platformDiff.missingTags(score1, score2);
+  }
+
+  const grade1 = score1 ? score1.grade : undefined;
+  const grade2 = score2 ? score2.grade : undefined;
+  const gradeChanged = grade1 !== grade2;
+  const numScore1 = score1 && typeof score1.score === 'number' ? score1.score : null;
+  const numScore2 = score2 && typeof score2.score === 'number' ? score2.score : null;
+  const scoreDelta = (numScore1 !== null && numScore2 !== null) ? (numScore2 - numScore1) : 0;
+  const scoreChanged = scoreDelta !== 0;
+
+  const identical = changedFields.length === 0 && !gradeChanged && !scoreChanged && missingTags.length === 0;
+
+  return { changedFields, missingTags, grade1, grade2, gradeChanged, scoreDelta, identical };
+}
+
 function renderPlatformComparison(data1, data2) {
   const grid = document.getElementById('platformComparisonGrid');
   if (!grid) return;
 
   grid.innerHTML = '';
 
-  const scores1 = data1.scoring.scores;
-  const scores2 = data2.scoring.scores;
+  const scores1 = (data1.scoring && data1.scoring.scores) || {};
+  const scores2 = (data2.scoring && data2.scoring.scores) || {};
+  const meta1 = data1.meta || {};
+  const meta2 = data2.meta || {};
 
-  // Compute platform diff data
-  const platformDiffs = window.platformDiff && window.platformDiff.computePlatformDiff
-    ? window.platformDiff.computePlatformDiff(scores1, scores2)
-    : {};
-
-  // Get all platform IDs
+  // Union of platform IDs across both results
   const allPids = new Set([...Object.keys(scores1), ...Object.keys(scores2)]);
+
+  // Build per-platform diffs (meta + score)
+  const platformDiffs = {};
+  allPids.forEach(pid => {
+    platformDiffs[pid] = buildPlatformDiff(pid, meta1, meta2, scores1, scores2);
+  });
 
   // Calculate summary counts
   let identicalCount = 0;
   let differCount = 0;
   let missingTagsCount = 0;
-
   allPids.forEach(pid => {
-    const diff = platformDiffs[pid] || { changedFields: [], missingTags: [], identical: true };
-    if (!diff.identical) {
-      differCount++;
-    } else {
-      identicalCount++;
-    }
-    if (diff.missingTags && diff.missingTags.length > 0) {
-      missingTagsCount++;
-    }
+    const diff = platformDiffs[pid];
+    if (!diff) return;
+    if (diff.identical) identicalCount++;
+    else differCount++;
+    if (diff.missingTags && diff.missingTags.length > 0) missingTagsCount++;
   });
+  const totalCompared = identicalCount + differCount;
 
-  // Render summary bar
+  // Render summary bar: readable spec-style sentence + stat tiles
   const summaryBar = document.createElement('div');
   summaryBar.className = 'platform-comparison-summary';
+  summaryBar.setAttribute('role', 'status');
+  const summarySentence =
+    `${identicalCount} platform${identicalCount === 1 ? '' : 's'} identical, ` +
+    `${differCount} differ${differCount === 1 ? '' : ''}, ` +
+    `${missingTagsCount} missing tag${missingTagsCount === 1 ? '' : 's'} on URL B`;
   summaryBar.innerHTML = `
-    <div class="summary-stat">
-      <span class="summary-stat-value">${identicalCount}</span>
-      <span class="summary-stat-label">identical</span>
-    </div>
-    <div class="summary-stat">
-      <span class="summary-stat-value">${differCount}</span>
-      <span class="summary-stat-label">differ</span>
-    </div>
-    <div class="summary-stat">
-      <span class="summary-stat-value">${missingTagsCount}</span>
-      <span class="summary-stat-label">missing tags on URL B</span>
+    <div class="platform-comparison-summary-text">${escHtml(summarySentence)}</div>
+    <div class="platform-comparison-summary-stats">
+      <div class="summary-stat">
+        <span class="summary-stat-value">${identicalCount}</span>
+        <span class="summary-stat-label">identical</span>
+      </div>
+      <div class="summary-stat">
+        <span class="summary-stat-value">${differCount}</span>
+        <span class="summary-stat-label">differ</span>
+      </div>
+      <div class="summary-stat">
+        <span class="summary-stat-value">${missingTagsCount}</span>
+        <span class="summary-stat-label">missing tags on URL B</span>
+      </div>
     </div>
   `;
   grid.appendChild(summaryBar);
+  announce(`Comparison: ${summarySentence} (out of ${totalCompared} platforms).`);
 
   allPids.forEach(pid => {
     const score1 = scores1[pid];
@@ -6082,9 +6146,6 @@ function renderPlatformComparison(data1, data2) {
     // Get diff data for this platform
     const diff = platformDiffs[pid] || { changedFields: [], missingTags: [], identical: true };
 
-    // Extract platform-specific data from both datasets
-    const meta1 = data1.meta || {};
-    const meta2 = data2.meta || {};
     const imageProbe1 = data1.imageProbe;
     const imageProbe2 = data2.imageProbe;
     const finalUrl1 = data1.finalUrl;
@@ -6300,11 +6361,6 @@ function setupScrollLock(el1, el2) {
       setTimeout(() => { isScrolling2 = false; }, 50);
     }
   });
-}
-
-function renderPlatformComparison(data1, data2) {
-  // Scroll to results
-  if (resultsSection) resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function renderSitemapResults(data) {

@@ -291,6 +291,6 @@
   // Auto-initialize any image-diff-container elements
   document.addEventListener('DOMContentLoaded', () => {
     console.log('image-diff module loaded');
-  };
+  });
 
 })();

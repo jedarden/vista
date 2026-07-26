@@ -992,6 +992,11 @@ function mergeData(metaData, imagesData, headersData) {
 	  previews: imagesData.previews,
 	  imageProbe: imagesData.imageProbe,
 	  cropper: imagesData.cropper,
+	  // autoFixes computed WITH the real imageProbe — a superset of the
+	  // headers-derived list (which is computed with imageProbe=null).
+	  // Overwrites the headers-only autoFixes set earlier when headers arrived
+	  // before images, so the final Fix list reflects image findings too.
+	  autoFixes: imagesData.autoFixes,
 	});
   }
 
@@ -1004,7 +1009,21 @@ function mergeData(metaData, imagesData, headersData) {
 	  server: headersData.server,
 	  diagnostics: headersData.diagnostics || [],
 	  headerAnalysis: headersData.headerAnalysis,
+	  // Raw response headers — renderRedirects() builds the "All Response
+	  // Headers" table from this argument and exportHeadersAsJson() reads
+	  // currentData.responseHeaders. The headers endpoint returns it; the
+	  // legacy /api/preview carries it at the top level too. Without this,
+	  // both the headers table and the JSON export were empty in the
+	  // progressive flow. (bf-59t)
+	  responseHeaders: headersData.responseHeaders,
 	});
+	// autoFixes fallback: when headers arrive before images, imagesData is null
+	// so the block above didn't run — populate from the headers list so Fix
+	// buttons appear at the headers step rather than waiting on image probing.
+	// Once images arrive, the images block sets the (superset) autoFixes.
+	if (!merged.autoFixes && headersData.autoFixes) {
+	  merged.autoFixes = headersData.autoFixes;
+	}
   }
 
   return merged;

@@ -182,19 +182,19 @@
         <div class="input-block hidden" id="sitemapMode">
           <div class="sitemap-tagline">
             <h2>Crawl your entire sitemap<br/>and generate a report card</h2>
-            <p>Enter a sitemap URL to analyze platform coverage across all pages.</p>
+            <p>Enter a domain or sitemap URL. We'll auto-detect the sitemap from robots.txt if needed, then analyze platform coverage across all pages.</p>
           </div>
           <form class="sitemap-form" id="sitemapForm">
             <div class="input-row">
               <span class="input-icon">&#128196;</span>
-              <label class="sr-only" for="sitemapInput">Sitemap XML URL</label>
+              <label class="sr-only" for="sitemapInput">Domain or sitemap URL</label>
               <input
                 type="url"
                 id="sitemapInput"
-                placeholder="https://example.com/sitemap.xml"
+                placeholder="example.com or example.com/sitemap.xml"
                 autocomplete="off"
                 spellcheck="false"
-                aria-label="Sitemap XML URL"
+                aria-label="Domain or sitemap URL"
               />
               <button type="submit" class="inspect-btn" id="sitemapBtn">
                 Crawl Sitemap &#9654;

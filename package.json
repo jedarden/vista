@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "test": "node test/unit/ssrf-guard.test.js",
+    "test": "node test/unit/ssrf-guard.test.js && node test/unit/sitemap-robots.test.js",
     "screenshots": "bash screenshots/capture-platform-frames.sh",
     "screenshots:playwright": "node screenshots/capture-frames-playwright.js",
     "screenshots:real": "bash screenshots/capture-real-platforms.sh"

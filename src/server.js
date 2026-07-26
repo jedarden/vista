@@ -345,18 +345,24 @@ app.post('/api/preview/images', async (req, res) => {
 });
 
 /**
- * GET /api/sitemap?url=https://...sitemap.xml
- * Parse sitemap and return all URLs with coverage scores
+ * GET /api/sitemap?url=<sitemap-or-domain>
+ *
+ * Accepts either a direct sitemap XML URL (e.g.
+ * https://example.com/sitemap.xml) OR a bare domain/origin (e.g.
+ * https://example.com). When the input is not itself valid sitemap XML, the
+ * handler falls back to fetching {origin}/robots.txt and follows any
+ * `Sitemap:` directive(s) it finds there (per RFC 9309), then crawls the
+ * discovered sitemap. Returns all URLs with per-platform coverage scores.
  */
 app.get('/api/sitemap', async (req, res) => {
-  const sitemapUrl = req.query.url;
-  if (!sitemapUrl) {
+  const inputUrl = req.query.url;
+  if (!inputUrl) {
     return res.status(400).json({ error: 'Missing ?url= parameter' });
   }
 
   // Validate URL
   try {
-    const parsed = new URL(sitemapUrl);
+    const parsed = new URL(inputUrl);
     if (!['http:', 'https:'].includes(parsed.protocol)) {
       return res.status(400).json({ error: 'Only http and https URLs are supported' });
     }
@@ -369,33 +375,45 @@ app.get('/api/sitemap', async (req, res) => {
   // link-local hosts (e.g. http://127.0.0.1/... or http://169.254.169.254/...).
   // Matches the 400 pattern used for the other validation failures above.
   try {
-    await validateUrlOrThrow(sitemapUrl);
+    await validateUrlOrThrow(inputUrl);
   } catch (ssrfErr) {
     return res.status(400).json({ error: `URL blocked by SSRF protection: ${ssrfErr.message}` });
   }
 
+  const fetch = require('node-fetch');
+  const fetchHeaders = {
+    'User-Agent': 'Mozilla/5.0 (compatible; VISTA/1.0; +https://github.com/vista-tool)',
+    Accept: 'application/xml,text/xml,*/*',
+  };
+
   try {
-    // Fetch sitemap
+    // The controller/timeout guards the sitemap *fetching* (resolve +
+    // top-level + nested sitemap-index expansion). The per-URL crawl below
+    // uses fetchUrl(), which has its own timeouts.
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 30000);
+    const fetchOpts = { method: 'GET', headers: fetchHeaders, signal: controller.signal };
 
-    let response;
+    let sitemapUrl;
+    let xml;
     try {
-      const fetch = require('node-fetch');
-      response = await fetch(sitemapUrl, {
-        method: 'GET',
-        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; VISTA/1.0; +https://github.com/vista-tool)', Accept: 'application/xml,text/xml,*/*' },
-        signal: controller.signal,
+      // Resolve which sitemap to crawl. If the input URL is not itself valid
+      // sitemap XML, this falls back to {origin}/robots.txt and follows any
+      // Sitemap: directive. Throws a descriptive Error when no sitemap can be
+      // located, which we surface as a 400.
+      const resolved = await resolveSitemapUrl({
+        inputUrl,
+        fetchFn: fetch,
+        fetchOpts,
+        validateFn: validateUrlOrThrow,
       });
-    } finally {
+      sitemapUrl = resolved.sitemapUrl;
+      xml = resolved.xml;
+    } catch (resolveErr) {
       clearTimeout(timer);
+      return res.status(400).json({ error: resolveErr.message });
     }
-
-    if (!response.ok) {
-      return res.status(502).json({ error: `Failed to fetch sitemap: ${response.status} ${response.statusText}` });
-    }
-
-    const xml = await response.text();
+    clearTimeout(timer);
 
     // Parse sitemap
     const urls = await parseSitemap(xml, sitemapUrl);
@@ -2177,6 +2195,148 @@ async function parseSitemap(xml, baseUrl) {
 }
 
 /**
+ * Determine whether a fetched body looks like sitemap XML. Recognizes both a
+ * sitemap index (<sitemapindex>) and a regular URL set (<urlset>), and also
+ * accepts bodies that contain <url><loc> entries directly (lenient match for
+ * sitemaps that omit or namespace the root element).
+ *
+ * @param {string} xml - raw response body
+ * @returns {boolean}
+ */
+function looksLikeSitemapXml(xml) {
+  if (!xml || typeof xml !== 'string') return false;
+  const $ = cheerio.load(xml, { xmlMode: true });
+  if ($('sitemapindex').length > 0) return true;
+  if ($('urlset').length > 0) return true;
+  if ($('url > loc').length > 0) return true;
+  return false;
+}
+
+/**
+ * Extract Sitemap: directive URLs from a robots.txt body.
+ *
+ * Per RFC 9309 the field name is case-insensitive, there may be multiple
+ * Sitemap directives, and a '#' begins a comment. Returns the discovered
+ * URLs in document order (the primary entry point is conventionally first).
+ *
+ * @param {string} robotsTxt - raw robots.txt body
+ * @returns {string[]}
+ */
+function parseRobotsSitemaps(robotsTxt) {
+  if (!robotsTxt || typeof robotsTxt !== 'string') return [];
+  const sitemaps = [];
+  for (const rawLine of robotsTxt.split(/\r?\n/)) {
+    const hashIdx = rawLine.indexOf('#');
+    const line = (hashIdx >= 0 ? rawLine.slice(0, hashIdx) : rawLine).trim();
+    if (!line) continue;
+    const colonIdx = line.indexOf(':');
+    if (colonIdx < 0) continue;
+    const field = line.slice(0, colonIdx).trim().toLowerCase();
+    const value = line.slice(colonIdx + 1).trim();
+    if (field === 'sitemap' && value) {
+      sitemaps.push(value);
+    }
+  }
+  return sitemaps;
+}
+
+/**
+ * Resolve the effective sitemap URL to crawl, with a robots.txt fallback.
+ *
+ * 1. Fetch the input URL. If its body is valid sitemap XML, use it directly.
+ * 2. Otherwise fetch {origin}/robots.txt and follow any Sitemap: directive,
+ *    fetching the first discovered sitemap URL.
+ *
+ * `fetchFn` and `validateFn` are injected so this can be unit-tested with a
+ * mock fetch (no network/DNS) and a no-op SSRF validator. `validateFn` is
+ * awaited for every URL before it is fetched, so a robots.txt-discovered
+ * sitemap on a private host is rejected just like a directly-supplied one.
+ *
+ * @param {object} opts
+ * @param {string} opts.inputUrl - user-supplied URL (already protocol-checked)
+ * @param {Function} opts.fetchFn - fetch implementation
+ * @param {object} opts.fetchOpts - options forwarded to fetchFn (method/headers/signal)
+ * @param {Function} [opts.validateFn] - async SSRF validator (url) => void; default no-op
+ * @returns {Promise<{sitemapUrl: string, xml: string}>}
+ * @throws {Error} when no sitemap can be located via the URL or robots.txt
+ */
+async function resolveSitemapUrl({ inputUrl, fetchFn, fetchOpts, validateFn }) {
+  validateFn = validateFn || (async () => {});
+
+  // 1. Try the input URL itself.
+  let inputResp = null;
+  try {
+    inputResp = await fetchFn(inputUrl, fetchOpts);
+  } catch (_) {
+    // Network/abort error — fall through to the robots.txt fallback.
+  }
+
+  if (inputResp && inputResp.ok) {
+    const xml = await inputResp.text();
+    if (looksLikeSitemapXml(xml)) {
+      return { sitemapUrl: inputUrl, xml };
+    }
+  }
+
+  // 2. Fall back to {origin}/robots.txt auto-detection.
+  const robotsUrl = new URL('/robots.txt', inputUrl).href;
+  await validateFn(robotsUrl);
+
+  let robotsResp = null;
+  try {
+    robotsResp = await fetchFn(robotsUrl, fetchOpts);
+  } catch (_) {
+    // unreachable robots.txt is reported below
+  }
+
+  let sitemaps = [];
+  if (robotsResp && robotsResp.ok) {
+    const robotsTxt = await robotsResp.text();
+    sitemaps = parseRobotsSitemaps(robotsTxt);
+  }
+
+  if (sitemaps.length === 0) {
+    let reason;
+    if (!robotsResp) {
+      reason = `could not fetch ${robotsUrl}`;
+    } else if (!robotsResp.ok) {
+      reason = `${robotsUrl} returned HTTP ${robotsResp.status}`;
+    } else {
+      reason = `no Sitemap directive was found in ${robotsUrl}`;
+    }
+    throw new Error(
+      `No sitemap could be found: "${inputUrl}" did not return valid sitemap XML and ${reason}. ` +
+        'Provide a direct sitemap.xml URL.'
+    );
+  }
+
+  // 3. Fetch the first discovered sitemap.
+  const sitemapUrl = sitemaps[0];
+  await validateFn(sitemapUrl);
+
+  let smResp;
+  try {
+    smResp = await fetchFn(sitemapUrl, fetchOpts);
+  } catch (e) {
+    throw new Error(
+      `No sitemap could be found: robots.txt pointed to ${sitemapUrl} but it was unreachable (${e.message}).`
+    );
+  }
+  if (!smResp.ok) {
+    throw new Error(
+      `No sitemap could be found: robots.txt pointed to ${sitemapUrl} but it returned HTTP ${smResp.status} ${smResp.statusText}.`
+    );
+  }
+  const xml = await smResp.text();
+  if (!looksLikeSitemapXml(xml)) {
+    throw new Error(
+      `No sitemap could be found: robots.txt pointed to ${sitemapUrl} but it did not contain valid sitemap XML.`
+    );
+  }
+  return { sitemapUrl, xml };
+}
+
+/**
  * Categorize HTTP response headers by type.
  */
 function categorizeHeaders(headers) {
@@ -2701,8 +2861,15 @@ function assessPerformanceHeaders(headers) {
 
 // Export the response builder for unit tests so we can assert the shape of the
 // preview result (e.g. that rawTags is included for client-side diagnostics)
-// without binding a port. The server only listens when run directly.
-module.exports = { buildPreviewResult };
+// without binding a port. The sitemap helpers are exported so the robots.txt
+// auto-detection fallback can be unit-tested with a mock fetch (no network).
+// The server only listens when run directly.
+module.exports = {
+  buildPreviewResult,
+  parseRobotsSitemaps,
+  looksLikeSitemapXml,
+  resolveSitemapUrl,
+};
 
 if (require.main === module) {
   app.listen(PORT, () => {

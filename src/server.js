@@ -7,7 +7,8 @@ const { fetchUrl, parseMetaTags, probeImage } = require('./fetcher');
 const { validateUrlOrThrow } = require('./ssrf-guard');
 const { detectMistakes } = require('./diagnostics');
 const { scoreAll, PLATFORMS } = require('./scorer');
-const { generateScreenshot, checkRateLimit, isValidPlatform } = require('./screenshot');
+const { generateScreenshot, isValidPlatform } = require('./screenshot');
+const { checkRateLimit } = require('./rate-limit');
 const { analyzeResponseHeaders } = require('./header-analyzer');
 const cheerio = require('cheerio');
 const { ZipArchive } = require('archiver');
@@ -60,11 +61,64 @@ app.use((req, res, next) => {
   next();
 });
 
+// --- Rate-limit policy (per docs/plan.md "Security": in-memory token bucket,
+// resets on restart). Each namespace below is an independent per-IP/hour bucket
+// (see src/rate-limit.js), so a tight limit on a costly endpoint does not
+// consume the budget of a cheaper one.
+//
+//   preview    30/hr  GET/POST /api/preview{,/meta,/headers,/images},
+//                     GET /api/compare, GET /api/badge (url mode).
+//                     One request triggers 1-2 downstream page fetches — the
+//                     same cost class as a screenshot, so it reuses the 30/hr
+//                     budget the screenshot endpoints already had.
+//   screenshot 30/hr  GET /api/screenshot, GET /api/screenshots, POST /api/screenshot.
+//                     Existing limit, kept as-is; migrated to an explicit
+//                     namespace so the policy reads uniformly.
+//   sitemap     5/hr  GET /api/sitemap. A single request fans out to up to 100
+//                     downstream page fetches (5 at a time), so it is roughly
+//                     20x costlier per request than one preview. 5/hr (vs 30)
+//                     still allows legitimate audits while preventing a single
+//                     client from launching unbounded 100-URL crawls. Each
+//                     crawl counts as ONE token regardless of URL count, to
+//                     avoid double-penalizing a legitimate large-site audit.
+const RATE_LIMIT_PREVIEW = 30;
+const RATE_LIMIT_SCREENSHOT = 30;
+const RATE_LIMIT_SITEMAP = 5;
+
+/**
+ * Enforce per-IP rate limiting for a request.
+ *
+ * On limit breach, sends HTTP 429 with the same { error, message, retryAfter }
+ * shape used by the screenshot endpoints (for consistency) and returns true;
+ * the caller should `return` immediately. When the request is allowed, returns
+ * false and the caller proceeds.
+ *
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {number} limit     Max requests/hour for this namespace.
+ * @param {string} namespace Bucket group (see constants above).
+ * @returns {boolean} true if the request was rejected (429 already sent).
+ */
+function rateLimited(req, res, limit, namespace) {
+  const clientIp = req.ip || req.connection.remoteAddress || 'unknown';
+  const check = checkRateLimit(clientIp, limit, namespace);
+  if (!check.allowed) {
+    res.status(429).json({
+      error: 'Rate limit exceeded',
+      message: 'Too many requests. Please try again later.',
+      retryAfter: 3600,
+    });
+    return true;
+  }
+  return false;
+}
+
 /**
  * GET /api/preview?url=https://...
  * POST /api/preview with Content-Type: text/html body (and optional ?base=https://...)
  */
 app.get('/api/preview', async (req, res) => {
+  if (rateLimited(req, res, RATE_LIMIT_PREVIEW, 'preview')) return;
   const url = req.query.url;
   if (!url) {
     return res.status(400).json({ error: 'Missing ?url= parameter' });
@@ -99,6 +153,7 @@ app.get('/api/preview', async (req, res) => {
 });
 
 app.post('/api/preview', async (req, res) => {
+  if (rateLimited(req, res, RATE_LIMIT_PREVIEW, 'preview')) return;
   const baseUrl = req.query.base || 'https://example.com';
   let html;
 
@@ -145,6 +200,7 @@ app.get('/api/platforms', (req, res) => {
  * Returns: score, meta tags, text-based card previews.
  */
 app.get('/api/preview/meta', async (req, res) => {
+  if (rateLimited(req, res, RATE_LIMIT_PREVIEW, 'preview')) return;
   const url = req.query.url;
   if (!url) {
     return res.status(400).json({ error: 'Missing ?url= parameter' });
@@ -179,6 +235,7 @@ app.get('/api/preview/meta', async (req, res) => {
 });
 
 app.post('/api/preview/meta', async (req, res) => {
+  if (rateLimited(req, res, RATE_LIMIT_PREVIEW, 'preview')) return;
   const baseUrl = req.query.base || 'https://example.com';
   let html;
 
@@ -214,6 +271,7 @@ app.post('/api/preview/meta', async (req, res) => {
  * Runs independently and can be called in parallel with image probe.
  */
 app.get('/api/preview/headers', async (req, res) => {
+  if (rateLimited(req, res, RATE_LIMIT_PREVIEW, 'preview')) return;
   const url = req.query.url;
   if (!url) {
     return res.status(400).json({ error: 'Missing ?url= parameter' });
@@ -248,6 +306,7 @@ app.get('/api/preview/headers', async (req, res) => {
 });
 
 app.post('/api/preview/headers', async (req, res) => {
+  if (rateLimited(req, res, RATE_LIMIT_PREVIEW, 'preview')) return;
   const baseUrl = req.query.base || 'https://example.com';
   let html;
 
@@ -283,6 +342,7 @@ app.post('/api/preview/headers', async (req, res) => {
  * Probes: og:image, twitter:image, favicon, and any hero.png references.
  */
 app.get('/api/preview/images', async (req, res) => {
+  if (rateLimited(req, res, RATE_LIMIT_PREVIEW, 'preview')) return;
   const url = req.query.url;
   if (!url) {
     return res.status(400).json({ error: 'Missing ?url= parameter' });
@@ -317,6 +377,7 @@ app.get('/api/preview/images', async (req, res) => {
 });
 
 app.post('/api/preview/images', async (req, res) => {
+  if (rateLimited(req, res, RATE_LIMIT_PREVIEW, 'preview')) return;
   const baseUrl = req.query.base || 'https://example.com';
   let html;
 
@@ -355,6 +416,12 @@ app.post('/api/preview/images', async (req, res) => {
  * discovered sitemap. Returns all URLs with per-platform coverage scores.
  */
 app.get('/api/sitemap', async (req, res) => {
+  // One rate-limit token per request (NOT per crawled URL) — a single sitemap
+  // audit consumes exactly one token even though it may fan out to ~100 page
+  // fetches, so a legitimate large-site audit is not double-penalized. The
+  // sitemap namespace gets a tighter 5/hr budget (vs 30 for preview) because
+  // each request is ~20x costlier downstream. See policy block above.
+  if (rateLimited(req, res, RATE_LIMIT_SITEMAP, 'sitemap')) return;
   const inputUrl = req.query.url;
   if (!inputUrl) {
     return res.status(400).json({ error: 'Missing ?url= parameter' });
@@ -552,7 +619,7 @@ app.get('/api/screenshot', async (req, res) => {
 
   // Rate limiting
   const clientIp = req.ip || req.connection.remoteAddress || 'unknown';
-  const rateLimit = checkRateLimit(clientIp, 30);
+  const rateLimit = checkRateLimit(clientIp, RATE_LIMIT_SCREENSHOT, 'screenshot');
   if (!rateLimit.allowed) {
     return res.status(429).json({
       error: 'Rate limit exceeded',
@@ -693,7 +760,7 @@ app.get('/api/screenshots', async (req, res) => {
 
   // Rate limiting for bulk requests - consume one token per platform
   const clientIp = req.ip || req.connection.remoteAddress || 'unknown';
-  const rateLimit = checkRateLimit(clientIp, 30);
+  const rateLimit = checkRateLimit(clientIp, RATE_LIMIT_SCREENSHOT, 'screenshot');
 
   // For bulk requests, we need to check if we have enough capacity
   // We'll check multiple times and consume tokens for each platform
@@ -708,7 +775,7 @@ app.get('/api/screenshots', async (req, res) => {
   // Consume additional tokens for remaining platforms (1st was consumed above)
   let finalRateLimit = rateLimit;
   for (let i = 1; i < requestedPlatforms.length; i++) {
-    const additionalCheck = checkRateLimit(clientIp, 30);
+    const additionalCheck = checkRateLimit(clientIp, RATE_LIMIT_SCREENSHOT, 'screenshot');
     if (!additionalCheck.allowed) {
       return res.status(429).json({
         error: 'Rate limit exceeded',
@@ -865,7 +932,7 @@ app.post('/api/screenshot', async (req, res) => {
 
   // Rate limiting
   const clientIp = req.ip || req.connection.remoteAddress || 'unknown';
-  const rateLimit = checkRateLimit(clientIp, 30);
+  const rateLimit = checkRateLimit(clientIp, RATE_LIMIT_SCREENSHOT, 'screenshot');
   if (!rateLimit.allowed) {
     return res.status(429).json({
       error: 'Rate limit exceeded',
@@ -981,6 +1048,9 @@ app.get('/api/badge', async (req, res) => {
   let score, platforms;
 
   if (url) {
+    // Rate-limit only url mode — it fetches+scores a live page. The legacy
+    // ?score=&platforms= mode does no network I/O, so it stays unlimited.
+    if (rateLimited(req, res, RATE_LIMIT_PREVIEW, 'preview')) return;
     // Validate URL
     try {
       const parsedUrl = new URL(url);
@@ -1062,6 +1132,7 @@ app.get('/api/badge', async (req, res) => {
  * Compare two URLs by fetching both previews in parallel
  */
 app.get('/api/compare', async (req, res) => {
+  if (rateLimited(req, res, RATE_LIMIT_PREVIEW, 'preview')) return;
   const urlA = req.query.a;
   const urlB = req.query.b;
 

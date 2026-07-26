@@ -133,9 +133,11 @@ async function main() {
     assert(handlerStart !== -1, 'could not locate /api/sitemap handler');
     const handler = SERVER_SRC.slice(handlerStart, SERVER_SRC.indexOf('app.', handlerStart + 1));
     assert(handler.includes('validateUrlOrThrow'), 'sitemap handler does not call validateUrlOrThrow');
-    // Initial URL: must reject with 400.
-    const initIdx = handler.indexOf('validateUrlOrThrow(sitemapUrl)');
-    assert(initIdx !== -1, 'sitemap handler does not validate the initial sitemapUrl');
+    // Initial URL: must reject with 400. The handler validates the raw user
+    // input as `inputUrl` (server.js); `sitemapUrl` is the *resolved* sitemap
+    // produced later by resolveSitemapUrl(), not the initial request URL.
+    const initIdx = handler.indexOf('validateUrlOrThrow(inputUrl)');
+    assert(initIdx !== -1, 'sitemap handler does not validate the initial inputUrl');
     const init400 = handler.slice(0, initIdx).lastIndexOf('status(400)');
     assert(init400 !== -1 && init400 < initIdx, 'initial sitemap validation must be able to return 400');
     // Nested loop: must validate each nestedSitemapUrl and continue on rejection.

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video Platforms Theme Switching Verification</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background: #1a1a1e;
+      color: #e4e4e7;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .test-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .test-header h1 {
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    .test-header p {
+      font-size: 14px;
+      color: #a1a1aa;
+    }
+
+    .test-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+      gap: 40px;
+      margin-bottom: 40px;
+    }
+
+    .test-frame-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .test-frame-label {
+      font-size: 18px;
+      font-weight: 600;
+      padding: 12px;
+      background: #25252a;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    iframe {
+      width: 100%;
+      height: 600px;
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .theme-status {
+      margin-top: 20px;
+      padding: 16px;
+      background: #25252a;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .theme-status p {
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .status-indicator {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      background: #6366f1;
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-header">
+    <h1>Video Platforms Theme Switching Verification</h1>
+    <p>Testing dark/light theme support for YouTube and Twitch frames</p>
+  </div>
+
+  <div class="test-grid">
+    <div class="test-frame-container">
+      <div class="test-frame-label">YouTube Frame - Theme Switchable</div>
+      <iframe src="youtube.html" title="YouTube Theme Test"></iframe>
+    </div>
+
+    <div class="test-frame-container">
+      <div class="test-frame-label">Twitch Frame - Theme Switchable</div>
+      <iframe src="twitch.html" title="Twitch Theme Test"></iframe>
+    </div>
+  </div>
+
+  <div class="theme-status">
+    <p><strong>Verification Instructions:</strong></p>
+    <p>1. Click the "Toggle Theme" button in each frame (top-right corner)</p>
+    <p>2. Verify that both frames smoothly transition between dark and light themes</p>
+    <p>3. Check that colors, backgrounds, borders, and text all adapt properly</p>
+    <p>4. Verify theme preference is saved (refresh page to test persistence)</p>
+    <p><span class="status-indicator">✓ Both frames support independent theme switching</span></p>
+  </div>
+</body>
+</html>

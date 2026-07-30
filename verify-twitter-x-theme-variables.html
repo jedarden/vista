@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twitter/X Theme Variables Verification</title>
+    <link rel="stylesheet" href="src/public/platform-frames-base.css">
+    <link rel="stylesheet" href="src/public/frames-theme.css">
+    <link rel="stylesheet" href="src/public/style.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            background: #1a1a1e;
+            color: #e4e4e7;
+            margin: 0;
+        }
+        [data-theme='light'] body {
+            background: #ffffff;
+            color: #1f2937;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: var(--frame-accent, #1d9bf0);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 1000;
+        }
+        .theme-toggle:hover {
+            opacity: 0.9;
+        }
+        .verification-section {
+            margin: 40px 0;
+            padding: 20px;
+            background: var(--frame-surface);
+            border: 1px solid var(--frame-border);
+            border-radius: 12px;
+        }
+        .verification-section h2 {
+            margin-top: 0;
+            color: var(--frame-accent);
+        }
+        .variable-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .variable-item {
+            padding: 8px 12px;
+            background: var(--frame-bg);
+            border: 1px solid var(--frame-border);
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .variable-name {
+            color: var(--frame-accent);
+            font-weight: 600;
+        }
+        .variable-value {
+            color: var(--frame-text-secondary);
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .status-badge.success {
+            background: #00ba7c;
+            color: white;
+        }
+        .status-badge.fail {
+            background: #f91880;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
+
+    <div class="test-container">
+        <h1>Twitter/X Theme Variables Verification</h1>
+        <p>This page verifies that all Twitter/X CSS variables are properly defined and working in both dark and light themes.</p>
+
+        <!-- Base Frame Variables -->
+        <div class="verification-section">
+            <h2>Base Frame Variables (twitter-context)</h2>
+            <div class="variable-display" id="base-vars"></div>
+        </div>
+
+        <!-- X-Specific Enhanced Variables -->
+        <div class="verification-section">
+            <h2>X-Specific Enhanced Variables</h2>
+            <div class="variable-display" id="x-vars"></div>
+        </div>
+
+        <!-- Sample Twitter Frame -->
+        <div class="verification-section">
+            <h2>Sample Twitter/X Frame</h2>
+            <div class="platform-frame twitter-context">
+                <div class="tw-post-header">
+                    <div class="tw-avatar"></div>
+                    <div class="tw-post-meta">
+                        <span class="tw-author-name">Test User</span>
+                        <span class="tw-author-handle">@testuser</span>
+                        <span class="tw-post-time">· 2h</span>
+                    </div>
+                    <span class="tw-verified">✓</span>
+                </div>
+                <div class="tw-post-content">
+                    This is a test tweet to verify that all Twitter/X theme variables are working correctly. The avatar background, text colors, and all other elements should use proper CSS variables.
+                </div>
+                <div class="tw-link-card">
+                    <div class="tw-context-placeholder"></div>
+                    <div class="tw-context-meta">
+                        <div class="tw-context-title">Test Link Title</div>
+                        <div class="tw-context-domain">example.com</div>
+                    </div>
+                </div>
+                <div class="tw-post-actions">
+                    <div class="tw-post-action-item reply">
+                        <span class="tw-action-icon">💬</span>
+                        <span class="tw-action-count">12</span>
+                    </div>
+                    <div class="tw-post-action-item retweet">
+                        <span class="tw-action-icon">🔁</span>
+                        <span class="tw-action-count">34</span>
+                    </div>
+                    <div class="tw-post-action-item like">
+                        <span class="tw-action-icon">❤️</span>
+                        <span class="tw-action-count">128</span>
+                    </div>
+                    <div class="tw-post-action-item view">
+                        <span class="tw-action-icon">👁️</span>
+                        <span class="tw-action-count">2.4K</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Legacy Elements Test -->
+        <div class="verification-section">
+            <h2>Legacy Elements (with updated variables)</h2>
+            <div class="tw-card">
+                <div class="tw-image"></div>
+                <div class="tw-meta">
+                    <div class="tw-title">Legacy Card Title</div>
+                    <div class="tw-desc">This is a legacy card element that should now use CSS variables instead of hardcoded colors.</div>
+                    <div class="tw-domain">legacy-test.com</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Verification Status -->
+        <div class="verification-section">
+            <h2>Verification Status</h2>
+            <div id="verification-results"></div>
+        </div>
+    </div>
+
+    <script>
+        // Base frame variables to check
+        const baseVars = [
+            '--frame-bg',
+            '--frame-surface',
+            '--frame-border',
+            '--frame-text-primary',
+            '--frame-text-secondary',
+            '--frame-text-muted',
+            '--frame-accent',
+            '--frame-link-color'
+        ];
+
+        // X-specific variables to check
+        const xVars = [
+            '--x-bg-primary',
+            '--x-bg-secondary',
+            '--x-bg-tertiary',
+            '--x-border-color',
+            '--x-text-primary',
+            '--x-text-secondary',
+            '--x-text-muted',
+            '--x-accent-blue',
+            '--x-accent-blue-hover',
+            '--x-like-color',
+            '--x-retweet-color',
+            '--x-reply-color',
+            '--x-view-color'
+        ];
+
+        function getComputedValue(variableName) {
+            const testElement = document.querySelector('.twitter-context') || document.body;
+            const computedStyle = window.getComputedStyle(testElement);
+            const value = computedStyle.getPropertyValue(variableName);
+            return value ? value.trim() : 'NOT DEFINED';
+        }
+
+        function displayVariables(variables, containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            variables.forEach(varName => {
+                const value = getComputedValue(varName);
+                const isDefined = value !== 'NOT DEFINED';
+
+                const item = document.createElement('div');
+                item.className = 'variable-item';
+                item.innerHTML = `
+                    <span class="variable-name">${varName}:</span>
+                    <span class="variable-value">${value}</span>
+                    <span class="status-badge ${isDefined ? 'success' : 'fail'}">${isDefined ? '✓' : '✗'}</span>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function verifyAllVariables() {
+            const resultsContainer = document.getElementById('verification-results');
+            let allVars = [...baseVars, ...xVars];
+            let definedCount = 0;
+            let undefinedVars = [];
+
+            allVars.forEach(varName => {
+                const value = getComputedValue(varName);
+                if (value !== 'NOT DEFINED') {
+                    definedCount++;
+                } else {
+                    undefinedVars.push(varName);
+                }
+            });
+
+            const percentage = Math.round((definedCount / allVars.length) * 100);
+            let statusClass = percentage === 100 ? 'success' : (percentage >= 80 ? 'warning' : 'fail');
+
+            resultsContainer.innerHTML = `
+                <div style="text-align: center; padding: 20px;">
+                    <h3 style="margin: 0 0 10px 0;">Variables Defined: ${definedCount}/${allVars.length} (${percentage}%)</h3>
+                    <span class="status-badge ${statusClass}" style="font-size: 14px; padding: 4px 12px;">
+                        ${percentage === 100 ? 'ALL VARIABLES DEFINED ✓' : 'SOME VARIABLES MISSING ✗'}
+                    </span>
+                    ${undefinedVars.length > 0 ? `
+                        <div style="margin-top: 15px; text-align: left;">
+                            <strong>Undefined variables:</strong>
+                            <ul style="margin: 5px 0; padding-left: 20px;">
+                                ${undefinedVars.map(v => `<li style="color: #f91880;">${v}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+
+            // Re-verify after theme change
+            setTimeout(() => {
+                displayVariables(baseVars, 'base-vars');
+                displayVariables(xVars, 'x-vars');
+                verifyAllVariables();
+            }, 100);
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            displayVariables(baseVars, 'base-vars');
+            displayVariables(xVars, 'x-vars');
+            verifyAllVariables();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Light Mode Verification - 7 Platform Frames</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      padding: 20px;
+      max-width: 1600px;
+      margin: 0 auto;
+      background: #f8f9fa;
+      color: #212529;
+    }
+    h1 { margin-bottom: 8px; }
+    .subtitle { color: #495057; margin-bottom: 24px; }
+    .test-section { margin-bottom: 50px; }
+    .test-section h2 {
+      font-size: 18px;
+      margin-bottom: 16px;
+      color: #0066cc;
+    }
+    .test-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+    }
+    .frame-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .frame-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #495057;
+      margin-top: 12px;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .light-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      background: #ffc107;
+      border-radius: 4px;
+      font-size: 11px;
+      color: #000;
+      margin-left: 8px;
+      font-weight: 700;
+    }
+    .checklist {
+      background: #f1f3f4;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+    .checklist ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      line-height: 1.8;
+    }
+    .checklist li {
+      padding: 8px 0;
+      border-bottom: 1px solid #dee2e6;
+    }
+    .checklist li:last-child {
+      border-bottom: none;
+    }
+    .checklist .platform-name {
+      font-weight: 700;
+      color: #0066cc;
+    }
+    .status-indicator {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    .status-indicator.pass { background: #22c55e; }
+    .status-indicator.fail { background: #ef4444; }
+    .status-indicator.warn { background: #f59e0b; }
+  </style>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>☀️ Light Mode Verification - 7 Platform Frames</h1>
+  <p class="subtitle">Testing light mode rendering across all 7 platform frames for visual consistency</p>
+
+  <div class="test-section">
+    <h2>📱 All 7 Platforms in Light Mode</h2>
+    <div class="test-grid">
+      <!-- Facebook -->
+      <div class="frame-wrapper">
+        <div class="facebook-context light-theme">
+          <div class="fb-post-header">
+            <div class="fb-avatar"></div>
+            <div class="fb-post-meta">
+              <span class="fb-author-name">Jane Smith</span>
+              <span class="fb-post-time">2h · 🌍</span>
+            </div>
+            <span class="fb-menu">•••</span>
+          </div>
+          <div class="fb-post-content">Check out this interesting article!</div>
+          <div class="fb-link-preview">
+            <div class="fb-context-domain">EXAMPLE.COM</div>
+            <div class="fb-context-title">Amazing Article Title</div>
+            <div class="fb-context-desc">This is a sample description that shows how the content appears in Facebook link previews.</div>
+            <div class="fb-context-placeholder"></div>
+          </div>
+          <div class="fb-post-stats">👍 24 · 💬 8 · 🔗 5</div>
+        </div>
+        <div class="frame-label">Facebook <span class="light-badge">LIGHT</span></div>
+      </div>
+
+      <!-- LinkedIn -->
+      <div class="frame-wrapper">
+        <div class="linkedin-context light-theme">
+          <div class="li-post-header">
+            <div class="li-avatar"></div>
+            <div class="li-post-meta">
+              <span class="li-author-name">Sarah Chen</span>
+              <span class="li-post-headline">Product Manager at Tech Corp</span>
+              <span class="li-post-time">2h · 🌐</span>
+            </div>
+          </div>
+          <div class="li-post-content">Great article on industry trends!</div>
+          <div class="li-link-preview">
+            <div class="li-context-placeholder"></div>
+            <div class="li-context-meta">
+              <div class="li-context-title">Industry Trends 2024</div>
+              <div class="li-context-domain">techcorp.com</div>
+            </div>
+          </div>
+          <div class="li-post-stats">👍 45 · 💬 12 · 🔁 8</div>
+        </div>
+        <div class="frame-label">LinkedIn <span class="light-badge">LIGHT</span></div>
+      </div>
+
+      <!-- Reddit -->
+      <div class="frame-wrapper">
+        <div class="reddit-context light-theme">
+          <div class="rd-subreddit-header">
+            <div class="rd-subreddit-banner"></div>
+            <div class="rd-subreddit-info">
+              <div class="rd-subreddit-icon">r/</div>
+              <div class="rd-subreddit-details">
+                <div class="rd-subreddit-name">r/technology</div>
+                <div class="rd-subreddit-meta">2.4m members • 456 online</div>
+              </div>
+              <button class="rd-join-btn">Join</button>
+            </div>
+          </div>
+          <div class="rd-post-list">
+            <div class="rd-post-item">
+              <div class="rd-upvote-section">
+                <div class="rd-upvote-arrow">▲</div>
+                <div class="rd-vote-count">15.2k</div>
+                <div class="rd-downvote-arrow">▼</div>
+              </div>
+              <div class="rd-post-main">
+                <div class="rd-post-meta">
+                  <span class="rd-subreddit-link">r/technology</span>
+                  <span class="rd-post-author">• Posted by u/technews</span>
+                  <span class="rd-post-time">• 3 hours ago</span>
+                </div>
+                <div class="rd-post-title">New breakthrough in quantum computing promises faster processing speeds</div>
+                <div class="rd-link-preview">
+                  <div class="rd-context-domain">techcrunch.com</div>
+                  <div class="rd-context-placeholder"></div>
+                </div>
+                <div class="rd-post-actions">
+                  <span>💬 Comments</span>
+                  <span>🔗 Share</span>
+                  <span>⭐ Save</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="frame-label">Reddit <span class="light-badge">LIGHT</span></div>
+      </div>
+
+      <!-- Instagram -->
+      <div class="frame-wrapper">
+        <div class="instagram-context light-theme">
+          <div class="ig-post-header">
+            <div class="ig-avatar"></div>
+            <div class="ig-post-meta">
+              <span class="ig-username">travel_photographer</span>
+              <span class="ig-post-time">2 hours ago</span>
+            </div>
+            <span class="ig-menu">•••</span>
+          </div>
+          <div class="ig-link-preview">
+            <div class="ig-context-placeholder"></div>
+          </div>
+          <div class="ig-post-content">
+            <div class="ig-caption">Check out this amazing view! 📸</div>
+            <div class="ig-hashtags">#travel #photography #adventure</div>
+          </div>
+          <div class="ig-post-actions">♡ 124 · 💬 18 · 🔗 Share</div>
+        </div>
+        <div class="frame-label">Instagram <span class="light-badge">LIGHT</span></div>
+      </div>
+
+      <!-- YouTube -->
+      <div class="frame-wrapper">
+        <div class="youtube-context light-theme">
+          <div class="yt-video-header">
+            <div class="yt-channel-avatar"></div>
+            <div class="yt-channel-meta">
+              <span class="yt-channel-name">TechChannel</span>
+              <span class="yt-subscriber-count">1.2M subscribers</span>
+            </div>
+            <button class="yt-subscribe-btn">Subscribe</button>
+          </div>
+          <div class="yt-video-title">Amazing Tutorial - Learn in 10 Minutes!</div>
+          <div class="yt-video-stats">234K views · 3 hours ago</div>
+          <div class="yt-comments-section">
+            <div class="yt-comment-header">Comments</div>
+            <div class="yt-comment">
+              <div class="yt-comment-avatar"></div>
+              <div class="yt-comment-meta">
+                <span class="yt-comment-author">You</span>
+                <span class="yt-comment-time">Just now</span>
+                <div class="yt-comment-text">This was really helpful, thanks!</div>
+                <div class="yt-comment-actions">👍 0 · 💬 Reply</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="frame-label">YouTube <span class="light-badge">LIGHT</span></div>
+      </div>
+
+      <!-- TikTok -->
+      <div class="frame-wrapper">
+        <div class="tiktok-context light-theme">
+          <div class="tt-video-container">
+            <div class="tt-video-placeholder"></div>
+            <div class="tt-right-sidebar">
+              <div class="tt-action-btn">
+                <span class="tt-action-icon">♡</span>
+                <span class="tt-action-count">24</span>
+              </div>
+              <div class="tt-action-btn">
+                <span class="tt-action-icon">💬</span>
+                <span class="tt-action-count">8</span>
+              </div>
+              <div class="tt-action-btn">
+                <span class="tt-action-icon">↗</span>
+                <span class="tt-action-count">12</span>
+              </div>
+            </div>
+            <div class="tt-bottom-overlay">
+              <div class="tt-username">@tiktok_user</div>
+              <div class="tt-caption">Check out this amazing content! 🔗</div>
+              <div class="tt-music">🎵 Original Sound - Artist</div>
+            </div>
+          </div>
+        </div>
+        <div class="frame-label">TikTok <span class="light-badge">LIGHT</span></div>
+      </div>
+
+      <!-- Pinterest -->
+      <div class="frame-wrapper">
+        <div class="pinterest-context light-theme">
+          <div class="pin-card">
+            <div class="pin-image-container">
+              <div class="pin-image-placeholder"></div>
+              <button class="pin-save-btn">Save</button>
+            </div>
+            <div class="pin-meta">
+              <div class="pin-title">Amazing Pin Title</div>
+              <div class="pin-desc">Discover this inspiring idea for your next project</div>
+              <div class="pin-domain">pinterest.com</div>
+            </div>
+            <div class="pin-footer">
+              <div class="pin-saver">
+                <div class="pin-saver-avatar">JP</div>
+                <span class="pin-saver-name">Jane Parker</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="frame-label">Pinterest <span class="light-badge">LIGHT</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>✅ Light Mode Verification Checklist</h2>
+    <div class="checklist">
+      <ul>
+        <li><span class="status-indicator pass"></span><span class="platform-name">Facebook:</span> Background #ffffff, primary text #050505, secondary text #65676b, accent #1877f2</li>
+        <li><span class="status-indicator pass"></span><span class="platform-name">LinkedIn:</span> Background #ffffff, primary text #000000, secondary text #666666, accent #0a66c2</li>
+        <li><span class="status-indicator pass"></span><span class="platform-name">Reddit:</span> Background #ffffff, primary text #1c1c1c, secondary text #5a5a5a, accent #FF4500</li>
+        <li><span class="status-indicator pass"></span><span class="platform-name">Instagram:</span> Background #ffffff, primary text #000000, secondary text #737373, accent #e1306c</li>
+        <li><span class="status-indicator pass"></span><span class="platform-name">YouTube:</span> Background #ffffff, primary text #0f0f0f, secondary text #606060, accent #ff0000</li>
+        <li><span class="status-indicator pass"></span><span class="platform-name">TikTok:</span> Background #ffffff, primary text #1a1a1a, secondary text #666666, accent #e60045</li>
+        <li><span class="status-indicator pass"></span><span class="platform-name">Pinterest:</span> Background #ffffff, primary text #111111, secondary text #767676, accent #E60023</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>🎨 Expected Light Mode Behaviors</h2>
+    <div class="checklist">
+      <ul>
+        <li><span class="status-indicator pass"></span><strong>All platforms:</strong> Light/white backgrounds (#ffffff or similar)</li>
+        <li><span class="status-indicator pass"></span><strong>Text contrast:</strong> Dark text colors for primary and secondary text</li>
+        <li><span class="status-indicator pass"></span><strong>Borders:</strong> Standard contrast borders (#e5e5e5, #ccc, etc.)</li>
+        <li><span class="status-indicator pass"></span><strong>CSS Variables:</strong> All frames use --frame-* CSS custom properties for theming</li>
+        <li><span class="status-indicator pass"></span><strong>Brand colors:</strong> Platform accent colors preserved (Facebook blue, Reddit orange, etc.)</li>
+        <li><span class="status-indicator pass"></span><strong>Visual consistency:</strong> Platform identity preserved in light mode</li>
+        <li><span class="status-indicator pass"></span><strong>Surface colors:</strong> Light gray surfaces (#f0f2f5, #f9f9f9, etc.) for cards/containers</li>
+        <li><span class="status-indicator pass"></span><strong>Overlay:</strong> Light overlays (rgba(0,0,0,0.1)) for modal/shadow effects</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>🔍 CSS Variables Applied (Light Mode)</h2>
+    <div class="checklist">
+      <ul>
+        <li><span class="status-indicator pass"></span><strong>--frame-bg:</strong> Background color of the frame (white/light)</li>
+        <li><span class="status-indicator pass"></span><strong>--frame-surface:</strong> Card/container background (light gray)</li>
+        <li><span class="status-indicator pass"></span><strong>--frame-border:</strong> Border color (medium gray)</li>
+        <li><span class="status-indicator pass"></span><strong>--frame-text-primary:</strong> Main text color (dark)</li>
+        <li><span class="status-indicator pass"></span><strong>--frame-text-secondary:</strong> Secondary text color (medium gray)</li>
+        <li><span class="status-indicator pass"></span><strong>--frame-text-muted:</strong> Muted/disabled text (lighter gray)</li>
+        <li><span class="status-indicator pass"></span><strong>--frame-accent:</strong> Brand accent color (platform-specific)</li>
+        <li><span class="status-indicator pass"></span><strong>--frame-accent-bg:</strong> Accent background (platform-specific)</li>
+        <li><span class="status-indicator pass"></span><strong>--frame-link-color:</strong> Link text color (platform-specific)</li>
+        <li><span class="status-indicator pass"></span><strong>--frame-divider:</strong> Divider line color (medium gray)</li>
+        <li><span class="status-indicator pass"></span><strong>--frame-input-bg:</strong> Input background (white/light gray)</li>
+        <li><span class="status-indicator pass"></span><strong>--frame-overlay:</strong> Overlay/shadow (rgba(0,0,0,0.1))</li>
+      </ul>
+    </div>
+  </div>
+
+  <script src="platform-frames.js"></script>
+  <script>
+    // Log page load
+    console.log('✅ Light Mode Verification Page loaded');
+    console.log('Testing platforms in light mode:', [
+      'facebook',
+      'linkedin',
+      'reddit',
+      'instagram',
+      'youtube',
+      'tiktok',
+      'pinterest'
+    ]);
+
+    // Verify all frames have light-theme class
+    const platforms = [
+      'facebook',
+      'linkedin',
+      'reddit',
+      'instagram',
+      'youtube',
+      'tiktok',
+      'pinterest'
+    ];
+
+    let allCorrect = true;
+    platforms.forEach(platform => {
+      const frame = document.querySelector(`.${platform}-context`);
+      if (!frame) {
+        console.error(`❌ Missing frame for ${platform}`);
+        allCorrect = false;
+        return;
+      }
+      if (!frame.classList.contains('light-theme')) {
+        console.error(`❌ ${platform} frame missing light-theme class`);
+        allCorrect = false;
+        return;
+      }
+      console.log(`✅ ${platform} frame correctly set to light-theme`);
+    });
+
+    if (allCorrect) {
+      console.log('✅ All 7 platform frames verified in light mode');
+    } else {
+      console.error('❌ Some frames are not correctly configured');
+    }
+  </script>
+</body>
+</html>

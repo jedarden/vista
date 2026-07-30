@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Signal Context Frame</title>
+  <link rel="stylesheet" href="src/public/messaging-base.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+      background: #1c1c1e;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .signal-context {
+      width: 100%;
+      max-width: 375px;
+      background: #1c1c1e;
+      border-radius: 0;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Signal Header */
+    .sg-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: #1c1c1e;
+      border-bottom: 1px solid #2c2c2e;
+    }
+
+    .sg-header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sg-back-btn {
+      color: #0a84ff;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .sg-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+      color: #ffffff;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #3a76f0, #2559c3);
+    }
+
+    .sg-contact-info {
+      flex: 1;
+    }
+
+    .sg-contact-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    .sg-contact-status {
+      font-size: 12px;
+      color: #8e8e93;
+      margin-top: 2px;
+    }
+
+    .sg-header-icons {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .sg-icon {
+      color: #0a84ff;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    /* Signal Chat Container */
+    .sg-chat-container {
+      padding: 16px;
+      min-height: 450px;
+      background: #000000;
+    }
+
+    /* Date separator */
+    .sg-date-separator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 16px 0;
+    }
+
+    .sg-date-separator-text {
+      font-size: 12px;
+      color: #8e8e93;
+      background: #1c1c1e;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-weight: 500;
+    }
+
+    /* Encryption notice */
+    .sg-encryption-notice {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      margin: 12px 0;
+    }
+
+    .sg-lock-icon {
+      font-size: 10px;
+      color: #8e8e93;
+    }
+
+    .sg-encryption-text {
+      font-size: 10px;
+      color: #8e8e93;
+      font-weight: 500;
+    }
+
+    /* Message container */
+    .sg-message-row {
+      display: flex;
+      margin-bottom: 4px;
+    }
+
+    .sg-message-row.received {
+      justify-content: flex-start;
+    }
+
+    .sg-message-row.sent {
+      justify-content: flex-end;
+    }
+
+    .sg-message-row .sg-message-content {
+      display: flex;
+      max-width: 75%;
+      flex-direction: column;
+    }
+
+    .sg-message-row.received .sg-message-content {
+      align-items: flex-start;
+    }
+
+    .sg-message-row.sent .sg-message-content {
+      align-items: flex-end;
+    }
+
+    /* Avatar styles */
+    .sg-avatar-small {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 600;
+      color: #ffffff;
+      flex-shrink: 0;
+      margin-right: 6px;
+      margin-top: 8px;
+    }
+
+    /* Message with avatar container */
+    .sg-message-with-avatar {
+      display: flex;
+      align-items: flex-end;
+    }
+
+    /* Message bubbles - Signal styling */
+    .sg-bubble {
+      padding: 8px 12px;
+      border-radius: 18px;
+      position: relative;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      font-size: 15px;
+      line-height: 1.4;
+    }
+
+    .sg-message-row.received .sg-bubble {
+      background: #2c2c2e;
+      color: #ffffff;
+      border-bottom-left-radius: 4px;
+    }
+
+    .sg-message-row.sent .sg-bubble {
+      background: #3a76f0;
+      color: #ffffff;
+      border-bottom-right-radius: 4px;
+    }
+
+    /* Encryption lock icon on every message */
+    .sg-message-lock {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .sg-message-row.received .sg-message-lock {
+      left: 8px;
+      right: auto;
+    }
+
+    /* Message metadata footer */
+    .sg-message-footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    .sg-timestamp {
+      font-size: 11px;
+      color: #8e8e93;
+      white-space: nowrap;
+    }
+
+    /* Delivery status indicators */
+    .sg-status-icons {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      font-size: 12px;
+      color: #8e8e93;
+    }
+
+    .sg-sent::before {
+      content: '●';
+      font-size: 8px;
+    }
+
+    .sg-delivered::before {
+      content: '●●';
+      font-size: 8px;
+    }
+
+    .sg-read::before {
+      content: '●●';
+      font-size: 8px;
+      color: #3a76f0;
+    }
+
+    /* Reaction emojis */
+    .sg-reactions {
+      display: flex;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    .sg-reaction {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      background: #3a3a3f;
+      border-radius: 10px;
+      font-size: 12px;
+    }
+
+    .sg-message-row.sent .sg-reaction {
+      background: #2c4a7a;
+    }
+
+    /* Quote/reply preview */
+    .sg-quote-preview {
+      display: flex;
+      align-items: flex-start;
+      padding: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      border-left: 3px solid #0a84ff;
+    }
+
+    .sg-message-row.sent .sg-quote-preview {
+      background: rgba(0, 0, 0, 0.2);
+      border-left-color: #ffffff;
+    }
+
+    .sg-quote-avatar {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 7px;
+      font-weight: 600;
+      color: #ffffff;
+      margin-right: 6px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .sg-quote-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .sg-quote-name {
+      font-size: 11px;
+      font-weight: 600;
+      color: #0a84ff;
+      margin-bottom: 2px;
+    }
+
+    .sg-message-row.sent .sg-quote-name {
+      color: #ffffff;
+    }
+
+    .sg-quote-text {
+      font-size: 12px;
+      color: #8e8e93;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Input area */
+    .sg-input-area {
+      display: flex;
+      align-items: center;
+      padding: 8px 16px;
+      background: #1c1c1e;
+      gap: 8px;
+    }
+
+    .sg-input-btn {
+      color: #8e8e93;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .sg-input-field {
+      flex: 1;
+      background: #2c2c2e;
+      border: none;
+      border-radius: 20px;
+      padding: 8px 16px;
+      color: #ffffff;
+      font-size: 15px;
+      outline: none;
+    }
+
+    .sg-input-field::placeholder {
+      color: #8e8e93;
+    }
+
+    .sg-send-btn {
+      color: #0a84ff;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    /* Light theme overrides */
+    [data-theme="light"] body {
+      background: #f5f5f7;
+    }
+
+    [data-theme="light"] .signal-context {
+      background: #ffffff;
+    }
+
+    [data-theme="light"] .sg-header {
+      background: #ffffff;
+      border-bottom-color: #e5e5ea;
+    }
+
+    [data-theme="light"] .sg-contact-name {
+      color: #000000;
+    }
+
+    [data-theme="light"] .sg-contact-status {
+      color: #8e8e93;
+    }
+
+    [data-theme="light"] .sg-chat-container {
+      background: #f5f5f7;
+    }
+
+    [data-theme="light"] .sg-date-separator-text {
+      background: #ffffff;
+      color: #8e8e93;
+    }
+
+    [data-theme="light"] .sg-message-row.received .sg-bubble {
+      background: #ffffff;
+      color: #000000;
+    }
+
+    [data-theme="light"] .sg-message-row.sent .sg-bubble {
+      background: #3a76f0;
+      color: #ffffff;
+    }
+
+    [data-theme="light"] .sg-timestamp {
+      color: #8e8e93;
+    }
+
+    [data-theme="light"] .sg-input-area {
+      background: #ffffff;
+    }
+
+    [data-theme="light"] .sg-input-field {
+      background: #f0f0f0;
+      color: #000000;
+    }
+
+    [data-theme="light"] .sg-input-field::placeholder {
+      color: #aeaeb2;
+    }
+
+    [data-theme="light"] .sg-input-btn {
+      color: #8e8e93;
+    }
+  </style>
+</head>
+<body>
+  <div class="signal-context">
+    <!-- Header -->
+    <div class="sg-header">
+      <div class="sg-header-left">
+        <span class="sg-back-btn">‹</span>
+        <div class="sg-avatar">JD</div>
+        <div class="sg-contact-info">
+          <div class="sg-contact-name">Jane Doe</div>
+          <div class="sg-contact-status">Online</div>
+        </div>
+      </div>
+      <div class="sg-header-icons">
+        <span class="sg-icon">📹</span>
+        <span class="sg-icon">⋮</span>
+      </div>
+    </div>
+
+    <!-- Chat Container -->
+    <div class="sg-chat-container">
+      <!-- Date separator -->
+      <div class="sg-date-separator">
+        <span class="sg-date-separator-text">Today</span>
+      </div>
+
+      <!-- Encryption notice -->
+      <div class="sg-encryption-notice">
+        <span class="sg-lock-icon">🔒</span>
+        <span class="sg-encryption-text">End-to-end encrypted</span>
+      </div>
+
+      <!-- Received message with avatar -->
+      <div class="sg-message-row received">
+        <div class="sg-message-content">
+          <div class="sg-message-with-avatar">
+            <div class="sg-avatar-small" style="background: linear-gradient(135deg, #ff6b6b, #ee5a6f);">JD</div>
+            <div class="sg-bubble">
+              <span class="sg-message-lock">🔒</span>
+              Hey! Check out this interesting article I found about web development trends. It covers some really useful topics!
+              <div class="sg-message-footer">
+                <span class="sg-timestamp">10:30 AM</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sent message - sent status -->
+      <div class="sg-message-row sent">
+        <div class="sg-message-content">
+          <div class="sg-bubble">
+            <span class="sg-message-lock">🔒</span>
+            Thanks for sharing! I'll definitely read through it this afternoon.
+            <div class="sg-message-footer">
+              <span class="sg-timestamp">10:32 AM</span>
+              <span class="sg-status-icons sg-sent"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sent message - delivered status -->
+      <div class="sg-message-row sent">
+        <div class="sg-message-content">
+          <div class="sg-bubble">
+            <span class="sg-message-lock">🔒</span>
+            The section about modern CSS techniques was particularly helpful.
+            <div class="sg-message-footer">
+              <span class="sg-timestamp">10:33 AM</span>
+              <span class="sg-status-icons sg-delivered"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Received message with quote preview -->
+      <div class="sg-message-row received">
+        <div class="sg-message-content">
+          <div class="sg-message-with-avatar">
+            <div class="sg-avatar-small" style="background: linear-gradient(135deg, #ff6b6b, #ee5a6f);">JD</div>
+            <div>
+              <div class="sg-quote-preview">
+                <div class="sg-quote-avatar" style="background: #3a76f0;">Me</div>
+                <div class="sg-quote-content">
+                  <div class="sg-quote-name">You</div>
+                  <div class="sg-quote-text">The section about modern CSS techniques was particularly helpful.</div>
+                </div>
+              </div>
+              <div class="sg-bubble">
+                <span class="sg-message-lock">🔒</span>
+                Speaking of CSS, here's a great resource I've been using for Grid layouts!
+                <div class="sg-message-footer">
+                  <span class="sg-timestamp">10:35 AM</span>
+                </div>
+                <div class="sg-reactions">
+                  <span class="sg-reaction">👍</span>
+                  <span class="sg-reaction">❤️</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sent message with reactions - read status -->
+      <div class="sg-message-row sent">
+        <div class="sg-message-content">
+          <div class="sg-bubble">
+            <span class="sg-message-lock">🔒</span>
+            Perfect! This is exactly what I needed. Thanks for the recommendation! 🎉
+            <div class="sg-message-footer">
+              <span class="sg-timestamp">10:37 AM</span>
+              <span class="sg-status-icons sg-read"></span>
+            </div>
+            <div class="sg-reactions">
+              <span class="sg-reaction">🎉</span>
+              <span class="sg-reaction">💪</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Received message -->
+      <div class="sg-message-row received">
+        <div class="sg-message-content">
+          <div class="sg-message-with-avatar">
+            <div class="sg-avatar-small" style="background: linear-gradient(135deg, #ff6b6b, #ee5a6f);">JD</div>
+            <div class="sg-bubble">
+              <span class="sg-message-lock">🔒</span>
+              You're welcome! Happy coding! 💻
+              <div class="sg-message-footer">
+                <span class="sg-timestamp">10:38 AM</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input Area -->
+    <div class="sg-input-area">
+      <span class="sg-input-btn">➕</span>
+      <input type="text" class="sg-input-field" placeholder="Signal message">
+      <span class="sg-input-btn">😊</span>
+      <span class="sg-send-btn">➤</span>
+    </div>
+  </div>
+
+  <script>
+    // Theme toggle for testing
+    let currentTheme = 'dark';
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 't' || e.key === 'T') {
+        currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        console.log(`Theme switched to ${currentTheme} mode`);
+      }
+    });
+    console.log('Signal frame loaded. Press T to toggle theme.');
+  </script>
+</body>
+</html>

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitLab - Dark Mode Frame</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1f1e24;
+      color: #ebebeb;
+    }
+
+    .gitlab-context {
+      display: flex;
+      flex-direction: column;
+      min-height: 400px;
+      background: #1f1e24;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .gl-mr-header {
+      padding: 20px 24px;
+      background: #1f1e24;
+      border-bottom: 1px solid #3f3d44;
+    }
+
+    .gl-mr-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .gl-mr-number {
+      font-size: 13px;
+      font-weight: 600;
+      color: #a3a3a3;
+    }
+
+    .gl-mr-status {
+      padding: 4px 12px;
+      background: #7b5cfd;
+      color: #ffffff;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .gl-mr-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #ebebeb;
+      margin-bottom: 12px;
+    }
+
+    .gl-mr-author {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .gl-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #7b5cfd 0%, #5b3dfc 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .gl-author-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: #ebebeb;
+    }
+
+    .gl-mr-time {
+      font-size: 13px;
+      color: #a3a3a3;
+      margin-left: 8px;
+    }
+
+    .gl-discussion-list {
+      flex: 1;
+      padding: 20px 24px;
+      overflow-y: auto;
+    }
+
+    .gl-comment {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .gl-comment-dim {
+      opacity: 0.6;
+    }
+
+    .gl-comment-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #fc6d26 0%, #e6512a 100%);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .gl-comment-content {
+      flex: 1;
+    }
+
+    .gl-comment-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .gl-comment-author {
+      font-size: 14px;
+      font-weight: 600;
+      color: #ebebeb;
+    }
+
+    .gl-comment-time {
+      font-size: 12px;
+      color: #a3a3a3;
+    }
+
+    .gl-comment-body {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #ebebeb;
+      background: #292730;
+      border: 1px solid #3f3d44;
+      border-radius: 6px;
+      padding: 12px 16px;
+    }
+
+    .gl-comment-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 8px;
+    }
+
+    .gl-reaction-btn {
+      font-size: 12px;
+      color: #a3a3a3;
+      background: #292730;
+      border: 1px solid #3f3d44;
+      border-radius: 20px;
+      padding: 4px 12px;
+      cursor: pointer;
+    }
+
+    .gl-reply-btn {
+      font-size: 12px;
+      color: #7b5cfd;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="gitlab-context">
+    <div class="gl-mr-header">
+      <div class="gl-mr-meta">
+        <span class="gl-mr-number">!189</span>
+        <span class="gl-mr-status">Open</span>
+      </div>
+      <div class="gl-mr-title">Merge request: Implement new authentication flow</div>
+      <div class="gl-mr-author">
+        <div class="gl-avatar">AS</div>
+        <span class="gl-author-name">alice_smith</span>
+        <span class="gl-mr-time">opened 4 hours ago</span>
+      </div>
+    </div>
+
+    <div class="gl-discussion-list">
+      <div class="gl-comment gl-comment-dim">
+        <div class="gl-comment-avatar">RJ</div>
+        <div class="gl-comment-content">
+          <div class="gl-comment-meta">
+            <span class="gl-comment-author">reviewer_jane</span>
+            <span class="gl-comment-time">2 hours ago</span>
+          </div>
+          <div class="gl-comment-body">LGTM! The implementation looks solid. Ready to merge once CI passes. 🎉</div>
+        </div>
+      </div>
+
+      <div class="gl-comment gl-comment-dim">
+        <div class="gl-comment-avatar">TM</div>
+        <div class="gl-comment-content">
+          <div class="gl-comment-meta">
+            <span class="gl-comment-author">techlead</span>
+            <span class="gl-comment-time">1 hour ago</span>
+          </div>
+          <div class="gl-comment-body">Great work on this! The code is clean and well-documented.</div>
+        </div>
+      </div>
+
+      <div class="gl-comment">
+        <div class="gl-comment-avatar">Y</div>
+        <div class="gl-comment-content">
+          <div class="gl-comment-meta">
+            <span class="gl-comment-author">You</span>
+            <span class="gl-comment-time">Just now</span>
+          </div>
+          <div class="gl-comment-body">Thanks everyone for the review! I've addressed the feedback in the latest commit.</div>
+          <div class="gl-comment-actions">
+            <span class="gl-reaction-btn">👍 0</span>
+            <span class="gl-reply-btn">Reply</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

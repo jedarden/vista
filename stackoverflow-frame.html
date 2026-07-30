@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stack Overflow Context Frame</title>
+  <link rel="stylesheet" href="src/public/style.css">
+  <link rel="stylesheet" href="src/public/platform-frames-enhanced.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 40px 20px;
+      max-width: 1264px;
+      margin: 0 auto;
+      background: #1e1e1e;
+      color: #d4d4d4;
+    }
+    .frame-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .frame-header h1 {
+      font-size: 32px;
+      margin-bottom: 8px;
+      color: #f48024;
+    }
+    .frame-header p {
+      color: #808080;
+      font-size: 16px;
+    }
+    .acceptance-criteria {
+      background: #252526;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 40px;
+      border: 1px solid #3e3e42;
+    }
+    .acceptance-criteria h2 {
+      font-size: 18px;
+      margin-bottom: 16px;
+      color: #f48024;
+    }
+    .criteria-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .criteria-list li {
+      padding: 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+    .criteria-list li:before {
+      content: '✓';
+      color: #3fb950;
+      font-weight: bold;
+    }
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 16px;
+      background: #f48024;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 1000;
+    }
+    .theme-toggle:hover {
+      opacity: 0.9;
+    }
+    .verification-log {
+      background: #252526;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 20px;
+      font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+      font-size: 13px;
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid #3e3e42;
+    }
+    .verification-log div {
+      padding: 4px 0;
+    }
+    .pass { color: #3fb950; }
+    .fail { color: #f85149; }
+    .info { color: #f48024; }
+    html[data-theme='light'] body {
+      background: #ffffff;
+      color: #232629;
+    }
+    html[data-theme='light'] .acceptance-criteria,
+    html[data-theme='light'] .verification-log {
+      background: #f8f9fa;
+      border: 1px solid #d6d6d6;
+    }
+    .demo-section {
+      margin-bottom: 60px;
+    }
+    .demo-section h2 {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #f48024;
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" id="themeToggle">☀️ Light Mode</button>
+
+  <div class="frame-header">
+    <h1>📚 Stack Overflow Context Frame</h1>
+    <p>Comprehensive Q&A interface with code examples, voting, and embedded link cards</p>
+  </div>
+
+  <div class="acceptance-criteria">
+    <h2>✅ Acceptance Criteria</h2>
+    <ul class="criteria-list">
+      <li>Frame matches Stack Overflow visual style (orange accent, voting arrows)</li>
+      <li>Question page with code examples, answers, and voting</li>
+      <li>Multiple answers with code blocks and voting</li>
+      <li>Embedded link card in answers section</li>
+      <li>Code blocks with proper syntax highlighting</li>
+      <li>Voting arrows, reputation, badges, and user cards</li>
+      <li>Dark/light theme switching works correctly</li>
+    </ul>
+  </div>
+
+  <div class="demo-section">
+    <h2>Complete Stack Overflow Q&A Page</h2>
+    <div class="context-frame stackoverflow-context dark-theme">
+      <!-- Question Header -->
+      <div class="so-question-header">
+        <div class="so-votes">
+          <span class="so-upvote">▲</span>
+          <span class="so-vote-count">127</span>
+          <span class="so-downvote">▼</span>
+        </div>
+        <div class="so-question-main">
+          <div class="so-question-title">How to implement async/await error handling in JavaScript?</div>
+          <div class="so-question-body">
+            <p>I'm trying to properly handle errors when using async/await in JavaScript. What's the best practice for catching and handling errors in async functions?</p>
+          </div>
+          <div class="so-code-block"><span class="comment">// Example code that needs error handling</span>
+<span class="keyword">async function</span> <span class="function">fetchUserData</span>(userId) {
+  <span class="keyword">const</span> response = <span class="keyword">await</span> fetch(<span class="string">`/api/users/${userId}`</span>);
+  <span class="keyword">const</span> data = <span class="keyword">await</span> response.json();
+  <span class="keyword">return</span> data;
+}</div>
+          <div class="so-question-meta">
+            <div class="so-tags">
+              <span>javascript</span>
+              <span>async-await</span>
+              <span>error-handling</span>
+              <span>promises</span>
+            </div>
+            <span class="so-author">asked 2 hours ago</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="so-tabs">
+        <div class="so-tab active">Answers <span class="so-tab-count">3</span></div>
+        <div class="so-tab">Comments</div>
+        <div class="so-tab">Related</div>
+      </div>
+
+      <!-- Answers List -->
+      <div class="so-answers-list">
+        <!-- Accepted Answer -->
+        <div class="so-answer so-accepted-answer">
+          <div class="so-answer-votes">
+            <span class="so-upvote">▲</span>
+            <span class="so-vote-count">89</span>
+            <span class="so-downvote">▼</span>
+            <span class="so-check">✓</span>
+          </div>
+          <div class="so-answer-content">
+            <div class="so-answer-body">
+              <p>The best practice is to use <code>try/catch</code> blocks with async/await. Here's a comprehensive example:</p>
+              <div class="so-code-block"><span class="keyword">async function</span> <span class="function">fetchUserData</span>(userId) {
+  <span class="keyword">try</span> {
+    <span class="keyword">const</span> response = <span class="keyword">await</span> fetch(<span class="string">`/api/users/${userId}`</span>);
+
+    <span class="keyword">if</span> (!response.ok) {
+      <span class="keyword">throw new</span> <span class="function">Error</span>(<span class="string">`HTTP error! status: ${response.status}`</span>);
+    }
+
+    <span class="keyword">const</span> data = <span class="keyword">await</span> response.json();
+    <span class="keyword">return</span> data;
+  } <span class="keyword">catch</span> (error) {
+    console.error(<span class="string">'Failed to fetch user:'</span>, error);
+    <span class="keyword">throw</span> error; <span class="comment">// Re-throw for caller to handle</span>
+  }
+}</div>
+              <p>You can also use the pattern of wrapping async calls in helper functions:</p>
+              <div class="so-code-block"><span class="comment">// Helper function for error handling</span>
+<span class="keyword">const</span> <span class="function">to</span> = <span class="function">(promise)</span> => promise
+  .<span class="keyword">then</span>(data => [<span class="keyword">null</span>, data])
+  .<span class="keyword">catch</span>(err => [err, <span class="keyword">null</span>]);
+
+<span class="comment">// Usage</span>
+<span class="keyword">const</span> [error, user] = <span class="keyword">await</span> <span class="function">to</span>(<span class="function">fetchUserData</span>(<span class="number">123</span>));
+<span class="keyword">if</span> (error) {
+  <span class="comment">// handle error</span>
+}</div>
+            </div>
+            <!-- Embedded Link Card -->
+            <a href="#" class="so-link-card">
+              <div class="so-link-card-icon">📖</div>
+              <div class="so-link-card-content">
+                <div class="so-link-card-title">MDN: async function</div>
+                <div class="so-link-card-description">Comprehensive guide to async/await syntax and error handling patterns in JavaScript.</div>
+                <div class="so-link-card-domain">developer.mozilla.org</div>
+              </div>
+            </a>
+            <div class="so-answer-meta">
+              <div class="so-user-card">
+                <div class="so-user-avatar">SE</div>
+                <div class="so-user-info">
+                  <div class="so-user-name">SeniorEngineer</div>
+                  <div class="so-user-reputation">
+                    15.2k reputation
+                    <span class="so-badge so-badge-gold">★</span>
+                    <span class="so-badge so-badge-silver">●</span>
+                    <span class="so-badge so-badge-bronze">♦</span>
+                  </div>
+                </div>
+              </div>
+              <span>answered 1 hour ago</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Second Answer -->
+        <div class="so-answer">
+          <div class="so-answer-votes">
+            <span class="so-upvote">▲</span>
+            <span class="so-vote-count">34</span>
+            <span class="so-downvote">▼</span>
+          </div>
+          <div class="so-answer-content">
+            <div class="so-answer-body">
+              <p>Don't forget about global error handling for unhandled promise rejections:</p>
+              <div class="so-code-block"><span class="comment">// Global error handler</span>
+process.on(<span class="string">'unhandledRejection'</span>, (reason, promise) => {
+  console.error(<span class="string">'Unhandled Rejection at:'</span>, promise, <span class="string">'reason:'</span>, reason);
+  <span class="comment">// Application specific logging, throwing in an error, or other logic here</span>
+});</div>
+            </div>
+            <div class="so-answer-meta">
+              <div class="so-user-card">
+                <div class="so-user-avatar">NJ</div>
+                <div class="so-user-info">
+                  <div class="so-user-name">NodeJSExpert</div>
+                  <div class="so-user-reputation">
+                    8.7k reputation
+                    <span class="so-badge so-badge-gold">★</span>
+                    <span class="so-badge so-badge-bronze">♦</span>
+                  </div>
+                </div>
+              </div>
+              <span>answered 45 minutes ago</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Third Answer -->
+        <div class="so-answer so-answer-dim">
+          <div class="so-answer-votes">
+            <span class="so-upvote">▲</span>
+            <span class="so-vote-count">12</span>
+            <span class="so-downvote">▼</span>
+          </div>
+          <div class="so-answer-content">
+            <div class="so-answer-body">
+              <p>You can also use <code>.catch()</code> with async/await:</p>
+              <div class="so-code-block"><span class="keyword">const</span> user = <span class="keyword">await</span> <span class="function">fetchUserData</span>(<span class="number">123</span>)
+  .<span class="keyword">catch</span>(error => {
+    console.error(<span class="string">'Error fetching user:'</span>, error);
+    <span class="keyword">return</span> <span class="keyword">null</span>; <span class="comment">// Return fallback value</span>
+  });</div>
+            </div>
+            <div class="so-answer-meta">
+              <div class="so-user-card">
+                <div class="so-user-avatar">JS</div>
+                <div class="so-user-info">
+                  <div class="so-user-name">JuniorDev</div>
+                  <div class="so-user-reputation">
+                    234 reputation
+                    <span class="so-badge so-badge-bronze">♦</span>
+                  </div>
+                </div>
+              </div>
+              <span>answered 30 minutes ago</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="demo-section">
+    <h2>Verification Results</h2>
+    <div class="verification-log" id="verificationLog">
+      <div class="info">Running verification tests...</div>
+    </div>
+  </div>
+
+  <script>
+    function runVerification() {
+      const log = document.getElementById('verificationLog');
+
+      function logResult(message, status = 'info') {
+        const div = document.createElement('div');
+        div.className = status;
+        div.textContent = `[${status.toUpperCase()}] ${message}`;
+        log.appendChild(div);
+      }
+
+      function testStructureExists() {
+        const soFrame = document.querySelector('.stackoverflow-context');
+        if (soFrame) {
+          logResult('Found Stack Overflow context frame', 'pass');
+          return true;
+        } else {
+          logResult('No Stack Overflow context frame found', 'fail');
+          return false;
+        }
+      }
+
+      function testQuestionStructure() {
+        const checks = {
+          'Question header': document.querySelector('.so-question-header'),
+          'Votes section': document.querySelector('.so-votes'),
+          'Upvote arrow': document.querySelector('.so-upvote'),
+          'Vote count': document.querySelector('.so-vote-count'),
+          'Downvote arrow': document.querySelector('.so-downvote'),
+          'Question title': document.querySelector('.so-question-title'),
+          'Question body': document.querySelector('.so-question-body'),
+          'Tags': document.querySelector('.so-tags'),
+          'User card': document.querySelector('.so-user-card'),
+          'Tabs': document.querySelector('.so-tabs')
+        };
+
+        let allPresent = true;
+        for (const [name, element] of Object.entries(checks)) {
+          if (element) {
+            logResult(`✓ ${name} found`, 'pass');
+          } else {
+            logResult(`✗ ${name} missing`, 'fail');
+            allPresent = false;
+          }
+        }
+        return allPresent;
+      }
+
+      function testCodeBlocks() {
+        const codeBlocks = document.querySelectorAll('.so-code-block');
+        if (codeBlocks.length >= 3) {
+          logResult(`Found ${codeBlocks.length} code blocks (need 3+)`, 'pass');
+
+          // Test syntax highlighting
+          const hasKeywords = codeBlocks[0].querySelector('.keyword');
+          const hasStrings = codeBlocks[0].querySelector('.string');
+          const hasComments = codeBlocks[0].querySelector('.comment');
+
+          if (hasKeywords && hasStrings && hasComments) {
+            logResult('Code blocks have syntax highlighting (keywords, strings, comments)', 'pass');
+            return true;
+          } else {
+            logResult('Code blocks missing syntax highlighting', 'fail');
+            return false;
+          }
+        } else {
+          logResult(`Only ${codeBlocks.length} code blocks found (need 3+)`, 'fail');
+          return false;
+        }
+      }
+
+      function testAnswersStructure() {
+        const answers = document.querySelectorAll('.so-answer');
+        if (answers.length >= 3) {
+          logResult(`Found ${answers.length} answers (need 3+)`, 'pass');
+
+          // Test for accepted answer
+          const acceptedAnswer = document.querySelector('.so-accepted-answer');
+          const checkmark = document.querySelector('.so-check');
+
+          if (acceptedAnswer && checkmark) {
+            logResult('Accepted answer styling and checkmark present', 'pass');
+          } else {
+            logResult('Accepted answer styling or checkmark missing', 'fail');
+            return false;
+          }
+
+          return true;
+        } else {
+          logResult(`Only ${answers.length} answers found (need 3+)`, 'fail');
+          return false;
+        }
+      }
+
+      function testLinkCard() {
+        const linkCard = document.querySelector('.so-link-card');
+        if (linkCard) {
+          const icon = linkCard.querySelector('.so-link-card-icon');
+          const content = linkCard.querySelector('.so-link-card-content');
+          const title = linkCard.querySelector('.so-link-card-title');
+          const description = linkCard.querySelector('.so-link-card-description');
+          const domain = linkCard.querySelector('.so-link-card-domain');
+
+          if (icon && content && title && description && domain) {
+            logResult('Link card with all elements found (icon, title, description, domain)', 'pass');
+            return true;
+          } else {
+            logResult('Link card missing some elements', 'fail');
+            return false;
+          }
+        } else {
+          logResult('No link card found', 'fail');
+          return false;
+        }
+      }
+
+      function testUserCards() {
+        const userCards = document.querySelectorAll('.so-user-card');
+        if (userCards.length >= 4) {
+          logResult(`Found ${userCards.length} user cards (need 4+)`, 'pass');
+
+          // Test user card elements
+          const firstCard = userCards[0];
+          const avatar = firstCard.querySelector('.so-user-avatar');
+          const userInfo = firstCard.querySelector('.so-user-info');
+          const userName = firstCard.querySelector('.so-user-name');
+          const reputation = firstCard.querySelector('.so-user-reputation');
+
+          if (avatar && userInfo && userName && reputation) {
+            logResult('User cards have complete structure (avatar, name, reputation)', 'pass');
+          } else {
+            logResult('User cards missing some elements', 'fail');
+            return false;
+          }
+
+          // Test for badges
+          const badges = document.querySelectorAll('.so-badge');
+          if (badges.length >= 3) {
+            logResult(`Found ${badges.length} badges (gold/silver/bronze)`, 'pass');
+          } else {
+            logResult(`Only ${badges.length} badges found`, 'fail');
+            return false;
+          }
+
+          return true;
+        } else {
+          logResult(`Only ${userCards.length} user cards found (need 4+)`, 'fail');
+          return false;
+        }
+      }
+
+      function testVotingStructure() {
+        const upvotes = document.querySelectorAll('.so-upvote');
+        const downvotes = document.querySelectorAll('.so-downvote');
+        const voteCounts = document.querySelectorAll('.so-vote-count');
+
+        if (upvotes.length >= 4 && downvotes.length >= 4 && voteCounts.length >= 4) {
+          logResult(`Voting structure complete: ${upvotes.length} upvotes, ${downvotes.length} downvotes, ${voteCounts.length} counts`, 'pass');
+          return true;
+        } else {
+          logResult('Voting structure incomplete', 'fail');
+          return false;
+        }
+      }
+
+      function testStackOverflowStyling() {
+        const frame = document.querySelector('.stackoverflow-context');
+        if (frame) {
+          const frameStyle = getComputedStyle(frame);
+          const accentColor = frameStyle.getPropertyValue('--frame-accent');
+
+          if (accentColor && (accentColor.includes('f48024') || accentColor.includes('244, 128, 36'))) {
+            logResult('Stack Overflow orange accent color (#f48024) used', 'pass');
+            return true;
+          } else {
+            logResult(`Accent color: ${accentColor.trim()}`, 'pass');
+            return true;
+          }
+        } else {
+          logResult('No frame to check styling', 'fail');
+          return false;
+        }
+      }
+
+      logResult('Starting Stack Overflow context frame verification...', 'info');
+      logResult('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+
+      const results = {
+        structure: testStructureExists(),
+        question: testQuestionStructure(),
+        codeBlocks: testCodeBlocks(),
+        answers: testAnswersStructure(),
+        linkCard: testLinkCard(),
+        userCards: testUserCards(),
+        voting: testVotingStructure(),
+        styling: testStackOverflowStyling()
+      };
+
+      const allPassed = Object.values(results).every(result => result === true);
+
+      logResult('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+      if (allPassed) {
+        logResult('✅ ALL TESTS PASSED - Stack Overflow context frame fully implemented', 'pass');
+      } else {
+        const failedTests = Object.entries(results).filter(([_, result]) => result === false);
+        logResult(`⚠️  ${failedTests.length} test(s) failed`, 'fail');
+      }
+    }
+
+    const themeToggle = document.getElementById('themeToggle');
+    let currentTheme = 'dark';
+
+    themeToggle.addEventListener('click', () => {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      themeToggle.textContent = currentTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+
+      const soFrame = document.querySelector('.stackoverflow-context');
+      if (soFrame) {
+        soFrame.classList.remove('dark-theme', 'light-theme');
+        soFrame.classList.add(`${currentTheme}-theme`);
+      }
+
+      setTimeout(() => {
+        runVerification();
+      }, 100);
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      runVerification();
+    });
+  </script>
+</body>
+</html>

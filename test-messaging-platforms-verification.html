@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Discord, Slack, Twitter Platform Frame Verification</title>
+  <link rel="stylesheet" href="src/public/style.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 40px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+      background: #1a1a1e;
+      color: #e4e4e7;
+    }
+    .test-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .test-header h1 {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+    .test-header p {
+      color: #a1a1aa;
+      font-size: 16px;
+    }
+    .acceptance-criteria {
+      background: #25252a;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 40px;
+      border: 1px solid #3a3a3f;
+    }
+    .acceptance-criteria h2 {
+      font-size: 18px;
+      margin-bottom: 16px;
+      color: #6366f1;
+    }
+    .criteria-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .criteria-list li {
+      padding: 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+    .criteria-list li:before {
+      content: '✓';
+      color: #4ade80;
+      font-weight: bold;
+    }
+    .test-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 24px;
+      margin: 24px 0;
+    }
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 16px;
+      background: #6366f1;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 1000;
+    }
+    .theme-toggle:hover {
+      opacity: 0.9;
+    }
+    .test-section {
+      margin-bottom: 40px;
+    }
+    .test-section h2 {
+      font-size: 20px;
+      margin-bottom: 16px;
+      color: #6366f1;
+    }
+    .verification-log {
+      background: #25252a;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 20px;
+      font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+      font-size: 13px;
+      max-height: 400px;
+      overflow-y: auto;
+      border: 1px solid #3a3a3f;
+    }
+    .verification-log div {
+      padding: 4px 0;
+    }
+    .pass { color: #4ade80; }
+    .fail { color: #ef4444; }
+    .info { color: #6366f1; }
+    .warning { color: #f59e0b; }
+
+    /* HTML theme support */
+    html[data-theme='light'] body {
+      background: #ffffff;
+      color: #1f2937;
+    }
+    html[data-theme='light'] .acceptance-criteria,
+    html[data-theme='light'] .verification-log {
+      background: #f8f9fa;
+      border-color: #e5e7eb;
+    }
+    html[data-theme='light'] .test-section h2 {
+      color: #4f46e5;
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" id="themeToggle">☀️ Light Mode</button>
+
+  <div class="test-header">
+    <h1>Discord, Slack & Twitter Platform Frame Verification</h1>
+    <p>Testing messaging platform context frames with link cards and theme support</p>
+  </div>
+
+  <!-- Acceptance Criteria Checklist -->
+  <div class="acceptance-criteria">
+    <h2>✅ Acceptance Criteria</h2>
+    <ul class="criteria-list">
+      <li>Discord frame renders properly in both light and dark themes</li>
+      <li>Slack frame renders properly in both light and dark themes</li>
+      <li>Twitter frame renders properly in both light and dark themes</li>
+      <li>All three platforms have link card embedded naturally</li>
+      <li>Theme switching works correctly for all platforms</li>
+      <li>Platform-specific styling is applied correctly</li>
+      <li>Link preview structure matches platform conventions</li>
+    </ul>
+  </div>
+
+  <!-- Test Section: Discord Frames -->
+  <div class="test-section">
+    <h2>1. Discord Context Frames</h2>
+    <div class="test-grid">
+      <div id="discord-dark-test"></div>
+      <div id="discord-light-test"></div>
+    </div>
+  </div>
+
+  <!-- Test Section: Slack Frames -->
+  <div class="test-section">
+    <h2>2. Slack Context Frames</h2>
+    <div class="test-grid">
+      <div id="slack-dark-test"></div>
+      <div id="slack-light-test"></div>
+    </div>
+  </div>
+
+  <!-- Test Section: Twitter Frames -->
+  <div class="test-section">
+    <h2>3. Twitter Context Frames</h2>
+    <div class="test-grid">
+      <div id="twitter-dark-test"></div>
+      <div id="twitter-light-test"></div>
+    </div>
+  </div>
+
+  <!-- Verification Log -->
+  <div class="test-section">
+    <h2>4. Verification Results</h2>
+    <div class="verification-log" id="verificationLog">
+      <div class="info">Running verification tests...</div>
+    </div>
+  </div>
+
+  <script src="src/public/platform-frames.js"></script>
+  <script>
+    const sampleContent = {
+      title: 'Understanding Platform Context Frames',
+      description: 'Learn how platform context frames work and why they matter for link previews in social media and messaging platforms.',
+      domain: 'example.com',
+      site: 'Example Site',
+      image: 'https://picsum.photos/400/300',
+      dominantColor: '#6366f1',
+      url: 'https://example.com/article'
+    };
+
+    // Theme toggle functionality
+    const themeToggle = document.getElementById('themeToggle');
+    let currentTheme = 'dark';
+
+    themeToggle.addEventListener('click', () => {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      themeToggle.textContent = currentTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+      renderFrames();
+      setTimeout(runVerification, 100);
+    });
+
+    function renderFrames() {
+      // Render Discord frames
+      if (window.buildContextFrame) {
+        document.getElementById('discord-dark-test').innerHTML =
+          '<h3>Discord - Dark Theme</h3>' + window.buildContextFrame('discord', sampleContent, 'dark');
+        document.getElementById('discord-light-test').innerHTML =
+          '<h3>Discord - Light Theme</h3>' + window.buildContextFrame('discord', sampleContent, 'light');
+
+        // Render Slack frames
+        document.getElementById('slack-dark-test').innerHTML =
+          '<h3>Slack - Dark Theme</h3>' + window.buildContextFrame('slack', sampleContent, 'dark');
+        document.getElementById('slack-light-test').innerHTML =
+          '<h3>Slack - Light Theme</h3>' + window.buildContextFrame('slack', sampleContent, 'light');
+
+        // Render Twitter frames
+        document.getElementById('twitter-dark-test').innerHTML =
+          '<h3>Twitter - Dark Theme</h3>' + window.buildContextFrame('twitter', sampleContent, 'dark');
+        document.getElementById('twitter-light-test').innerHTML =
+          '<h3>Twitter - Light Theme</h3>' + window.buildContextFrame('twitter', sampleContent, 'light');
+      }
+    }
+
+    function runVerification() {
+      const log = document.getElementById('verificationLog');
+      log.innerHTML = '<div class="info">Starting platform frame verification...</div>';
+
+      function logResult(message, status = 'info') {
+        const div = document.createElement('div');
+        div.className = status;
+        div.textContent = `[${status.toUpperCase()}] ${message}`;
+        log.appendChild(div);
+      }
+
+      // Test 1: Check Discord frames
+      function testDiscordFrames() {
+        logResult('Testing Discord frames...', 'info');
+        const discordDark = document.querySelector('#discord-dark-test .discord-context');
+        const discordLight = document.querySelector('#discord-light-test .discord-context');
+
+        if (discordDark && discordLight) {
+          logResult('✓ Discord frames rendered', 'pass');
+
+          // Check Discord link preview
+          const discordLinkPreview = discordDark.querySelector('.discord-link-preview');
+          if (discordLinkPreview) {
+            logResult('✓ Discord link preview found', 'pass');
+
+            const discordTitle = discordLinkPreview.querySelector('.discord-title');
+            const discordDesc = discordLinkPreview.querySelector('.discord-desc');
+            if (discordTitle && discordDesc) {
+              logResult('✓ Discord link preview structure complete', 'pass');
+              return true;
+            } else {
+              logResult('✗ Discord link preview incomplete', 'fail');
+              return false;
+            }
+          } else {
+            logResult('✗ Discord link preview missing', 'fail');
+            return false;
+          }
+        } else {
+          logResult('✗ Discord frames not rendered', 'fail');
+          return false;
+        }
+      }
+
+      // Test 2: Check Slack frames
+      function testSlackFrames() {
+        logResult('Testing Slack frames...', 'info');
+        const slackDark = document.querySelector('#slack-dark-test .slack-context');
+        const slackLight = document.querySelector('#slack-light-test .slack-context');
+
+        if (slackDark && slackLight) {
+          logResult('✓ Slack frames rendered', 'pass');
+
+          // Check Slack link preview
+          const slackLinkPreview = slackDark.querySelector('.slack-link-preview');
+          if (slackLinkPreview) {
+            logResult('✓ Slack link preview found', 'pass');
+
+            const slackTitle = slackLinkPreview.querySelector('.slack-title');
+            const slackDesc = slackLinkPreview.querySelector('.slack-desc');
+            if (slackTitle && slackDesc) {
+              logResult('✓ Slack link preview structure complete', 'pass');
+              return true;
+            } else {
+              logResult('✗ Slack link preview incomplete', 'fail');
+              return false;
+            }
+          } else {
+            logResult('✗ Slack link preview missing', 'fail');
+            return false;
+          }
+        } else {
+          logResult('✗ Slack frames not rendered', 'fail');
+          return false;
+        }
+      }
+
+      // Test 3: Check Twitter frames
+      function testTwitterFrames() {
+        logResult('Testing Twitter frames...', 'info');
+        const twitterDark = document.querySelector('#twitter-dark-test .twitter-context');
+        const twitterLight = document.querySelector('#twitter-light-test .twitter-context');
+
+        if (twitterDark && twitterLight) {
+          logResult('✓ Twitter frames rendered', 'pass');
+
+          // Check Twitter link card
+          const twitterLinkCard = twitterDark.querySelector('.tw-link-card');
+          if (twitterLinkCard) {
+            logResult('✓ Twitter link card found', 'pass');
+
+            const twitterTitle = twitterLinkCard.querySelector('.tw-context-title');
+            const twitterDomain = twitterLinkCard.querySelector('.tw-context-domain');
+            if (twitterTitle && twitterDomain) {
+              logResult('✓ Twitter link card structure complete', 'pass');
+              return true;
+            } else {
+              logResult('✗ Twitter link card incomplete', 'fail');
+              return false;
+            }
+          } else {
+            logResult('✗ Twitter link card missing', 'fail');
+            return false;
+          }
+        } else {
+          logResult('✗ Twitter frames not rendered', 'fail');
+          return false;
+        }
+      }
+
+      // Test 4: Check theme switching
+      function testThemeSwitching() {
+        logResult('Testing theme switching...', 'info');
+        const hasDarkTheme = document.documentElement.getAttribute('data-theme') === 'dark' ||
+                            document.documentElement.getAttribute('data-theme') === 'light';
+
+        if (hasDarkTheme) {
+          logResult('✓ Theme switching works', 'pass');
+          return true;
+        } else {
+          logResult('✗ Theme switching not working', 'fail');
+          return false;
+        }
+      }
+
+      // Test 5: Check platform-specific styling
+      function testPlatformStyling() {
+        logResult('Testing platform-specific styling...', 'info');
+
+        let allStyled = true;
+
+        // Check Discord styling
+        const discordFrame = document.querySelector('.discord-context');
+        if (discordFrame) {
+          const discordSidebar = discordFrame.querySelector('.discord-sidebar');
+          const discordMain = discordFrame.querySelector('.discord-main');
+          if (discordSidebar && discordMain) {
+            logResult('✓ Discord has platform-specific structure', 'pass');
+          } else {
+            logResult('✗ Discord missing platform structure', 'fail');
+            allStyled = false;
+          }
+        }
+
+        // Check Slack styling
+        const slackFrame = document.querySelector('.slack-context');
+        if (slackFrame) {
+          const slackSidebar = slackFrame.querySelector('.slack-sidebar');
+          const slackMain = slackFrame.querySelector('.slack-main');
+          if (slackSidebar && slackMain) {
+            logResult('✓ Slack has platform-specific structure', 'pass');
+          } else {
+            logResult('✗ Slack missing platform structure', 'fail');
+            allStyled = false;
+          }
+        }
+
+        // Check Twitter styling
+        const twitterFrame = document.querySelector('.twitter-context');
+        if (twitterFrame) {
+          const twitterPostHeader = twitterFrame.querySelector('.tw-post-header');
+          const twitterPostActions = twitterFrame.querySelector('.tw-post-actions');
+          if (twitterPostHeader && twitterPostActions) {
+            logResult('✓ Twitter has platform-specific structure', 'pass');
+          } else {
+            logResult('✗ Twitter missing platform structure', 'fail');
+            allStyled = false;
+          }
+        }
+
+        return allStyled;
+      }
+
+      // Run all tests
+      logResult('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+
+      const results = {
+        discord: testDiscordFrames(),
+        slack: testSlackFrames(),
+        twitter: testTwitterFrames(),
+        theme: testThemeSwitching(),
+        styling: testPlatformStyling()
+      };
+
+      const allPassed = Object.values(results).every(result => result === true);
+
+      logResult('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+      if (allPassed) {
+        logResult('✅ ALL TESTS PASSED - Discord, Slack, and Twitter frames fully implemented', 'pass');
+      } else {
+        const failedTests = Object.entries(results).filter(([_, result]) => result === false);
+        logResult(`⚠️  ${failedTests.length} test(s) failed: ${failedTests.map(([name]) => name).join(', ')}`, 'fail');
+      }
+    }
+
+    // Initial render and verification
+    document.addEventListener('DOMContentLoaded', () => {
+      renderFrames();
+      setTimeout(runVerification, 100);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Social Platform Frames Verification</title>
+  <link rel="stylesheet" href="frames-theme.css">
+  <link rel="stylesheet" href="social-platforms-frames.css">
+  <link rel="stylesheet" href="platform-frames-base.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a1e;
+      color: #e4e4e7;
+      padding: 40px 20px;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    [data-theme="light"] body {
+      background: #ffffff;
+      color: #1f2937;
+    }
+
+    .test-container {
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    .test-header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding: 30px;
+      background: var(--color-bg-dark-elevated, #25252a);
+      border-radius: 16px;
+      border: 1px solid var(--color-border-dark-default, #3f3f46);
+    }
+
+    [data-theme="light"] .test-header {
+      background: var(--color-bg-light-elevated, #f9fafb);
+      border-color: var(--color-border-light-default, #e5e7eb);
+    }
+
+    .test-header h1 {
+      font-size: 36px;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #FF4500 0%, #1d9bf0 50%, #ff0000 75%, #00f2ea 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .test-header p {
+      font-size: 16px;
+      opacity: 0.8;
+    }
+
+    .global-controls {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-secondary {
+      background: var(--color-bg-dark-elevated, #25252a);
+      color: var(--color-text-dark-primary, #e4e4e7);
+      border: 1px solid var(--color-border-dark-default, #3f3f46);
+    }
+
+    [data-theme="light"] .btn-secondary {
+      background: var(--color-bg-light-elevated, #f9fafb);
+      color: var(--color-text-light-primary, #1f2937);
+      border-color: var(--color-border-light-default, #e5e7eb);
+    }
+
+    .instructions {
+      background: rgba(102, 126, 234, 0.1);
+      border: 1px solid rgba(102, 126, 234, 0.3);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 30px;
+    }
+
+    .instructions h3 {
+      color: #667eea;
+      margin-bottom: 12px;
+      font-size: 18px;
+    }
+
+    .instructions ol {
+      padding-left: 20px;
+    }
+
+    .instructions li {
+      padding: 6px 0;
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .platform-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 30px;
+      margin-bottom: 40px;
+    }
+
+    .platform-card {
+      background: var(--color-bg-dark-elevated, #25252a);
+      border-radius: 16px;
+      border: 1px solid var(--color-border-dark-default, #3f3f46);
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    [data-theme="light"] .platform-card {
+      background: var(--color-bg-light-elevated, #f9fafb);
+      border-color: var(--color-border-light-default, #e5e7eb);
+    }
+
+    .platform-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+
+    .platform-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--color-border-dark-default, #3f3f46);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    [data-theme="light"] .platform-header {
+      border-color: var(--color-border-light-default, #e5e7eb);
+    }
+
+    .platform-name {
+      font-size: 18px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .platform-icon {
+      font-size: 24px;
+    }
+
+    .platform-theme-toggle {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: var(--color-bg-dark-muted, #3f3f46);
+      color: var(--color-text-dark-primary, #e4e4e7);
+    }
+
+    [data-theme="light"] .platform-theme-toggle {
+      background: var(--color-bg-light-muted, #e5e7eb);
+      color: var(--color-text-light-primary, #1f2937);
+    }
+
+    .platform-theme-toggle:hover {
+      opacity: 0.8;
+    }
+
+    .platform-frame-container {
+      padding: 20px;
+    }
+
+    .context-frame {
+      width: 100%;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    .reddit-context {
+      max-height: 450px;
+    }
+
+    .youtube-context {
+      max-height: none;
+    }
+
+    .tiktok-context {
+      max-width: 320px;
+      margin: 0 auto;
+    }
+
+    .verification-status {
+      padding: 12px 20px;
+      border-top: 1px solid var(--color-border-dark-default, #3f3f46);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+    }
+
+    [data-theme="light"] .verification-status {
+      border-color: var(--color-border-light-default, #e5e7eb);
+    }
+
+    .status-badge {
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 11px;
+    }
+
+    .status-success {
+      background: rgba(74, 222, 128, 0.2);
+      color: #4ade80;
+    }
+
+    .status-theme {
+      background: rgba(102, 126, 234, 0.2);
+      color: #667eea;
+    }
+
+    .acceptance-criteria {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 20px;
+    }
+
+    .acceptance-criteria h3 {
+      color: #10b981;
+      margin-bottom: 12px;
+      font-size: 16px;
+    }
+
+    .acceptance-criteria ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .acceptance-criteria li {
+      padding: 4px 0;
+      font-size: 13px;
+      opacity: 0.9;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .acceptance-criteria li::before {
+      content: '✓';
+      color: #10b981;
+      font-weight: bold;
+    }
+
+    @media (max-width: 768px) {
+      .platform-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .test-header h1 {
+        font-size: 28px;
+      }
+
+      .global-controls {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <div class="test-header">
+      <h1>🌐 Social Platform Frames Verification</h1>
+      <p>Comprehensive testing for Reddit, Twitter/X, YouTube, and TikTok platform frames</p>
+    </div>
+
+    <div class="global-controls">
+      <button class="btn btn-primary" onclick="toggleAllThemes()">
+        🌓 Toggle All Themes
+      </button>
+      <button class="btn btn-secondary" onclick="resetToDark()">
+        🌙 Reset to Dark Mode
+      </button>
+      <button class="btn btn-secondary" onclick="resetToLight()">
+        ☀️ Reset to Light Mode
+      </button>
+      <button class="btn btn-secondary" onclick="runVerification()">
+        ✅ Run Verification
+      </button>
+    </div>
+
+    <div class="instructions">
+      <h3>📋 Verification Instructions</h3>
+      <ol>
+        <li>Visually inspect each platform frame to ensure realistic chrome rendering</li>
+        <li>Test individual theme toggles for each platform section</li>
+        <li>Test global theme toggle to switch all platforms simultaneously</li>
+        <li>Verify that sample card data renders correctly for each platform</li>
+        <li>Check dark/light theme colors match platform brand colors</li>
+        <li>Confirm all interactive elements display properly</li>
+        <li>Run automated verification using the button above</li>
+      </ol>
+    </div>
+
+    <div class="platform-grid">
+      <!-- Reddit Platform Frame -->
+      <div class="platform-card">
+        <div class="platform-header">
+          <div class="platform-name">
+            <span class="platform-icon">🔴</span>
+            Reddit
+          </div>
+          <button class="platform-theme-toggle" onclick="togglePlatformTheme('reddit')">
+            Toggle Theme
+          </button>
+        </div>
+        <div class="platform-frame-container">
+          <div class="context-frame reddit-context" id="reddit-frame">
+            <div class="rd-subreddit-header">
+              <div class="rd-subreddit-banner"></div>
+              <div class="rd-subreddit-info">
+                <div class="rd-subreddit-icon">r/</div>
+                <div class="rd-subreddit-details">
+                  <div class="rd-subreddit-name">r/technology</div>
+                  <div class="rd-subreddit-meta">2.4m members · 456 online</div>
+                </div>
+                <button class="rd-join-btn">Join</button>
+              </div>
+            </div>
+            <div class="rd-post-list">
+              <div class="rd-post-item">
+                <div class="rd-upvote-section">
+                  <div class="rd-upvote-arrow">▲</div>
+                  <div class="rd-vote-count">15.2k</div>
+                  <div class="rd-downvote-arrow">▼</div>
+                </div>
+                <div class="rd-post-main">
+                  <div class="rd-post-meta">
+                    <span class="rd-subreddit-link">r/technology</span>
+                    <span class="rd-post-author">• Posted by u/technews</span>
+                    <span class="rd-post-time">• 3 hours ago</span>
+                  </div>
+                  <div class="rd-post-title">New breakthrough in quantum computing promises faster processing speeds</div>
+                  <div class="rd-link-preview">
+                    <div class="rd-context-domain">techcrunch.com</div>
+                    <div class="rd-context-placeholder"></div>
+                  </div>
+                  <div class="rd-post-actions">
+                    <span>💬 234 comments</span>
+                    <span>🔗 Share</span>
+                    <span>💾 Save</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="verification-status">
+          <span class="status-badge status-success">✓ Rendered</span>
+          <span class="status-badge status-theme" id="reddit-theme">Dark Mode</span>
+        </div>
+      </div>
+
+      <!-- Twitter/X Platform Frame -->
+      <div class="platform-card">
+        <div class="platform-header">
+          <div class="platform-name">
+            <span class="platform-icon">𝕏</span>
+            Twitter/X
+          </div>
+          <button class="platform-theme-toggle" onclick="togglePlatformTheme('twitter')">
+            Toggle Theme
+          </button>
+        </div>
+        <div class="platform-frame-container">
+          <div class="context-frame twitter-context" id="twitter-frame">
+            <div class="tw-post-header">
+              <div class="tw-avatar"></div>
+              <div class="tw-post-meta">
+                <span class="tw-author-name">Alex Johnson</span>
+                <span class="tw-author-handle">@alexj</span>
+                <span class="tw-post-time">· 2h</span>
+              </div>
+              <span class="tw-verified">✓</span>
+            </div>
+            <div class="tw-post-content">You have to see this! 🔗 Check out this amazing article about the future of web development.</div>
+            <div class="tw-link-card">
+              <div class="tw-context-placeholder"></div>
+              <div class="tw-context-meta">
+                <div class="tw-context-title">The Future of Web Development: What's Next?</div>
+                <div class="tw-context-domain">dev.to</div>
+              </div>
+            </div>
+            <div class="tw-post-actions">💬 12 · 🔁 34 · ❤️ 128</div>
+          </div>
+        </div>
+        <div class="verification-status">
+          <span class="status-badge status-success">✓ Rendered</span>
+          <span class="status-badge status-theme" id="twitter-theme">Dark Mode</span>
+        </div>
+      </div>
+
+      <!-- YouTube Platform Frame -->
+      <div class="platform-card">
+        <div class="platform-header">
+          <div class="platform-name">
+            <span class="platform-icon">📺</span>
+            YouTube
+          </div>
+          <button class="platform-theme-toggle" onclick="togglePlatformTheme('youtube')">
+            Toggle Theme
+          </button>
+        </div>
+        <div class="platform-frame-container">
+          <div class="context-frame youtube-context" id="youtube-frame">
+            <div class="yt-video-player">
+              <div class="yt-video-placeholder">▶</div>
+              <div class="yt-video-overlay">
+                <div class="yt-progress-bar">
+                  <div class="yt-progress-filled" style="width: 35%;"></div>
+                </div>
+                <div class="yt-player-controls">
+                  <button class="yt-control-btn">⏮</button>
+                  <button class="yt-control-btn">▶️</button>
+                  <button class="yt-control-btn">⏭</button>
+                  <div class="yt-volume-control">
+                    <button class="yt-control-btn">🔊</button>
+                    <div class="yt-volume-slider">
+                      <div class="yt-volume-level" style="width: 70%;"></div>
+                    </div>
+                  </div>
+                  <div class="yt-time-display">3:45 / 10:23</div>
+                  <button class="yt-control-btn">⚙️</button>
+                  <button class="yt-control-btn yt-fullscreen-btn">⛶</button>
+                </div>
+              </div>
+            </div>
+            <div class="yt-video-header">
+              <div class="yt-channel-avatar"></div>
+              <div class="yt-channel-meta">
+                <span class="yt-channel-name">TechChannel</span>
+                <span class="yt-subscriber-count">1.2M subscribers</span>
+              </div>
+              <button class="yt-subscribe-btn">Subscribe</button>
+            </div>
+            <div class="yt-video-title">Amazing Tutorial - Learn in 10 Minutes!</div>
+            <div class="yt-video-stats">234K views · 3 hours ago</div>
+            <div class="yt-actions-bar">
+              <button class="yt-action-btn">
+                <span class="yt-action-icon">👍</span>
+                <span class="yt-action-label">Like</span>
+              </button>
+              <button class="yt-action-btn">
+                <span class="yt-action-icon">👎</span>
+                <span class="yt-action-label">Dislike</span>
+              </button>
+              <button class="yt-action-btn">
+                <span class="yt-action-icon">↗️</span>
+                <span class="yt-action-label">Share</span>
+              </button>
+              <button class="yt-action-btn">
+                <span class="yt-action-icon">💾</span>
+                <span class="yt-action-label">Save</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="verification-status">
+          <span class="status-badge status-success">✓ Rendered</span>
+          <span class="status-badge status-theme" id="youtube-theme">Dark Mode</span>
+        </div>
+      </div>
+
+      <!-- TikTok Platform Frame -->
+      <div class="platform-card">
+        <div class="platform-header">
+          <div class="platform-name">
+            <span class="platform-icon">🎵</span>
+            TikTok
+          </div>
+          <button class="platform-theme-toggle" onclick="togglePlatformTheme('tiktok')">
+            Toggle Theme
+          </button>
+        </div>
+        <div class="platform-frame-container">
+          <div class="context-frame tiktok-context" id="tiktok-frame">
+            <div class="tt-video-container">
+              <div class="tt-video-placeholder"></div>
+              <div class="tt-right-sidebar">
+                <div class="tt-action-btn">
+                  <span class="tt-action-icon">♡</span>
+                  <span class="tt-action-count">24K</span>
+                </div>
+                <div class="tt-action-btn">
+                  <span class="tt-action-icon">💬</span>
+                  <span class="tt-action-count">1.2K</span>
+                </div>
+                <div class="tt-action-btn">
+                  <span class="tt-action-icon">↗</span>
+                  <span class="tt-action-count">8.5K</span>
+                </div>
+                <div class="tt-action-btn">
+                  <span class="tt-action-icon">💾</span>
+                  <span class="tt-action-count">3.2K</span>
+                </div>
+              </div>
+              <div class="tt-bottom-overlay">
+                <div class="tt-username">@tiktok_creator</div>
+                <div class="tt-caption">Check out this amazing content! 🔗 #fyp #viral #trending</div>
+                <div class="tt-music">🎵 Original Sound - Artist Name</div>
+                <div class="tt-video-meta">2.3M views · Posted 3 hours ago</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="verification-status">
+          <span class="status-badge status-success">✓ Rendered</span>
+          <span class="status-badge status-theme" id="tiktok-theme">Dark Mode</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="acceptance-criteria">
+      <h3>✅ Acceptance Criteria</h3>
+      <ul>
+        <li>Single test page includes all four platform frames</li>
+        <li>Each frame section has independent theme toggle</li>
+        <li>Global toggle switches all frames simultaneously</li>
+        <li>Sample cards render correctly for each platform</li>
+        <li>Page includes clear verification instructions</li>
+        <li>Manual verification: all frames visible and theme toggle works</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    // Platform theme states
+    const platformThemes = {
+      reddit: 'dark',
+      twitter: 'dark',
+      youtube: 'dark',
+      tiktok: 'dark'
+    };
+
+    // Toggle individual platform theme
+    function togglePlatformTheme(platform) {
+      platformThemes[platform] = platformThemes[platform] === 'dark' ? 'light' : 'dark';
+      const frame = document.getElementById(`${platform}-frame`);
+      const themeBadge = document.getElementById(`${platform}-theme`);
+
+      if (platformThemes[platform] === 'light') {
+        frame.classList.add('light-theme');
+        themeBadge.textContent = 'Light Mode';
+      } else {
+        frame.classList.remove('light-theme');
+        themeBadge.textContent = 'Dark Mode';
+      }
+    }
+
+    // Toggle all themes globally
+    function toggleAllThemes() {
+      const allDark = Object.values(platformThemes).every(theme => theme === 'dark');
+      const newTheme = allDark ? 'light' : 'dark';
+
+      Object.keys(platformThemes).forEach(platform => {
+        platformThemes[platform] = newTheme;
+        const frame = document.getElementById(`${platform}-frame`);
+        const themeBadge = document.getElementById(`${platform}-theme`);
+
+        if (newTheme === 'light') {
+          frame.classList.add('light-theme');
+          themeBadge.textContent = 'Light Mode';
+        } else {
+          frame.classList.remove('light-theme');
+          themeBadge.textContent = 'Dark Mode';
+        }
+      });
+
+      // Update global theme
+      document.documentElement.setAttribute('data-theme', newTheme);
+    }
+
+    // Reset all to dark mode
+    function resetToDark() {
+      Object.keys(platformThemes).forEach(platform => {
+        platformThemes[platform] = 'dark';
+        const frame = document.getElementById(`${platform}-frame`);
+        const themeBadge = document.getElementById(`${platform}-theme`);
+        frame.classList.remove('light-theme');
+        themeBadge.textContent = 'Dark Mode';
+      });
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+
+    // Reset all to light mode
+    function resetToLight() {
+      Object.keys(platformThemes).forEach(platform => {
+        platformThemes[platform] = 'light';
+        const frame = document.getElementById(`${platform}-frame`);
+        const themeBadge = document.getElementById(`${platform}-theme`);
+        frame.classList.add('light-theme');
+        themeBadge.textContent = 'Light Mode';
+      });
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+
+    // Run verification tests
+    function runVerification() {
+      console.log('🧪 Starting platform frames verification...');
+
+      let allTestsPassed = true;
+
+      // Test Reddit frame
+      const redditFrame = document.getElementById('reddit-frame');
+      if (redditFrame) {
+        const hasHeader = redditFrame.querySelector('.rd-subreddit-header');
+        const hasPost = redditFrame.querySelector('.rd-post-item');
+        const hasVoteCount = redditFrame.querySelector('.rd-vote-count');
+
+        if (hasHeader && hasPost && hasVoteCount) {
+          console.log('✅ Reddit frame: All required elements present');
+        } else {
+          console.error('❌ Reddit frame: Missing required elements');
+          allTestsPassed = false;
+        }
+      }
+
+      // Test Twitter frame
+      const twitterFrame = document.getElementById('twitter-frame');
+      if (twitterFrame) {
+        const hasHeader = twitterFrame.querySelector('.tw-post-header');
+        const hasContent = twitterFrame.querySelector('.tw-post-content');
+        const hasLinkCard = twitterFrame.querySelector('.tw-link-card');
+
+        if (hasHeader && hasContent && hasLinkCard) {
+          console.log('✅ Twitter/X frame: All required elements present');
+        } else {
+          console.error('❌ Twitter/X frame: Missing required elements');
+          allTestsPassed = false;
+        }
+      }
+
+      // Test YouTube frame
+      const youtubeFrame = document.getElementById('youtube-frame');
+      if (youtubeFrame) {
+        const hasPlayer = youtubeFrame.querySelector('.yt-video-player');
+        const hasHeader = youtubeFrame.querySelector('.yt-video-header');
+        const hasActions = youtubeFrame.querySelector('.yt-actions-bar');
+
+        if (hasPlayer && hasHeader && hasActions) {
+          console.log('✅ YouTube frame: All required elements present');
+        } else {
+          console.error('❌ YouTube frame: Missing required elements');
+          allTestsPassed = false;
+        }
+      }
+
+      // Test TikTok frame
+      const tiktokFrame = document.getElementById('tiktok-frame');
+      if (tiktokFrame) {
+        const hasVideoContainer = tiktokFrame.querySelector('.tt-video-container');
+        const hasSidebar = tiktokFrame.querySelector('.tt-right-sidebar');
+        const hasOverlay = tiktokFrame.querySelector('.tt-bottom-overlay');
+
+        if (hasVideoContainer && hasSidebar && hasOverlay) {
+          console.log('✅ TikTok frame: All required elements present');
+        } else {
+          console.error('❌ TikTok frame: Missing required elements');
+          allTestsPassed = false;
+        }
+      }
+
+      // Test theme toggles
+      const themeBadges = document.querySelectorAll('[id$="-theme"]');
+      if (themeBadges.length === 4) {
+        console.log('✅ Theme badges: All 4 platforms have theme indicators');
+      } else {
+        console.error('❌ Theme badges: Missing theme indicators');
+        allTestsPassed = false;
+      }
+
+      // Test global controls
+      const globalButtons = document.querySelectorAll('.btn');
+      if (globalButtons.length >= 4) {
+        console.log('✅ Global controls: All buttons present');
+      } else {
+        console.error('❌ Global controls: Missing buttons');
+        allTestsPassed = false;
+      }
+
+      if (allTestsPassed) {
+        console.log('🎉 All verification tests passed!');
+        alert('✅ Verification Complete: All platform frames are working correctly!');
+      } else {
+        console.error('⚠️ Some verification tests failed. Check console for details.');
+        alert('⚠️ Verification Complete: Some issues found. Check console for details.');
+      }
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('🌐 Social Platform Frames Verification Page Loaded');
+      console.log('📋 Available platforms: Reddit, Twitter/X, YouTube, TikTok');
+
+      // Check initial theme
+      const initialTheme = document.documentElement.getAttribute('data-theme');
+      console.log(`🎨 Initial theme: ${initialTheme}`);
+
+      // Run verification on load
+      setTimeout(() => {
+        console.log('🧪 Running initial verification...');
+        runVerification();
+      }, 1000);
+    });
+  </script>
+</body>
+</html>

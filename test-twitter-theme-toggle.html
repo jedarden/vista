@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twitter/X Theme Toggle Test</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: var(--bg1, #fff);
+            color: var(--text, #000);
+        }
+        .test-results {
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .test-item {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+        }
+        .test-pass {
+            background: #d4edda;
+            color: #155724;
+        }
+        .test-fail {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .manual-test {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+            border-left: 4px solid #ffc107;
+        }
+        code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Courier', monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎨 Twitter/X Theme Toggle Test</h1>
+
+    <div class="test-results">
+        <h2>Automated Code Verification</h2>
+        <div id="code-tests"></div>
+    </div>
+
+    <div class="manual-test">
+        <h3>🧪 Manual Testing Instructions</h3>
+        <ol>
+            <li>Open the main app (index.html)</li>
+            <li>Wait for Twitter/X card to load</li>
+            <li>Locate the theme toggle button (🌙/☀️) in the card header</li>
+            <li>Click the button and verify:
+                <ul>
+                    <li>Icon changes from 🌙 to ☀️ (or vice versa)</li>
+                    <li>Card theme switches between dark and light modes</li>
+                    <li>No console errors appear</li>
+                </ul>
+            </li>
+            <li>Click again to toggle back</li>
+        </ol>
+    </div>
+
+    <div class="test-results">
+        <h2>Test Results</h2>
+        <div id="test-results"></div>
+    </div>
+
+    <script>
+        const tests = [];
+
+        function addTest(name, passed, details = '') {
+            tests.push({ name, passed, details });
+        }
+
+        // Test 1: Check cardContextState initialization
+        try {
+            const appJs = fetch('/src/public/app.js')
+                .then(r => r.text())
+                .then(code => {
+                    // Check for cardContextState initialization
+                    const hasCardContextState = code.includes('let cardContextState = {}');
+                    addTest(
+                        'cardContextState variable exists',
+                        hasCardContextState,
+                        hasCardContextState ? '✓ Variable declared' : '✗ Variable not found'
+                    );
+
+                    // Check for theme initialization
+                    const hasThemeInit = code.includes("theme: 'dark'");
+                    addTest(
+                        'Theme initialization to dark',
+                        hasThemeInit,
+                        hasThemeInit ? '✓ Default theme is dark' : '✗ Theme initialization not found'
+                    );
+
+                    // Check for toggleCardTheme function
+                    const hasToggleFunc = code.includes('function toggleCardTheme');
+                    addTest(
+                        'toggleCardTheme function exists',
+                        hasToggleFunc,
+                        hasToggleFunc ? '✓ Function defined' : '✗ Function not found'
+                    );
+
+                    // Check for updateCardHeader function
+                    const hasUpdateHeader = code.includes('function updateCardHeader');
+                    addTest(
+                        'updateCardHeader function exists',
+                        hasUpdateHeader,
+                        hasUpdateHeader ? '✓ Function defined' : '✗ Function not found'
+                    );
+
+                    // Check for theme toggle button creation
+                    const hasButtonCreation = code.includes('card-theme-toggle');
+                    addTest(
+                        'Theme toggle button created in DOM',
+                        hasButtonCreation,
+                        hasButtonCreation ? '✓ Button HTML found' : '✗ Button creation not found'
+                    );
+
+                    // Check for theme icon update
+                    const hasIconUpdate = code.includes('theme-icon') && code.includes('🌙') && code.includes('☀️');
+                    addTest(
+                        'Theme icon updates (🌙/☀️)',
+                        hasIconUpdate,
+                        hasIconUpdate ? '✓ Icon update code found' : '✗ Icon update not found'
+                    );
+
+                    // Check for Twitter in PLATFORMS_WITH_THEME
+                    const hasTwitterTheme = code.includes('PLATFORMS_WITH_THEME') &&
+                                          (code.includes("'twitter'") || code.includes('"twitter"'));
+                    addTest(
+                        'Twitter in PLATFORMS_WITH_THEME',
+                        hasTwitterTheme,
+                        hasTwitterTheme ? '✓ Twitter has theme support' : '✗ Twitter not in theme list'
+                    );
+
+                    // Check for event listener attachment
+                    const hasEventListener = code.includes("themeToggle.addEventListener('click'");
+                    addTest(
+                        'Theme toggle event listener attached',
+                        hasEventListener,
+                        hasEventListener ? '✓ Event listener found' : '✗ Event listener not found'
+                    );
+
+                    // Display results
+                    displayResults();
+                });
+        } catch (error) {
+            addTest('Code verification', false, `Error: ${error.message}`);
+            displayResults();
+        }
+
+        function displayResults() {
+            const container = document.getElementById('code-tests');
+            let html = '';
+
+            tests.forEach(test => {
+                html += `
+                    <div class="test-item ${test.passed ? 'test-pass' : 'test-fail'}">
+                        <strong>${test.passed ? '✅' : '❌'} ${test.name}</strong>
+                        ${test.details ? `<br><small>${test.details}</small>` : ''}
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+
+            // Summary
+            const passed = tests.filter(t => t.passed).length;
+            const total = tests.length;
+            const summaryContainer = document.getElementById('test-results');
+
+            summaryContainer.innerHTML = `
+                <div class="test-item ${passed === total ? 'test-pass' : 'test-fail'}">
+                    <strong>Summary: ${passed}/${total} tests passed</strong>
+                    ${passed === total ? '<br><small>All automated tests passed! Manual testing required to confirm full functionality.</small>' : '<br><small>Some tests failed. Please review the implementation.</small>'}
+                </div>
+            `;
+        }
+
+        // Initial message
+        document.getElementById('code-tests').innerHTML = '<p>Loading tests...</p>';
+    </script>
+</body>
+</html>

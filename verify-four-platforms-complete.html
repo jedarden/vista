@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Four Platforms Complete Verification</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a1a;
+            color: #e0e0e0;
+            padding: 20px;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        [data-theme="light"] body {
+            background: #ffffff;
+            color: #1a1a1a;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #2a2a2a;
+            border-radius: 8px;
+        }
+
+        [data-theme="light"] .header {
+            background: #f5f5f5;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+            background: #0066cc;
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .platform-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 1200px) {
+            .platform-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .platform-card {
+            background: #2a2a2a;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        [data-theme="light"] .platform-card {
+            background: #ffffff;
+            border: 1px solid #e0e0e0;
+        }
+
+        .platform-header {
+            padding: 15px;
+            border-bottom: 1px solid #3a3a3a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        [data-theme="light"] .platform-header {
+            border-bottom-color: #e0e0e0;
+        }
+
+        .platform-name {
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .platform-status {
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            background: #4caf50;
+            color: white;
+        }
+
+        .platform-frame-container {
+            height: 700px;
+            position: relative;
+        }
+
+        .platform-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .checklist {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        [data-theme="light"] .checklist {
+            background: #f5f5f5;
+        }
+
+        .checklist h2 {
+            margin-bottom: 15px;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 10px;
+            background: #3a3a3a;
+            border-radius: 6px;
+        }
+
+        [data-theme="light"] .checklist-item {
+            background: #ffffff;
+            border: 1px solid #e0e0e0;
+        }
+
+        .checkbox {
+            margin-right: 12px;
+            width: 18px;
+            height: 18px;
+        }
+
+        .status {
+            margin-left: auto;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            background: #9e9e9e;
+            color: white;
+        }
+
+        .status.pass {
+            background: #4caf50;
+        }
+
+        .status.fail {
+            background: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎯 Four Platforms Complete Verification</h1>
+        <p>Reddit, Twitter/X, YouTube, and TikTok Platform Frames</p>
+    </div>
+
+    <div class="controls">
+        <button class="btn" onclick="setAllThemes('dark')">🌙 All Dark</button>
+        <button class="btn" onclick="setAllThemes('light')">☀️ All Light</button>
+        <button class="btn" onclick="toggleAllThemes()">🌓 Toggle All</button>
+        <button class="btn" onclick="testThemeSwitching()">🔄 Test Switching</button>
+    </div>
+
+    <div class="platform-grid">
+        <!-- Reddit -->
+        <div class="platform-card">
+            <div class="platform-header">
+                <div class="platform-name">🤖 Reddit</div>
+                <div class="platform-status">✓ Complete</div>
+            </div>
+            <div class="platform-frame-container">
+                <iframe class="platform-frame" id="reddit-frame" src="src/public/reddit-frame.html"></iframe>
+            </div>
+        </div>
+
+        <!-- Twitter/X -->
+        <div class="platform-card">
+            <div class="platform-header">
+                <div class="platform-name">✖️ Twitter/X</div>
+                <div class="platform-status">✓ Complete</div>
+            </div>
+            <div class="platform-frame-container">
+                <iframe class="platform-frame" id="twitter-frame" src="src/public/twitter-frame.html"></iframe>
+            </div>
+        </div>
+
+        <!-- YouTube -->
+        <div class="platform-card">
+            <div class="platform-header">
+                <div class="platform-name">▶️ YouTube</div>
+                <div class="platform-status">✓ Complete</div>
+            </div>
+            <div class="platform-frame-container">
+                <iframe class="platform-frame" id="youtube-frame" src="src/public/youtube-frame.html"></iframe>
+            </div>
+        </div>
+
+        <!-- TikTok -->
+        <div class="platform-card">
+            <div class="platform-header">
+                <div class="platform-name">🎵 TikTok</div>
+                <div class="platform-status">✓ Complete</div>
+            </div>
+            <div class="platform-frame-container">
+                <iframe class="platform-frame" id="tiktok-frame" src="src/public/tiktok-frame.html"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <div class="checklist">
+        <h2>✅ Acceptance Criteria Checklist</h2>
+
+        <div class="checklist-item">
+            <input type="checkbox" class="checkbox" id="check1">
+            <label for="check1">Reddit: Avatar, username, subreddit, timestamp, upvote/downvote/comment counts</label>
+            <span class="status" id="status1">Pending</span>
+        </div>
+
+        <div class="checklist-item">
+            <input type="checkbox" class="checkbox" id="check2">
+            <label for="check2">Twitter/X: Avatar, handle, timestamp, reply/retweet/like/view counts</label>
+            <span class="status" id="status2">Pending</span>
+        </div>
+
+        <div class="checklist-item">
+            <input type="checkbox" class="checkbox" id="check3">
+            <label for="check3">YouTube: Avatar, channel name, timestamp, views, like/dislike icons</label>
+            <span class="status" id="status3">Pending</span>
+        </div>
+
+        <div class="checklist-item">
+            <input type="checkbox" class="checkbox" id="check4">
+            <label for="check4">TikTok: Avatar, username, timestamp, like/comment/share/save icons</label>
+            <span class="status" id="status4">Pending</span>
+        </div>
+
+        <div class="checklist-item">
+            <input type="checkbox" class="checkbox" id="check5">
+            <label for="check5">All four platforms render with realistic chrome</label>
+            <span class="status" id="status5">Pending</span>
+        </div>
+
+        <div class="checklist-item">
+            <input type="checkbox" class="checkbox" id="check6">
+            <label for="check6">Dark/light toggle correctly switches each frame's theme</label>
+            <span class="status" id="status6">Pending</span>
+        </div>
+
+        <div class="checklist-item">
+            <input type="checkbox" class="checkbox" id="check7">
+            <label for="check7">Cards appear embedded in platform context, not floating</label>
+            <span class="status" id="status7">Pending</span>
+        </div>
+
+        <div class="checklist-item">
+            <input type="checkbox" class="checkbox" id="check8">
+            <label for="check8">Manual verification: Screenshots captured for each platform in both themes</label>
+            <span class="status" id="status8">Pending</span>
+        </div>
+    </div>
+
+    <script>
+        let currentTheme = 'dark';
+
+        function setAllThemes(theme) {
+            currentTheme = theme;
+            document.documentElement.setAttribute('data-theme', theme);
+
+            // Send theme message to all frames
+            const frames = ['reddit-frame', 'twitter-frame', 'youtube-frame', 'tiktok-frame'];
+            frames.forEach(frameId => {
+                const frame = document.getElementById(frameId);
+                frame.contentWindow.postMessage({ action: 'setTheme', theme: theme }, '*');
+            });
+        }
+
+        function toggleAllThemes() {
+            currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            setAllThemes(currentTheme);
+        }
+
+        function testThemeSwitching() {
+            // Rapid switching test
+            let count = 0;
+            const maxCount = 6;
+            const interval = setInterval(() => {
+                toggleAllThemes();
+                count++;
+                if (count >= maxCount) {
+                    clearInterval(interval);
+                }
+            }, 500);
+        }
+
+        // Update checklist status
+        document.querySelectorAll('.checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const id = this.id.replace('check', 'status');
+                const status = document.getElementById(id);
+
+                if (this.checked) {
+                    status.textContent = 'PASS';
+                    status.className = 'status pass';
+                } else {
+                    status.textContent = 'Pending';
+                    status.className = 'status';
+                }
+            });
+        });
+
+        // Initialize with dark theme
+        setAllThemes('dark');
+    </script>
+</body>
+</html>

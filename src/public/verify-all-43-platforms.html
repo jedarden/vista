@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify All 43 Platforms</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      padding: 20px;
+      line-height: 1.5;
+      transition: background 0.3s, color 0.3s;
+    }
+    html[data-theme='light'] body {
+      background: #f8f9fa;
+      color: #212529;
+    }
+    h1 { color: #4ade80; margin-bottom: 10px; }
+    html[data-theme='light'] h1 { color: #22c55e; }
+    .subtitle { color: #888; margin-bottom: 30px; font-size: 0.9em; }
+    html[data-theme='light'] .subtitle { color: #495057; }
+
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 1000;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .theme-toggle:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    .summary-card {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 15px;
+      text-align: center;
+      transition: background 0.3s, border 0.3s;
+    }
+    html[data-theme='light'] .summary-card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .summary-card .number { font-size: 2em; font-weight: bold; }
+    .summary-card .label { font-size: 0.8em; color: #888; margin-top: 5px; }
+    html[data-theme='light'] .summary-card .label { color: #6c757d; }
+    .summary-card.green .number { color: #4ade80; }
+    html[data-theme='light'] .summary-card.green .number { color: #22c55e; }
+    .summary-card.yellow .number { color: #fbbf24; }
+    html[data-theme='light'] .summary-card.yellow .number { color: #f59e0b; }
+    .summary-card.red .number { color: #f87171; }
+    html[data-theme='light'] .summary-card.red .number { color: #ef4444; }
+
+    .section { margin-bottom: 30px; }
+    .section h2 { color: #60a5fa; margin-bottom: 15px; font-size: 1.2em; }
+    html[data-theme='light'] .section h2 { color: #0284c7; }
+
+    .theme-status {
+      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+      border: 1px solid #3b82f6;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+      transition: background 0.3s, border 0.3s;
+    }
+    html[data-theme='light'] .theme-status {
+      background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+      border: 1px solid #93c5fd;
+    }
+    .theme-status h3 {
+      color: #60a5fa;
+      margin-bottom: 10px;
+      font-size: 1em;
+    }
+    html[data-theme='light'] .theme-status h3 {
+      color: #0369a1;
+    }
+    .theme-status .status-text {
+      color: #e0e0e0;
+      font-size: 0.9em;
+    }
+    html[data-theme='light'] .theme-status .status-text {
+      color: #1e40af;
+    }
+    .theme-status .pass { color: #4ade80; }
+    html[data-theme='light'] .theme-status .pass { color: #16a34a; }
+    .theme-status .fail { color: #f87171; }
+    html[data-theme='light'] .theme-status .fail { color: #dc2626; }
+
+    .platform-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 10px;
+    }
+    .platform-card {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 10px;
+      text-align: center;
+      font-size: 0.85em;
+      transition: background 0.3s, border 0.3s;
+    }
+    html[data-theme='light'] .platform-card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    .platform-card.all-pass { border-color: #4ade80; background: #1a3a1a; }
+    html[data-theme='light'] .platform-card.all-pass {
+      border-color: #22c55e;
+      background: #dcfce7;
+    }
+    .platform-card.warning { border-color: #fbbf24; background: #3a2a0a; }
+    html[data-theme='light'] .platform-card.warning {
+      border-color: #f59e0b;
+      background: #fef3c7;
+    }
+    .platform-card.error { border-color: #f87171; background: #3a1a1a; }
+    html[data-theme='light'] .platform-card.error {
+      border-color: #ef4444;
+      background: #fee2e2;
+    }
+    .platform-name { font-weight: bold; margin-bottom: 5px; }
+    .check-item { font-size: 0.75em; display: flex; align-items: center; justify-content: center; gap: 3px; }
+    .pass { color: #4ade80; }
+    html[data-theme='light'] .pass { color: #16a34a; }
+    .fail { color: #f87171; }
+    html[data-theme='light'] .fail { color: #dc2626; }
+    .pending { color: #888; }
+    html[data-theme='light'] .pending { color: #6c757d; }
+
+    .skeleton-breakdown {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .skeleton-group { flex: 1; min-width: 200px; }
+    .skeleton-group h3 { color: #888; font-size: 0.9em; margin-bottom: 10px; }
+    html[data-theme='light'] .skeleton-group h3 { color: #495057; }
+    .platform-list { display: flex; flex-wrap: wrap; gap: 5px; }
+    .platform-tag {
+      background: #2a2a2a;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.8em;
+      transition: background 0.3s;
+    }
+    html[data-theme='light'] .platform-tag {
+      background: #e5e7eb;
+    }
+    .tall { border-left: 3px solid #60a5fa; }
+    .short { border-left: 3px solid #fbbf24; }
+    .text-only { border-left: 3px solid #a78bfa; }
+
+    .log {
+      background: #0a0a0a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 15px;
+      font-family: monospace;
+      font-size: 0.75em;
+      max-height: 300px;
+      overflow-y: auto;
+      transition: background 0.3s, border 0.3s;
+    }
+    html[data-theme='light'] .log {
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+    }
+    .log-entry { margin-bottom: 5px; }
+    .log-entry.success { color: #4ade80; }
+    html[data-theme='light'] .log-entry.success { color: #16a34a; }
+    .log-entry.error { color: #f87171; }
+    html[data-theme='light'] .log-entry.error { color: #dc2626; }
+    .log-entry.info { color: #60a5fa; }
+    html[data-theme='light'] .log-entry.info { color: #0284c7; }
+    .log-entry.theme-test { color: #a855f7; }
+    html[data-theme='light'] .log-entry.theme-test { color: #9333ea; }
+
+    #run-btn {
+      background: #4ade80;
+      color: #0a0a0a;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-size: 1em;
+      font-weight: bold;
+      cursor: pointer;
+      margin-bottom: 20px;
+      transition: background 0.2s, transform 0.2s;
+    }
+    #run-btn:hover { background: #22c55e; transform: translateY(-1px); }
+    #run-btn:disabled { background: #555; cursor: not-allowed; transform: none; }
+    html[data-theme='light'] #run-btn:disabled { background: #9ca3af; }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" id="themeToggle">☀️ Light Mode</button>
+
+  <h1>✓ Verify All 43 Platforms</h1>
+  <p class="subtitle">Comprehensive end-to-end verification of platform frame infrastructure</p>
+
+  <div class="theme-status">
+    <h3>🎨 Theme Toggle Status</h3>
+    <div class="status-text" id="theme-status-text">Theme toggle initialized. Switch themes to test frame rendering.</div>
+  </div>
+
+  <button id="run-btn" onclick="runVerification()">Run Full Verification</button>
+
+  <div class="summary">
+    <div class="summary-card green">
+      <div class="number" id="total-count">43</div>
+      <div class="label">Total Platforms</div>
+    </div>
+    <div class="summary-card green">
+      <div class="number" id="frames-count">--</div>
+      <div class="label">Frames (Both Modes)</div>
+    </div>
+    <div class="summary-card green">
+      <div class="number" id="skeleton-count">--</div>
+      <div class="label">Skeleton Mappings</div>
+    </div>
+    <div class="summary-card green">
+      <div class="number" id="scoring-count">--</div>
+      <div class="label">Scoring Rules</div>
+    </div>
+    <div class="summary-card" id="theme-card">
+      <div class="number" id="theme-count">--</div>
+      <div class="label">Theme Toggle</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Skeleton Type Breakdown</h2>
+    <div class="skeleton-breakdown">
+      <div class="skeleton-group">
+        <h3>Tall (17 platforms)</h3>
+        <div class="platform-list" id="tall-platforms"></div>
+      </div>
+      <div class="skeleton-group">
+        <h3>Short (25 platforms)</h3>
+        <div class="platform-list" id="short-platforms"></div>
+      </div>
+      <div class="skeleton-group">
+        <h3>Text Only (1 platform)</h3>
+        <div class="platform-list" id="textonly-platforms"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Platform Status Grid</h2>
+    <div class="platform-grid" id="platform-grid"></div>
+  </div>
+
+  <div class="section">
+    <h2>Verification Log</h2>
+    <div class="log" id="log"></div>
+  </div>
+
+  <script>
+    const ALL_PLATFORMS = [
+      'asana', 'bluesky', 'devto', 'discord', 'evernote', 'facebook', 'feedly',
+      'figma', 'github', 'gitlab', 'gmail', 'google', 'googlechat', 'hackernews',
+      'imessage', 'instagram', 'jetbrains', 'jira', 'kakaotalk', 'line',
+      'linkedin', 'mastodon', 'medium', 'notion', 'outlook', 'pinterest',
+      'producthunt', 'reddit', 'signal', 'slack', 'stackoverflow', 'substack',
+      'teams', 'telegram', 'threads', 'tiktok', 'trello', 'tumblr', 'twitter',
+      'vscode', 'whatsapp', 'youtube', 'zoom'
+    ];
+
+    let results = {};
+    let currentTheme = 'dark';
+    let themeTestResults = { light: false, dark: false };
+
+    function log(message, type = 'info') {
+      const logDiv = document.getElementById('log');
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      logDiv.appendChild(entry);
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    async function checkFrameExists(platform, mode) {
+      try {
+        const response = await fetch(`/${platform}-${mode}.html`);
+        return response.ok;
+      } catch {
+        return false;
+      }
+    }
+
+    async function checkSkeletonMapping(platform) {
+      try {
+        const response = await fetch('/api/platforms');
+        const data = await response.json();
+        return data.platformSkeletonMap && data.platformSkeletonMap[platform];
+      } catch {
+        return false;
+      }
+    }
+
+    async function checkScoringRule(platform) {
+      try {
+        // Check if scorer.js has a case for this platform
+        const response = await fetch('/api/platforms');
+        const data = await response.json();
+        return data.platforms && data.platforms.includes(platform);
+      } catch {
+        return false;
+      }
+    }
+
+    function renderSkeletonBreakdown() {
+      fetch('/api/platforms')
+        .then(r => r.json())
+        .then(data => {
+          const tall = [], short = [], textOnly = [];
+          Object.entries(data.platformSkeletonMap).forEach(([platform, type]) => {
+            if (type === 'tall') tall.push(platform);
+            else if (type === 'short') short.push(platform);
+            else if (type === 'text_only') textOnly.push(platform);
+          });
+
+          document.getElementById('tall-platforms').innerHTML =
+            tall.map(p => `<span class="platform-tag tall">${p}</span>`).join('');
+          document.getElementById('short-platforms').innerHTML =
+            short.map(p => `<span class="platform-tag short">${p}</span>`).join('');
+          document.getElementById('textonly-platforms').innerHTML =
+            textOnly.map(p => `<span class="platform-tag text-only">${p}</span>`).join('');
+        });
+    }
+
+    function renderPlatformGrid() {
+      const grid = document.getElementById('platform-grid');
+      grid.innerHTML = ALL_PLATFORMS.map(platform => {
+        const r = results[platform] || {};
+        const allPass = r.light && r.dark && r.skeleton && r.scoring;
+        const hasError = r.light === false || r.dark === false || r.skeleton === false || r.scoring === false;
+        const hasPending = !r.light || !r.dark || !r.skeleton || !r.scoring;
+
+        const cssClass = allPass ? 'all-pass' : hasError ? 'error' : hasPending ? '' : 'warning';
+
+        return `
+          <div class="platform-card ${cssClass}" id="card-${platform}">
+            <div class="platform-name">${platform}</div>
+            <div class="check-item">${r.light !== false ? '✓' : '✗'} light</div>
+            <div class="check-item">${r.dark !== false ? '✓' : '✗'} dark</div>
+            <div class="check-item">${r.skeleton !== false ? '✓' : '✗'} skel</div>
+            <div class="check-item">${r.scoring !== false ? '✓' : '✗'} score</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function updateSummary() {
+      const total = ALL_PLATFORMS.length;
+      const withBothFrames = ALL_PLATFORMS.filter(p => results[p]?.light && results[p]?.dark).length;
+      const withSkeleton = ALL_PLATFORMS.filter(p => results[p]?.skeleton).length;
+      const withScoring = ALL_PLATFORMS.filter(p => results[p]?.scoring).length;
+
+      document.getElementById('total-count').textContent = total;
+      document.getElementById('frames-count').textContent = withBothFrames;
+      document.getElementById('skeleton-count').textContent = withSkeleton;
+      document.getElementById('scoring-count').textContent = withScoring;
+
+      // Color code based on completeness
+      document.getElementById('frames-count').parentElement.className =
+        withBothFrames === total ? 'summary-card green' : 'summary-card yellow';
+      document.getElementById('skeleton-count').parentElement.className =
+        withSkeleton === total ? 'summary-card green' : 'summary-card yellow';
+      document.getElementById('scoring-count').parentElement.className =
+        withScoring === total ? 'summary-card green' : 'summary-card yellow';
+    }
+
+    async function verifyPlatform(platform) {
+      results[platform] = { light: false, dark: false, skeleton: false, scoring: false };
+
+      // Check frames
+      const light = await checkFrameExists(platform, 'light');
+      const dark = await checkFrameExists(platform, 'dark');
+      results[platform].light = light;
+      results[platform].dark = dark;
+
+      // Check skeleton mapping
+      const skeleton = await checkSkeletonMapping(platform);
+      results[platform].skeleton = skeleton;
+
+      // Check scoring rule
+      const scoring = await checkScoringRule(platform);
+      results[platform].scoring = scoring;
+
+      // Update UI
+      const card = document.getElementById(`card-${platform}`);
+      if (card) {
+        const allPass = light && dark && skeleton && scoring;
+        const hasError = !light || !dark || !skeleton || !scoring;
+        card.className = `platform-card ${allPass ? 'all-pass' : hasError ? 'error' : 'warning'}`;
+        card.innerHTML = `
+          <div class="platform-name">${platform}</div>
+          <div class="check-item">${light ? '<span class="pass">✓</span>' : '<span class="fail">✗</span>'} light</div>
+          <div class="check-item">${dark ? '<span class="pass">✓</span>' : '<span class="fail">✗</span>'} dark</div>
+          <div class="check-item">${skeleton ? '<span class="pass">✓</span>' : '<span class="fail">✗</span>'} skel</div>
+          <div class="check-item">${scoring ? '<span class="pass">✓</span>' : '<span class="fail">✗</span>'} score</div>
+        `;
+      }
+
+      updateSummary();
+
+      const allPass = light && dark && skeleton && scoring;
+      log(`${platform}: ${allPass ? 'PASS' : 'PARTIAL'} - light:${light} dark:${dark} skeleton:${skeleton} scoring:${scoring}`,
+        allPass ? 'success' : 'error');
+    }
+
+    async function runVerification() {
+      const btn = document.getElementById('run-btn');
+      btn.disabled = true;
+      btn.textContent = 'Running...';
+
+      log('Starting verification of all 43 platforms...', 'info');
+
+      renderSkeletonBreakdown();
+      renderPlatformGrid();
+
+      // Verify platforms in batches of 10 to avoid overwhelming the browser
+      for (let i = 0; i < ALL_PLATFORMS.length; i += 10) {
+        const batch = ALL_PLATFORMS.slice(i, i + 10);
+        await Promise.all(batch.map(p => verifyPlatform(p)));
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+
+      const finalScore = ALL_PLATFORMS.filter(p =>
+        results[p]?.light && results[p]?.dark && results[p]?.skeleton && results[p]?.scoring
+      ).length;
+
+      log(`Verification complete: ${finalScore}/${ALL_PLATFORMS.length} platforms pass all checks`,
+        finalScore === ALL_PLATFORMS.length ? 'success' : 'error');
+
+      btn.disabled = false;
+      btn.textContent = 'Run Again';
+    }
+
+    // Theme toggle functionality
+    const themeToggle = document.getElementById('themeToggle');
+    themeToggle.addEventListener('click', () => {
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      currentTheme = newTheme;
+      document.documentElement.setAttribute('data-theme', newTheme);
+      themeToggle.textContent = newTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+
+      // Test theme toggle on a sample platform frame
+      testThemeToggle(newTheme);
+    });
+
+    async function testThemeToggle(theme) {
+      log(`Testing theme toggle to ${theme} mode...`, 'theme-test');
+
+      try {
+        // Test a few sample platforms for theme functionality
+        const testPlatforms = ['facebook', 'twitter', 'linkedin'];
+        let themeWorks = true;
+
+        for (const platform of testPlatforms) {
+          try {
+            const response = await fetch(`/${platform}-${theme}.html`);
+            if (!response.ok) {
+              themeWorks = false;
+              log(`  ${platform}: ${theme} frame not found`, 'error');
+            }
+          } catch {
+            themeWorks = false;
+            log(`  ${platform}: failed to load ${theme} frame`, 'error');
+          }
+        }
+
+        if (themeWorks) {
+          themeTestResults[theme] = true;
+          log(`  ✓ Theme toggle to ${theme} working correctly`, 'success');
+          document.getElementById('theme-status-text').innerHTML =
+            `<span class="pass">✓ Theme toggle test passed</span> - ${theme} mode frames loaded successfully`;
+          updateThemeCard();
+        } else {
+          themeTestResults[theme] = false;
+          log(`  ✗ Theme toggle test failed for ${theme}`, 'error');
+          document.getElementById('theme-status-text').innerHTML =
+            `<span class="fail">✗ Theme toggle test failed</span> - ${theme} mode frames missing`;
+          updateThemeCard();
+        }
+      } catch (error) {
+        log(`  Theme toggle test error: ${error.message}`, 'error');
+      }
+    }
+
+    function updateThemeCard() {
+      const themeCard = document.getElementById('theme-card');
+      const themeCount = document.getElementById('theme-count');
+
+      const bothPassed = themeTestResults.light && themeTestResults.dark;
+      const onePassed = themeTestResults.light || themeTestResults.dark;
+
+      if (bothPassed) {
+        themeCard.className = 'summary-card green';
+        themeCount.textContent = '✓';
+        themeCount.style.color = '#4ade80';
+      } else if (onePassed) {
+        themeCard.className = 'summary-card yellow';
+        themeCount.textContent = '~';
+        themeCount.style.color = '#fbbf24';
+      } else {
+        themeCard.className = 'summary-card red';
+        themeCount.textContent = '✗';
+        themeCount.style.color = '#f87171';
+      }
+    }
+
+    // Initial render
+    document.addEventListener('DOMContentLoaded', () => {
+      renderSkeletonBreakdown();
+      renderPlatformGrid();
+      log('Ready to verify. Click "Run Full Verification" to start.', 'info');
+      log('Tip: Toggle theme to test frame rendering in both modes.', 'info');
+
+      // Test initial theme (dark)
+      testThemeToggle('dark');
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,378 @@
+{
+  "pass": 46,
+  "fail": 0,
+  "total": 46,
+  "results": [
+    {
+      "id": "google",
+      "name": "Google Search",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#202124",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "facebook",
+      "name": "Facebook",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#242526",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "twitter",
+      "name": "X (Twitter)",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#000000",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "linkedin",
+      "name": "LinkedIn",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#000000",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "instagram",
+      "name": "Instagram",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#000000",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "youtube",
+      "name": "YouTube",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#0f0f0f",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "slack",
+      "name": "Slack",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#1a1d23",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "discord",
+      "name": "Discord",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#313338",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "imessage",
+      "name": "iMessage",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#000000",
+      "lightBg": "#e5e1e5"
+    },
+    {
+      "id": "whatsapp",
+      "name": "WhatsApp",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#0b141a",
+      "lightBg": "#efeae2"
+    },
+    {
+      "id": "telegram",
+      "name": "Telegram",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#17212b",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "signal",
+      "name": "Signal",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#1c1c1e",
+      "lightBg": "#f6f6f6"
+    },
+    {
+      "id": "sms",
+      "name": "SMS/RCS",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#1c1c1e",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "teams",
+      "name": "Microsoft Teams",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#1f1f1f",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "googlechat",
+      "name": "Google Chat",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#202124",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "zoom",
+      "name": "Zoom Chat",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#1a1a1a",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "line",
+      "name": "Line",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#1b1b1b",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "kakaotalk",
+      "name": "KakaoTalk",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#1a1a1a",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "tiktok",
+      "name": "TikTok",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#000000",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "pinterest",
+      "name": "Pinterest",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#1a1a1a",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "bluesky",
+      "name": "Bluesky",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#000000",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "mastodon",
+      "name": "Mastodon",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#191b22",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "threads",
+      "name": "Threads",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#101010",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "tumblr",
+      "name": "Tumblr",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#001035",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "reddit",
+      "name": "Reddit",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#1a1a1e",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "github",
+      "name": "GitHub",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#0d1117",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "gitlab",
+      "name": "GitLab",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#1f1e24",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "stackoverflow",
+      "name": "Stack Overflow",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#1e1e1e",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "hackernews",
+      "name": "Hacker News",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#1a1a1a",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "producthunt",
+      "name": "Product Hunt",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#1a1a1a",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "devto",
+      "name": "Dev.to",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#1a1a1a",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "medium",
+      "name": "Medium",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#000000",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "gmail",
+      "name": "Gmail",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#1f1f1f",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "outlook",
+      "name": "Outlook",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#1f1f1f",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "feedly",
+      "name": "Feedly",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#1a1a1a",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "notion",
+      "name": "Notion",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#191919",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "evernote",
+      "name": "Evernote",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#1a1a1a",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "vscode",
+      "name": "VS Code",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#1e1e1e",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "jetbrains",
+      "name": "JetBrains IDE",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#2b2b2b",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "jira",
+      "name": "Jira",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#0d1216",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "trello",
+      "name": "Trello",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#1e1e1e",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "asana",
+      "name": "Asana",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#1f1f1f",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "figma",
+      "name": "Figma",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#1e1e1e",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "substack",
+      "name": "Substack",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#1a1a1a",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "twitch",
+      "name": "Twitch",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#0e0e10",
+      "lightBg": "#ffffff"
+    },
+    {
+      "id": "generic",
+      "name": "Generic Platform",
+      "passed": true,
+      "errs": [],
+      "darkBg": "#1a1a2e",
+      "lightBg": "#ffffff"
+    }
+  ],
+  "generatedAt": "2026-07-26T06:41:30.466Z",
+  "consoleErrors": 1,
+  "port": 3399
+}

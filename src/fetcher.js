@@ -2,6 +2,7 @@
 
 const fetch = require('node-fetch');
 const cheerio = require('cheerio');
+const { validateUrlOrThrow } = require('./ssrf-guard');
 
 const USER_AGENT =
   'Mozilla/5.0 (compatible; VISTA/1.0; +https://github.com/vista-tool)';
@@ -24,8 +25,10 @@ const MAX_BODY_BYTES = 1024 * 1024; // 1 MB read limit for HTML
  * - isFinal: Boolean flag for the final hop
  * - html: HTML response content (for all HTML responses, including 3xx redirects)
  * - metaTags: Array of all meta tags with name/content or property/content pairs
- * - meta: Critical meta tags (title, og:*, twitter:*, canonical) for 200 HTML responses
- * - metaDiff: Diff from previous hop's meta (changed/added/removed fields)
+ * - meta: Critical meta tags (title, og:*, twitter:*, canonical, robots) for 200 HTML responses
+ * - metaDiff: Diff from previous hop's meta (changed/added/removed fields, plus
+ *   `stripped` when all meaningful meta tags are lost and `noindexRemoved` when
+ *   a noindex directive disappears). Computed across consecutive HTML hops.
  * - metaError: Error message if meta parsing failed
  *
  * ## Redirect Resolver
@@ -47,11 +50,17 @@ const MAX_BODY_BYTES = 1024 * 1024; // 1 MB read limit for HTML
  * - calculateMetaDiff() compares with previous hop
  */
 async function fetchUrl(url) {
+  // SSRF protection: validate the initial URL
+  await validateUrlOrThrow(url);
+
   const redirectChain = [];
   let currentUrl = url;
   let hops = 0;
   let lastResponse = null;
-  let lastMeta = null; // Track previous hop's meta tags for diff
+  // Track the previous HTML hop's critical meta + meaningful-tag count so we
+  // can diff meta tags across consecutive hops (any status, not just 200→200).
+  let lastCriticalMeta = null;
+  let lastMeaningfulTagCount = 0;
 
   while (hops < MAX_REDIRECTS) {
     const controller = new AbortController();
@@ -97,16 +106,27 @@ async function fetchUrl(url) {
         // Store all meta tags for this hop (for all HTML responses)
         hop.metaTags = hopMeta.rawTags || [];
 
-        // Only parse meta for 200 responses
+        // Critical meta is computed for every HTML hop so we can diff across
+        // consecutive hops; it is only *exposed* on the hop for 200 responses
+        // (the downstream scoring/preview contract for `hop.meta`).
+        const critical = extractCriticalMetaTags(hopMeta);
+        const meaningfulCount = countMeaningfulMetaTags(hop.metaTags);
         if (response.status === 200) {
-          hop.meta = extractCriticalMetaTags(hopMeta);
-
-          // Calculate diff from previous hop
-          if (lastMeta) {
-            hop.metaDiff = calculateMetaDiff(lastMeta, hop.meta);
-          }
-          lastMeta = hop.meta;
+          hop.meta = critical;
         }
+
+        // Diff vs the previous HTML hop (any status). This is what makes
+        // meta-tag changes/stripping between redirect hops observable.
+        if (lastCriticalMeta !== null) {
+          hop.metaDiff = calculateMetaDiff(lastCriticalMeta, critical);
+          // "All tags lost": previous hop had meaningful meta tags, this one
+          // has none.
+          if (lastMeaningfulTagCount > 0 && meaningfulCount === 0) {
+            hop.metaDiff.stripped = true;
+          }
+        }
+        lastCriticalMeta = critical;
+        lastMeaningfulTagCount = meaningfulCount;
       } catch (e) {
         // If we fail to read body, continue without meta
         hop.metaError = e.message;
@@ -140,6 +160,18 @@ async function fetchUrl(url) {
       }
       // Resolve relative redirects
       const nextUrl = new URL(location, currentUrl).toString();
+
+      // SSRF protection: validate the redirect URL before following
+      try {
+        await validateUrlOrThrow(nextUrl);
+      } catch (ssrfErr) {
+        // Add a special error to the redirect chain and stop
+        hop.warning = `Redirect blocked by SSRF protection: ${ssrfErr.message}`;
+        hop.html = hopHtml;
+        redirectChain.push(hop);
+        throw new Error(`Redirect to ${nextUrl} blocked by SSRF protection: ${ssrfErr.message}`);
+      }
+
       hop.redirectsTo = nextUrl;
 
       // Warn on HTTP → HTTPS upgrade
@@ -193,10 +225,17 @@ async function fetchUrl(url) {
       try {
         const finalMeta = parseMetaTags(html, currentUrl);
         hop.metaTags = finalMeta.rawTags || [];
-        hop.meta = extractCriticalMetaTags(finalMeta);
-        if (lastMeta) {
-          hop.metaDiff = calculateMetaDiff(lastMeta, hop.meta);
+        const critical = extractCriticalMetaTags(finalMeta);
+        hop.meta = critical;
+        const meaningfulCount = countMeaningfulMetaTags(hop.metaTags);
+        if (lastCriticalMeta !== null) {
+          hop.metaDiff = calculateMetaDiff(lastCriticalMeta, critical);
+          if (lastMeaningfulTagCount > 0 && meaningfulCount === 0) {
+            hop.metaDiff.stripped = true;
+          }
         }
+        lastCriticalMeta = critical;
+        lastMeaningfulTagCount = meaningfulCount;
       } catch (e) {
         hop.metaError = e.message;
         hop.metaTags = [];
@@ -238,12 +277,36 @@ function extractCriticalMetaTags(meta) {
     twitterDescription: meta.twitter.description || null,
     twitterImage: meta.twitter.image || null,
     canonical: meta.canonical || null,
+    robots: meta.robots || null,
   };
+}
+
+/**
+ * Count "meaningful" meta tags — tags identified by a name or property that
+ * carry content. Charset-only and empty tags are excluded. Used to detect when
+ * a hop strips *all* meta tags relative to the previous hop.
+ * @param {Array} metaTags - hop.metaTags (raw tag list from parseMetaTags)
+ * @returns {number}
+ */
+function countMeaningfulMetaTags(metaTags) {
+  if (!Array.isArray(metaTags)) return 0;
+  let count = 0;
+  for (const tag of metaTags) {
+    const key = tag.name || tag.property;
+    if (key && tag.content) count++;
+  }
+  return count;
 }
 
 /**
  * Calculate diff between two meta tag objects.
  * Returns an object showing which tags changed.
+ *
+ * Flags:
+ *   - hasImageChange: an og:image / twitter:image value changed
+ *   - stripped:       set by the caller when all meaningful tags are lost
+ *   - noindexRemoved: a robots noindex directive was present before and is
+ *                     gone now (the page became indexable) — high-signal change
  */
 function calculateMetaDiff(prevMeta, currentMeta) {
   const diff = {
@@ -256,7 +319,7 @@ function calculateMetaDiff(prevMeta, currentMeta) {
     'title', 'description',
     'ogTitle', 'ogDescription', 'ogImage', 'ogType', 'ogUrl',
     'twitterCard', 'twitterTitle', 'twitterDescription', 'twitterImage',
-    'canonical'
+    'canonical', 'robots',
   ];
 
   for (const field of criticalFields) {
@@ -276,6 +339,13 @@ function calculateMetaDiff(prevMeta, currentMeta) {
   const imageChange = diff.changed.find(c => c.field === 'ogImage' || c.field === 'twitterImage');
   if (imageChange) {
     diff.hasImageChange = true;
+  }
+
+  // noindex removal: the previous hop blocked indexing, the current one does not.
+  const prevNoindex = /\bnoindex\b/i.test(prevMeta.robots || '');
+  const currNoindex = /\bnoindex\b/i.test(currentMeta.robots || '');
+  if (prevNoindex && !currNoindex) {
+    diff.noindexRemoved = true;
   }
 
   return diff;
@@ -414,6 +484,26 @@ function resolveUrl(href, baseUrl) {
  */
 async function probeImage(imageUrl) {
   const start = Date.now();
+
+  // SSRF protection: validate the image URL before issuing any request.
+  // og:image / twitter:image come from the fetched page's content and are
+  // attacker-controlled, so they must be validated exactly like page URLs.
+  // Both the HEAD fetch and the probe-image-size GET below use this same
+  // URL, so validating once here guards both egress requests. On rejection
+  // we return a graceful "blocked" result instead of throwing — probeImage
+  // failures are non-fatal to the caller, and we must not let an SSRF
+  // attempt silently proceed or crash the surrounding request.
+  try {
+    await validateUrlOrThrow(imageUrl);
+  } catch (ssrfErr) {
+    return {
+      url: imageUrl,
+      blocked: true,
+      error: `Image URL blocked by SSRF protection: ${ssrfErr.message}`,
+      responseTime: Date.now() - start,
+    };
+  }
+
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 8000);
@@ -574,4 +664,4 @@ async function fetchRenderedMetaTags(url, options = {}) {
   }
 }
 
-module.exports = { fetchUrl, parseMetaTags, probeImage, resolveUrl, extractCriticalMetaTags, calculateMetaDiff, fetchRenderedMetaTags };
+module.exports = { fetchUrl, parseMetaTags, probeImage, resolveUrl, extractCriticalMetaTags, calculateMetaDiff, countMeaningfulMetaTags, fetchRenderedMetaTags };

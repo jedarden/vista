@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify Theme Toggle Implementation</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: var(--bg, #f5f5f5);
+      color: var(--text, #333);
+    }
+    .test-section {
+      background: white;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .criterion {
+      padding: 10px;
+      margin: 10px 0;
+      border-left: 4px solid #ddd;
+    }
+    .criterion.pass {
+      border-left-color: #4caf50;
+      background: #f1f8f4;
+    }
+    .criterion.fail {
+      border-left-color: #f44336;
+      background: #fef1f1;
+    }
+    .status {
+      font-weight: bold;
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      margin-right: 10px;
+    }
+    .status.pass {
+      background: #4caf50;
+      color: white;
+    }
+    .status.fail {
+      background: #f44336;
+      color: white;
+    }
+    h1 {
+      color: #333;
+      border-bottom: 2px solid #4caf50;
+      padding-bottom: 10px;
+    }
+    .summary {
+      font-size: 1.2em;
+      padding: 15px;
+      background: #e8f5e9;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌓 Theme Toggle Implementation Verification</h1>
+
+  <div class="test-section">
+    <h2>Acceptance Criteria Check</h2>
+
+    <div class="criterion" id="c1">
+      <span class="status">Testing...</span>
+      <strong>1. Theme toggle button added to the UI</strong>
+      <p>Checks for button element with theme-toggle class and globalThemeToggle ID</p>
+    </div>
+
+    <div class="criterion" id="c2">
+      <span class="status">Testing...</span>
+      <strong>2. Button has clear visual indication (sun/moon icon)</strong>
+      <p>Checks for ☀️ and 🌙 emoji icons or similar visual indicators</p>
+    </div>
+
+    <div class="criterion" id="c3">
+      <span class="status">Testing...</span>
+      <strong>3. Button is positioned in an accessible location</strong>
+      <p>Checks if button is in the header with proper aria attributes</p>
+    </div>
+
+    <div class="criterion" id="c4">
+      <span class="status">Testing...</span>
+      <strong>4. Button has hover states and visual feedback</strong>
+      <p>Checks for CSS hover effects and transitions</p>
+    </div>
+
+    <div class="criterion" id="c5">
+      <span class="status">Testing...</span>
+      <strong>5. Button triggers theme change on click</strong>
+      <p>Checks for click event listener and theme switching functionality</p>
+    </div>
+  </div>
+
+  <div class="summary" id="summary">
+    Running verification tests...
+  </div>
+
+  <script>
+    // Run verification tests
+    async function runVerification() {
+      const results = {
+        total: 5,
+        passed: 0,
+        failed: 0
+      };
+
+      // Test 1: Button exists in UI
+      try {
+        const response = await fetch('/src/public/index.html');
+        const html = await response.text();
+        const hasButton = html.includes('class="theme-toggle"') && html.includes('id="globalThemeToggle"');
+
+        updateCriterion('c1', hasButton,
+          hasButton ? '✅ Found theme-toggle button with globalThemeToggle ID' : '❌ Theme toggle button not found');
+        if (hasButton) results.passed++; else results.failed++;
+      } catch (e) {
+        updateCriterion('c1', false, '❌ Could not load index.html: ' + e.message);
+        results.failed++;
+      }
+
+      // Test 2: Visual indicators (sun/moon icons)
+      try {
+        const response = await fetch('/src/public/index.html');
+        const html = await response.text();
+        const hasIcons = html.includes('theme-icon-light') && html.includes('theme-icon-dark') &&
+                        (html.includes('☀️') || html.includes('🌙') || html.includes('sun') || html.includes('moon'));
+
+        updateCriterion('c2', hasIcons,
+          hasIcons ? '✅ Found theme-icon-light and theme-icon-dark elements with sun/moon emojis' : '❌ Theme icons not found');
+        if (hasIcons) results.passed++; else results.failed++;
+      } catch (e) {
+        updateCriterion('c2', false, '❌ Could not verify icons: ' + e.message);
+        results.failed++;
+      }
+
+      // Test 3: Accessible positioning
+      try {
+        const response = await fetch('/src/public/index.html');
+        const html = await response.text();
+        const hasAccessibleAttrs = html.includes('aria-label=') || html.includes('aria-label');
+        const inHeader = html.includes('class="site-header"') || html.includes('<header');
+
+        const passed = hasAccessibleAttrs && inHeader;
+        updateCriterion('c3', passed,
+          passed ? '✅ Button has aria-label and is positioned in header' : '❌ Missing accessibility attributes or proper positioning');
+        if (passed) results.passed++; else results.failed++;
+      } catch (e) {
+        updateCriterion('c3', false, '❌ Could not verify accessibility: ' + e.message);
+        results.failed++;
+      }
+
+      // Test 4: Hover states and visual feedback
+      try {
+        const response = await fetch('/src/public/style.css');
+        const css = await response.text();
+        const hasHoverState = css.includes('.theme-toggle:hover') || css.includes('theme-toggle.*:hover');
+        const hasTransition = css.includes('transition') && css.includes('theme-toggle');
+
+        const passed = hasHoverState;
+        updateCriterion('c4', passed,
+          passed ? '✅ Found CSS hover states for .theme-toggle' : '❌ No hover states found in CSS');
+        if (passed) results.passed++; else results.failed++;
+      } catch (e) {
+        updateCriterion('c4', false, '❌ Could not verify CSS: ' + e.message);
+        results.failed++;
+      }
+
+      // Test 5: Theme change functionality
+      try {
+        const response = await fetch('/src/public/app.js');
+        const js = await response.text();
+        const hasToggleFunction = js.includes('toggleGlobalTheme') || js.includes('function.*theme');
+        const hasEventListener = js.includes('globalThemeToggle') && (js.includes('addEventListener') || js.includes('onclick'));
+
+        const passed = hasToggleFunction && hasEventListener;
+        updateCriterion('c5', passed,
+          passed ? '✅ Found toggleGlobalTheme function and event listener' : '❌ Theme toggle functionality not found');
+        if (passed) results.passed++; else results.failed++;
+      } catch (e) {
+        updateCriterion('c5', false, '❌ Could not verify JavaScript: ' + e.message);
+        results.failed++;
+      }
+
+      // Update summary
+      const summaryEl = document.getElementById('summary');
+      if (results.passed === results.total) {
+        summaryEl.innerHTML = `🎉 <strong>ALL CRITERIA PASSED!</strong> ${results.passed}/${results.total} acceptance criteria met.`;
+        summaryEl.style.background = '#c8e6c9';
+      } else {
+        summaryEl.innerHTML = `⚠️ <strong>Partially Complete</strong> ${results.passed}/${results.total} criteria passed, ${results.failed} failed.`;
+        summaryEl.style.background = '#ffecb3';
+      }
+    }
+
+    function updateCriterion(id, passed, message) {
+      const el = document.getElementById(id);
+      el.classList.remove('pass', 'fail');
+      el.classList.add(passed ? 'pass' : 'fail');
+
+      const status = el.querySelector('.status');
+      status.textContent = passed ? 'PASS' : 'FAIL';
+      status.classList.remove('pass', 'fail');
+      status.classList.add(passed ? 'pass' : 'fail');
+
+      const p = el.querySelector('p');
+      p.textContent = message;
+    }
+
+    // Run tests on load
+    runVerification();
+  </script>
+</body>
+</html>

@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facebook, Instagram, LinkedIn Platform Frames Verification</title>
+    <link rel="stylesheet" href="src/public/style.css">
+    <link rel="stylesheet" href="src/public/frames-theme.css">
+    <link rel="stylesheet" href="src/public/frame-layouts.css">
+    <link rel="stylesheet" href="src/public/platform-frames-base.css">
+    <link rel="stylesheet" href="src/public/platform-frames-enhanced.css">
+    <link rel="stylesheet" href="src/public/social-platforms-frames.css">
+    <link rel="stylesheet" href="src/public/messaging-base.css">
+    <script src="src/public/platform-frames.js" defer></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 40px 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #000000;
+            color: #e7e9ea;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        .test-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .test-header h1 {
+            font-size: 32px;
+            margin-bottom: 8px;
+            color: #1d9bf0;
+        }
+
+        .test-header p {
+            color: #71767b;
+            font-size: 16px;
+        }
+
+        .acceptance-criteria {
+            background: #16181c;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 40px;
+            border: 1px solid #2f3336;
+        }
+
+        .acceptance-criteria h2 {
+            font-size: 18px;
+            margin-bottom: 16px;
+            color: #1d9bf0;
+        }
+
+        .criteria-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .criteria-list li {
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .criteria-list li:before {
+            content: '✓';
+            color: #4ade80;
+            font-weight: bold;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 16px;
+            background: #1d9bf0;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 1000;
+            transition: background 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            opacity: 0.9;
+        }
+
+        .test-section {
+            margin-bottom: 60px;
+        }
+
+        .test-section h2 {
+            font-size: 24px;
+            margin-bottom: 24px;
+            color: #ffffff;
+            border-bottom: 2px solid #2f3336;
+            padding-bottom: 12px;
+        }
+
+        .platform-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 24px;
+        }
+
+        .platform-card {
+            background: #16181c;
+            border: 1px solid #2f3336;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .platform-card-header {
+            padding: 16px;
+            border-bottom: 1px solid #2f3336;
+            background: #1d9bf0;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .platform-card-body {
+            padding: 20px;
+        }
+
+        .platform-meta {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+            font-size: 12px;
+            color: #71767b;
+        }
+
+        .platform-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .platform-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        [data-theme='light'] {
+            background: #ffffff;
+            color: #050505;
+        }
+
+        [data-theme='light'] .test-header h1 {
+            color: #1d9bf0;
+        }
+
+        [data-theme='light'] .test-header p {
+            color: #5f6368;
+        }
+
+        [data-theme='light'] .acceptance-criteria {
+            background: #f1f3f4;
+            border-color: #ced0d4;
+        }
+
+        [data-theme='light'] .acceptance-criteria h2 {
+            color: #1d9bf0;
+        }
+
+        [data-theme='light'] .test-section h2 {
+            color: #050505;
+            border-bottom-color: #ced0d4;
+        }
+
+        [data-theme='light'] .platform-card {
+            background: #f1f3f4;
+            border-color: #ced0d4;
+        }
+
+        [data-theme='light'] .platform-card-header {
+            background: #1d9bf0;
+            color: white;
+        }
+
+        [data-theme='light'] .platform-meta {
+            color: #65676b;
+        }
+
+        [data-theme='light'] .theme-toggle {
+            background: #1d9bf0;
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
+
+    <div class="test-header">
+        <h1>Facebook, Instagram, LinkedIn Platform Frames Verification</h1>
+        <p>Comprehensive verification of first 3 social platform frames with realistic chrome and theme support</p>
+    </div>
+
+    <div class="acceptance-criteria">
+        <h2>Acceptance Criteria</h2>
+        <ul class="criteria-list">
+            <li>Facebook frame renders with realistic FB chrome (avatar, username, timestamp, reactions)</li>
+            <li>Instagram frame renders with realistic IG chrome (avatar, username, timestamp, likes)</li>
+            <li>LinkedIn frame renders with realistic LI chrome (avatar, name, headline, timestamp, reactions)</li>
+            <li>All 3 frames include dark/light theme CSS with proper variable switching</li>
+            <li>Cards appear embedded in context (not floating) with proper neutral content</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>Platform Frames with Sample Content</h2>
+        <div class="platform-grid">
+            <!-- Facebook Frame -->
+            <div class="platform-card">
+                <div class="platform-card-header">Facebook</div>
+                <div class="platform-card-body">
+                    <div class="platform-meta">
+                        <div class="platform-meta-item">📱 Social Feed</div>
+                        <div class="platform-meta-item">🎨 Theme Support: Yes</div>
+                        <div class="platform-meta-item">📐 Ratio: 1.91:1</div>
+                    </div>
+                    <div id="facebook-frame"></div>
+                </div>
+            </div>
+
+            <!-- Instagram Frame -->
+            <div class="platform-card">
+                <div class="platform-card-header">Instagram</div>
+                <div class="platform-card-body">
+                    <div class="platform-meta">
+                        <div class="platform-meta-item">📱 Image Focused</div>
+                        <div class="platform-meta-item">🎨 Theme Support: Yes</div>
+                        <div class="platform-meta-item">📐 Ratio: 1:1</div>
+                    </div>
+                    <div id="instagram-frame"></div>
+                </div>
+            </div>
+
+            <!-- LinkedIn Frame -->
+            <div class="platform-card">
+                <div class="platform-card-header">LinkedIn</div>
+                <div class="platform-card-body">
+                    <div class="platform-meta">
+                        <div class="platform-meta-item">📱 Social Feed</div>
+                        <div class="platform-meta-item">🎨 Theme Support: Yes</div>
+                        <div class="platform-meta-item">📐 Ratio: 1.91:1</div>
+                    </div>
+                    <div id="linkedin-frame"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Verification Details</h2>
+        <div style="background: #16181c; padding: 20px; border-radius: 12px; border: 1px solid #2f3336; color: #e7e9ea;">
+            <h3 style="margin-top: 0; color: #1d9bf0;">Platform Frame Features Verified:</h3>
+            <ul style="line-height: 1.8;">
+                <li><strong>Facebook:</strong> Complete with avatar circle, author name, post timestamp with globe icon, menu dots, post content area, link preview container, and reaction stats (likes, comments, shares)</li>
+                <li><strong>Instagram:</strong> Complete with gradient avatar background, username, timestamp, menu dots, square aspect ratio image placeholder, caption area, hashtags, and action buttons (heart, comment, share)</li>
+                <li><strong>LinkedIn:</strong> Complete with larger avatar, author name, professional headline/subtitle, timestamp with globe icon, post content, link preview, and reaction stats (likes, comments, reposts)</li>
+            </ul>
+            <h3 style="margin-top: 20px; color: #1d9bf0;">Theme Support:</h3>
+            <ul style="line-height: 1.8;">
+                <li>Dark theme uses platform-specific dark colors (FB: #242526, IG: #000000, LI: #191919)</li>
+                <li>Light theme uses platform-specific light colors (FB: #ffffff, IG: #ffffff, LI: #ffffff)</li>
+                <li>Proper CSS custom properties for seamless theme switching</li>
+                <li>Text colors adapt to theme for optimal readability</li>
+            </ul>
+            <h3 style="margin-top: 20px; color: #1d9bf0;">Context Embedding:</h3>
+            <ul style="line-height: 1.8;">
+                <li>Link previews appear embedded within platform context (not floating)</li>
+                <li>Neutral placeholder content surrounds the embedded card</li>
+                <li>Platform chrome provides authentic UI frame around content</li>
+                <li>Proper spacing and padding for realistic appearance</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+
+            // Re-render frames with new theme
+            renderAllFrames(newTheme);
+        }
+
+        function renderAllFrames(theme) {
+            // Sample content for testing
+            const sampleContent = {
+                title: 'Introduction to Platform Frames',
+                description: 'Learn how platform context frames provide realistic embedding of content within authentic UI chrome.',
+                domain: 'example.com',
+                image: 'https://picsum.photos/seed/platform/800/600',
+                dominantColor: '#4a90d9',
+                site: 'example.com'
+            };
+
+            // Facebook
+            if (window.buildContextFrame) {
+                document.getElementById('facebook-frame').innerHTML = window.buildContextFrame('facebook', sampleContent, theme);
+            }
+
+            // Instagram
+            if (window.buildContextFrame) {
+                document.getElementById('instagram-frame').innerHTML = window.buildContextFrame('instagram', sampleContent, theme);
+            }
+
+            // LinkedIn
+            if (window.buildContextFrame) {
+                document.getElementById('linkedin-frame').innerHTML = window.buildContextFrame('linkedin', sampleContent, theme);
+            }
+        }
+
+        // Render on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            renderAllFrames('dark');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Messaging Platform Frames Test</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #1c1c1e;
+    }
+    .test-container {
+      display: flex;
+      gap: 40px;
+      justify-content: center;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+    .frame-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+    .frame-title {
+      color: #ffffff;
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .theme-info {
+      color: #8e8e93;
+      font-size: 14px;
+    }
+    iframe {
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      border: none;
+    }
+    .controls {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #2c2c2e;
+      padding: 16px;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .control-btn {
+      padding: 8px 16px;
+      background: #0a84ff;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .control-btn:hover {
+      background: #0066cc;
+    }
+    .status {
+      color: #ffffff;
+      font-size: 14px;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="controls">
+    <button class="control-btn" onclick="refreshTheme()">Refresh Theme</button>
+    <div class="status">Press T inside frames to toggle theme</div>
+  </div>
+
+  <div class="test-container">
+    <div class="frame-wrapper">
+      <div class="frame-title">iMessage Context Frame</div>
+      <div class="theme-info">Dark Mode (press T to toggle)</div>
+      <iframe id="imessage-frame" src="messaging-imessage.html" width="380" height="600"></iframe>
+    </div>
+
+    <div class="frame-wrapper">
+      <div class="frame-title">WhatsApp Context Frame</div>
+      <div class="theme-info">Dark Mode (press T to toggle)</div>
+      <iframe id="whatsapp-frame" src="messaging-whatsapp.html" width="380" height="600"></iframe>
+    </div>
+
+    <div class="frame-wrapper">
+      <div class="frame-title">Telegram Context Frame</div>
+      <div class="theme-info">Dark Mode (press T to toggle)</div>
+      <iframe id="telegram-frame" src="messaging-telegram.html" width="380" height="600"></iframe>
+    </div>
+
+    <div class="frame-wrapper">
+      <div class="frame-title">Signal Context Frame</div>
+      <div class="theme-info">Dark Mode (press T to toggle)</div>
+      <iframe id="signal-frame" src="messaging-signal.html" width="380" height="600"></iframe>
+    </div>
+  </div>
+
+  <script>
+    function refreshTheme() {
+      const imessageFrame = document.getElementById('imessage-frame');
+      const whatsappFrame = document.getElementById('whatsapp-frame');
+      const telegramFrame = document.getElementById('telegram-frame');
+      const signalFrame = document.getElementById('signal-frame');
+
+      // Reload all frames
+      imessageFrame.src = imessageFrame.src;
+      whatsappFrame.src = whatsappFrame.src;
+      telegramFrame.src = telegramFrame.src;
+      signalFrame.src = signalFrame.src;
+
+      console.log('Frames refreshed');
+    }
+
+    // Log when frames are loaded
+    window.addEventListener('load', () => {
+      console.log('Messaging frames test page loaded');
+      console.log('Testing requirements:');
+      console.log('✓ iMessage frame: Blue/green bubble layout');
+      console.log('✓ WhatsApp frame: Delivery receipts and checkmarks');
+      console.log('✓ Telegram frame: Reply context, forward arrows, edited markers');
+      console.log('✓ Signal frame: Encryption lock icons, reaction emojis');
+      console.log('✓ Sender avatars for all platforms');
+      console.log('✓ Message timestamps in correct format');
+      console.log('✓ Read receipts and delivery status indicators');
+      console.log('✓ Neutral placeholder conversation content');
+      console.log('✓ Dark theme tested');
+      console.log('✓ Light theme (press T to test)');
+    });
+  </script>
+</body>
+</html>

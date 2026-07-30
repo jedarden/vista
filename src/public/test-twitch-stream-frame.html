@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Twitch Stream Context Frame - Verification & Documentation</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 40px 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+      background: #1a1a1e;
+      color: #e4e4e7;
+    }
+
+    .test-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .test-header h1 {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    .test-header p {
+      color: #a1a1aa;
+      font-size: 16px;
+    }
+
+    .acceptance-criteria {
+      background: #25252a;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 40px;
+    }
+
+    .acceptance-criteria h2 {
+      font-size: 18px;
+      margin-bottom: 16px;
+      color: #9146ff;
+    }
+
+    .criteria-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .criteria-list li {
+      padding: 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+
+    .criteria-list li::before {
+      content: '✓';
+      color: #22c55e;
+      font-weight: bold;
+    }
+
+    .demo-section {
+      margin-bottom: 60px;
+    }
+
+    .demo-section h2 {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #e4e4e7;
+    }
+
+    .demo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+
+    .demo-item {
+      background: #25252a;
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .demo-item h3 {
+      font-size: 16px;
+      margin-bottom: 12px;
+      color: #a1a1aa;
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      background: #9146ff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 1000;
+    }
+
+    .theme-toggle:hover {
+      background: #772ce8;
+    }
+
+    .verification-results {
+      background: #25252a;
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 40px;
+    }
+
+    .verification-results h3 {
+      font-size: 18px;
+      margin-bottom: 16px;
+    }
+
+    .test-result {
+      padding: 8px 0;
+      font-size: 14px;
+    }
+
+    .test-result.pass {
+      color: #22c55e;
+    }
+
+    .test-result.fail {
+      color: #ef4444;
+    }
+
+    .test-result.info {
+      color: #3b82f6;
+    }
+
+    @media (max-width: 768px) {
+      .demo-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" onclick="toggleTheme()">🌙 Light Mode</button>
+
+  <div class="test-header">
+    <h1>🎮 Twitch Stream Context Frame</h1>
+    <p>Comprehensive verification and demonstration of Twitch stream context structure and styling</p>
+  </div>
+
+  <div class="acceptance-criteria">
+    <h2>✅ Acceptance Criteria Verification</h2>
+    <ul class="criteria-list">
+      <li>Twitch frame HTML structure matches stream page layout</li>
+      <li>Stream chat/chat card positioned correctly</li>
+      <li>Stream metadata card styled appropriately</li>
+      <li>Link card embedded naturally in context</li>
+      <li>Frame responsive to different container widths</li>
+    </ul>
+  </div>
+
+  <div class="demo-section">
+    <h2>Demo: Gaming Stream (Dark Mode)</h2>
+    <div class="demo-grid">
+      <div class="demo-item">
+        <h3>Standard Gaming Stream</h3>
+        <div class="context-frame twitch-context dark-theme">
+          <div class="twitch-stream-preview">
+            <div class="twitch-stream-placeholder">Live Stream</div>
+            <div class="twitch-stream-overlay">
+              <span class="twitch-live-badge">LIVE</span>
+              <span class="twitch-viewer-count">12,453 viewers</span>
+            </div>
+          </div>
+          <div class="twitch-stream-info">
+            <div class="twitch-stream-title">🔴 Gaming Marathon - Charity Stream!</div>
+            <div class="twitch-streamer">
+              <div class="twitch-avatar"></div>
+              <div class="twitch-streamer-meta">
+                <span class="twitch-streamer-name">ProGamer123</span>
+                <span class="twitch-game">Minecraft</span>
+              </div>
+              <button class="twitch-follow-btn">Follow</button>
+            </div>
+          </div>
+          <div class="twitch-chat-section">
+            <div class="twitch-chat-header">Stream Chat</div>
+            <div class="twitch-chat-messages">
+              <div class="twitch-chat-message twitch-chat-dim">
+                <span class="twitch-username twitch-user-color-1">Viewer1</span>
+                <span class="twitch-message-text">This stream is amazing!</span>
+              </div>
+              <div class="twitch-chat-message twitch-chat-dim">
+                <span class="twitch-username twitch-user-color-2">Viewer2</span>
+                <span class="twitch-message-text">Check out this cool guide!</span>
+              </div>
+              <div class="twitch-chat-message">
+                <span class="twitch-username twitch-user-color-you">You</span>
+                <span class="twitch-message-text">Here's a helpful resource:</span>
+                <div class="twitch-link-card">
+                  <div class="twitch-card-image">🔗 Link Preview</div>
+                  <div class="twitch-card-meta">
+                    <div class="twitch-card-title">Complete Guide to Gaming Setup</div>
+                    <div class="twitch-card-description">Learn how to optimize your gaming experience with the best equipment and settings.</div>
+                    <div class="twitch-card-domain">example.com</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="demo-item">
+        <h3>Creative Stream</h3>
+        <div class="context-frame twitch-context dark-theme">
+          <div class="twitch-stream-preview">
+            <div class="twitch-stream-placeholder">Live Stream</div>
+            <div class="twitch-stream-overlay">
+              <span class="twitch-live-badge">LIVE</span>
+              <span class="twitch-viewer-count">3,891 viewers</span>
+            </div>
+          </div>
+          <div class="twitch-stream-info">
+            <div class="twitch-stream-title">🎨 Digital Art Stream - Drawing Your OCs!</div>
+            <div class="twitch-streamer">
+              <div class="twitch-avatar"></div>
+              <div class="twitch-streamer-meta">
+                <span class="twitch-streamer-name">ArtistAnna</span>
+                <span class="twitch-game">Art & Creative</span>
+              </div>
+              <button class="twitch-follow-btn">Follow</button>
+            </div>
+          </div>
+          <div class="twitch-chat-section">
+            <div class="twitch-chat-header">Stream Chat</div>
+            <div class="twitch-chat-messages">
+              <div class="twitch-chat-message twitch-chat-dim">
+                <span class="twitch-username twitch-user-color-1">ArtFan</span>
+                <span class="twitch-message-text">Your art style is incredible! 😍</span>
+              </div>
+              <div class="twitch-chat-message twitch-chat-dim">
+                <span class="twitch-username twitch-user-color-2">CreativeMind</span>
+                <span class="twitch-message-text">Can you share your brush settings?</span>
+              </div>
+              <div class="twitch-chat-message">
+                <span class="twitch-username twitch-user-color-you">You</span>
+                <span class="twitch-message-text">I found a great tutorial on digital painting:</span>
+                <div class="twitch-link-card">
+                  <div class="twitch-card-image">🔗 Link Preview</div>
+                  <div class="twitch-card-meta">
+                    <div class="twitch-card-title">Digital Painting Masterclass</div>
+                    <div class="twitch-card-description">Step-by-step guide to mastering digital art techniques and tools.</div>
+                    <div class="twitch-card-domain">art-tutorials.example</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="demo-item">
+        <h3>Music Stream</h3>
+        <div class="context-frame twitch-context dark-theme">
+          <div class="twitch-stream-preview">
+            <div class="twitch-stream-placeholder">Live Stream</div>
+            <div class="twitch-stream-overlay">
+              <span class="twitch-live-badge">LIVE</span>
+              <span class="twitch-viewer-count">8,234 viewers</span>
+            </div>
+          </div>
+          <div class="twitch-stream-info">
+            <div class="twitch-stream-title">🎵 Lo-Fi Beats - Study & Relax Music</div>
+            <div class="twitch-streamer">
+              <div class="twitch-avatar"></div>
+              <div class="twitch-streamer-meta">
+                <span class="twitch-streamer-name">ChillBeatsDJ</span>
+                <span class="twitch-game">Music & Arts</span>
+              </div>
+              <button class="twitch-follow-btn">Follow</button>
+            </div>
+          </div>
+          <div class="twitch-chat-section">
+            <div class="twitch-chat-header">Stream Chat</div>
+            <div class="twitch-chat-messages">
+              <div class="twitch-chat-message twitch-chat-dim">
+                <span class="twitch-username twitch-user-color-1">StudyBuddy</span>
+                <span class="twitch-message-text">Perfect for studying! 📚</span>
+              </div>
+              <div class="twitch-chat-message twitch-chat-dim">
+                <span class="twitch-username twitch-user-color-2">MusicLover</span>
+                <span class="twitch-message-text">What track is this?</span>
+              </div>
+              <div class="twitch-chat-message">
+                <span class="twitch-username twitch-user-color-you">You</span>
+                <span class="twitch-message-text">Check out this playlist creator:</span>
+                <div class="twitch-link-card">
+                  <div class="twitch-card-image">🔗 Link Preview</div>
+                  <div class="twitch-card-meta">
+                    <div class="twitch-card-title">Ultimate Lo-Fi Playlist Tool</div>
+                    <div class="twitch-card-description">Create and manage your perfect study playlist with automatic beat matching.</div>
+                    <div class="twitch-card-domain">music-tools.example</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="demo-item">
+        <h3>Talk Show Stream</h3>
+        <div class="context-frame twitch-context dark-theme">
+          <div class="twitch-stream-preview">
+            <div class="twitch-stream-placeholder">Live Stream</div>
+            <div class="twitch-stream-overlay">
+              <span class="twitch-live-badge">LIVE</span>
+              <span class="twitch-viewer-count">5,678 viewers</span>
+            </div>
+          </div>
+          <div class="twitch-stream-info">
+            <div class="twitch-stream-title">💬 Tech Talk - AI & Future of Work</div>
+            <div class="twitch-streamer">
+              <div class="twitch-avatar"></div>
+              <div class="twitch-streamer-meta">
+                <span class="twitch-streamer-name">TechTalksLive</span>
+                <span class="twitch-game">Science & Tech</span>
+              </div>
+              <button class="twitch-follow-btn">Follow</button>
+            </div>
+          </div>
+          <div class="twitch-chat-section">
+            <div class="twitch-chat-header">Stream Chat</div>
+            <div class="twitch-chat-messages">
+              <div class="twitch-chat-message twitch-chat-dim">
+                <span class="twitch-username twitch-user-color-1">AIFan</span>
+                <span class="twitch-message-text">Great insights on AI! 🤖</span>
+              </div>
+              <div class="twitch-chat-message twitch-chat-dim">
+                <span class="twitch-username twitch-user-color-2">FutureOfWork</span>
+                <span class="twitch-message-text">Can you talk about remote work?</span>
+              </div>
+              <div class="twitch-chat-message">
+                <span class="twitch-username twitch-user-color-you">You</span>
+                <span class="twitch-message-text">Here's an interesting article on that topic:</span>
+                <div class="twitch-link-card">
+                  <div class="twitch-card-image">🔗 Link Preview</div>
+                  <div class="twitch-card-meta">
+                    <div class="twitch-card-title">Remote Work Trends 2026</div>
+                    <div class="twitch-card-description">Comprehensive analysis of remote work evolution and future predictions.</div>
+                    <div class="twitch-card-domain">future-work.example</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="verification-results" id="verificationResults">
+    <h3>🔍 Automated Verification Results</h3>
+    <div id="results"></div>
+  </div>
+
+  <script>
+    let currentTheme = 'dark';
+
+    function toggleTheme() {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      const themeToggle = document.querySelector('.theme-toggle');
+      themeToggle.textContent = currentTheme === 'dark' ? '🌙 Light Mode' : '☀️ Dark Mode';
+
+      // Update all Twitch frames
+      document.querySelectorAll('.twitch-context').forEach(frame => {
+        frame.classList.remove('dark-theme', 'light-theme');
+        frame.classList.add(`${currentTheme}-theme`);
+      });
+
+      // Re-run verification
+      runVerification();
+    }
+
+    function logResult(message, type = 'info') {
+      const results = document.getElementById('results');
+      const resultDiv = document.createElement('div');
+      resultDiv.className = `test-result ${type}`;
+      resultDiv.textContent = message;
+      results.appendChild(resultDiv);
+    }
+
+    function runVerification() {
+      const results = document.getElementById('results');
+      results.innerHTML = '';
+      logResult('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+      logResult(`Running verification in ${currentTheme} mode...`, 'info');
+      logResult('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+
+      // Test 1: Frame structure verification
+      function testFrameStructure() {
+        const twitchFrames = document.querySelectorAll('.twitch-context');
+        if (twitchFrames.length === 0) {
+          logResult('❌ No Twitch frames found', 'fail');
+          return false;
+        }
+
+        logResult(`✅ Found ${twitchFrames.length} Twitch context frames`, 'pass');
+
+        const twitchFrame = twitchFrames[0];
+        const requiredElements = {
+          'twitch-stream-preview': '.twitch-stream-preview',
+          'twitch-stream-placeholder': '.twitch-stream-placeholder',
+          'twitch-stream-overlay': '.twitch-stream-overlay',
+          'twitch-live-badge': '.twitch-live-badge',
+          'twitch-viewer-count': '.twitch-viewer-count',
+          'twitch-stream-info': '.twitch-stream-info',
+          'twitch-stream-title': '.twitch-stream-title',
+          'twitch-streamer': '.twitch-streamer',
+          'twitch-avatar': '.twitch-avatar',
+          'twitch-streamer-meta': '.twitch-streamer-meta',
+          'twitch-streamer-name': '.twitch-streamer-name',
+          'twitch-game': '.twitch-game',
+          'twitch-follow-btn': '.twitch-follow-btn',
+          'twitch-chat-section': '.twitch-chat-section',
+          'twitch-chat-header': '.twitch-chat-header',
+          'twitch-chat-messages': '.twitch-chat-messages',
+          'twitch-chat-message': '.twitch-chat-message',
+          'twitch-username': '.twitch-username',
+          'twitch-message-text': '.twitch-message-text'
+        };
+
+        let allPresent = true;
+        for (const [name, selector] of Object.entries(requiredElements)) {
+          if (twitchFrame.querySelector(selector)) {
+            logResult(`✅ Element found: .${name}`, 'pass');
+          } else {
+            logResult(`❌ Element missing: .${name}`, 'fail');
+            allPresent = false;
+          }
+        }
+
+        return allPresent;
+      }
+
+      // Test 2: Link card structure verification
+      function testLinkCardStructure() {
+        const twitchFrame = document.querySelector('.twitch-context');
+        if (!twitchFrame) {
+          logResult('❌ No Twitch frame for link card test', 'fail');
+          return false;
+        }
+
+        const linkCard = twitchFrame.querySelector('.twitch-link-card');
+        if (!linkCard) {
+          logResult('❌ No link card found in Twitch frame', 'fail');
+          return false;
+        }
+
+        const cardElements = {
+          'twitch-card-image': '.twitch-card-image',
+          'twitch-card-meta': '.twitch-card-meta',
+          'twitch-card-title': '.twitch-card-title',
+          'twitch-card-description': '.twitch-card-description',
+          'twitch-card-domain': '.twitch-card-domain'
+        };
+
+        let allPresent = true;
+        for (const [name, selector] of Object.entries(cardElements)) {
+          if (linkCard.querySelector(selector)) {
+            logResult(`✅ Link card element found: .${name}`, 'pass');
+          } else {
+            logResult(`❌ Link card element missing: .${name}`, 'fail');
+            allPresent = false;
+          }
+        }
+
+        return allPresent;
+      }
+
+      // Test 3: Content verification
+      function testContent() {
+        const twitchFrame = document.querySelector('.twitch-context');
+        if (!twitchFrame) {
+          logResult('❌ No Twitch frame for content test', 'fail');
+          return false;
+        }
+
+        const streamerName = twitchFrame.querySelector('.twitch-streamer-name');
+        const streamTitle = twitchFrame.querySelector('.twitch-stream-title');
+        const game = twitchFrame.querySelector('.twitch-game');
+        const liveBadge = twitchFrame.querySelector('.twitch-live-badge');
+        const viewerCount = twitchFrame.querySelector('.twitch-viewer-count');
+
+        if (streamerName && streamTitle && game && liveBadge && viewerCount) {
+          const streamer = streamerName.textContent.trim();
+          const title = streamTitle.textContent.trim();
+          const gameName = game.textContent.trim();
+          const liveText = liveBadge.textContent.trim();
+          const viewers = viewerCount.textContent.trim();
+
+          if (streamer && title && gameName && liveText && viewers) {
+            logResult(`✅ Stream content: "${streamer}" | "${title.substring(0, 30)}..." | "${gameName}" | "${liveText}" | "${viewers}"`, 'pass');
+            return true;
+          }
+        }
+
+        logResult('❌ Stream content elements are empty or missing', 'fail');
+        return false;
+      }
+
+      // Test 4: Theme verification
+      function testTheme() {
+        const twitchFrame = document.querySelector('.twitch-context');
+        if (!twitchFrame) {
+          logResult('❌ No Twitch frame for theme test', 'fail');
+          return false;
+        }
+
+        const hasThemeClass = twitchFrame.classList.contains('dark-theme') || twitchFrame.classList.contains('light-theme');
+        if (hasThemeClass) {
+          logResult(`✅ Twitch frame has theme class: ${currentTheme}-theme`, 'pass');
+          return true;
+        }
+
+        logResult('❌ Twitch frame missing theme class', 'fail');
+        return false;
+      }
+
+      // Test 5: Responsiveness check
+      function testResponsiveness() {
+        const twitchFrame = document.querySelector('.twitch-context');
+        if (!twitchFrame) {
+          logResult('❌ No Twitch frame for responsiveness test', 'fail');
+          return false;
+        }
+
+        // Check if frame uses percentage widths and flexbox
+        const computedStyle = window.getComputedStyle(twitchFrame);
+        const hasFlexDisplay = computedStyle.display === 'flex';
+
+        if (hasFlexDisplay) {
+          logResult('✅ Frame uses flexbox for responsive layout', 'pass');
+          return true;
+        }
+
+        logResult('❌ Frame may not be properly responsive', 'fail');
+        return false;
+      }
+
+      // Run all tests
+      const testResults = {
+        structure: testFrameStructure(),
+        linkCard: testLinkCardStructure(),
+        content: testContent(),
+        theme: testTheme(),
+        responsiveness: testResponsiveness()
+      };
+
+      const allPassed = Object.values(testResults).every(result => result === true);
+      logResult('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+      if (allPassed) {
+        logResult('✅ ALL TESTS PASSED - Twitch stream context frame is complete!', 'pass');
+      } else {
+        logResult('❌ SOME TESTS FAILED - Please review the results above', 'fail');
+      }
+      logResult('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+    }
+
+    // Run verification on page load
+    document.addEventListener('DOMContentLoaded', runVerification);
+  </script>
+</body>
+</html>

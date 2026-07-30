@@ -10,11 +10,29 @@
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23111'/><text y='24' x='4' font-size='22' fill='%23fff'>V</text></svg>" />
+  <script>
+    // Prevent FOUC: Apply saved theme immediately before any content renders
+    (function() {
+      try {
+        const savedTheme = localStorage.getItem('vista-theme');
+        if (savedTheme) {
+          document.documentElement.setAttribute('data-theme', savedTheme);
+        } else {
+          // Default to dark theme if no preference saved
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      } catch (e) {
+        // Fallback if localStorage is unavailable
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;600;700&family=Montserrat:wght@400;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="frames-theme.css" />
+  <link rel="stylesheet" href="frame-layouts.css" />
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 </head>
@@ -38,6 +56,7 @@
         <button class="nav-btn" id="navPaste">Paste HTML</button>
         <button class="nav-btn" id="navCompare">Compare</button>
         <button class="nav-btn" id="navSitemap">Sitemap</button>
+        <a href="/verify-all-43-platforms.html" class="nav-link" id="navVerify" title="Verify all platform infrastructure">Verify</a>
       </nav>
       <button class="theme-toggle" id="globalThemeToggle" aria-label="Switch to light mode" title="Toggle dark/light mode">
         <span class="theme-icon-light" aria-hidden="true">☀️</span>
@@ -163,19 +182,19 @@
         <div class="input-block hidden" id="sitemapMode">
           <div class="sitemap-tagline">
             <h2>Crawl your entire sitemap<br/>and generate a report card</h2>
-            <p>Enter a sitemap URL to analyze platform coverage across all pages.</p>
+            <p>Enter a domain or sitemap URL. We'll auto-detect the sitemap from robots.txt if needed, then analyze platform coverage across all pages.</p>
           </div>
           <form class="sitemap-form" id="sitemapForm">
             <div class="input-row">
               <span class="input-icon">&#128196;</span>
-              <label class="sr-only" for="sitemapInput">Sitemap XML URL</label>
+              <label class="sr-only" for="sitemapInput">Domain or sitemap URL</label>
               <input
                 type="url"
                 id="sitemapInput"
-                placeholder="https://example.com/sitemap.xml"
+                placeholder="example.com or example.com/sitemap.xml"
                 autocomplete="off"
                 spellcheck="false"
-                aria-label="Sitemap XML URL"
+                aria-label="Domain or sitemap URL"
               />
               <button type="submit" class="inspect-btn" id="sitemapBtn">
                 Crawl Sitemap &#9654;
@@ -210,7 +229,7 @@
           <div class="summary-url" id="summaryUrl"></div>
           <div class="summary-actions">
             <button class="action-btn primary" id="shareBtn">&#128279; Share</button>
-            <button class="action-btn" id="qrBtn">&#129440; QR Code</button>
+            <button class="action-btn" id="qrBtn" aria-label="Open QR code modal for sharing URL">&#129440; QR Code</button>
             <button class="action-btn" id="badgeBtn">&#127919; Get Badge</button>
             <button class="action-btn" id="newInspectBtn">New Inspect</button>
           </div>
@@ -256,12 +275,19 @@
           <div class="cropper-container" id="cropperContainer">
             <div class="cropper-main">
               <div class="cropper-viewport" id="cropperViewport">
-                <img id="cropperImage" class="cropper-image" alt="" />
-                <svg id="cropperOverlay" class="cropper-overlay"></svg>
+                <div class="cropper-stage">
+                  <img id="cropperImage" class="cropper-image" alt="" />
+                  <svg id="cropperOverlay" class="cropper-overlay"></svg>
+                </div>
+                <div class="cropper-empty hidden" id="cropperEmpty" role="status" aria-live="polite"></div>
               </div>
               <div class="cropper-sidebar">
                 <div class="cropper-actions">
                   <button class="action-btn primary" id="downloadOverlayBtn">&#128190; Download Overlay</button>
+                </div>
+                <div class="cropper-categories">
+                  <h4>Categories</h4>
+                  <div class="category-legend" id="cropperCategoryLegend" aria-label="Platform category color key"></div>
                 </div>
                 <div class="cropper-info">
                   <h4>Safe Zone Info</h4>
@@ -279,6 +305,7 @@
 
         <!-- Diagnostics tab -->
         <div class="tab-pane hidden" role="tabpanel" id="tabDiagnostics" aria-labelledby="tabnav-diagnostics">
+          <div class="diag-progress hidden" id="diagProgress" role="status" aria-live="polite"></div>
           <div class="diag-panel" id="diagPanel"></div>
         </div>
 
@@ -705,10 +732,10 @@
             <div class="customization-body">
               <div class="customization-section">
                 <h4>Column Layout</h4>
-                <div class="column-layout-selector">
-                  <button class="layout-btn" data-columns="2" title="2 columns">2</button>
-                  <button class="layout-btn active" data-columns="3" title="3 columns">3</button>
-                  <button class="layout-btn" data-columns="4" title="4 columns">4</button>
+                <div class="column-layout-selector" role="group" aria-label="Column layout">
+                  <button class="layout-btn" data-columns="2" aria-label="2 columns" aria-pressed="false">2</button>
+                  <button class="layout-btn active" data-columns="3" aria-label="3 columns" aria-pressed="true">3</button>
+                  <button class="layout-btn" data-columns="4" aria-label="4 columns" aria-pressed="false">4</button>
                 </div>
               </div>
               <div class="customization-section">
@@ -790,7 +817,7 @@
       </div>
       <div class="modal-body modal-body-qr">
         <div class="qr-preview" id="qrPreview">
-          <div id="qrCode"></div>
+          <div id="qrCode" role="img" aria-label="QR code containing the share URL"></div>
         </div>
         <div class="qr-url-section">
           <label for="qrShareUrl">Share URL:</label>
@@ -854,8 +881,19 @@
   </div>
 
   <script src="scoring-simulator.js"></script>
+  <script src="client-side-diff.js"></script>
+  <script src="platform-diff.js"></script>
+  <script src="image-diff.js"></script>
+  <script src="safe-zone.js"></script>
+  <script src="redirect-diagram.js"></script>
+  <script src="platform-redirect-data.js"></script>
+  <script src="platform-redirect-view.js"></script>
+  <script src="platform-frames-config.js"></script>
   <script src="platform-frames.js"></script>
   <script src="frames-theme.js"></script>
+  <script src="theme-subscription.js"></script>
+  <script src="frame-renderer.js"></script>
+  <script src="guard-utils.js"></script>
   <script src="app.js"></script>
   <script src="app-features.js"></script>
 </body>

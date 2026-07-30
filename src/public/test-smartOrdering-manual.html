@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VISTA smartOrdering Manual Test</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      padding: 40px;
+      max-width: 900px;
+      width: 100%;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .test-section {
+      margin-bottom: 30px;
+      padding-bottom: 30px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .test-section:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .test-section h2 {
+      color: #444;
+      font-size: 18px;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .test-section h2 .status {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #ddd;
+    }
+
+    .test-section h2 .status.passed {
+      background: #4CAF50;
+    }
+
+    .test-section h2 .status.failed {
+      background: #f44336;
+    }
+
+    .instructions {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .instructions code {
+      background: #e9ecef;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+
+    .test-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 15px;
+    }
+
+    button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: #5568d3;
+    }
+
+    button.secondary {
+      background: #6c757d;
+    }
+
+    button.secondary:hover {
+      background: #5a6268;
+    }
+
+    .result-box {
+      margin-top: 15px;
+      padding: 15px;
+      border-radius: 6px;
+      font-size: 14px;
+      display: none;
+    }
+
+    .result-box.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .result-box.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .result-box.info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+
+    .checkbox-group label {
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .notes {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      padding: 15px;
+      border-radius: 6px;
+      margin-top: 15px;
+      font-size: 14px;
+    }
+
+    .notes h3 {
+      margin-bottom: 10px;
+      color: #856404;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 12px;
+      resize: vertical;
+      margin-top: 10px;
+    }
+
+    .progress-bar {
+      display: flex;
+      height: 30px;
+      border-radius: 15px;
+      overflow: hidden;
+      margin-top: 20px;
+      background: #e9ecef;
+    }
+
+    .progress-fill {
+      height: 100%;
+      transition: width 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .progress-fill.passed {
+      background: #4CAF50;
+    }
+
+    .link-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .link-row input {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: monospace;
+    }
+
+    .link-row button {
+      padding: 8px 16px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧪 VISTA smartOrdering Manual Test</h1>
+    <p class="subtitle">Manual UI testing checklist for smartOrdering functionality</p>
+
+    <div class="progress-bar">
+      <div class="progress-fill passed" id="progressBar" style="width: 0%">0%</div>
+    </div>
+
+    <!-- Test 1: Initial Page Load -->
+    <div class="test-section" id="test1">
+      <h2><span class="status" id="status1"></span>Test 1: Initial Page Load with smartOrdering</h2>
+      <div class="instructions">
+        <strong>Steps:</strong>
+        <ol>
+          <li>Click the link below to open VISTA with smartOrdering=true</li>
+          <li>Verify the page loads without errors</li>
+          <li>Check the browser console (F12 → Console) for any errors</li>
+          <li>Confirm platform cards are rendered</li>
+        </ol>
+      </div>
+      <div class="link-row">
+        <input type="text" value="http://localhost:3000/?smartOrdering=true" readonly>
+        <button onclick="window.open('http://localhost:3000/?smartOrdering=true', '_blank')">Open VISTA</button>
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="check1" onchange="updateProgress()">
+        <label for="check1">Page loads successfully with smartOrdering=true</label>
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="check1b" onchange="updateProgress()">
+        <label for="check1b">No console errors on initial load</label>
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="check1c" onchange="updateProgress()">
+        <label for="check1c">Platform cards are visible</label>
+      </div>
+    </div>
+
+    <!-- Test 2: URL Input Functionality -->
+    <div class="test-section" id="test2">
+      <h2><span class="status" id="status2"></span>Test 2: URL Input and Analysis</h2>
+      <div class="instructions">
+        <strong>Steps:</strong>
+        <ol>
+          <li>In the VISTA page, type "https://github.com" in the URL input field</li>
+          <li>Click the "Inspect" or "Analyze" button</li>
+          <li>Verify the results load without errors</li>
+          <li>Check that platform cards show preview data</li>
+        </ol>
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="check2" onchange="updateProgress()">
+        <label for="check2">URL input accepts text without errors</label>
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="check2b" onchange="updateProgress()">
+        <label for="check2b">Analyze button works and loads results</label>
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="check2c" onchange="updateProgress()">
+        <label for="check2c">Platform cards display preview data</label>
+      </div>
+    </div>
+
+    <!-- Test 3: Platform Card Interactions -->
+    <div class="test-section" id="test3">
+      <h2><span class="status" id="status3"></span>Test 3: Platform Card Interactions</h2>
+      <div class="instructions">
+        <strong>Steps:</strong>
+        <ol>
+          <li>Hover over a platform card</li>
+          <li>Click the favorite button (heart icon) on any platform card</li>
+          <li>Verify visual feedback (button state changes)</li>
+          <li>Check browser console for errors</li>
+        </ol>
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="check3" onchange="updateProgress()">
+        <label for="check3">Hover effects work on platform cards</label>
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="check3b" onchange="updateProgress()">
+        <label for="check3b">Favorite button can be clicked</label>
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="check3c" onchange="updateProgress()">
+        <label for="check3c">Visual feedback appears after clicking favorite</label>
+      </div>
+    </div>
+
+    <!-- Test 4: smartOrdering Verification -->
+    <div class="test-section" id="test4">
+      <h2><span class="status" id="status4"></span>Test 4: Verify smartOrdering is Active</h2>
+      <div class="instructions">
+        <strong>Steps:</strong>
+        <ol>
+          <li>Open browser console (F12 → Console)</li>
+          <li>Type: <code>window.platformPrefs.smartOrdering</code></li>
+          <li>Verify it returns <code>true</code></li>
+          <li>Or check URL: <code>new URLSearchParams(location.search).get('smartOrdering')</code></li>
+        </ol>
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="check4" onchange="updateProgress()">
+        <label for="check4">window.platformPrefs.smartOrdering returns true</label>
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="check4b" onchange="updateProgress()">
+        <label for="check4b">URL parameter smartOrdering=true is present</label>
+      </div>
+    </div>
+
+    <!-- Test 5: Column Count Selector -->
+    <div class="test-section" id="test5">
+      <h2><span class="status" id="status5"></span>Test 5: Column Count Selector</h2>
+      <div class="instructions">
+        <strong>Steps:</strong>
+        <ol>
+          <li>Find the column count selector (usually 1, 2, 3, 4 buttons)</li>
+          <li>Click different column counts</li>
+          <li>Verify platform cards rearrange accordingly</li>
+          <li>Check for any layout issues</li>
+        </ol>
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="check5" onchange="updateProgress()">
+        <label for="check5">Column selector is visible</label>
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="check5b" onchange="updateProgress()">
+        <label for="check5b">Changing column count updates layout correctly</label>
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="check5c" onchange="updateProgress()">
+        <label for="check5c">No layout breaks or overlapping issues</label>
+      </div>
+    </div>
+
+    <!-- Test 6: Dark/Light Mode Toggle -->
+    <div class="test-section" id="test6">
+      <h2><span class="status" id="status6"></span>Test 6: Theme Toggle</h2>
+      <div class="instructions">
+        <strong>Steps:</strong>
+        <ol>
+          <li>Click the theme toggle button (☀️/🌙) in the header</li>
+          <li>Verify the theme changes from dark to light or vice versa</li>
+          <li>Check that platform cards remain readable</li>
+          <li>Verify no console errors occur</li>
+        </ol>
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="check6" onchange="updateProgress()">
+        <label for="check6">Theme toggle button is visible</label>
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="check6b" onchange="updateProgress()">
+        <label for="check6b">Theme changes when button is clicked</label>
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="check6c" onchange="updateProgress()">
+        <label for="check6c">Platform cards remain readable in both themes</label>
+      </div>
+    </div>
+
+    <!-- Notes Section -->
+    <div class="notes">
+      <h3>📝 Test Notes</h3>
+      <p>Document any issues found during testing:</p>
+      <textarea id="testNotes" placeholder="Enter any bugs, issues, or observations here..."></textarea>
+      <div class="test-actions">
+        <button onclick="saveResults()">💾 Save Test Results</button>
+        <button class="secondary" onclick="resetForm()">🔄 Reset Form</button>
+        <button class="secondary" onclick="copyToClipboard()">📋 Copy Results</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const testSections = 6;
+    const checksPerSection = 3;
+
+    function updateProgress() {
+      let totalChecks = testSections * checksPerSection;
+      let passedChecks = 0;
+
+      for (let i = 1; i <= testSections; i++) {
+        let sectionPassed = 0;
+        for (let j = 0; j < checksPerSection; j++) {
+          let checkId = `check${i}${j > 0 ? String.fromCharCode(97 + j) : ''}`;
+          let checkbox = document.getElementById(checkId);
+          if (checkbox && checkbox.checked) {
+            passedChecks++;
+            sectionPassed++;
+          }
+        }
+
+        // Update section status
+        let statusEl = document.getElementById(`status${i}`);
+        if (sectionPassed === checksPerSection) {
+          statusEl.classList.add('passed');
+          statusEl.classList.remove('failed');
+        } else if (sectionPassed > 0) {
+          statusEl.classList.add('failed');
+          statusEl.classList.remove('passed');
+        } else {
+          statusEl.classList.remove('passed', 'failed');
+        }
+      }
+
+      let percentage = Math.round((passedChecks / totalChecks) * 100);
+      let progressBar = document.getElementById('progressBar');
+      progressBar.style.width = percentage + '%';
+      progressBar.textContent = percentage + '%';
+    }
+
+    function getResults() {
+      let results = {
+        timestamp: new Date().toISOString(),
+        summary: {
+          totalTests: testSections * checksPerSection,
+          passed: 0,
+          failed: 0
+        },
+        tests: [],
+        notes: document.getElementById('testNotes').value
+      };
+
+      for (let i = 1; i <= testSections; i++) {
+        let sectionData = {
+          section: i,
+          name: document.querySelector(`#test${i} h2`).textContent.replace(/^[^\s]+\s*/, ''),
+          checks: []
+        };
+
+        for (let j = 0; j < checksPerSection; j++) {
+          let checkId = `check${i}${j > 0 ? String.fromCharCode(97 + j) : ''}`;
+          let checkbox = document.getElementById(checkId);
+          let label = checkbox ? checkbox.parentElement.textContent.trim() : 'N/A';
+          let checked = checkbox ? checkbox.checked : false;
+
+          sectionData.checks.push({
+            id: checkId,
+            label: label,
+            passed: checked
+          });
+
+          if (checked) results.summary.passed++;
+        }
+
+        results.tests.push(sectionData);
+      }
+
+      results.summary.failed = results.summary.totalTests - results.summary.passed;
+      return results;
+    }
+
+    function saveResults() {
+      let results = getResults();
+      let json = JSON.stringify(results, null, 2);
+
+      // Create download
+      let blob = new Blob([json], { type: 'application/json' });
+      let url = URL.createObjectURL(blob);
+      let a = document.createElement('a');
+      a.href = url;
+      a.download = `vista-smartOrdering-test-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      alert('Test results saved!');
+    }
+
+    function resetForm() {
+      if (confirm('Reset all test checkboxes and notes?')) {
+        document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+        document.getElementById('testNotes').value = '';
+        updateProgress();
+      }
+    }
+
+    function copyToClipboard() {
+      let results = getResults();
+      let text = `VISTA smartOrdering Test Results\n`;
+      text += `Date: ${new Date().toLocaleString()}\n`;
+      text += `Passed: ${results.summary.passed}/${results.summary.totalTests}\n\n`;
+
+      results.tests.forEach(test => {
+        text += `## ${test.name}\n`;
+        test.checks.forEach(check => {
+          text += `  [${check.passed ? '✓' : '✗'}] ${check.label}\n`;
+        });
+        text += '\n';
+      });
+
+      if (results.notes) {
+        text += `## Notes:\n${results.notes}\n`;
+      }
+
+      navigator.clipboard.writeText(text).then(() => {
+        alert('Test results copied to clipboard!');
+      }).catch(err => {
+        console.error('Failed to copy:', err);
+        alert('Failed to copy to clipboard');
+      });
+    }
+
+    // Initialize
+    updateProgress();
+  </script>
+</body>
+</html>

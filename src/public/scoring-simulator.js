@@ -274,9 +274,16 @@ function scoreAll(meta, imageProbe) {
   const avgScore = totalWeight > 0 ? totalWeightedScore / totalWeight : 0;
   const overallGrade = pointsToGrade(avgScore);
 
+  // Derive passing/warning/failing summary from grade distribution so the
+  // client re-score matches the backend scoreAll() shape consumed by the UI.
+  const passing = gradeCounts['A+'] + gradeCounts['A'];
+  const warning = gradeCounts['B'] + gradeCounts['C'];
+  const failing = gradeCounts['D'] + gradeCounts['F'];
+
   return {
     scores,
     overall: { grade: overallGrade, score: Math.round(avgScore) },
+    summary: { passing, warning, failing },
     gradeCounts,
   };
 }

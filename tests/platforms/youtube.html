@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-theme-frame-ids="youtube-frame">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube Frame - Theme Test</title>
+  <link rel="stylesheet" href="../../src/public/frames-theme.css">
+  <link rel="stylesheet" href="../../src/public/social-platforms-frames.css">
+  <script src="../shared/theme-switcher.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+      background: var(--frame-bg-global, #1a1a1e);
+      color: var(--frame-text-primary-global, #e4e4e7);
+      padding: 20px;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    .test-header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding: 20px;
+      background: var(--frame-surface-global, #25252a);
+      border-radius: 12px;
+      border: 1px solid var(--frame-border-global, #3a3a3f);
+    }
+
+    .test-title {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .test-subtitle {
+      font-size: 16px;
+      color: var(--frame-text-secondary-global, #a1a1aa);
+      margin-bottom: 20px;
+    }
+
+    .theme-toggle-btn {
+      padding: 12px 24px;
+      background: var(--frame-accent-global, #6366f1);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.1s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .theme-toggle-btn:hover {
+      transform: scale(1.05);
+      background: var(--frame-accent-bg-global, #4f46e5);
+    }
+
+    .frame-container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .platform-section {
+      background: var(--frame-surface-global, #25252a);
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid var(--frame-border-global, #3a3a3f);
+    }
+
+    .platform-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .platform-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      background: var(--frame-accent-global, #6366f1);
+      color: white;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: var(--frame-surface-global, #25252a);
+      border: 1px solid var(--frame-border-global, #3a3a3f);
+      border-radius: 8px;
+      color: var(--frame-text-primary-global, #e4e4e7);
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .back-link:hover {
+      background: var(--frame-accent-global, #6366f1);
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-header">
+    <h1 class="test-title">▶️ YouTube Frame - Theme Test</h1>
+    <p class="test-subtitle">Testing YouTube platform frame with dark/light theme switching</p>
+    <button class="theme-toggle-btn" onclick="ThemeSwitcher.toggle()">🌓 Toggle Dark/Light Theme</button>
+  </div>
+
+  <div class="frame-container">
+    <div class="platform-section">
+      <div class="platform-title">
+        YouTube <span class="platform-badge">Video</span>
+      </div>
+      <div class="context-frame youtube-context" id="youtube-frame">
+        <div class="yt-video-player">
+          <div class="yt-video-thumbnail">
+            <div class="yt-play-button"></div>
+          </div>
+        </div>
+
+        <div class="yt-video-info">
+          <div class="yt-video-title">Complete Web Development Tutorial - Build a Full Stack App from Scratch</div>
+
+          <div class="yt-video-stats">
+            <span>1.2M views</span>
+            <span>•</span>
+            <span>3 days ago</span>
+          </div>
+
+          <div class="yt-channel-section">
+            <div class="yt-channel-info">
+              <div class="yt-channel-avatar">TC</div>
+              <div class="yt-channel-meta">
+                <div class="yt-channel-name">TechCode Academy</div>
+                <div class="yt-subscriber-count">2.4M subscribers</div>
+              </div>
+            </div>
+            <button class="yt-subscribe-btn">Subscribe</button>
+          </div>
+
+          <div class="yt-action-buttons">
+            <button class="yt-action-btn">
+              <span>👍</span>
+              <span>42K</span>
+            </button>
+            <button class="yt-action-btn">
+              <span>👎</span>
+            </button>
+            <button class="yt-action-btn">
+              <span>↗️</span>
+              <span>Share</span>
+            </button>
+            <button class="yt-action-btn">
+              <span>💾</span>
+              <span>Save</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align: center;">
+    <a href="index.html" class="back-link">← Back to All Platforms</a>
+  </div>
+
+  <script>
+    console.log('YouTube frame - Current theme:', ThemeSwitcher.get());
+
+    window.addEventListener('themeChanged', (e) => {
+      console.log('YouTube frame - Theme changed to:', e.detail.theme);
+    });
+  </script>
+</body>
+</html>

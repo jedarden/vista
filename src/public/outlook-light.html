@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Outlook - Light Mode Frame</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f3f2f1;
+      color: #323130;
+    }
+
+    .outlook-context {
+      display: flex;
+      flex-direction: column;
+      min-height: 400px;
+      background: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .ol-thread-header {
+      padding: 16px 20px;
+      background: #ffffff;
+      border-bottom: 1px solid #e1dfdd;
+    }
+
+    .ol-subject {
+      font-size: 18px;
+      font-weight: 600;
+      color: #323130;
+      margin-bottom: 12px;
+    }
+
+    .ol-thread-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      color: #605e5c;
+    }
+
+    .ol-from, .ol-time {
+      color: #605e5c;
+    }
+
+    .ol-messages {
+      flex: 1;
+      padding: 16px 20px;
+      overflow-y: auto;
+    }
+
+    .ol-message {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .ol-message-dim {
+      opacity: 0.6;
+    }
+
+    .ol-sender-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0078d4 0%, #005a9e 100%);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .ol-message-content {
+      flex: 1;
+    }
+
+    .ol-sender-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .ol-sender-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #323130;
+    }
+
+    .ol-sender-email {
+      font-size: 12px;
+      color: #605e5c;
+    }
+
+    .ol-message-time {
+      font-size: 12px;
+      color: #605e5c;
+      margin-left: auto;
+    }
+
+    .ol-message-body {
+      font-size: 14px;
+      line-height: 1.5;
+      color: #323130;
+    }
+
+    .ol-link-preview {
+      margin-top: 12px;
+      padding: 12px;
+      background: #f3f2f1;
+      border: 1px solid #e1dfdd;
+      border-radius: 8px;
+    }
+
+    .ol-title-section {
+      font-size: 14px;
+      font-weight: 600;
+      color: #0078d4;
+      margin-bottom: 4px;
+    }
+
+    .ol-domain {
+      font-size: 12px;
+      color: #605e5c;
+    }
+  </style>
+</head>
+<body>
+  <div class="outlook-context">
+    <div class="ol-thread-header">
+      <div class="ol-subject">Resource for the project</div>
+      <div class="ol-thread-meta">
+        <span class="ol-from">from: project.manager@company.com</span>
+        <span class="ol-time">9:00 AM</span>
+      </div>
+    </div>
+
+    <div class="ol-messages">
+      <div class="ol-message ol-message-dim">
+        <div class="ol-sender-avatar">PM</div>
+        <div class="ol-message-content">
+          <div class="ol-sender-info">
+            <span class="ol-sender-name">Project Manager</span>
+            <span class="ol-sender-email">project.manager@company.com</span>
+            <span class="ol-message-time">9:00 AM (3 hours ago)</span>
+          </div>
+          <div class="ol-message-body">You should see this resource I found for the project.</div>
+        </div>
+      </div>
+
+      <div class="ol-message">
+        <div class="ol-sender-avatar">Y</div>
+        <div class="ol-message-content">
+          <div class="ol-sender-info">
+            <span class="ol-sender-name">You</span>
+            <span class="ol-sender-email">you@company.com</span>
+            <span class="ol-message-time">Just now</span>
+          </div>
+          <div class="ol-link-preview">
+            <div class="ol-title-section">Best Practices for Project Management</div>
+            <div class="ol-domain">resources.company.com</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

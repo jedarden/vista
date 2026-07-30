@@ -1,0 +1,160 @@
+{
+  "timestamp": "2026-07-23T20:36:15.063Z",
+  "summary": {
+    "totalConfigurations": 3,
+    "codePresent": true,
+    "serverAvailable": true
+  },
+  "htmlChecks": {
+    "hasAppJsScript": true,
+    "hasPlatformPrefsScript": false,
+    "hasPreviewGrid": true,
+    "hasPlatformCard": false
+  },
+  "jsChecks": {
+    "hasDetectPageType": true,
+    "hasGetPlatformOrder": true,
+    "hasApplySmartOrdering": true,
+    "hasPlatformOrderRules": true,
+    "hasLocalStoragePrefs": true,
+    "hasReorderLogic": true,
+    "hasArticleRule": true,
+    "hasProductRule": true,
+    "hasWebsiteRule": true
+  },
+  "configurations": [
+    {
+      "name": "Article Page Type",
+      "pageType": "article",
+      "testUrl": "https://blog.example.com/2024/07/my-article",
+      "expectedTopPlatforms": [
+        "twitter",
+        "facebook",
+        "linkedin",
+        "reddit"
+      ],
+      "description": "Blog article should prioritize Twitter, Facebook, LinkedIn, Reddit"
+    },
+    {
+      "name": "Product Page Type",
+      "pageType": "product",
+      "testUrl": "https://shop.example.com/products/awesome-product",
+      "expectedTopPlatforms": [
+        "pinterest",
+        "facebook",
+        "instagram",
+        "twitter"
+      ],
+      "description": "E-commerce product should prioritize Pinterest, Facebook, Instagram, Twitter"
+    },
+    {
+      "name": "Default Website",
+      "pageType": "website",
+      "testUrl": "https://example.com",
+      "expectedTopPlatforms": [
+        "google",
+        "facebook",
+        "twitter",
+        "linkedin"
+      ],
+      "description": "Standard website should prioritize Google, Facebook, Twitter, LinkedIn"
+    }
+  ],
+  "platformOrderRules": {
+    "article": [
+      "twitter",
+      "facebook",
+      "linkedin",
+      "reddit",
+      "bluesky",
+      "threads",
+      "mastodon"
+    ],
+    "product": [
+      "pinterest",
+      "facebook",
+      "instagram",
+      "twitter",
+      "linkedin"
+    ],
+    "video": [
+      "twitter",
+      "facebook",
+      "youtube",
+      "tiktok",
+      "instagram"
+    ],
+    "website": [
+      "google",
+      "facebook",
+      "twitter",
+      "linkedin",
+      "slack",
+      "discord"
+    ]
+  },
+  "verificationResults": [
+    {
+      "configuration": "Article Page Type",
+      "pageType": "article",
+      "testUrl": "https://blog.example.com/2024/07/my-article",
+      "expectedFullOrder": [
+        "twitter",
+        "facebook",
+        "linkedin",
+        "reddit",
+        "bluesky",
+        "threads",
+        "mastodon"
+      ],
+      "priorityPlatforms": [
+        "twitter",
+        "facebook",
+        "linkedin",
+        "reddit"
+      ],
+      "description": "Blog article should prioritize Twitter, Facebook, LinkedIn, Reddit"
+    },
+    {
+      "configuration": "Product Page Type",
+      "pageType": "product",
+      "testUrl": "https://shop.example.com/products/awesome-product",
+      "expectedFullOrder": [
+        "pinterest",
+        "facebook",
+        "instagram",
+        "twitter",
+        "linkedin"
+      ],
+      "priorityPlatforms": [
+        "pinterest",
+        "facebook",
+        "instagram",
+        "twitter"
+      ],
+      "description": "E-commerce product should prioritize Pinterest, Facebook, Instagram, Twitter"
+    },
+    {
+      "configuration": "Default Website",
+      "pageType": "website",
+      "testUrl": "https://example.com",
+      "expectedFullOrder": [
+        "google",
+        "facebook",
+        "twitter",
+        "linkedin",
+        "slack",
+        "discord"
+      ],
+      "priorityPlatforms": [
+        "google",
+        "facebook",
+        "twitter",
+        "linkedin"
+      ],
+      "description": "Standard website should prioritize Google, Facebook, Twitter, LinkedIn"
+    }
+  ],
+  "manualTestingRequired": true,
+  "reason": "Browser automation not available on NixOS system - requires manual DevTools inspection"
+}

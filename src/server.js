@@ -4,9 +4,11 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const { fetchUrl, parseMetaTags, probeImage } = require('./fetcher');
+const { validateUrlOrThrow } = require('./ssrf-guard');
 const { detectMistakes } = require('./diagnostics');
 const { scoreAll, PLATFORMS } = require('./scorer');
-const { generateScreenshot, checkRateLimit, isValidPlatform } = require('./screenshot');
+const { generateScreenshot, isValidPlatform } = require('./screenshot');
+const { checkRateLimit } = require('./rate-limit');
 const { analyzeResponseHeaders } = require('./header-analyzer');
 const cheerio = require('cheerio');
 const { ZipArchive } = require('archiver');
@@ -18,6 +20,33 @@ const PORT = process.env.PORT || 3000;
 // In-memory cache for badge URL results (1 hour TTL)
 const badgeCache = new Map();
 const BADGE_CACHE_TTL = 60 * 60 * 1000; // 1 hour in milliseconds
+
+/**
+ * Check if an error is an SSRF-related error
+ * SSRF errors should return 400, not 502
+ */
+function isSsrfError(err) {
+  const msg = err.message || '';
+  return msg.includes('SSRF protection') ||
+         msg.includes('private/internal address') ||
+         msg.includes('loopback address') ||
+         msg.includes('link-local address') ||
+         msg.includes('localhost') ||
+         msg.includes('not allowed') ||
+         msg.includes('protocol') && msg.includes('not supported');
+}
+
+/**
+ * Handle fetch errors and return appropriate response
+ */
+function handleFetchError(res, err, context = 'Failed to fetch URL') {
+  console.error('Fetch error:', err.message);
+  if (isSsrfError(err)) {
+    res.status(400).json({ error: err.message });
+  } else {
+    res.status(502).json({ error: `${context}: ${err.message}` });
+  }
+}
 
 app.use(express.json({ limit: '5mb' }));
 app.use(express.text({ type: 'text/html', limit: '5mb' }));
@@ -32,11 +61,64 @@ app.use((req, res, next) => {
   next();
 });
 
+// --- Rate-limit policy (per docs/plan.md "Security": in-memory token bucket,
+// resets on restart). Each namespace below is an independent per-IP/hour bucket
+// (see src/rate-limit.js), so a tight limit on a costly endpoint does not
+// consume the budget of a cheaper one.
+//
+//   preview    30/hr  GET/POST /api/preview{,/meta,/headers,/images},
+//                     GET /api/compare, GET /api/badge (url mode).
+//                     One request triggers 1-2 downstream page fetches — the
+//                     same cost class as a screenshot, so it reuses the 30/hr
+//                     budget the screenshot endpoints already had.
+//   screenshot 30/hr  GET /api/screenshot, GET /api/screenshots, POST /api/screenshot.
+//                     Existing limit, kept as-is; migrated to an explicit
+//                     namespace so the policy reads uniformly.
+//   sitemap     5/hr  GET /api/sitemap. A single request fans out to up to 100
+//                     downstream page fetches (5 at a time), so it is roughly
+//                     20x costlier per request than one preview. 5/hr (vs 30)
+//                     still allows legitimate audits while preventing a single
+//                     client from launching unbounded 100-URL crawls. Each
+//                     crawl counts as ONE token regardless of URL count, to
+//                     avoid double-penalizing a legitimate large-site audit.
+const RATE_LIMIT_PREVIEW = 30;
+const RATE_LIMIT_SCREENSHOT = 30;
+const RATE_LIMIT_SITEMAP = 5;
+
+/**
+ * Enforce per-IP rate limiting for a request.
+ *
+ * On limit breach, sends HTTP 429 with the same { error, message, retryAfter }
+ * shape used by the screenshot endpoints (for consistency) and returns true;
+ * the caller should `return` immediately. When the request is allowed, returns
+ * false and the caller proceeds.
+ *
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {number} limit     Max requests/hour for this namespace.
+ * @param {string} namespace Bucket group (see constants above).
+ * @returns {boolean} true if the request was rejected (429 already sent).
+ */
+function rateLimited(req, res, limit, namespace) {
+  const clientIp = req.ip || req.connection.remoteAddress || 'unknown';
+  const check = checkRateLimit(clientIp, limit, namespace);
+  if (!check.allowed) {
+    res.status(429).json({
+      error: 'Rate limit exceeded',
+      message: 'Too many requests. Please try again later.',
+      retryAfter: 3600,
+    });
+    return true;
+  }
+  return false;
+}
+
 /**
  * GET /api/preview?url=https://...
  * POST /api/preview with Content-Type: text/html body (and optional ?base=https://...)
  */
 app.get('/api/preview', async (req, res) => {
+  if (rateLimited(req, res, RATE_LIMIT_PREVIEW, 'preview')) return;
   const url = req.query.url;
   if (!url) {
     return res.status(400).json({ error: 'Missing ?url= parameter' });
@@ -66,12 +148,12 @@ app.get('/api/preview', async (req, res) => {
 
     res.json(result);
   } catch (err) {
-    console.error('Fetch error:', err.message);
-    res.status(502).json({ error: `Failed to fetch URL: ${err.message}` });
+    return handleFetchError(res, err, 'Failed to fetch URL');
   }
 });
 
 app.post('/api/preview', async (req, res) => {
+  if (rateLimited(req, res, RATE_LIMIT_PREVIEW, 'preview')) return;
   const baseUrl = req.query.base || 'https://example.com';
   let html;
 
@@ -103,7 +185,12 @@ app.post('/api/preview', async (req, res) => {
  * GET /api/platforms — return the list of supported platforms
  */
 app.get('/api/platforms', (req, res) => {
-  res.json({ platforms: PLATFORMS });
+  const { SKELETON_TYPES, PLATFORM_SKELETON_MAP } = require('./skeleton-types');
+  res.json({
+    platforms: PLATFORMS,
+    skeletonTypes: SKELETON_TYPES,
+    platformSkeletonMap: PLATFORM_SKELETON_MAP
+  });
 });
 
 /**
@@ -113,6 +200,7 @@ app.get('/api/platforms', (req, res) => {
  * Returns: score, meta tags, text-based card previews.
  */
 app.get('/api/preview/meta', async (req, res) => {
+  if (rateLimited(req, res, RATE_LIMIT_PREVIEW, 'preview')) return;
   const url = req.query.url;
   if (!url) {
     return res.status(400).json({ error: 'Missing ?url= parameter' });
@@ -142,12 +230,12 @@ app.get('/api/preview/meta', async (req, res) => {
 
     res.json(result);
   } catch (err) {
-    console.error('Fetch error:', err.message);
-    res.status(502).json({ error: `Failed to fetch URL: ${err.message}` });
+    return handleFetchError(res, err, 'Failed to fetch URL');
   }
 });
 
 app.post('/api/preview/meta', async (req, res) => {
+  if (rateLimited(req, res, RATE_LIMIT_PREVIEW, 'preview')) return;
   const baseUrl = req.query.base || 'https://example.com';
   let html;
 
@@ -183,6 +271,7 @@ app.post('/api/preview/meta', async (req, res) => {
  * Runs independently and can be called in parallel with image probe.
  */
 app.get('/api/preview/headers', async (req, res) => {
+  if (rateLimited(req, res, RATE_LIMIT_PREVIEW, 'preview')) return;
   const url = req.query.url;
   if (!url) {
     return res.status(400).json({ error: 'Missing ?url= parameter' });
@@ -212,12 +301,12 @@ app.get('/api/preview/headers', async (req, res) => {
 
     res.json(result);
   } catch (err) {
-    console.error('Fetch error:', err.message);
-    res.status(502).json({ error: `Failed to fetch URL: ${err.message}` });
+    return handleFetchError(res, err, 'Failed to fetch URL');
   }
 });
 
 app.post('/api/preview/headers', async (req, res) => {
+  if (rateLimited(req, res, RATE_LIMIT_PREVIEW, 'preview')) return;
   const baseUrl = req.query.base || 'https://example.com';
   let html;
 
@@ -253,6 +342,7 @@ app.post('/api/preview/headers', async (req, res) => {
  * Probes: og:image, twitter:image, favicon, and any hero.png references.
  */
 app.get('/api/preview/images', async (req, res) => {
+  if (rateLimited(req, res, RATE_LIMIT_PREVIEW, 'preview')) return;
   const url = req.query.url;
   if (!url) {
     return res.status(400).json({ error: 'Missing ?url= parameter' });
@@ -282,12 +372,12 @@ app.get('/api/preview/images', async (req, res) => {
 
     res.json(result);
   } catch (err) {
-    console.error('Fetch error:', err.message);
-    res.status(502).json({ error: `Failed to fetch URL: ${err.message}` });
+    return handleFetchError(res, err, 'Failed to fetch URL');
   }
 });
 
 app.post('/api/preview/images', async (req, res) => {
+  if (rateLimited(req, res, RATE_LIMIT_PREVIEW, 'preview')) return;
   const baseUrl = req.query.base || 'https://example.com';
   let html;
 
@@ -316,18 +406,30 @@ app.post('/api/preview/images', async (req, res) => {
 });
 
 /**
- * GET /api/sitemap?url=https://...sitemap.xml
- * Parse sitemap and return all URLs with coverage scores
+ * GET /api/sitemap?url=<sitemap-or-domain>
+ *
+ * Accepts either a direct sitemap XML URL (e.g.
+ * https://example.com/sitemap.xml) OR a bare domain/origin (e.g.
+ * https://example.com). When the input is not itself valid sitemap XML, the
+ * handler falls back to fetching {origin}/robots.txt and follows any
+ * `Sitemap:` directive(s) it finds there (per RFC 9309), then crawls the
+ * discovered sitemap. Returns all URLs with per-platform coverage scores.
  */
 app.get('/api/sitemap', async (req, res) => {
-  const sitemapUrl = req.query.url;
-  if (!sitemapUrl) {
+  // One rate-limit token per request (NOT per crawled URL) — a single sitemap
+  // audit consumes exactly one token even though it may fan out to ~100 page
+  // fetches, so a legitimate large-site audit is not double-penalized. The
+  // sitemap namespace gets a tighter 5/hr budget (vs 30 for preview) because
+  // each request is ~20x costlier downstream. See policy block above.
+  if (rateLimited(req, res, RATE_LIMIT_SITEMAP, 'sitemap')) return;
+  const inputUrl = req.query.url;
+  if (!inputUrl) {
     return res.status(400).json({ error: 'Missing ?url= parameter' });
   }
 
   // Validate URL
   try {
-    const parsed = new URL(sitemapUrl);
+    const parsed = new URL(inputUrl);
     if (!['http:', 'https:'].includes(parsed.protocol)) {
       return res.status(400).json({ error: 'Only http and https URLs are supported' });
     }
@@ -335,28 +437,50 @@ app.get('/api/sitemap', async (req, res) => {
     return res.status(400).json({ error: 'Invalid URL' });
   }
 
+  // SSRF protection: validate the resolved IP before fetching. The protocol
+  // check above only allows http/https — this rejects private/loopback/
+  // link-local hosts (e.g. http://127.0.0.1/... or http://169.254.169.254/...).
+  // Matches the 400 pattern used for the other validation failures above.
   try {
-    // Fetch sitemap
+    await validateUrlOrThrow(inputUrl);
+  } catch (ssrfErr) {
+    return res.status(400).json({ error: `URL blocked by SSRF protection: ${ssrfErr.message}` });
+  }
+
+  const fetch = require('node-fetch');
+  const fetchHeaders = {
+    'User-Agent': 'Mozilla/5.0 (compatible; VISTA/1.0; +https://github.com/vista-tool)',
+    Accept: 'application/xml,text/xml,*/*',
+  };
+
+  try {
+    // The controller/timeout guards the sitemap *fetching* (resolve +
+    // top-level + nested sitemap-index expansion). The per-URL crawl below
+    // uses fetchUrl(), which has its own timeouts.
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 30000);
+    const fetchOpts = { method: 'GET', headers: fetchHeaders, signal: controller.signal };
 
-    let response;
+    let sitemapUrl;
+    let xml;
     try {
-      const fetch = require('node-fetch');
-      response = await fetch(sitemapUrl, {
-        method: 'GET',
-        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; VISTA/1.0; +https://github.com/vista-tool)', Accept: 'application/xml,text/xml,*/*' },
-        signal: controller.signal,
+      // Resolve which sitemap to crawl. If the input URL is not itself valid
+      // sitemap XML, this falls back to {origin}/robots.txt and follows any
+      // Sitemap: directive. Throws a descriptive Error when no sitemap can be
+      // located, which we surface as a 400.
+      const resolved = await resolveSitemapUrl({
+        inputUrl,
+        fetchFn: fetch,
+        fetchOpts,
+        validateFn: validateUrlOrThrow,
       });
-    } finally {
+      sitemapUrl = resolved.sitemapUrl;
+      xml = resolved.xml;
+    } catch (resolveErr) {
       clearTimeout(timer);
+      return res.status(400).json({ error: resolveErr.message });
     }
-
-    if (!response.ok) {
-      return res.status(502).json({ error: `Failed to fetch sitemap: ${response.status} ${response.statusText}` });
-    }
-
-    const xml = await response.text();
+    clearTimeout(timer);
 
     // Parse sitemap
     const urls = await parseSitemap(xml, sitemapUrl);
@@ -371,6 +495,17 @@ app.get('/api/sitemap', async (req, res) => {
         allUrls = [];
         for (const nestedSitemapUrl of urls.slice(0, 10)) { // Limit to 10 nested sitemaps
           try {
+            // SSRF protection: skip (do not fetch) any nested sitemap whose
+            // URL resolves to a private/loopback/link-local address. On
+            // rejection we continue the crawl rather than aborting the whole
+            // request, consistent with how this loop already tolerates
+            // individual fetch failures via the surrounding try/catch.
+            try {
+              await validateUrlOrThrow(nestedSitemapUrl);
+            } catch (ssrfErr) {
+              console.error('Skipping nested sitemap blocked by SSRF protection:', nestedSitemapUrl, ssrfErr.message);
+              continue;
+            }
             const nestedResp = await fetch(nestedSitemapUrl, {
               method: 'GET',
               headers: { 'User-Agent': 'Mozilla/5.0 (compatible; VISTA/1.0; +https://github.com/vista-tool)', Accept: 'application/xml,text/xml,*/*' },
@@ -477,11 +612,14 @@ app.get('/api/sitemap', async (req, res) => {
  * Query params: url, platform, theme (light|dark), scale (1x|2x), format (svg|png)
  */
 app.get('/api/screenshot', async (req, res) => {
-  const { url, platform, theme = 'dark', scale = '1x', format = 'svg' } = req.query;
+  // PNG is the primary deliverable of this endpoint (per docs/plan.md "Card
+  // Screenshot API" — response is image/png via SVG→sharp). format=svg remains
+  // an explicit opt-in for callers who want raw SVG. (bf-25mc)
+  const { url, platform, theme = 'dark', scale = '1x', format = 'png' } = req.query;
 
   // Rate limiting
   const clientIp = req.ip || req.connection.remoteAddress || 'unknown';
-  const rateLimit = checkRateLimit(clientIp, 30);
+  const rateLimit = checkRateLimit(clientIp, RATE_LIMIT_SCREENSHOT, 'screenshot');
   if (!rateLimit.allowed) {
     return res.status(429).json({
       error: 'Rate limit exceeded',
@@ -576,8 +714,7 @@ app.get('/api/screenshot', async (req, res) => {
       res.send(screenshot.svg);
     }
   } catch (err) {
-    console.error('Screenshot generation error:', err.message);
-    res.status(502).json({ error: `Failed to generate screenshot: ${err.message}` });
+    return handleFetchError(res, err, 'Failed to generate screenshot');
   }
 });
 
@@ -623,7 +760,7 @@ app.get('/api/screenshots', async (req, res) => {
 
   // Rate limiting for bulk requests - consume one token per platform
   const clientIp = req.ip || req.connection.remoteAddress || 'unknown';
-  const rateLimit = checkRateLimit(clientIp, 30);
+  const rateLimit = checkRateLimit(clientIp, RATE_LIMIT_SCREENSHOT, 'screenshot');
 
   // For bulk requests, we need to check if we have enough capacity
   // We'll check multiple times and consume tokens for each platform
@@ -638,7 +775,7 @@ app.get('/api/screenshots', async (req, res) => {
   // Consume additional tokens for remaining platforms (1st was consumed above)
   let finalRateLimit = rateLimit;
   for (let i = 1; i < requestedPlatforms.length; i++) {
-    const additionalCheck = checkRateLimit(clientIp, 30);
+    const additionalCheck = checkRateLimit(clientIp, RATE_LIMIT_SCREENSHOT, 'screenshot');
     if (!additionalCheck.allowed) {
       return res.status(429).json({
         error: 'Rate limit exceeded',
@@ -775,7 +912,11 @@ app.get('/api/screenshots', async (req, res) => {
   } catch (err) {
     console.error('Bulk screenshot generation error:', err.message);
     if (!res.headersSent) {
-      res.status(502).json({ error: `Failed to generate screenshots: ${err.message}` });
+      if (isSsrfError(err)) {
+        res.status(400).json({ error: err.message });
+      } else {
+        res.status(502).json({ error: `Failed to generate screenshots: ${err.message}` });
+      }
     }
   }
 });
@@ -785,11 +926,13 @@ app.get('/api/screenshots', async (req, res) => {
  * Body params: platform, url, meta, imageProbe, withFrame, format, theme, scale
  */
 app.post('/api/screenshot', async (req, res) => {
-  const { platform, url, meta, imageProbe, withFrame = false, format = 'svg', theme = 'dark', scale = '1x' } = req.body;
+  // PNG is the default here too, matching the GET endpoint and the plan's
+  // "PNG primary deliverable"; format=svg is an explicit opt-in. (bf-25mc)
+  const { platform, url, meta, imageProbe, withFrame = false, format = 'png', theme = 'dark', scale = '1x' } = req.body;
 
   // Rate limiting
   const clientIp = req.ip || req.connection.remoteAddress || 'unknown';
-  const rateLimit = checkRateLimit(clientIp, 30);
+  const rateLimit = checkRateLimit(clientIp, RATE_LIMIT_SCREENSHOT, 'screenshot');
   if (!rateLimit.allowed) {
     return res.status(429).json({
       error: 'Rate limit exceeded',
@@ -850,7 +993,7 @@ app.post('/api/screenshot', async (req, res) => {
         }
       }
     } catch (err) {
-      return res.status(502).json({ error: `Failed to fetch URL: ${err.message}` });
+      return handleFetchError(res, err, 'Failed to fetch URL');
     }
   }
 
@@ -905,6 +1048,9 @@ app.get('/api/badge', async (req, res) => {
   let score, platforms;
 
   if (url) {
+    // Rate-limit only url mode — it fetches+scores a live page. The legacy
+    // ?score=&platforms= mode does no network I/O, so it stays unlimited.
+    if (rateLimited(req, res, RATE_LIMIT_PREVIEW, 'preview')) return;
     // Validate URL
     try {
       const parsedUrl = new URL(url);
@@ -956,7 +1102,7 @@ app.get('/api/badge', async (req, res) => {
         }
       } catch (err) {
         console.error('Badge fetch error:', err.message);
-        return res.status(502).json({ error: `Failed to fetch URL: ${err.message}` });
+        return handleFetchError(res, err, 'Failed to fetch URL');
       }
     }
   } else {
@@ -986,6 +1132,7 @@ app.get('/api/badge', async (req, res) => {
  * Compare two URLs by fetching both previews in parallel
  */
 app.get('/api/compare', async (req, res) => {
+  if (rateLimited(req, res, RATE_LIMIT_PREVIEW, 'preview')) return;
   const urlA = req.query.a;
   const urlB = req.query.b;
 
@@ -1343,8 +1490,7 @@ app.get('/api/badge/preview', async (req, res) => {
       embedCode: generateEmbedCode(url, score, platformCount, baseUrl),
     });
   } catch (err) {
-    console.error('Badge preview error:', err.message);
-    res.status(502).json({ error: `Failed to fetch URL: ${err.message}` });
+    return handleFetchError(res, err, 'Failed to fetch URL');
   }
 });
 
@@ -1595,6 +1741,19 @@ async function buildHeadersPreviewResult({ html, baseUrl, redirectChain, respons
   // Performance assessment
   const performanceAssessment = assessPerformanceHeaders(responseHeaders);
 
+  // Diagnostics — the full /api/preview endpoint computes detectMistakes()
+  // with html+meta+imageProbe+responseHeaders+redirectChain. The split /headers
+  // endpoint has everything EXCEPT the probed image (which lives in /images),
+  // so it computes the text/header/redirect diagnostics with imageProbe=null.
+  // This populates the Diagnostics tab at ~600ms — before image probing
+  // (1–3s) finishes — matching the plan's progressive loading sequence. The
+  // image-dimension findings are layered in later by /images, whose diagnostics
+  // mergeData prefers as a superset. Without this, the progressive flow always
+  // rendered an empty diagnostics tab ([] from mergeData's default). (bf-59t)
+  const diagnostics = detectMistakes(html, meta, null, responseHeaders, redirectChain);
+  const scoring = scoreAll(meta, null);
+  const autoFixes = buildAutoFixes(meta, diagnostics, scoring);
+
   return {
     url: sourceUrl,
     finalUrl: baseUrl,
@@ -1640,6 +1799,17 @@ async function buildHeadersPreviewResult({ html, baseUrl, redirectChain, respons
     },
     // Full analysis from header-analyzer
     analysis: headerAnalysis,
+    // Exposed under both keys: `analysis` is this endpoint's own label,
+    // `headerAnalysis` is the key the full /api/preview endpoint and the
+    // client's renderRedirects() read. (bf-59t)
+    headerAnalysis,
+    // Raw response headers — renderRedirects() and the redirect-chain view
+    // consume data.responseHeaders; previously absent in the progressive flow.
+    responseHeaders,
+    // Diagnostics (text/header/redirect; imageProbe=null) + derived fixes,
+    // so the Diagnostics tab and Fix buttons populate at the headers step.
+    diagnostics,
+    autoFixes,
     redirectChain,
   };
 }
@@ -1683,28 +1853,35 @@ async function buildMetaPreviewResult({ html, baseUrl, redirectChain, responseHe
       },
       favicon: meta.favicon || null,
       themeColor: meta.themeColor || null,
+      // rawTags (the tags a crawler sees in the raw HTML, pre-JS) are needed by
+      // verifyClientSideTags() in app.js to diff against the post-JS DOM. The
+      // full /api/preview endpoint carries these; the progressive /meta endpoint
+      // must too, or the client-side-only tag detector never has server-side
+      // data to compare against and silently no-ops. (bf-4p8p)
+      rawTags: meta.rawTags || [],
     },
     // Scoring (without image dimension data)
     scoring: {
       overall: scoring.overall,
       summary: scoring.summary,
       gradeCounts: scoring.gradeCounts,
-      // Include individual platform scores for quick inspection
-      platformScores: Object.fromEntries(
-        Object.entries(scoring.scores).map(([id, result]) => [
-          id,
-          {
-            grade: result.grade,
-            score: result.score,
-            issues: result.issues,
-            fixes: result.fixes,
-          },
-        ])
-      ),
+      // Per-platform scores keyed as `scores` — the shape scoreAll() returns
+      // and the full /api/preview endpoint emits. The client reads
+      // data.scoring.scores[pid] in a dozen places (renderTextPreviewsOnly,
+      // renderPreviews, applySmartOrdering, …); an earlier `platformScores` key
+      // was never read by anything, so every read returned undefined and threw
+      // inside renderTextPreviewsOnly — aborting progressiveLoad before
+      // verifyClientSideTags() could run and leaving the JS-injection detector
+      // unreachable. (bf-4p8p)
+      scores: scoring.scores,
     },
     // Text-based card previews
     previews,
     redirectChain,
+    // Raw HTML (capped, same as /api/preview) so verifyClientSideTags() can
+    // render it in a hidden iframe, execute the page's JS, and diff the
+    // resulting DOM meta tags against rawTags above. (bf-4p8p)
+    html: html.slice(0, 500 * 1024),
   };
 }
 
@@ -1793,10 +1970,38 @@ async function buildImagePreviewResult({ html, baseUrl, redirectChain, responseH
   // Build card-specific recommendations
   const cardRecommendations = buildCardRecommendations(meta, results);
 
+  // imageProbe — the full /api/preview endpoint returns a single probe of the
+  // og:image under `imageProbe`, and the client reads data.imageProbe in ~12
+  // places (renderPlatformCard, renderImageInfo, post-edit re-scoring via
+  // scoreAll(modifiedMeta, currentData.imageProbe), screenshots). The split
+  // /images endpoint exposes that same probe under images.og — but with an
+  // extra cropRatios field. Strip it so the shape matches the full endpoint
+  // exactly, then surface it at the top level so mergeData() can bridge it.
+  // Previously mergeData read imagesData.imageProbe (always undefined), so the
+  // probed dimensions were fetched then discarded and cards never filled in.
+  // (bf-59t)
+  let imageProbe = null;
+  if (results.ogImage) {
+    const { cropRatios, ...probeWithoutRatios } = results.ogImage;
+    imageProbe = probeWithoutRatios;
+  }
+
+  // Diagnostics computed WITH the real imageProbe (image dimensions, file
+  // size, response time, content-type findings) plus responseHeaders and
+  // redirectChain — a superset of the /headers diagnostics. mergeData prefers
+  // this when available so the Diagnostics tab gains image findings once
+  // probing completes. (bf-59t)
+  const diagnostics = detectMistakes(html, meta, imageProbe, responseHeaders, redirectChain);
+  const scoring = scoreAll(meta, imageProbe);
+  const autoFixes = buildAutoFixes(meta, diagnostics, scoring);
+
   return {
     url: sourceUrl,
     finalUrl: baseUrl,
     statusCode,
+    // Top-level imageProbe bridges to the client's existing data.imageProbe
+    // contract (same shape as the full /api/preview endpoint).
+    imageProbe,
     // Image probe results
     images: {
       og: results.ogImage,
@@ -1807,6 +2012,10 @@ async function buildImagePreviewResult({ html, baseUrl, redirectChain, responseH
     },
     // Card-specific recommendations based on image dimensions
     recommendations: cardRecommendations,
+    // Full diagnostics (with imageProbe) + derived fixes, layered in once
+    // image probing completes.
+    diagnostics,
+    autoFixes,
     redirectChain,
   };
 }
@@ -2054,6 +2263,148 @@ async function parseSitemap(xml, baseUrl) {
   // Regular sitemap - extract all URLs
   const locs = $('url > loc').map((_, el) => $(el).text()).get();
   return locs;
+}
+
+/**
+ * Determine whether a fetched body looks like sitemap XML. Recognizes both a
+ * sitemap index (<sitemapindex>) and a regular URL set (<urlset>), and also
+ * accepts bodies that contain <url><loc> entries directly (lenient match for
+ * sitemaps that omit or namespace the root element).
+ *
+ * @param {string} xml - raw response body
+ * @returns {boolean}
+ */
+function looksLikeSitemapXml(xml) {
+  if (!xml || typeof xml !== 'string') return false;
+  const $ = cheerio.load(xml, { xmlMode: true });
+  if ($('sitemapindex').length > 0) return true;
+  if ($('urlset').length > 0) return true;
+  if ($('url > loc').length > 0) return true;
+  return false;
+}
+
+/**
+ * Extract Sitemap: directive URLs from a robots.txt body.
+ *
+ * Per RFC 9309 the field name is case-insensitive, there may be multiple
+ * Sitemap directives, and a '#' begins a comment. Returns the discovered
+ * URLs in document order (the primary entry point is conventionally first).
+ *
+ * @param {string} robotsTxt - raw robots.txt body
+ * @returns {string[]}
+ */
+function parseRobotsSitemaps(robotsTxt) {
+  if (!robotsTxt || typeof robotsTxt !== 'string') return [];
+  const sitemaps = [];
+  for (const rawLine of robotsTxt.split(/\r?\n/)) {
+    const hashIdx = rawLine.indexOf('#');
+    const line = (hashIdx >= 0 ? rawLine.slice(0, hashIdx) : rawLine).trim();
+    if (!line) continue;
+    const colonIdx = line.indexOf(':');
+    if (colonIdx < 0) continue;
+    const field = line.slice(0, colonIdx).trim().toLowerCase();
+    const value = line.slice(colonIdx + 1).trim();
+    if (field === 'sitemap' && value) {
+      sitemaps.push(value);
+    }
+  }
+  return sitemaps;
+}
+
+/**
+ * Resolve the effective sitemap URL to crawl, with a robots.txt fallback.
+ *
+ * 1. Fetch the input URL. If its body is valid sitemap XML, use it directly.
+ * 2. Otherwise fetch {origin}/robots.txt and follow any Sitemap: directive,
+ *    fetching the first discovered sitemap URL.
+ *
+ * `fetchFn` and `validateFn` are injected so this can be unit-tested with a
+ * mock fetch (no network/DNS) and a no-op SSRF validator. `validateFn` is
+ * awaited for every URL before it is fetched, so a robots.txt-discovered
+ * sitemap on a private host is rejected just like a directly-supplied one.
+ *
+ * @param {object} opts
+ * @param {string} opts.inputUrl - user-supplied URL (already protocol-checked)
+ * @param {Function} opts.fetchFn - fetch implementation
+ * @param {object} opts.fetchOpts - options forwarded to fetchFn (method/headers/signal)
+ * @param {Function} [opts.validateFn] - async SSRF validator (url) => void; default no-op
+ * @returns {Promise<{sitemapUrl: string, xml: string}>}
+ * @throws {Error} when no sitemap can be located via the URL or robots.txt
+ */
+async function resolveSitemapUrl({ inputUrl, fetchFn, fetchOpts, validateFn }) {
+  validateFn = validateFn || (async () => {});
+
+  // 1. Try the input URL itself.
+  let inputResp = null;
+  try {
+    inputResp = await fetchFn(inputUrl, fetchOpts);
+  } catch (_) {
+    // Network/abort error — fall through to the robots.txt fallback.
+  }
+
+  if (inputResp && inputResp.ok) {
+    const xml = await inputResp.text();
+    if (looksLikeSitemapXml(xml)) {
+      return { sitemapUrl: inputUrl, xml };
+    }
+  }
+
+  // 2. Fall back to {origin}/robots.txt auto-detection.
+  const robotsUrl = new URL('/robots.txt', inputUrl).href;
+  await validateFn(robotsUrl);
+
+  let robotsResp = null;
+  try {
+    robotsResp = await fetchFn(robotsUrl, fetchOpts);
+  } catch (_) {
+    // unreachable robots.txt is reported below
+  }
+
+  let sitemaps = [];
+  if (robotsResp && robotsResp.ok) {
+    const robotsTxt = await robotsResp.text();
+    sitemaps = parseRobotsSitemaps(robotsTxt);
+  }
+
+  if (sitemaps.length === 0) {
+    let reason;
+    if (!robotsResp) {
+      reason = `could not fetch ${robotsUrl}`;
+    } else if (!robotsResp.ok) {
+      reason = `${robotsUrl} returned HTTP ${robotsResp.status}`;
+    } else {
+      reason = `no Sitemap directive was found in ${robotsUrl}`;
+    }
+    throw new Error(
+      `No sitemap could be found: "${inputUrl}" did not return valid sitemap XML and ${reason}. ` +
+        'Provide a direct sitemap.xml URL.'
+    );
+  }
+
+  // 3. Fetch the first discovered sitemap.
+  const sitemapUrl = sitemaps[0];
+  await validateFn(sitemapUrl);
+
+  let smResp;
+  try {
+    smResp = await fetchFn(sitemapUrl, fetchOpts);
+  } catch (e) {
+    throw new Error(
+      `No sitemap could be found: robots.txt pointed to ${sitemapUrl} but it was unreachable (${e.message}).`
+    );
+  }
+  if (!smResp.ok) {
+    throw new Error(
+      `No sitemap could be found: robots.txt pointed to ${sitemapUrl} but it returned HTTP ${smResp.status} ${smResp.statusText}.`
+    );
+  }
+  const xml = await smResp.text();
+  if (!looksLikeSitemapXml(xml)) {
+    throw new Error(
+      `No sitemap could be found: robots.txt pointed to ${sitemapUrl} but it did not contain valid sitemap XML.`
+    );
+  }
+  return { sitemapUrl, xml };
 }
 
 /**
@@ -2579,6 +2930,20 @@ function assessPerformanceHeaders(headers) {
   return assessment;
 }
 
-app.listen(PORT, () => {
-  console.log(`VISTA running on port ${PORT}`);
-});
+// Export the response builder for unit tests so we can assert the shape of the
+// preview result (e.g. that rawTags is included for client-side diagnostics)
+// without binding a port. The sitemap helpers are exported so the robots.txt
+// auto-detection fallback can be unit-tested with a mock fetch (no network).
+// The server only listens when run directly.
+module.exports = {
+  buildPreviewResult,
+  parseRobotsSitemaps,
+  looksLikeSitemapXml,
+  resolveSitemapUrl,
+};
+
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`VISTA running on port ${PORT}`);
+  });
+}

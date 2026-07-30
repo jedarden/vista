@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reddit Platform Frame</title>
+  <link rel="stylesheet" href="frames-theme.css">
+  <link rel="stylesheet" href="social-platforms-frames.css">
+  <style>
+    /* Base styles - reset and body */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--color-reddit-dark-bg);
+      color: var(--color-reddit-dark-text-primary);
+      padding: 20px;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    [data-theme="light"] body {
+      background: var(--color-reddit-light-bg);
+      color: var(--color-reddit-light-text-primary);
+    }
+
+    .reddit-context {
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    /* Theme Toggle Button */
+    .theme-toggle-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      background: var(--color-reddit-orange);
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      z-index: 1000;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .theme-toggle-btn:hover {
+      transform: scale(1.05);
+    }
+
+    /* Additional inline styles for elements not in CSS */
+    .reddit-post-tags {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 12px 0;
+    }
+
+    .reddit-tag {
+      color: var(--color-reddit-blue);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .reddit-tag:hover {
+      text-decoration: underline;
+    }
+
+    .reddit-user-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      background: var(--color-reddit-dark-surface);
+      border-bottom: 1px solid var(--color-reddit-dark-border);
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+
+    [data-theme="light"] .reddit-user-card {
+      background: var(--color-reddit-light-surface);
+      border-bottom-color: var(--color-reddit-light-border);
+    }
+
+    .reddit-user-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--color-reddit-orange) 0%, var(--color-reddit-blue) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 700;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .reddit-user-info {
+      flex: 1;
+    }
+
+    .reddit-username {
+      font-weight: 600;
+      color: var(--color-reddit-dark-text-primary);
+      font-size: 16px;
+      transition: color 0.2s ease;
+    }
+
+    [data-theme="light"] .reddit-username {
+      color: var(--color-reddit-light-text-primary);
+    }
+
+    .reddit-user-karma {
+      font-size: 13px;
+      color: var(--color-reddit-dark-text-secondary);
+      transition: color 0.2s ease;
+    }
+
+    [data-theme="light"] .reddit-user-karma {
+      color: var(--color-reddit-light-text-secondary);
+    }
+
+    .reddit-join-btn {
+      padding: 8px 16px;
+      background: var(--color-reddit-orange);
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .reddit-join-btn:hover {
+      background: var(--color-reddit-orange-dark);
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle-btn" onclick="toggleTheme()">🌓 Toggle Theme</button>
+
+  <div class="reddit-context context-frame">
+    <!-- Header -->
+    <div class="reddit-header">
+      <div class="reddit-logo">🤖</div>
+      <div class="reddit-search-bar">Search Reddit</div>
+    </div>
+
+    <!-- User Profile Card -->
+    <div class="reddit-user-card">
+      <div class="reddit-user-avatar">JD</div>
+      <div class="reddit-user-info">
+        <div class="reddit-username">JohnDeveloper</div>
+        <div class="reddit-user-karma">15.2K karma • 1 year old</div>
+      </div>
+      <button class="reddit-join-btn">Follow</button>
+    </div>
+
+    <!-- Main Post -->
+    <div class="reddit-post">
+      <div style="display: flex;">
+        <!-- Voting Section -->
+        <div class="reddit-voting-section">
+          <button class="reddit-vote-btn reddit-upvote">▲</button>
+          <div class="reddit-vote-count">24.5K</div>
+          <button class="reddit-vote-btn reddit-downvote">▼</button>
+        </div>
+
+        <!-- Post Content -->
+        <div class="reddit-post-content">
+          <div class="reddit-post-header">
+            <a href="#" class="reddit-subreddit-link">r/webdev</a>
+            <span class="reddit-post-meta-divider">•</span>
+            <span class="reddit-post-meta">Posted by u/JohnDeveloper</span>
+            <span class="reddit-post-meta-divider">•</span>
+            <span class="reddit-post-meta">5 hours ago</span>
+          </div>
+
+          <div class="reddit-post-title">Just built my first full-stack application using modern web technologies - here's what I learned</div>
+
+          <div class="reddit-post-text">
+            After months of learning and practice, I finally deployed my first full-stack application!
+            The journey was challenging but incredibly rewarding. I used React for the frontend,
+            Node.js/Express for the backend, and PostgreSQL for the database.
+
+            The biggest challenges were:
+            • Setting up proper authentication with JWT
+            • Understanding REST API design principles
+            • Implementing real-time features with WebSockets
+            • Deploying and configuring the production environment
+
+            Would love to get feedback from the community. What resources helped you most when
+            learning full-stack development?
+          </div>
+
+          <div class="reddit-post-tags">
+            <a href="#" class="reddit-tag">#webdev</a>
+            <a href="#" class="reddit-tag">#javascript</a>
+            <a href="#" class="reddit-tag">#react</a>
+            <a href="#" class="reddit-tag">#nodejs</a>
+            <a href="#" class="reddit-tag">#postgresql</a>
+          </div>
+
+          <div class="reddit-post-actions">
+            <button class="reddit-action-btn">
+              <span class="icon">💬</span>
+              <span>342 Comments</span>
+            </button>
+            <button class="reddit-action-btn">
+              <span class="icon">↗️</span>
+              <span>Share</span>
+            </button>
+            <button class="reddit-action-btn">
+              <span class="icon">💾</span>
+              <span>Save</span>
+            </button>
+            <button class="reddit-action-btn">
+              <span class="icon">⭐</span>
+              <span>Award</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Comments Section -->
+    <div class="reddit-comments-section">
+      <div class="reddit-comments-header">342 Comments</div>
+
+      <div class="reddit-comment">
+        <div class="reddit-comment-avatar">SC</div>
+        <div class="reddit-comment-content">
+          <div class="reddit-comment-header">
+            <span class="reddit-comment-author">SarahCoder</span>
+            <span class="reddit-comment-meta">• 4 hours ago</span>
+          </div>
+          <div class="reddit-comment-text">
+            Congratulations! That's a huge achievement. The transition from frontend to full-stack
+            can be overwhelming, but you nailed it. The authentication setup is often the trickiest part!
+          </div>
+          <div class="reddit-comment-actions">
+            <div class="reddit-comment-action">▲ 156</div>
+            <div class="reddit-comment-action">▼</div>
+            <div class="reddit-comment-action">💬 Reply</div>
+            <div class="reddit-comment-action">💾 Save</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="reddit-comment">
+        <div class="reddit-comment-avatar">ME</div>
+        <div class="reddit-comment-content">
+          <div class="reddit-comment-header">
+            <span class="reddit-comment-author">MikeEngineer</span>
+            <span class="reddit-comment-meta">• 3 hours ago</span>
+          </div>
+          <div class="reddit-comment-text">
+            Great work! As someone who made the same journey last year, my advice would be to
+            focus heavily on understanding async/await and promises. It'll make your life so much
+            easier when dealing with database operations and API calls.
+          </div>
+          <div class="reddit-comment-actions">
+            <div class="reddit-comment-action">▲ 89</div>
+            <div class="reddit-comment-action">▼</div>
+            <div class="reddit-comment-action">💬 Reply</div>
+            <div class="reddit-comment-action">💾 Save</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="reddit-comment">
+        <div class="reddit-comment-avatar">AJ</div>
+        <div class="reddit-comment-content">
+          <div class="reddit-comment-header">
+            <span class="reddit-comment-author">AlexJunior</span>
+            <span class="reddit-comment-meta">• 2 hours ago</span>
+          </div>
+          <div class="reddit-comment-text">
+            This is exactly the motivation I needed! I've been stuck on the backend part for weeks.
+            Would you consider writing a more detailed post about your authentication setup?
+            I'm struggling with JWT implementation.
+          </div>
+          <div class="reddit-comment-actions">
+            <div class="reddit-comment-action">▲ 42</div>
+            <div class="reddit-comment-action">▼</div>
+            <div class="reddit-comment-action">💬 Reply</div>
+            <div class="reddit-comment-action">💾 Save</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentTheme = 'dark';
+
+    function toggleTheme() {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      localStorage.setItem('vista-theme', currentTheme);
+    }
+
+    // Get theme from URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlTheme = urlParams.get('theme');
+
+    // Initialize with URL parameter, saved theme preference, or default to dark
+    const savedTheme = localStorage.getItem('vista-theme') || 'dark';
+    currentTheme = urlTheme || savedTheme;
+    document.documentElement.setAttribute('data-theme', currentTheme);
+
+    // Listen for system theme changes
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      if (!localStorage.getItem('vista-theme')) {
+        currentTheme = e.matches ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', currentTheme);
+      }
+    });
+
+    // Listen for theme change messages from parent window
+    window.addEventListener('message', (event) => {
+      if (event.data.action === 'setTheme') {
+        currentTheme = event.data.theme;
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        localStorage.setItem('vista-theme', currentTheme);
+        // Notify parent of theme change
+        window.parent.postMessage({ action: 'themeChanged', theme: currentTheme }, '*');
+      } else if (event.data.action === 'toggleTheme') {
+        toggleTheme();
+        // Notify parent of theme change
+        window.parent.postMessage({ action: 'themeChanged', theme: currentTheme }, '*');
+      }
+    });
+  </script>
+</body>
+</html>

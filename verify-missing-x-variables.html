@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Missing X Variables Implementation</title>
+    <link rel="stylesheet" href="src/public/style.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #000;
+            color: #e7e9ea;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #2f3336;
+            border-radius: 12px;
+            background: #16181c;
+        }
+        .test-section h2 {
+            margin-top: 0;
+            color: #1d9bf0;
+        }
+        .variable-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .variable-item {
+            padding: 10px;
+            background: #000;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .variable-name {
+            color: #1d9bf0;
+            font-weight: bold;
+        }
+        .variable-value {
+            color: #00ba7c;
+            margin-top: 4px;
+        }
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: #1d9bf0;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            z-index: 1000;
+        }
+        .theme-toggle:hover {
+            background: #1a8cd8;
+        }
+        .status {
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .status.pass {
+            background: #00ba7c;
+            color: white;
+        }
+        .status.fail {
+            background: #f91880;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
+    
+    <h1>Missing X Variables Implementation Test</h1>
+    <p>Tests the new variables added for Twitter/X theme completion</p>
+    
+    <div class="test-section">
+        <h2>Avatar Variables</h2>
+        <div class="variable-display" id="avatar-vars"></div>
+        <div class="status" id="avatar-status">Checking...</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Placeholder Variables</h2>
+        <div class="variable-display" id="placeholder-vars"></div>
+        <div class="status" id="placeholder-status">Checking...</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Hover State Variables</h2>
+        <div class="variable-display" id="hover-vars"></div>
+        <div class="status" id="hover-status">Checking...</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Sample Twitter/X Frame</h2>
+        <div class="twitter-context dark-theme" style="max-width: 500px;">
+            <div class="tw-post-header">
+                <div class="tw-avatar"></div>
+                <div class="tw-post-meta">
+                    <span class="tw-author-name">Test User</span>
+                    <span class="tw-author-handle">@testuser</span>
+                    <span class="tw-post-time">· 1h</span>
+                </div>
+                <span class="tw-verified">✓</span>
+            </div>
+            <div class="tw-post-content">Testing the new X-specific theme variables for avatars and placeholders.</div>
+            <div class="tw-link-card">
+                <div class="tw-context-placeholder"></div>
+                <div class="tw-context-meta">
+                    <div class="tw-context-title">Test Link Title</div>
+                    <div class="tw-context-domain">example.com</div>
+                </div>
+            </div>
+            <div class="tw-post-actions">
+                <span class="tw-post-action-item">💬 <span class="tw-action-count">12</span></span>
+                <span class="tw-post-action-item">🔁 <span class="tw-action-count">5</span></span>
+                <span class="tw-post-action-item">❤️ <span class="tw-action-count">89</span></span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Overall Verification</h2>
+        <div class="status" id="overall-status">Running tests...</div>
+        <div id="test-results" style="margin-top: 15px;"></div>
+    </div>
+
+    <script>
+        const expectedVars = {
+            avatar: ['--x-avatar-bg', '--x-avatar-border'],
+            placeholder: ['--x-placeholder-bg', '--x-placeholder-gradient'],
+            hover: ['--x-hover-bg', '--x-hover-subtle', '--x-link-card-hover-border']
+        };
+
+        function getComputedVar(variableName) {
+            const testFrame = document.querySelector('.twitter-context');
+            if (!testFrame) return null;
+            return getComputedStyle(testFrame).getPropertyValue(variableName).trim();
+        }
+
+        function testVariableGroup(groupName, varNames) {
+            const container = document.getElementById(`${groupName}-vars`);
+            const status = document.getElementById(`${groupName}-status`);
+            let allPresent = true;
+            
+            container.innerHTML = '';
+            varNames.forEach(varName => {
+                const value = getComputedVar(varName);
+                const item = document.createElement('div');
+                item.className = 'variable-item';
+                item.innerHTML = `
+                    <div class="variable-name">${varName}</div>
+                    <div class="variable-value">${value || 'NOT FOUND'}</div>
+                `;
+                container.appendChild(item);
+                
+                if (!value) allPresent = false;
+            });
+            
+            status.textContent = allPresent ? '✓ PASS' : '✗ FAIL';
+            status.className = 'status ' + (allPresent ? 'pass' : 'fail');
+            return allPresent;
+        }
+
+        function runAllTests() {
+            const results = [];
+            
+            results.push(testVariableGroup('avatar', expectedVars.avatar));
+            results.push(testVariableGroup('placeholder', expectedVars.placeholder));
+            results.push(testVariableGroup('hover', expectedVars.hover));
+            
+            const allPass = results.every(r => r);
+            const overallStatus = document.getElementById('overall-status');
+            const testResults = document.getElementById('test-results');
+            
+            overallStatus.textContent = allPass ? '✓ ALL TESTS PASSED' : '✗ SOME TESTS FAILED';
+            overallStatus.className = 'status ' + (allPass ? 'pass' : 'fail');
+            
+            testResults.innerHTML = `
+                <p><strong>Variables tested:</strong> ${expectedVars.avatar.length + expectedVars.placeholder.length + expectedVars.hover.length}</p>
+                <p><strong>Variables found:</strong> ${allPass ? 'All' : 'Some missing'}</p>
+                <p><strong>Theme:</strong> ${document.documentElement.getAttribute('data-theme')}</p>
+            `;
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            html.setAttribute('data-theme', currentTheme === 'dark' ? 'light' : 'dark');
+            
+            // Update body background for visibility
+            if (html.getAttribute('data-theme') === 'light') {
+                document.body.style.background = '#ffffff';
+                document.body.style.color = '#0f1419';
+                document.querySelectorAll('.test-section').forEach(el => {
+                    el.style.background = '#f7f9f9';
+                    el.style.borderColor = '#eff3f4';
+                });
+            } else {
+                document.body.style.background = '#000000';
+                document.body.style.color = '#e7e9ea';
+                document.querySelectorAll('.test-section').forEach(el => {
+                    el.style.background = '#16181c';
+                    el.style.borderColor = '#2f3336';
+                });
+            }
+            
+            runAllTests();
+        }
+
+        // Run tests on load
+        window.addEventListener('load', runAllTests);
+    </script>
+</body>
+</html>

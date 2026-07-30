@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Chat - Light Mode Frame</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Google Sans', 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+      background: #ffffff;
+      color: #3c4043;
+    }
+
+    .googlechat-context {
+      display: flex;
+      flex-direction: column;
+      min-height: 400px;
+      background: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .gc-chat {
+      flex: 1;
+      padding: 12px 16px;
+      overflow-y: auto;
+    }
+
+    .gc-message {
+      display: flex;
+      margin-bottom: 12px;
+    }
+
+    .gc-message-dim {
+      opacity: 0.6;
+    }
+
+    .gc-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1a73e8 0%, #1557b0 100%);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      color: #ffffff;
+      margin-right: 10px;
+    }
+
+    .gc-message-content {
+      flex: 1;
+    }
+
+    .gc-message-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .gc-author-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #3c4043;
+    }
+
+    .gc-message-time {
+      font-size: 11px;
+      color: #5f6368;
+      margin-left: 8px;
+    }
+
+    .gc-message-body {
+      font-size: 14px;
+      line-height: 1.4;
+      color: #3c4043;
+    }
+
+    .gc-link-preview {
+      margin-top: 8px;
+      background: #f1f3f4;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .gc-link-image {
+      width: 100%;
+      height: 100px;
+      background: linear-gradient(135deg, #1a73e8 0%, #1557b0 100%);
+    }
+
+    .gc-link-info {
+      padding: 8px 10px;
+    }
+
+    .gc-link-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: #1a73e8;
+    }
+
+    .gc-link-domain {
+      font-size: 11px;
+      color: #5f6368;
+    }
+  </style>
+</head>
+<body>
+  <div class="googlechat-context">
+    <div class="gc-chat">
+      <div class="gc-message gc-message-dim">
+        <div class="gc-avatar">PM</div>
+        <div class="gc-message-content">
+          <div class="gc-message-header">
+            <div class="gc-author-name">Project Manager</div>
+            <div class="gc-message-time">9:00 AM</div>
+          </div>
+          <div class="gc-message-body">You should see this resource I found for the project.</div>
+        </div>
+      </div>
+
+      <div class="gc-message">
+        <div class="gc-avatar">Y</div>
+        <div class="gc-message-content">
+          <div class="gc-message-header">
+            <div class="gc-author-name">You</div>
+            <div class="gc-message-time">9:05 AM</div>
+          </div>
+          <div class="gc-link-preview">
+            <div class="gc-link-image"></div>
+            <div class="gc-link-info">
+              <div class="gc-link-title">Best Practices for Modern Web Development</div>
+              <div class="gc-link-domain">website.com</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

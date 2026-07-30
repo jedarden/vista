@@ -5,7 +5,11 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "dev": "nodemon src/server.js",
+    "test": "node test/run-unit.js",
+    "screenshots": "bash screenshots/capture-platform-frames.sh",
+    "screenshots:playwright": "node screenshots/capture-frames-playwright.js",
+    "screenshots:real": "bash screenshots/capture-real-platforms.sh"
   },
   "dependencies": {
     "archiver": "^8.0.0",
@@ -13,6 +17,7 @@
     "express": "^4.18.2",
     "node-fetch": "^2.7.0",
     "probe-image-size": "^7.2.3",
+    "puppeteer": "^25.3.0",
     "sharp": "^0.34.5"
   },
   "devDependencies": {

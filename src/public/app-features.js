@@ -293,33 +293,44 @@ function initCardContextMenu() {
   const menu = document.createElement('div');
   menu.className = 'card-context-menu hidden';
   menu.id = 'cardContextMenu';
+  menu.setAttribute('role', 'menu');
   menu.innerHTML = `
-    <div class="context-menu-item" data-action="screenshot">
-      <span class="context-menu-icon">&#128190;</span>
+    <div class="context-menu-item" role="menuitem" tabindex="-1" data-action="screenshot">
+      <span class="context-menu-icon" aria-hidden="true">&#128190;</span>
       <span class="context-menu-label">Download Screenshot</span>
       <span class="context-menu-shortcut">Click screenshot button</span>
     </div>
-    <div class="context-menu-item" data-action="edit">
-      <span class="context-menu-icon">&#9998;</span>
+    <div class="context-menu-item" role="menuitem" tabindex="-1" data-action="edit">
+      <span class="context-menu-icon" aria-hidden="true">&#9998;</span>
       <span class="context-menu-label">Edit in Editor</span>
       <span class="context-menu-shortcut">E</span>
     </div>
-    <div class="context-menu-item" data-action="rawtags">
-      <span class="context-menu-icon">&#128196;</span>
+    <div class="context-menu-item" role="menuitem" tabindex="-1" data-action="rawtags">
+      <span class="context-menu-icon" aria-hidden="true">&#128196;</span>
       <span class="context-menu-label">View Raw Tags</span>
       <span class="context-menu-shortcut">3</span>
     </div>
-    <div class="context-menu-divider"></div>
-    <div class="context-menu-item" data-action="favorite">
-      <span class="context-menu-icon">&#9733;</span>
+    <div class="context-menu-divider" role="separator"></div>
+    <div class="context-menu-item" role="menuitem" tabindex="-1" data-action="favorite">
+      <span class="context-menu-icon" aria-hidden="true">&#9733;</span>
       <span class="context-menu-label">Add to Favorites</span>
     </div>
-    <div class="context-menu-item" data-action="hide">
-      <span class="context-menu-icon">&#128065;</span>
+    <div class="context-menu-item" role="menuitem" tabindex="-1" data-action="hide">
+      <span class="context-menu-icon" aria-hidden="true">&#128065;</span>
       <span class="context-menu-label">Hide Platform</span>
     </div>
   `;
   document.body.appendChild(menu);
+
+  const getMenuItems = () => Array.from(menu.querySelectorAll('.context-menu-item'));
+  const focusMenuItem = (item) => {
+    if (item) { item.focus(); item.classList.add('focused'); }
+  };
+  const closeMenu = () => {
+    menu.classList.add('hidden');
+    contextMenuTarget = null;
+    getMenuItems().forEach(i => i.classList.remove('focused'));
+  };
 
   // Add context menu listeners to preview grid
   const previewGrid = getPreviewGrid();
@@ -339,6 +350,9 @@ function initCardContextMenu() {
     menu.style.top = y + 'px';
     menu.classList.remove('hidden');
 
+    // Move focus to first item for keyboard users (ARIA menu pattern)
+    focusMenuItem(getMenuItems()[0]);
+
     // Update favorite label based on state
     const prefs = getPlatformPrefs();
     const favoriteItem = menu.querySelector('[data-action="favorite"]');
@@ -355,8 +369,40 @@ function initCardContextMenu() {
   // Close menu on click outside
   document.addEventListener('click', (e) => {
     if (!menu.contains(e.target)) {
-      menu.classList.add('hidden');
-      contextMenuTarget = null;
+      closeMenu();
+    }
+  });
+
+  // Close menu on Escape and restore focus to the triggering card
+  menu.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      closeMenu();
+      const card = getPreviewGrid()?.querySelector(`.platform-card[data-pid="${contextMenuTarget}"]`);
+      card?.focus();
+      return;
+    }
+
+    const items = getMenuItems();
+    const currentIndex = items.indexOf(document.activeElement);
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      focusMenuItem(items[(currentIndex + 1) % items.length]);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      focusMenuItem(items[(currentIndex - 1 + items.length) % items.length]);
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      focusMenuItem(items[0]);
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      focusMenuItem(items[items.length - 1]);
+    } else if ((e.key === 'Enter' || e.key === ' ') && currentIndex >= 0) {
+      e.preventDefault();
+      const item = items[currentIndex];
+      handleContextMenuAction(item.dataset.action, contextMenuTarget);
+      closeMenu();
     }
   });
 
@@ -369,8 +415,7 @@ function initCardContextMenu() {
     if (!contextMenuTarget) return;
 
     handleContextMenuAction(action, contextMenuTarget);
-    menu.classList.add('hidden');
-    contextMenuTarget = null;
+    closeMenu();
   });
 }
 
@@ -450,6 +495,8 @@ function savePlatformPrefs() {
     hidden: Array.from(prefs.hidden),
     columnCount: prefs.columnCount,
     smartOrdering: prefs.smartOrdering !== false,
+    cardOrder: prefs.cardOrder || {},
+    cardOrderMetadata: prefs.cardOrderMetadata || {}
   };
   localStorage.setItem('vista-platform-prefs', JSON.stringify(toSave));
 }
@@ -467,113 +514,6 @@ const PLATFORM_NAMES = window.PLATFORM_NAMES || {
   notion: 'Notion', jira: 'Jira / Confluence', github: 'GitHub', trello: 'Trello', figma: 'Figma',
   medium: 'Medium', substack: 'Substack', outlook: 'Outlook', gmail: 'Gmail', feedly: 'Feedly / RSS',
 };
-
-// =============================================================================
-// 4. QR Code for Shareable Link
-// =============================================================================
-
-/**
- * Generate QR code for shareable link using client-side library
- */
-function generateQRCode(url) {
-  // qrcode.js will generate the QR code on a canvas element
-  // This function now just returns the URL for display purposes
-  return url;
-}
-
-/**
- * Show QR code modal with client-side generated QR code
- */
-function showQRCodeModal() {
-  const shareUrl = window.location.href;
-
-  // Create modal if it doesn't exist
-  let modal = document.getElementById('qrModal');
-  if (!modal) {
-    modal = document.createElement('div');
-    modal.className = 'modal-overlay hidden';
-    modal.id = 'qrModal';
-    modal.innerHTML = `
-      <div class="modal">
-        <div class="modal-header">
-          <h3>Share via QR Code</h3>
-          <button class="modal-close" id="qrModalClose">&times;</button>
-        </div>
-        <div class="modal-body qr-modal-body">
-          <div id="qrCodeContainer"></div>
-          <p class="qr-url">${shareUrl}</p>
-          <div class="qr-actions">
-            <button class="action-btn primary" id="qrDownloadBtn">&#128190; Download QR Code</button>
-            <button class="action-btn" id="qrCopyUrlBtn">&#128203; Copy URL</button>
-          </div>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(modal);
-
-    // Add event listeners
-    document.getElementById('qrModalClose').addEventListener('click', () => modal.classList.add('hidden'));
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) modal.classList.add('hidden');
-    });
-    document.getElementById('qrDownloadBtn').addEventListener('click', downloadQRCode);
-    document.getElementById('qrCopyUrlBtn').addEventListener('click', () => {
-      navigator.clipboard.writeText(shareUrl);
-      showToast('URL copied to clipboard', 2000);
-    });
-  }
-
-  // Clear any existing QR code and generate new one
-  const qrContainer = document.getElementById('qrCodeContainer');
-  qrContainer.innerHTML = '';
-
-  // Generate QR code using qrcode.js
-  new QRCode(qrContainer, {
-    text: shareUrl,
-    width: 200,
-    height: 200,
-    colorDark: '#000000',
-    colorLight: '#ffffff',
-    correctLevel: QRCode.CorrectLevel.H
-  });
-
-  // Update URL display
-  document.querySelector('.qr-url').textContent = shareUrl;
-
-  modal.classList.remove('hidden');
-}
-
-/**
- * Download QR code image from canvas
- */
-function downloadQRCode() {
-  const qrContainer = document.getElementById('qrCodeContainer');
-  if (!qrContainer) return;
-
-  // Find the canvas or img element created by qrcode.js
-  const canvas = qrContainer.querySelector('canvas');
-  const img = qrContainer.querySelector('img');
-
-  let dataUrl;
-  if (canvas) {
-    dataUrl = canvas.toDataURL('image/png');
-  } else if (img) {
-    dataUrl = img.src;
-  } else {
-    showToast('Error: QR code not found', 2000);
-    return;
-  }
-
-  // Create download link
-  const a = document.createElement('a');
-  a.href = dataUrl;
-  a.download = 'vista-qr-code.png';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-
-  showToast('QR Code downloaded!', 2000);
-}
 
 // =============================================================================
 // 5. URL-based Score Badge API Enhancement
@@ -855,26 +795,68 @@ function initCardDragReorder() {
 
 /**
  * Save card order to localStorage
+ * This is called after drag operations, so we mark the group as user-modified
  */
 function saveCardOrder() {
-  const order = {};
+  const prefs = getPlatformPrefs();
+
+  // Initialize cardOrder and cardOrderMetadata if needed
+  if (!prefs.cardOrder) {
+    prefs.cardOrder = {};
+  }
+  if (!prefs.cardOrderMetadata) {
+    prefs.cardOrderMetadata = {};
+  }
+
   document.querySelectorAll('.platform-group').forEach(group => {
     const groupId = group.id.replace('group-', '');
     const cards = [...group.querySelectorAll('.platform-card')].map(card => card.dataset.pid);
-    order[groupId] = cards;
+    prefs.cardOrder[groupId] = cards;
+
+    // Mark this group as user-modified via drag
+    prefs.cardOrderMetadata[groupId] = {
+      userModified: true,
+      lastModified: Date.now(),
+      modifiedBy: 'user-drag',
+      pageType: window.currentPageType || 'unknown'
+    };
   });
-  localStorage.setItem('vista-card-order', JSON.stringify(order));
+
+  // Save the updated preferences to persist across page refreshes
+  try {
+    localStorage.setItem('vista-platform-prefs', JSON.stringify(prefs));
+  } catch (e) {
+    console.error('Failed to save card order preferences:', e);
+  }
 }
 
 /**
  * Load card order from localStorage
+ * Checks both the old 'vista-card-order' key and the new 'vista-platform-prefs' structure
  */
 function loadCardOrder() {
-  const saved = localStorage.getItem('vista-card-order');
-  if (!saved) return;
+  let order = null;
+
+  // First try to get order from platformPrefs (the new location)
+  const prefs = getPlatformPrefs();
+  if (prefs.cardOrder) {
+    order = prefs.cardOrder;
+  } else {
+    // Fallback to old 'vista-card-order' key for backwards compatibility
+    const saved = localStorage.getItem('vista-card-order');
+    if (!saved) return;
+
+    try {
+      order = JSON.parse(saved);
+    } catch (e) {
+      console.warn('Failed to parse old card order format', e);
+      return;
+    }
+  }
+
+  if (!order) return;
 
   try {
-    const order = JSON.parse(saved);
     Object.entries(order).forEach(([groupId, platformOrder]) => {
       const group = document.getElementById('group-' + groupId);
       if (!group) return;
@@ -1156,16 +1138,8 @@ function initPhase4Features() {
     // Hook into renderPreviews for editor preview sync
     hookRenderPreviews();
 
-    // Add QR code button to share actions
-    const shareBtn = document.getElementById('shareBtn');
-    if (shareBtn && !document.getElementById('qrCodeBtn')) {
-      const qrBtn = document.createElement('button');
-      qrBtn.className = 'action-btn';
-      qrBtn.innerHTML = '&#128241; QR Code';
-      qrBtn.id = 'qrCodeBtn';
-      qrBtn.addEventListener('click', showQRCodeModal);
-      shareBtn.parentNode.insertBefore(qrBtn, shareBtn.nextSibling);
-    }
+    // (QR code button is the static #qrBtn in index.html, wired to openQrModal
+    //  in app.js. Do not re-inject a duplicate here — see app.js QR Code Modal.)
 
     // Hook into existing app functions
     if (typeof window.handleResult === 'function') {

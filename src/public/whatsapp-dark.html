@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhatsApp - Dark Mode Frame</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+      background: #111b21;
+      color: #e9edef;
+    }
+
+    .whatsapp-context {
+      display: flex;
+      flex-direction: column;
+      min-height: 400px;
+      background: #0b141a;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .wa-chat {
+      flex: 1;
+      padding: 16px 20px;
+      overflow-y: auto;
+    }
+
+    .wa-message {
+      display: flex;
+      margin-bottom: 12px;
+    }
+
+    .wa-message-dim {
+      opacity: 0.6;
+    }
+
+    .wa-message-received {
+      justify-content: flex-start;
+    }
+
+    .wa-message-sent {
+      justify-content: flex-end;
+    }
+
+    .wa-bubble {
+      max-width: 80%;
+      padding: 10px 14px;
+      border-radius: 8px;
+    }
+
+    .wa-bubble-received {
+      background: #202c33;
+      color: #e9edef;
+    }
+
+    .wa-bubble-sent {
+      background: #005c4b;
+      color: #e9edef;
+    }
+
+    .wa-sender-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: #00a884;
+      margin-bottom: 4px;
+    }
+
+    .wa-message-body {
+      font-size: 14px;
+      line-height: 1.4;
+      color: #e9edef;
+    }
+
+    .wa-link-preview {
+      margin-top: 8px;
+      background: #1a252a;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .wa-link-image {
+      width: 100%;
+      height: 120px;
+      background: linear-gradient(135deg, #00a884 0%, #008f6f 100%);
+    }
+
+    .wa-link-info {
+      padding: 8px 10px;
+    }
+
+    .wa-link-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #e9edef;
+    }
+
+    .wa-link-domain {
+      font-size: 11px;
+      color: #8696a0;
+    }
+  </style>
+</head>
+<body>
+  <div class="whatsapp-context">
+    <div class="wa-chat">
+      <div class="wa-message wa-message-received wa-message-dim">
+        <div class="wa-bubble wa-bubble-received">
+          <div class="wa-sender-name">Project Manager</div>
+          <div class="wa-message-body">You should see this resource I found for the project.</div>
+        </div>
+      </div>
+
+      <div class="wa-message wa-message-sent">
+        <div class="wa-bubble wa-bubble-sent">
+          <div class="wa-message-body">Thanks! Let me check it out.</div>
+        </div>
+      </div>
+
+      <div class="wa-message wa-message-sent">
+        <div class="wa-bubble wa-bubble-sent">
+          <div class="wa-link-preview">
+            <div class="wa-link-image"></div>
+            <div class="wa-link-info">
+              <div class="wa-link-title">Best Practices for Modern Web Development</div>
+              <div class="wa-link-domain">website.com</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

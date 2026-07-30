@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMS/RCS Platform Context Frame Test</title>
+    <link rel="stylesheet" href="src/public/style.css">
+    <link rel="stylesheet" href="src/public/platform-frames-enhanced.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .test-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #333;
+        }
+        .theme-toggle {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .theme-toggle button {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .theme-toggle button.active {
+            background: #007aff;
+            color: white;
+            border-color: #007aff;
+        }
+        .platform-frame {
+            margin: 20px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .frame-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>SMS/RCS Platform Context Frame Test</h1>
+
+        <div class="theme-toggle">
+            <button id="darkBtn" class="active" onclick="setTheme('dark')">Dark Theme</button>
+            <button id="lightBtn" onclick="setTheme('light')">Light Theme</button>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">SMS/RCS Platform - Basic Frame</div>
+            <div class="frame-label">SMS conversation with link preview</div>
+            <div id="smsFrame" class="platform-frame"></div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">SMS/RCS Platform - Dark Theme Verification</div>
+            <div class="frame-label">All theme variables applied correctly</div>
+            <div id="smsDarkFrame" class="platform-frame"></div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">SMS/RCS Platform - Light Theme Verification</div>
+            <div class="frame-label">Light theme styling applied</div>
+            <div id="smsLightFrame" class="platform-frame"></div>
+        </div>
+    </div>
+
+    <script src="src/public/platform-frames.js"></script>
+    <script>
+        let currentTheme = 'dark';
+
+        function setTheme(theme) {
+            currentTheme = theme;
+            document.getElementById('darkBtn').classList.toggle('active', theme === 'dark');
+            document.getElementById('lightBtn').classList.toggle('active', theme === 'light');
+            renderAllFrames();
+        }
+
+        function renderSMSFrame(container, theme) {
+            const platform = PLATFORM_FRAMES.sms;
+            const frame = document.createElement('div');
+            frame.className = `sms-context ${theme}-theme`;
+
+            const sampleData = {
+                title: 'Interesting Article',
+                description: 'Check out this fascinating article about modern web development trends and best practices.',
+                domain: 'example.com',
+                site: 'example.com',
+                image: ''
+            };
+
+            const siteSection = `<div class="sms-site">${sampleData.site}</div>`;
+            const imageSection = sampleData.image ?
+                `<div class="sms-link-thumb"><img src="${sampleData.image}" alt="" /></div>` :
+                '<div class="sms-link-thumb-placeholder"></div>';
+            const descriptionSection = sampleData.description ?
+                `<div class="sms-desc">${sampleData.description}</div>` : '';
+
+            const userMessage = platform.neutralContent
+                .replace('{{title}}', sampleData.title)
+                .replace('{{description}}', sampleData.description)
+                .replace('{{domain}}', sampleData.domain)
+                .replace('{{site}}', sampleData.site)
+                .replace('{{imageSection}}', imageSection)
+                .replace('{{descriptionSection}}', descriptionSection)
+                .replace('{{siteSection}}', siteSection);
+
+            const chrome = platform.chrome
+                .replace('{{userMessage}}', userMessage);
+
+            frame.innerHTML = chrome;
+            container.appendChild(frame);
+        }
+
+        function renderAllFrames() {
+            // Clear existing frames
+            document.getElementById('smsFrame').innerHTML = '';
+            document.getElementById('smsDarkFrame').innerHTML = '';
+            document.getElementById('smsLightFrame').innerHTML = '';
+
+            // Render SMS frame with current theme
+            renderSMSFrame(document.getElementById('smsFrame'), currentTheme);
+
+            // Render dark theme verification frame
+            renderSMSFrame(document.getElementById('smsDarkFrame'), 'dark');
+
+            // Render light theme verification frame
+            renderSMSFrame(document.getElementById('smsLightFrame'), 'light');
+        }
+
+        // Initial render
+        renderAllFrames();
+    </script>
+</body>
+</html>

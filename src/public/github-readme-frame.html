@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitHub README Context Frame</title>
+  <link rel="stylesheet" href="frames-theme.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+      background: #0d1117;
+      color: #c9d1d9;
+    }
+
+    [data-theme='light'] body {
+      background: #ffffff;
+      color: #24292f;
+    }
+
+    .github-readme-context {
+      display: flex;
+      flex-direction: column;
+      min-height: 500px;
+      background: var(--gh-bg, #0d1117);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    [data-theme='light'] .github-readme-context {
+      background: var(--gh-bg, #ffffff);
+    }
+
+    /* README Header */
+    .gh-readme-header {
+      padding: 16px 24px;
+      background: var(--gh-header-bg, #161b22);
+      border-bottom: 1px solid var(--gh-border, #30363d);
+    }
+
+    [data-theme='light'] .gh-readme-header {
+      background: var(--gh-header-bg, #f6f8fa);
+      border-bottom-color: var(--gh-border, #d0d7de);
+    }
+
+    .gh-readme-title-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .gh-readme-icon {
+      font-size: 16px;
+      color: var(--gh-text-muted, #8b949e);
+    }
+
+    [data-theme='light'] .gh-readme-icon {
+      color: var(--gh-text-muted, #57606a);
+    }
+
+    .gh-readme-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--gh-text-primary, #c9d1d9);
+    }
+
+    [data-theme='light'] .gh-readme-title {
+      color: var(--gh-text-primary, #24292f);
+    }
+
+    .gh-readme-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 13px;
+      color: var(--gh-text-muted, #8b949e);
+    }
+
+    [data-theme='light'] .gh-readme-meta {
+      color: var(--gh-text-muted, #57606a);
+    }
+
+    .gh-readme-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* README Content */
+    .gh-readme-content {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+      background: var(--gh-bg, #0d1117);
+    }
+
+    [data-theme='light'] .gh-readme-content {
+      background: var(--gh-bg, #ffffff);
+    }
+
+    .gh-readme-section {
+      margin-bottom: 24px;
+    }
+
+    .gh-readme-section-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--gh-text-primary, #c9d1d9);
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--gh-border, #30363d);
+    }
+
+    [data-theme='light'] .gh-readme-section-title {
+      color: var(--gh-text-primary, #24292f);
+      border-bottom-color: var(--gh-border, #d0d7de);
+    }
+
+    .gh-readme-text {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--gh-text-primary, #c9d1d9);
+      margin-bottom: 16px;
+    }
+
+    [data-theme='light'] .gh-readme-text {
+      color: var(--gh-text-primary, #24292f);
+    }
+
+    /* Code Block */
+    .gh-code-block {
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+      font-size: 13px;
+      background: var(--gh-code-bg, #0d1117);
+      border: 1px solid var(--gh-border, #30363d);
+      border-radius: 6px;
+      padding: 16px;
+      margin: 16px 0;
+      overflow-x: auto;
+      line-height: 1.5;
+      position: relative;
+    }
+
+    [data-theme='light'] .gh-code-block {
+      background: var(--gh-code-bg, #f6f8fa);
+      border-color: var(--gh-border, #d0d7de);
+    }
+
+    .gh-code-block-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      background: var(--gh-code-header-bg, #161b22);
+      border-bottom: 1px solid var(--gh-border, #30363d);
+      border-radius: 6px 6px 0 0;
+      margin: -16px -16px 16px -16px;
+      font-size: 12px;
+      color: var(--gh-text-muted, #8b949e);
+    }
+
+    [data-theme='light'] .gh-code-block-header {
+      background: var(--gh-code-header-bg, #f6f8fa);
+      border-bottom-color: var(--gh-border, #d0d7de);
+    }
+
+    .gh-code-lang {
+      font-weight: 600;
+    }
+
+    .gh-code-copy {
+      cursor: pointer;
+      opacity: 0.7;
+    }
+
+    .gh-code-copy:hover {
+      opacity: 1;
+    }
+
+    /* Syntax Highlighting - Dark Mode */
+    .gh-code-keyword {
+      color: #ff7b72;
+    }
+
+    .gh-code-string {
+      color: #a5d6ff;
+    }
+
+    .gh-code-comment {
+      color: #8b949e;
+      font-style: italic;
+    }
+
+    .gh-code-function {
+      color: #d2a8ff;
+    }
+
+    .gh-code-number {
+      color: #79c0ff;
+    }
+
+    .gh-code-class {
+      color: #ffa657;
+    }
+
+    .gh-code-variable {
+      color: #ffa657;
+    }
+
+    /* Syntax Highlighting - Light Mode */
+    [data-theme='light'] .gh-code-keyword {
+      color: #cf222e;
+    }
+
+    [data-theme='light'] .gh-code-string {
+      color: #0a3069;
+    }
+
+    [data-theme='light'] .gh-code-comment {
+      color: #6e7781;
+    }
+
+    [data-theme='light'] .gh-code-function {
+      color: #8250df;
+    }
+
+    [data-theme='light'] .gh-code-number {
+      color: #0550ae;
+    }
+
+    [data-theme='light'] .gh-code-class {
+      color: #953800;
+    }
+
+    [data-theme='light'] .gh-code-variable {
+      color: #953800;
+    }
+
+    /* Link Card */
+    .gh-link-card {
+      margin: 20px 0;
+      border: 1px solid var(--gh-border, #30363d);
+      border-radius: 6px;
+      overflow: hidden;
+      max-width: 480px;
+      background: var(--gh-surface, #161b22);
+    }
+
+    [data-theme='light'] .gh-link-card {
+      border-color: var(--gh-border, #d0d7de);
+      background: var(--gh-surface, #f6f8fa);
+    }
+
+    .gh-link-card-header {
+      padding: 8px 12px;
+      background: var(--gh-link-header-bg, #161b22);
+      border-bottom: 1px solid var(--gh-border, #30363d);
+      font-size: 12px;
+      color: var(--gh-text-muted, #8b949e);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    [data-theme='light'] .gh-link-card-header {
+      background: var(--gh-link-header-bg, #f6f8fa);
+      border-bottom-color: var(--gh-border, #d0d7de);
+    }
+
+    .gh-link-card-favicon {
+      width: 16px;
+      height: 16px;
+      background: linear-gradient(135deg, #58a6ff, #1f6feb);
+      border-radius: 3px;
+    }
+
+    .gh-link-card-title {
+      padding: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--gh-link-color, #58a6ff);
+      background: var(--gh-bg, #0d1117);
+    }
+
+    [data-theme='light'] .gh-link-card-title {
+      color: var(--gh-link-color, #0969da);
+      background: var(--gh-bg, #ffffff);
+    }
+
+    .gh-link-card-desc {
+      padding: 0 12px 12px;
+      font-size: 13px;
+      color: var(--gh-text-secondary, #8b949e);
+      line-height: 1.5;
+    }
+
+    [data-theme='light'] .gh-link-card-desc {
+      color: var(--gh-text-secondary, #57606a);
+    }
+
+    /* README Footer */
+    .gh-readme-footer {
+      padding: 12px 24px;
+      background: var(--gh-header-bg, #161b22);
+      border-top: 1px solid var(--gh-border, #30363d);
+      font-size: 12px;
+      color: var(--gh-text-muted, #8b949e);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    [data-theme='light'] .gh-readme-footer {
+      background: var(--gh-header-bg, #f6f8fa);
+      border-top-color: var(--gh-border, #d0d7de);
+    }
+
+    .gh-readme-footer-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .gh-badge {
+      padding: 2px 8px;
+      background: var(--gh-badge-bg, #238636);
+      color: #ffffff;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    [data-theme='light'] .gh-badge {
+      background: var(--gh-badge-bg, #1a7f37);
+    }
+
+    /* Theme Toggle */
+    .theme-toggle {
+      padding: 6px 12px;
+      background: var(--gh-button-bg, #21262d);
+      border: 1px solid var(--gh-border, #30363d);
+      border-radius: 6px;
+      color: var(--gh-text-primary, #c9d1d9);
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    [data-theme='light'] .theme-toggle {
+      background: var(--gh-button-bg, #ffffff);
+    }
+
+    .theme-toggle:hover {
+      background: var(--gh-button-hover-bg, #30363d);
+    }
+
+    [data-theme='light'] .theme-toggle:hover {
+      background: var(--gh-button-hover-bg, #f3f4f6);
+    }
+
+    /* Inline code */
+    .gh-inline-code {
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+      font-size: 13px;
+      background: var(--gh-inline-bg, rgba(110, 118, 129, 0.4));
+      color: var(--gh-text-primary, #c9d1d9);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    [data-theme='light'] .gh-inline-code {
+      background: var(--gh-inline-bg, rgba(175, 184, 193, 0.2));
+      color: var(--gh-text-primary, #24292f);
+    }
+
+    /* Lists */
+    .gh-readme-list {
+      margin: 16px 0;
+      padding-left: 24px;
+    }
+
+    .gh-readme-list li {
+      margin-bottom: 8px;
+      line-height: 1.6;
+    }
+
+    .gh-readme-list li::marker {
+      color: var(--gh-text-muted, #8b949e);
+    }
+
+    [data-theme='light'] .gh-readme-list li::marker {
+      color: var(--gh-text-muted, #57606a);
+    }
+  </style>
+</head>
+<body>
+  <div class="github-readme-context">
+    <div class="gh-readme-header">
+      <div class="gh-readme-title-row">
+        <span class="gh-readme-icon">📄</span>
+        <span class="gh-readme-title">README.md</span>
+      </div>
+      <div class="gh-readme-meta">
+        <span class="gh-readme-meta-item">⭐ 1.2k</span>
+        <span class="gh-readme-meta-item">🍴 234</span>
+        <span class="gh-readme-meta-item">👀 156</span>
+        <span class="gh-readme-meta-item">● Last updated 2 hours ago</span>
+      </div>
+    </div>
+
+    <div class="gh-readme-content">
+      <div class="gh-readme-section">
+        <h1 class="gh-readme-section-title">🚀 Awesome Project</h1>
+        <p class="gh-readme-text">A powerful and flexible framework for building modern web applications with ease. This project provides a comprehensive toolkit for developers who want to create scalable, maintainable code.</p>
+
+        <div class="gh-code-block">
+          <div class="gh-code-block-header">
+            <span class="gh-code-lang">JavaScript</span>
+            <span class="gh-code-copy">📋 Copy</span>
+          </div>
+          <pre><span class="gh-code-keyword">import</span> { AwesomeFramework } <span class="gh-code-keyword">from</span> <span class="gh-code-string">'awesome-framework'</span>;
+
+<span class="gh-code-comment">// Initialize the framework</span>
+<span class="gh-code-keyword">const</span> app = <span class="gh-code-keyword">new</span> <span class="gh-code-class">AwesomeFramework</span>({
+  <span class="gh-code-variable">debug</span>: <span class="gh-code-keyword">true</span>,
+  <span class="gh-code-variable">port</span>: <span class="gh-code-number">3000</span>
+});
+
+app.<span class="gh-code-function">start</span>();</pre>
+        </div>
+      </div>
+
+      <div class="gh-readme-section">
+        <h2 class="gh-readme-section-title">✨ Features</h2>
+        <ul class="gh-readme-list">
+          <li>Lightning-fast performance with optimized bundling</li>
+          <li>Hot module replacement for instant development feedback</li>
+          <li>Built-in TypeScript support with full type checking</li>
+          <li>Extensive plugin system for custom functionality</li>
+        </ul>
+      </div>
+
+      <div class="gh-readme-section">
+        <h2 class="gh-readme-section-title">📚 Documentation</h2>
+        <p class="gh-readme-text">Get started with our comprehensive documentation. The guides cover everything from basic setup to advanced configuration patterns.</p>
+
+        <div class="gh-link-card">
+          <div class="gh-link-card-header">
+            <div class="gh-link-card-favicon"></div>
+            <span>docs.example.com</span>
+          </div>
+          <div class="gh-link-card-title">Complete API Reference & Getting Started Guide</div>
+          <div class="gh-link-card-desc">Explore our extensive documentation including tutorials, API reference, and best practices for building production-ready applications.</div>
+        </div>
+      </div>
+
+      <div class="gh-readme-section">
+        <h2 class="gh-readme-section-title">🤝 Contributing</h2>
+        <p class="gh-readme-text">We welcome contributions from the community! Check out our contributing guidelines to get started.</p>
+
+        <div class="gh-code-block">
+          <div class="gh-code-block-header">
+            <span class="gh-code-lang">Bash</span>
+            <span class="gh-code-copy">📋 Copy</span>
+          </div>
+          <pre><span class="gh-code-comment"># Clone the repository</span>
+git clone https://github.com/user/awesome-project.git
+
+<span class="gh-comment"># Install dependencies</span>
+npm install
+
+<span class="gh-comment"># Start development server</span>
+npm run dev</pre>
+        </div>
+      </div>
+
+      <div class="gh-readme-section">
+        <h2 class="gh-readme-section-title">📝 License</h2>
+        <p class="gh-readme-text">This project is licensed under the MIT License - see the LICENSE file for details.</p>
+      </div>
+    </div>
+
+    <div class="gh-readme-footer">
+      <div class="gh-readme-footer-left">
+        <span class="gh-badge">MIT License</span>
+        <button class="theme-toggle" onclick="toggleTheme()">🌓 Toggle Theme</button>
+      </div>
+      <span>found in README.md</span>
+    </div>
+  </div>
+
+  <script>
+    let currentTheme = 'dark';
+
+    function toggleTheme() {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', currentTheme);
+    }
+
+    // Initialize
+    document.documentElement.setAttribute('data-theme', currentTheme);
+  </script>
+</body>
+</html>

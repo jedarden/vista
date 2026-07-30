@@ -1,0 +1,74 @@
+{
+  "tests": [
+    {
+      "test": "Server Running",
+      "passed": true,
+      "details": "Server responded with 200",
+      "timestamp": "2026-07-23T20:11:18.464Z"
+    },
+    {
+      "test": "Page Load with smartOrdering=true",
+      "passed": true,
+      "details": "Page contains VISTA content",
+      "timestamp": "2026-07-23T20:11:18.466Z"
+    },
+    {
+      "test": "smartOrdering Code Present",
+      "passed": false,
+      "details": "No smartOrdering code found",
+      "timestamp": "2026-07-23T20:11:18.466Z"
+    },
+    {
+      "test": "Platform Card HTML Structure",
+      "passed": false,
+      "details": "Found preview grid and platform cards",
+      "timestamp": "2026-07-23T20:11:18.467Z"
+    },
+    {
+      "test": "URL Input Field",
+      "passed": true,
+      "details": "URL input field found",
+      "timestamp": "2026-07-23T20:11:18.468Z"
+    },
+    {
+      "test": "Analyze/Preview Button",
+      "passed": true,
+      "details": "Analyze/Preview button found",
+      "timestamp": "2026-07-23T20:11:18.468Z"
+    },
+    {
+      "test": "CSS Styling Present",
+      "passed": true,
+      "details": "CSS files linked",
+      "timestamp": "2026-07-23T20:11:18.469Z"
+    },
+    {
+      "test": "JavaScript Files",
+      "passed": true,
+      "details": "JavaScript files linked",
+      "timestamp": "2026-07-23T20:11:18.470Z"
+    }
+  ],
+  "errors": [
+    {
+      "test": "smartOrdering Code Present",
+      "passed": false,
+      "details": "No smartOrdering code found",
+      "timestamp": "2026-07-23T20:11:18.466Z"
+    },
+    {
+      "test": "Platform Card HTML Structure",
+      "passed": false,
+      "details": "Found preview grid and platform cards",
+      "timestamp": "2026-07-23T20:11:18.467Z"
+    }
+  ],
+  "startTime": "2026-07-23T20:11:18.452Z",
+  "endTime": "2026-07-23T20:11:18.470Z",
+  "summary": {
+    "total": 8,
+    "passed": 6,
+    "failed": 2,
+    "errors": 2
+  }
+}

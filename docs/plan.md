@@ -2259,3 +2259,42 @@ spec:
 - Raw metadata viewer (all extracted tags in a table)
 - Score badge API (embeddable SVG badge)
 - Confetti on perfect score (all 31 platforms A+, respects prefers-reduced-motion)
+
+---
+
+## ADR-001: 2026-07-20 — Move response caching from a per-pod in-memory Map to Cloudflare edge caching
+
+### Context
+
+VISTA's core value proposition is fast, cheap re-checks of the same handful of URLs across several idempotent, cacheable GET endpoints — `/api/preview`, `/api/badge`, `/api/screenshot`, `/api/compare`. The badge endpoint in particular is designed to be embedded as a live `<img>` in third-party READMEs and documentation (see README.md "Badge in Markdown"), which means the same URL gets re-requested by many different viewers.
+
+Today the only cache is `badgeCache`, a plain `Map()` inside `src/server.js` (1-hour TTL, ~1000-entry LRU eviction), scoped to a single Node process. This repo's Overview section (top of this document) already commits to VISTA being "stateless — no database, no sessions, no persistent storage," so any change here needs to preserve that property in the app itself, not just move the problem into a new stateful service.
+
+Two live facts (checked 2026-07-20, read-only kubectl against apexalgo-iad) make the per-pod cache's limitations concrete rather than theoretical, and are being tracked as separate bug beads rather than folded into this decision:
+
+- The live `vista` Deployment (namespace `vista`, apexalgo-iad) has been stuck mid-rollout since 2026-06-03 (47 days) because `jedarden/declarative-config`'s `k8s/apexalgo-iad/vista/deployment.yml` pins `image: ronaldraygun/vista:latest`, which fails to pull. This repo's own (non-authoritative) `k8s/deployment.yml` already anticipates running `replicas: 3` once that's fixed — at which point a per-pod cache fragments hit rate three ways and loses all warmth on every rolling deploy.
+- `vista.jedarden.com` — the hostname used throughout README.md's badge examples and share-link docs — currently does not resolve (confirmed NXDOMAIN via DNS lookup and a fetch attempt). The in-cluster IngressRoute for it exists and is correctly configured, but unlike the sibling `vista-ingressroute` (routing `vista.ardenone.com` via a Cloudflare-tunnel `external-dns` annotation), it has no DNS automation. jedarden.com's zone is already on Cloudflare (all its live subdomains resolve to Cloudflare anycast IPs), so once this is fixed, VISTA can sit behind Cloudflare like its siblings.
+
+There is no Redis, Memcached, or KV service running anywhere in this fleet today.
+
+### Decision
+
+Cache VISTA's read-heavy GET responses at the Cloudflare edge instead of in a per-pod Map:
+
+1. Add correct `Cache-Control: public, max-age=<n>, stale-while-revalidate=<m>` response headers to `/api/badge`, `/api/preview`, `/api/screenshot`, and `/api/compare` in `src/server.js`.
+2. Once `vista.jedarden.com` has a DNS record (tracked separately), make sure it is Cloudflare-proxied rather than DNS-only, and add a Cache Rule for `/api/*` if origin `Cache-Control` headers alone aren't sufficient for CF to cache these paths.
+3. Once the edge cache is confirmed working, retire the in-process `badgeCache` Map. The app's request handlers go back to being pure functions of "fetch the URL, score it, return it" with no shared mutable state — caching becomes purely an edge-level optimization outside the process, not a new backend service the app has to run.
+
+### Alternatives Considered
+
+- **Status quo (per-pod `Map`).** Rejected: doesn't survive restarts or deploys, doesn't share hits across replicas, and gets strictly worse the moment the stuck-rollout bug is fixed and the deployment scales past 1 replica.
+- **Shared external cache (Redis/KV, self-hosted or on ardenone-cluster).** Rejected for now: introduces a new stateful service this small tool has no other need for, reverses the "no database, no sessions, no persistent storage" principle this document already commits to, and there's no existing instance in this fleet to reuse — it would be new infrastructure built solely for VISTA's cache.
+- **No caching at all.** Rejected: defeats the reason the 1-hour badge TTL cache exists in the first place — badges embedded in other repos' READMEs would trigger a live fetch-and-score of the target URL on every single page view.
+- **Client-side caching only (browser `Cache-Control`, no CDN involved).** Insufficient alone: badge images are loaded fresh per-viewer by different browsers with no shared cache between them, so the multi-viewer sharing benefit is lost. Still necessary as the mechanism CF's edge cache keys off of, but not sufficient by itself — hence step 1 above is required regardless of step 2/3.
+
+### Consequences
+
+- Cache hit rate becomes shared across all replicas and Cloudflare's edge locations, and survives pod restarts and redeploys — a meaningful win specifically for the badge-embed use case.
+- No new service to operate, monitor, or back up; the app's "stateless" claim in the Overview stays true of the process itself.
+- Cache invalidation now depends on Cloudflare purge rather than an in-process `Map.delete()`. The existing `POST /api/purge` handler already clears `badgeCache` on request — it will need a Cloudflare purge call added alongside that once the in-memory cache is retired, so "refresh my badge" continues to work as documented in the Cache Invalidation Hub feature.
+- This has no effect until `vista.jedarden.com` is reachable and Cloudflare-proxied — sequenced after the DNS-fix bead below.

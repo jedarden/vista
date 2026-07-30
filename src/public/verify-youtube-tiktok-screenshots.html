@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube & TikTok Screenshot Verification</title>
+  <link rel="stylesheet" href="frames-theme.css">
+  <link rel="stylesheet" href="social-platforms-frames.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a1e;
+      color: #e4e4e7;
+      padding: 40px;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    [data-theme="light"] body {
+      background: #ffffff;
+      color: #1f2937;
+    }
+
+    .test-container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .test-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .test-header h1 {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    .test-header p {
+      font-size: 16px;
+      opacity: 0.8;
+    }
+
+    .theme-toggle-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      z-index: 1000;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .theme-toggle-btn:hover {
+      transform: scale(1.05);
+    }
+
+    .platform-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      margin-bottom: 40px;
+    }
+
+    .platform-section {
+      background: var(--color-bg-dark-elevated);
+      border-radius: 16px;
+      padding: 24px;
+      border: 1px solid var(--color-border-dark-default);
+      transition: all 0.3s ease;
+    }
+
+    [data-theme="light"] .platform-section {
+      background: var(--color-bg-light-elevated);
+      border-color: var(--color-border-light-default);
+    }
+
+    .platform-section h2 {
+      font-size: 24px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .platform-section h2 .icon {
+      font-size: 28px;
+    }
+
+    .frame-container {
+      margin-top: 20px;
+      border: 1px solid var(--color-border-dark-default);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    [data-theme="light"] .frame-container {
+      border-color: var(--color-border-light-default);
+    }
+
+    .screenshot-instructions {
+      margin-top: 32px;
+      padding: 20px;
+      background: rgba(102, 126, 234, 0.1);
+      border: 1px solid rgba(102, 126, 234, 0.3);
+      border-radius: 12px;
+    }
+
+    .screenshot-instructions h3 {
+      font-size: 18px;
+      margin-bottom: 12px;
+      color: var(--color-accent-primary);
+    }
+
+    .screenshot-instructions ol {
+      padding-left: 20px;
+      line-height: 1.8;
+    }
+
+    .screenshot-instructions li {
+      margin-bottom: 8px;
+    }
+
+    .verification-checklist {
+      margin-top: 24px;
+      padding: 16px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+    }
+
+    [data-theme="light"] .verification-checklist {
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    .verification-checklist ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .verification-checklist li {
+      padding: 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .verification-checklist li:before {
+      content: "□";
+      font-size: 16px;
+      color: var(--color-accent-primary);
+    }
+
+    @media (max-width: 768px) {
+      .platform-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle-btn" onclick="toggleTheme()">🌓 Toggle Theme</button>
+
+  <div class="test-container">
+    <div class="test-header">
+      <h1>📸 YouTube & TikTok Screenshot Verification</h1>
+      <p>Capture screenshots of YouTube and TikTok frames in both themes</p>
+      <div id="theme-status" class="test-status">Current: Dark Mode</div>
+    </div>
+
+    <div class="platform-grid">
+      <!-- YouTube -->
+      <div class="platform-section">
+        <h2><span class="icon">▶️</span> YouTube</h2>
+        <div class="frame-container">
+          <iframe src="youtube-frame.html" width="100%" height="400" frameborder="0"></iframe>
+        </div>
+        <div class="verification-checklist">
+          <h3>YouTube Chrome Elements:</h3>
+          <ul>
+            <li>Video player with play button overlay</li>
+            <li>Channel avatar with proper sizing</li>
+            <li>Channel name and subscriber count</li>
+            <li>Subscribe button (red/YouTube styled)</li>
+            <li>Action buttons (Like, Share, Save)</li>
+            <li>Video title and description</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- TikTok -->
+      <div class="platform-section">
+        <h2><span class="icon">🎵</span> TikTok</h2>
+        <div class="frame-container">
+          <iframe src="tiktok-frame.html" width="100%" height="400" frameborder="0"></iframe>
+        </div>
+        <div class="verification-checklist">
+          <h3>TikTok Chrome Elements:</h3>
+          <ul>
+            <li>Video container with proper aspect ratio</li>
+            <li>Right sidebar with action icons</li>
+            <li>User avatar and username overlay</li>
+            <li>Caption text with hashtags</li>
+            <li>Music/sound info at bottom</li>
+            <li>Proper TikTok pink/cyan branding</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="screenshot-instructions">
+      <h3>📋 Screenshot Instructions</h3>
+      <ol>
+        <li>Take a screenshot in DARK mode (current view)</li>
+        <li>Click the "🌓 Toggle Theme" button at top-right</li>
+        <li>Wait for the theme transition to complete</li>
+        <li>Take a screenshot in LIGHT mode</li>
+        <li>Save screenshots with descriptive names:
+          <br><code>youtube-frame-dark.png</code>
+          <br><code>youtube-frame-light.png</code>
+          <br><code>tiktok-frame-dark.png</code>
+          <br><code>tiktok-frame-light.png</code>
+        </li>
+        <li>Verify each screenshot shows realistic platform chrome</li>
+        <li>Check for proper theme colors, contrast, and readability</li>
+      </ol>
+    </div>
+  </div>
+
+  <script>
+    let currentTheme = 'dark';
+
+    function toggleTheme() {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      localStorage.setItem('vista-theme', currentTheme);
+      updateThemeStatus();
+    }
+
+    function updateThemeStatus() {
+      const status = document.getElementById('theme-status');
+      if (status) {
+        status.textContent = `Current: ${currentTheme === 'dark' ? 'Dark' : 'Light'} Mode`;
+        status.className = `test-status ${currentTheme === 'dark' ? 'pass' : 'fail'}`;
+      }
+    }
+
+    // Initialize with saved theme preference
+    const savedTheme = localStorage.getItem('vista-theme') || 'dark';
+    currentTheme = savedTheme;
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    updateThemeStatus();
+
+    // Listen for system theme changes
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      if (!localStorage.getItem('vista-theme')) {
+        currentTheme = e.matches ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        updateThemeStatus();
+      }
+    });
+  </script>
+</body>
+</html>

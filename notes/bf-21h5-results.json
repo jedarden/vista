@@ -1,0 +1,29 @@
+{
+  "timestamp": "2026-07-23T20:24:15.499Z",
+  "summary": {
+    "total": 3,
+    "passed": 0,
+    "warnings": 3,
+    "errors": 0
+  },
+  "results": [
+    {
+      "testCase": "Article Page Type",
+      "status": "WARN",
+      "foundLogs": 0,
+      "note": "No smart ordering logs found - may need manual inspection"
+    },
+    {
+      "testCase": "Product Page Type",
+      "status": "WARN",
+      "foundLogs": 0,
+      "note": "No smart ordering logs found - may need manual inspection"
+    },
+    {
+      "testCase": "Default Website",
+      "status": "WARN",
+      "foundLogs": 0,
+      "note": "No smart ordering logs found - may need manual inspection"
+    }
+  ]
+}

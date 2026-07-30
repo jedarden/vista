@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Hunt - Dark Mode Frame</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a1a;
+      color: #ffffff;
+    }
+
+    .producthunt-context {
+      display: flex;
+      flex-direction: column;
+      min-height: 400px;
+      background: #1a1a1a;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .ph-post-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 20px 24px;
+      background: #1a1a1a;
+      border-bottom: 1px solid #3a3a3a;
+    }
+
+    .ph-product-icon {
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, #da552f 0%, #b84320 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+    }
+
+    .ph-product-meta {
+      flex: 1;
+    }
+
+    .ph-product-name {
+      font-size: 20px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 4px;
+    }
+
+    .ph-product-tagline {
+      font-size: 14px;
+      color: #999999;
+    }
+
+    .ph-upvote-btn {
+      padding: 8px 20px;
+      background: #da552f;
+      color: #ffffff;
+      border: none;
+      border-radius: 24px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .ph-comments-section {
+      flex: 1;
+      padding: 20px 24px;
+      overflow-y: auto;
+    }
+
+    .ph-comments-header {
+      font-size: 16px;
+      font-weight: 600;
+      color: #ffffff;
+      margin-bottom: 16px;
+    }
+
+    .ph-comment {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .ph-comment-dim {
+      opacity: 0.6;
+    }
+
+    .ph-comment-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #666666 0%, #444444 100%);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .ph-comment-content {
+      flex: 1;
+    }
+
+    .ph-comment-author {
+      font-size: 14px;
+      font-weight: 600;
+      color: #ffffff;
+      margin-bottom: 4px;
+    }
+
+    .ph-comment-time {
+      font-size: 12px;
+      color: #999999;
+      margin-bottom: 6px;
+    }
+
+    .ph-comment-body {
+      font-size: 14px;
+      line-height: 1.5;
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+  <div class="producthunt-context">
+    <div class="ph-post-header">
+      <div class="ph-product-icon">🚀</div>
+      <div class="ph-product-meta">
+        <div class="ph-product-name">CodeFlow Pro</div>
+        <div class="ph-product-tagline">The ultimate developer productivity suite with AI-powered code completion</div>
+      </div>
+      <button class="ph-upvote-btn">▲ Upvote</button>
+    </div>
+
+    <div class="ph-comments-section">
+      <div class="ph-comments-header">Comments</div>
+      <div class="ph-comment ph-comment-dim">
+        <div class="ph-comment-avatar">H</div>
+        <div class="ph-comment-content">
+          <div class="ph-comment-author">ProductHunter</div>
+          <div class="ph-comment-time">2 hours ago</div>
+          <div class="ph-comment-body">This is exactly what I needed! The AI suggestions are spot on.</div>
+        </div>
+      </div>
+
+      <div class="ph-comment ph-comment-dim">
+        <div class="ph-comment-avatar">M</div>
+        <div class="ph-comment-content">
+          <div class="ph-comment-author">MakerUser</div>
+          <div class="ph-comment-time">1 hour ago</div>
+          <div class="ph-comment-body">Finally found a tool that actually understands my coding style!</div>
+        </div>
+      </div>
+
+      <div class="ph-comment">
+        <div class="ph-comment-avatar">Y</div>
+        <div class="ph-comment-content">
+          <div class="ph-comment-author">You</div>
+          <div class="ph-comment-time">Just now</div>
+          <div class="ph-comment-body">Been using this for a week now - game changer for my workflow!</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

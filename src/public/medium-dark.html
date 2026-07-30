@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Medium - Dark Mode Frame</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #000000;
+      color: #ffffff;
+    }
+
+    .medium-context {
+      display: flex;
+      flex-direction: column;
+      min-height: 450px;
+      background: #000000;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .md-article-header {
+      padding: 20px 24px;
+      background: #000000;
+      border-bottom: 1px solid #2a2a2a;
+    }
+
+    .md-author-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .md-author-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1a8917 0%, #146d11 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .md-author-meta {
+      flex: 1;
+    }
+
+    .md-author-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    .md-post-time {
+      font-size: 12px;
+      color: #a0a0a0;
+    }
+
+    .md-follow-btn {
+      padding: 6px 16px;
+      background: #1a8917;
+      color: #ffffff;
+      border: none;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .md-article-title {
+      font-size: 26px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 12px;
+      line-height: 1.3;
+    }
+
+    .md-article-preview {
+      font-size: 15px;
+      line-height: 1.6;
+      color: #a0a0a0;
+      margin-bottom: 12px;
+    }
+
+    .md-stats {
+      font-size: 13px;
+      color: #a0a0a0;
+    }
+
+    .md-responses-section {
+      flex: 1;
+      padding: 20px 24px;
+      overflow-y: auto;
+    }
+
+    .md-response {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .md-response-dim {
+      opacity: 0.6;
+    }
+
+    .md-response-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #4a4a4a 0%, #2a2a2a 100%);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .md-response-content {
+      flex: 1;
+    }
+
+    .md-response-author {
+      font-size: 13px;
+      font-weight: 600;
+      color: #ffffff;
+      margin-bottom: 4px;
+    }
+
+    .md-response-time {
+      font-size: 11px;
+      color: #a0a0a0;
+      margin-bottom: 6px;
+    }
+
+    .md-response-body {
+      font-size: 14px;
+      line-height: 1.5;
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+  <div class="medium-context">
+    <div class="md-article-header">
+      <div class="md-author-section">
+        <div class="md-author-avatar">TW</div>
+        <div class="md-author-meta">
+          <div class="md-author-name">Tech Writer</div>
+          <div class="md-post-time">3 hours ago</div>
+        </div>
+        <button class="md-follow-btn">Follow</button>
+      </div>
+      <div class="md-article-title">The Future of Web Development: Trends to Watch in 2025</div>
+      <div class="md-article-preview">Explore the emerging technologies and methodologies that are shaping the next generation of web applications...</div>
+      <div class="md-stats">👏 1.2K · 💬 48 responses</div>
+    </div>
+
+    <div class="md-responses-section">
+      <div class="md-response md-response-dim">
+        <div class="md-response-avatar">R</div>
+        <div class="md-response-content">
+          <div class="md-response-author">Reader123</div>
+          <div class="md-response-time">2 hours ago</div>
+          <div class="md-response-body">Thoughtful piece. Thanks for sharing!</div>
+        </div>
+      </div>
+
+      <div class="md-response md-response-dim">
+        <div class="md-response-avatar">D</div>
+        <div class="md-response-content">
+          <div class="md-response-author">DevEnthusiast</div>
+          <div class="md-response-time">1 hour ago</div>
+          <div class="md-response-body">Great insights on the emerging trends!</div>
+        </div>
+      </div>
+
+      <div class="md-response">
+        <div class="md-response-avatar">Y</div>
+        <div class="md-response-content">
+          <div class="md-response-author">You</div>
+          <div class="md-response-time">Just now</div>
+          <div class="md-response-body">This really resonated with me. The section on edge computing was particularly interesting.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

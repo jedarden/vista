@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Threads - Dark Mode Frame</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+      background: #111111;
+      color: #f3f5f7;
+    }
+
+    .threads-context {
+      display: flex;
+      flex-direction: column;
+      min-height: 400px;
+      background: #111111;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .th-post-header {
+      padding: 12px 16px;
+      background: #111111;
+    }
+
+    .th-post-author {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .th-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0095f6 0%, #0080d4 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .th-author-info {
+      flex: 1;
+    }
+
+    .th-author-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: #f3f5f7;
+    }
+
+    .th-post-time {
+      font-size: 12px;
+      color: #777777;
+    }
+
+    .th-post-content {
+      padding: 12px 16px;
+    }
+
+    .th-post-text {
+      font-size: 15px;
+      line-height: 1.5;
+      color: #f3f5f7;
+      margin-bottom: 12px;
+    }
+
+    .th-link-card {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .th-link-image {
+      width: 100%;
+      height: 180px;
+      background: linear-gradient(135deg, #0095f6 0%, #0080d4 100%);
+    }
+
+    .th-link-info {
+      padding: 12px;
+      background: #1a1a1a;
+    }
+
+    .th-link-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #f3f5f7;
+      margin-bottom: 4px;
+    }
+
+    .th-link-domain {
+      font-size: 12px;
+      color: #777777;
+    }
+
+    .th-actions {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-top: 1px solid #2a2a2a;
+    }
+
+    .th-action {
+      font-size: 13px;
+      color: #777777;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="threads-context">
+    <div class="th-post-header">
+      <div class="th-post-author">
+        <div class="th-avatar">JD</div>
+        <div class="th-author-info">
+          <div class="th-author-name">johndoe</div>
+        </div>
+        <div class="th-post-time">2h</div>
+      </div>
+    </div>
+
+    <div class="th-post-content">
+      <div class="th-post-text">Found this amazing resource on web development best practices. Check it out!</div>
+      <div class="th-link-card">
+        <div class="th-link-image"></div>
+        <div class="th-link-info">
+          <div class="th-link-title">Best Practices for Modern Web Development</div>
+          <div class="th-link-domain">website.com</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="th-actions">
+      <div class="th-action">💬 5</div>
+      <div class="th-action">❤️ 22</div>
+      <div class="th-action">🔄 3</div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reddit & Twitter/X Frame Verification</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary, #1a1a1a);
+            color: var(--text-primary, #e0e0e0);
+            padding: 20px;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        [data-theme="light"] body {
+            --bg-primary: #f0f0f0;
+            --text-primary: #1a1a1a;
+            --bg-secondary: #ffffff;
+            --border-color: #e0e0e0;
+            --accent: #0066cc;
+        }
+
+        [data-theme="dark"] body {
+            --bg-primary: #0d1117;
+            --text-primary: #c9d1d9;
+            --bg-secondary: #161b22;
+            --border-color: #30363d;
+            --accent: #58a6ff;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .frames-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+        }
+
+        .frame-card {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .frame-header {
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .frame-title {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .theme-badge {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            background: var(--accent);
+            color: white;
+        }
+
+        .frame-container {
+            height: 450px;
+            position: relative;
+        }
+
+        .platform-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .checklist {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-top: 20px;
+        }
+
+        .checklist h2 {
+            margin-bottom: 15px;
+            color: var(--accent);
+        }
+
+        .checklist-item {
+            padding: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .checkbox.checked {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .checkbox.checked::after {
+            content: '✓';
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .frames-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Reddit & Twitter/X Frame Verification</h1>
+        <div class="controls">
+            <button class="btn" onclick="toggleTheme()">🌓 Toggle Theme</button>
+        </div>
+    </div>
+
+    <div class="frames-grid">
+        <div class="frame-card">
+            <div class="frame-header">
+                <div class="frame-title">Reddit Frame</div>
+                <div class="theme-badge" id="reddit-theme-badge">Dark</div>
+            </div>
+            <div class="frame-container">
+                <iframe class="platform-frame" id="reddit-frame" src="src/public/reddit-dark.html"></iframe>
+            </div>
+        </div>
+
+        <div class="frame-card">
+            <div class="frame-header">
+                <div class="frame-title">Twitter/X Frame</div>
+                <div class="theme-badge" id="twitter-theme-badge">Dark</div>
+            </div>
+            <div class="frame-container">
+                <iframe class="platform-frame" id="twitter-frame" src="src/public/twitter-dark.html"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <div class="checklist">
+        <h2>✅ Acceptance Criteria Verification</h2>
+
+        <div class="checklist-item">
+            <div class="checkbox" onclick="this.classList.toggle('checked')"></div>
+            <span><strong>Reddit Frame:</strong> Chrome container with proper structure</span>
+        </div>
+        <div class="checklist-item">
+            <div class="checkbox" onclick="this.classList.toggle('checked')"></div>
+            <span><strong>Reddit Frame:</strong> Avatar, username, subreddit, timestamp visible</span>
+        </div>
+        <div class="checklist-item">
+            <div class="checkbox" onclick="this.classList.toggle('checked')"></div>
+            <span><strong>Reddit Frame:</strong> Upvote/downvote/comment count icons displayed</span>
+        </div>
+        <div class="checklist-item">
+            <div class="checkbox" onclick="this.classList.toggle('checked')"></div>
+            <span><strong>Reddit Frame:</strong> Reddit-specific colors (orange/gray, dark theme)</span>
+        </div>
+        <div class="checklist-item">
+            <div class="checkbox" onclick="this.classList.toggle('checked')"></div>
+            <span><strong>Reddit Frame:</strong> Typography matches Reddit's look</span>
+        </div>
+
+        <div class="checklist-item">
+            <div class="checkbox" onclick="this.classList.toggle('checked')"></div>
+            <span><strong>Twitter/X Frame:</strong> Chrome container with proper structure</span>
+        </div>
+        <div class="checklist-item">
+            <div class="checkbox" onclick="this.classList.toggle('checked')"></div>
+            <span><strong>Twitter/X Frame:</strong> Avatar, handle, timestamp visible</span>
+        </div>
+        <div class="checklist-item">
+            <div class="checkbox" onclick="this.classList.toggle('checked')"></div>
+            <span><strong>Twitter/X Frame:</strong> Reply/retweet/like/view counts displayed</span>
+        </div>
+        <div class="checklist-item">
+            <div class="checkbox" onclick="this.classList.toggle('checked')"></div>
+            <span><strong>Twitter/X Frame:</strong> Twitter/X-specific colors (black/blue, dark theme)</span>
+        </div>
+        <div class="checklist-item">
+            <div class="checkbox" onclick="this.classList.toggle('checked')"></div>
+            <span><strong>Twitter/X Frame:</strong> Typography matches Twitter's look</span>
+        </div>
+
+        <div class="checklist-item">
+            <div class="checkbox" onclick="this.classList.toggle('checked')"></div>
+            <span><strong>Theme Switching:</strong> Dark/light toggle correctly switches both frames</span>
+        </div>
+        <div class="checklist-item">
+            <div class="checkbox" onclick="this.classList.toggle('checked')"></div>
+            <span><strong>Manual Verification:</strong> Both platforms look correct in both themes</span>
+        </div>
+    </div>
+
+    <script>
+        let currentTheme = 'dark';
+
+        function toggleTheme() {
+            currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', currentTheme);
+
+            // Update frames
+            document.getElementById('reddit-frame').src = `src/public/reddit-${currentTheme}.html`;
+            document.getElementById('twitter-frame').src = `src/public/twitter-${currentTheme}.html`;
+
+            // Update badges
+            document.getElementById('reddit-theme-badge').textContent = currentTheme.charAt(0).toUpperCase() + currentTheme.slice(1);
+            document.getElementById('twitter-theme-badge').textContent = currentTheme.charAt(0).toUpperCase() + currentTheme.slice(1);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Instagram Frame Theme Chrome Test</title>
+  <link rel="stylesheet" href="src/public/frames-theme.css">
+  <link rel="stylesheet" href="src/public/social-platforms-frames.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+      background: #1a1a1e;
+      color: #ffffff;
+      padding: 40px;
+      display: flex;
+      gap: 40px;
+      flex-wrap: wrap;
+    }
+
+    .test-container {
+      flex: 1;
+      min-width: 400px;
+      max-width: 500px;
+    }
+
+    .test-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: #e4e4e7;
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 24px;
+      background: var(--color-accent-indigo-500);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 1000;
+    }
+
+    .theme-toggle:hover {
+      background: var(--color-accent-indigo-600);
+    }
+
+    /* Instagram specific chrome test elements */
+    .ig-post-card {
+      background: var(--frame-bg);
+      border: 1px solid var(--frame-border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .ig-image-placeholder {
+      width: 100%;
+      aspect-ratio: 1/1;
+      background: linear-gradient(135deg, var(--frame-surface) 0%, var(--frame-border) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--frame-text-muted);
+      font-size: 64px;
+    }
+
+    .ig-action-count {
+      font-size: 14px;
+      color: var(--frame-text-secondary);
+      margin-left: 4px;
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
+
+  <div class="test-container">
+    <div class="test-title">Instagram Frame - Dark Theme (with CSS Variables)</div>
+    <div class="instagram-context dark-theme platform-frame">
+      <div class="ig-post-card">
+        <!-- Post Header -->
+        <div class="ig-post-header">
+          <div class="ig-avatar"></div>
+          <div class="ig-post-meta">
+            <span class="ig-username">travel_photographer</span>
+            <span class="ig-post-time">2 hours ago</span>
+          </div>
+          <span class="ig-menu">•••</span>
+        </div>
+
+        <!-- Image Placeholder -->
+        <div class="ig-image-placeholder">
+          <div class="ig-placeholder-content">📷</div>
+        </div>
+
+        <!-- Post Content -->
+        <div class="ig-post-content">
+          <div class="ig-caption">Check out this amazing sunset view from the coast! The colors are absolutely breathtaking. 🌅</div>
+          <div class="ig-hashtags">#travel #photography #sunset #nature #beautiful</div>
+        </div>
+
+        <!-- Post Actions -->
+        <div class="ig-post-actions">
+          <span class="ig-action">♡</span>
+          <span class="ig-action-count">1.2K</span>
+          <span class="ig-action">💬</span>
+          <span class="ig-action-count">45</span>
+          <span class="ig-action">🔗</span>
+          <span class="ig-action-count">Share</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="test-container">
+    <div class="test-title">Instagram Frame - Light Theme (with CSS Variables)</div>
+    <div class="instagram-context light-theme platform-frame">
+      <div class="ig-post-card">
+        <!-- Post Header -->
+        <div class="ig-post-header">
+          <div class="ig-avatar"></div>
+          <div class="ig-post-meta">
+            <span class="ig-username">foodie_adventures</span>
+            <span class="ig-post-time">5 hours ago</span>
+          </div>
+          <span class="ig-menu">•••</span>
+        </div>
+
+        <!-- Image Placeholder -->
+        <div class="ig-image-placeholder">
+          <div class="ig-placeholder-content">🍕</div>
+        </div>
+
+        <!-- Post Content -->
+        <div class="ig-post-content">
+          <div class="ig-caption">Found this amazing pizza place in the city! The crust is perfectly crispy and the toppings are so fresh. Highly recommend! 🍕✨</div>
+          <div class="ig-hashtags">#food #pizza #foodie #delicious #yum</div>
+        </div>
+
+        <!-- Post Actions -->
+        <div class="ig-post-actions">
+          <span class="ig-action">♡</span>
+          <span class="ig-action-count">3.4K</span>
+          <span class="ig-action">💬</span>
+          <span class="ig-action-count">128</span>
+          <span class="ig-action">🔗</span>
+          <span class="ig-action-count">Share</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleTheme() {
+      const html = document.documentElement;
+      const currentTheme = html.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', newTheme);
+
+      // Update body background for better visibility
+      if (newTheme === 'light') {
+        document.body.style.background = '#f8f9fa';
+        document.body.style.color = '#1f2937';
+      } else {
+        document.body.style.background = '#1a1a1e';
+        document.body.style.color = '#ffffff';
+      }
+    }
+  </script>
+</body>
+</html>

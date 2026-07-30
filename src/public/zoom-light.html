@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zoom Chat - Light Mode Frame</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+      background: #ffffff;
+      color: #1a1a1a;
+    }
+
+    .zoom-context {
+      display: flex;
+      flex-direction: column;
+      min-height: 400px;
+      background: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .zm-chat {
+      flex: 1;
+      padding: 12px 16px;
+      overflow-y: auto;
+    }
+
+    .zm-message {
+      display: flex;
+      margin-bottom: 12px;
+    }
+
+    .zm-message-dim {
+      opacity: 0.6;
+    }
+
+    .zm-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 4px;
+      background: linear-gradient(135deg, #2d8cff 0%, #0d6efd 100%);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      color: #ffffff;
+      margin-right: 10px;
+    }
+
+    .zm-message-content {
+      flex: 1;
+    }
+
+    .zm-message-header {
+      margin-bottom: 4px;
+    }
+
+    .zm-author-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+
+    .zm-message-time {
+      font-size: 11px;
+      color: #666666;
+      margin-left: 8px;
+    }
+
+    .zm-message-body {
+      font-size: 14px;
+      line-height: 1.4;
+      color: #1a1a1a;
+    }
+
+    .zm-link-preview {
+      margin-top: 8px;
+      background: #f5f5f5;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .zm-link-image {
+      width: 100%;
+      height: 100px;
+      background: linear-gradient(135deg, #2d8cff 0%, #0d6efd 100%);
+    }
+
+    .zm-link-info {
+      padding: 8px 10px;
+    }
+
+    .zm-link-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+
+    .zm-link-domain {
+      font-size: 11px;
+      color: #666666;
+    }
+  </style>
+</head>
+<body>
+  <div class="zoom-context">
+    <div class="zm-chat">
+      <div class="zm-message zm-message-dim">
+        <div class="zm-avatar">PM</div>
+        <div class="zm-message-content">
+          <div class="zm-message-header">
+            <div class="zm-author-name">Project Manager</div>
+            <div class="zm-message-time">9:00 AM</div>
+          </div>
+          <div class="zm-message-body">You should see this resource I found for the project.</div>
+        </div>
+      </div>
+
+      <div class="zm-message">
+        <div class="zm-avatar">Y</div>
+        <div class="zm-message-content">
+          <div class="zm-message-header">
+            <div class="zm-author-name">You</div>
+            <div class="zm-message-time">9:05 AM</div>
+          </div>
+          <div class="zm-link-preview">
+            <div class="zm-link-image"></div>
+            <div class="zm-link-info">
+              <div class="zm-link-title">Best Practices for Modern Web Development</div>
+              <div class="zm-link-domain">website.com</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

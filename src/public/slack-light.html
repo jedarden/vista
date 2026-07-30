@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slack - Light Mode Frame</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+      background: #ffffff;
+      color: #1d1c1d;
+    }
+
+    .slack-context {
+      display: flex;
+      flex-direction: column;
+      min-height: 400px;
+      background: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .sl-message {
+      display: flex;
+      gap: 12px;
+      padding: 16px;
+      background: #ffffff;
+    }
+
+    .sl-message-dim {
+      opacity: 0.6;
+    }
+
+    .sl-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 4px;
+      background: linear-gradient(135deg, #4a154b 0%, #2d1b2e 100%);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: #ffffff;
+    }
+
+    .sl-message-content {
+      flex: 1;
+    }
+
+    .sl-message-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .sl-author-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1d1c1d;
+    }
+
+    .sl-message-time {
+      font-size: 12px;
+      color: #6d6d6d;
+    }
+
+    .sl-message-body {
+      font-size: 15px;
+      line-height: 1.5;
+      color: #1d1c1d;
+      margin-bottom: 8px;
+    }
+
+    .sl-link-preview {
+      display: flex;
+      background: #f8f8f8;
+      border: 1px solid #e8e8e8;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .sl-link-thumb {
+      width: 120px;
+      height: 100px;
+      background: linear-gradient(135deg, #4a154b 0%, #2d1b2e 100%);
+      flex-shrink: 0;
+    }
+
+    .sl-link-info {
+      flex: 1;
+      padding: 10px 12px;
+    }
+
+    .sl-link-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1d1c1d;
+      margin-bottom: 4px;
+    }
+
+    .sl-link-domain {
+      font-size: 12px;
+      color: #6d6d6d;
+    }
+  </style>
+</head>
+<body>
+  <div class="slack-context">
+    <div class="sl-message sl-message-dim">
+      <div class="sl-avatar">PM</div>
+      <div class="sl-message-content">
+        <div class="sl-message-header">
+          <div class="sl-author-name">Project Manager</div>
+          <div class="sl-message-time">9:00 AM</div>
+        </div>
+        <div class="sl-message-body">You should see this resource I found for the project.</div>
+      </div>
+    </div>
+
+    <div class="sl-message">
+      <div class="sl-avatar">Y</div>
+      <div class="sl-message-content">
+        <div class="sl-message-header">
+          <div class="sl-author-name">You</div>
+          <div class="sl-message-time">Just now</div>
+        </div>
+        <div class="sl-link-preview">
+          <div class="sl-link-thumb"></div>
+          <div class="sl-link-info">
+            <div class="sl-link-title">Best Practices for Modern Web Development</div>
+            <div class="sl-link-domain">website.com</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

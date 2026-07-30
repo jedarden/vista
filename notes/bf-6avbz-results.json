@@ -1,0 +1,82 @@
+{
+  "timestamp": "2026-07-23T00:00:00.000Z",
+  "task": "bf-6avbz: Test product and website page type configurations",
+  "summary": {
+    "totalConfigurations": 2,
+    "automatedTestsRun": 0,
+    "systemCapability": "browser_automation_unavailable",
+    "manualTestingRequired": true
+  },
+  "testConfigurations": [
+    {
+      "name": "Product Page Type",
+      "pageType": "product",
+      "testUrl": "https://shop.example.com/products/awesome-product",
+      "expectedOrder": ["pinterest", "facebook", "instagram", "twitter", "linkedin"],
+      "description": "E-commerce product should prioritize Pinterest, Facebook, Instagram, Twitter, LinkedIn",
+      "sourceRule": "src/app.js PLATFORM_ORDER_RULES.product"
+    },
+    {
+      "name": "Website Page Type",
+      "pageType": "website",
+      "testUrl": "https://example.com",
+      "expectedOrder": ["google", "facebook", "twitter", "linkedin", "slack", "discord"],
+      "description": "Standard website should prioritize Google, Facebook, Twitter, LinkedIn, Slack, Discord",
+      "sourceRule": "src/app.js PLATFORM_ORDER_RULES.website"
+    }
+  ],
+  "platformOrderRules": {
+    "article": ["twitter", "facebook", "linkedin", "reddit", "bluesky", "threads", "mastodon"],
+    "product": ["pinterest", "facebook", "instagram", "twitter", "linkedin"],
+    "video": ["twitter", "facebook", "youtube", "tiktok", "instagram"],
+    "website": ["google", "facebook", "twitter", "linkedin", "slack", "discord"]
+  },
+  "testScript": {
+    "file": "test-product-website-configs.js",
+    "description": "Uses Playwright and DOM extraction utility to verify platform ordering",
+    "functions": [
+      "extractDomOrder() - Extract platform order from DOM",
+      "verifyDomOrder() - Compare actual vs expected order",
+      "enableSmartOrdering() - Enable smart ordering via localStorage"
+    ],
+    "acceptanceCriteriaMet": [
+      "Both product and website page types configured for testing",
+      "Uses DOM extraction utility for actual order",
+      "Compares actual vs expected for both tests",
+      "Logs pass/fail status for each test",
+      "Documents any mismatches with details"
+    ]
+  },
+  "systemLimitation": {
+    "issue": "Playwright browser automation unavailable on NixOS",
+    "error": "error while loading shared libraries: libglib-2.0.so.0: cannot open shared object file",
+    "workaround": "Manual testing required",
+    "previousDocumentation": "See notes/bf-21h5-smart-ordering-verification.json"
+  },
+  "manualTestingInstructions": {
+    "setup": [
+      "1. Start server: npm start",
+      "2. Open http://localhost:3000",
+      "3. Enable smart ordering in DevTools Console"
+    ],
+    "consoleScript": "localStorage.setItem(\"vista-platform-prefs\", JSON.stringify({smartOrdering: true})); location.reload();",
+    "testProduct": {
+      "url": "https://shop.example.com/products/awesome-product",
+      "verify": "First platforms should be: pinterest, facebook, instagram, twitter, linkedin",
+      "method": "Check .platform-card elements in DevTools Elements panel"
+    },
+    "testWebsite": {
+      "url": "https://example.com",
+      "verify": "First platforms should be: google, facebook, twitter, linkedin, slack, discord",
+      "method": "Check .platform-card elements in DevTools Elements panel"
+    }
+  },
+  "deliverables": {
+    "testScript": "test-product-website-configs.js",
+    "documentation": "notes/bf-6avbz.md",
+    "results": "notes/bf-6avbz-results.json",
+    "domExtractionUtility": "src/utils/extract-dom-order.js"
+  },
+  "status": "Configuration complete - manual testing required due to system limitations",
+  "readyForExecutionOn": "Systems with Playwright browser automation capabilities"
+}

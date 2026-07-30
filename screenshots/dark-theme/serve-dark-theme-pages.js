@@ -1,0 +1,257 @@
+#!/usr/bin/env node
+
+/**
+ * Simple HTTP server for dark theme platform screenshot capture
+ *
+ * This serves the dark theme HTML files so they can be accessed in a browser
+ * for manual screenshot capture.
+ *
+ * Usage: node screenshots/dark-theme/serve-dark-theme-pages.js
+ */
+
+const http = require('http');
+const fs = require('fs');
+const path = require('path');
+
+const PORT = 8081;
+const DIR = __dirname;
+
+const PLATFORMS = [
+  { id: 'twitter', name: 'X (Twitter)' },
+  { id: 'discord', name: 'Discord' },
+  { id: 'instagram', name: 'Instagram' },
+  { id: 'telegram', name: 'Telegram' },
+  { id: 'signal', name: 'Signal' },
+  { id: 'whatsapp', name: 'WhatsApp' },
+  { id: 'mastodon', name: 'Mastodon' }
+];
+
+const MIME_TYPES = {
+  '.html': 'text/html',
+  '.js': 'text/javascript',
+  '.css': 'text/css',
+  '.png': 'image/png',
+  '.json': 'application/json'
+};
+
+const server = http.createServer((req, res) => {
+  let filePath = '.' + req.url;
+  if (filePath === './') {
+    filePath = './index.html';
+  }
+
+  const extname = String(path.extname(filePath)).toLowerCase();
+  const contentType = MIME_TYPES[extname] || 'application/octet-stream';
+
+  fs.readFile(filePath, (error, content) => {
+    if (error) {
+      if (error.code === 'ENOENT') {
+        res.writeHead(404, { 'Content-Type': 'text/html' });
+        res.end('<h1>404 Not Found</h1>', 'utf-8');
+      } else {
+        res.writeHead(500);
+        res.end('Server error: ' + error.code, 'utf-8');
+      }
+    } else {
+      res.writeHead(200, { 'Content-Type': contentType });
+      res.end(content, 'utf-8');
+    }
+  });
+});
+
+// Create an index.html for easy navigation
+const indexHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dark Theme Platform Screenshots - Bead bf-b6pnm</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #e0e0e0;
+      padding: 20px;
+      min-height: 100vh;
+    }
+    .header {
+      text-align: center;
+      background: rgba(255,255,255,0.1);
+      padding: 30px;
+      border-radius: 10px;
+      margin-bottom: 30px;
+      backdrop-filter: blur(10px);
+    }
+    .header h1 { color: #5865f2; margin-bottom: 10px; }
+    .header p { color: #b0b0b0; line-height: 1.6; }
+    .platforms-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    .platform-card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 20px;
+      backdrop-filter: blur(10px);
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .platform-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(88, 101, 242, 0.5);
+    }
+    .platform-card h3 {
+      color: #5865f2;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .status-badge {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.1);
+      color: #b0b0b0;
+    }
+    .screenshot-link {
+      display: block;
+      text-align: center;
+      padding: 12px;
+      background: rgba(88, 101, 242, 0.2);
+      color: #b0b0b0;
+      text-decoration: none;
+      border-radius: 6px;
+      margin-top: 10px;
+      transition: all 0.2s;
+      border: 1px solid rgba(88, 101, 242, 0.3);
+    }
+    .screenshot-link:hover {
+      background: rgba(88, 101, 242, 0.3);
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+    .screenshot-status {
+      font-size: 12px;
+      margin-top: 8px;
+      text-align: center;
+      opacity: 0.7;
+    }
+    .screenshot-status.captured {
+      color: #4ade80;
+    }
+    .screenshot-status.pending {
+      color: #fbbf24;
+    }
+    .instructions {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 20px;
+      backdrop-filter: blur(10px);
+    }
+    .instructions h2 { color: #5865f2; margin-bottom: 15px; }
+    .instructions ol { margin-left: 20px; line-height: 1.8; }
+    .instructions li { margin: 8px 0; }
+    .acceptance-criteria {
+      background: rgba(74, 222, 128, 0.1);
+      border-left: 4px solid #4ade80;
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 4px;
+    }
+    .acceptance-criteria h3 { color: #4ade80; margin-bottom: 10px; }
+    .acceptance-criteria ul { margin-left: 20px; }
+    .acceptance-criteria li { margin: 8px 0; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🌙 Dark Theme Platform Screenshots</h1>
+    <p><strong>Bead bf-b6pnm:</strong> Generate dark theme platform screenshots for all 7 platforms</p>
+    <p>Serve this directory and capture screenshots of each platform frame</p>
+  </div>
+
+  <div class="platforms-grid">
+    ${PLATFORMS.map(platform => {
+      const screenshotExists = fs.existsSync(path.join(DIR, `${platform.id}-dark.png`));
+      const statusClass = screenshotExists ? 'captured' : 'pending';
+      const statusText = screenshotExists ? '✅ Captured' : '⏳ Pending';
+
+      return `
+      <div class="platform-card">
+        <h3>
+          ${platform.name}
+          <span class="status-badge">${platform.id}</span>
+        </h3>
+        <a href="${platform.id}-dark.html" class="screenshot-link">
+          📸 Open Platform Frame
+        </a>
+        <div class="screenshot-status ${statusClass}">
+          ${statusText}
+        </div>
+      </div>
+    `}).join('')}
+  </div>
+
+  <div class="instructions">
+    <h2>📋 Manual Screenshot Capture Instructions</h2>
+    <ol>
+      <li>Click on each platform's "Open Platform Frame" link above</li>
+      <li>When the platform frame loads, take a screenshot of the frame container (the dark box in the center)</li>
+      <li>Save each screenshot as <code>platform-name-dark.png</code> in this directory:
+        <ul>
+          <li><code>twitter-dark.png</code></li>
+          <li><code>discord-dark.png</code></li>
+          <li><code>instagram-dark.png</code></li>
+          <li><code>telegram-dark.png</code></li>
+          <li><code>signal-dark.png</code></li>
+          <li><code>whatsapp-dark.png</code></li>
+          <li><code>mastodon-dark.png</code></li>
+        </ul>
+      </li>
+      <li>Refresh this page to see the "✅ Captured" status appear</li>
+      <li>Run verification: <code>node verify-dark-theme-screenshots.js</code></li>
+    </ol>
+
+    <div class="acceptance-criteria">
+      <h3>✅ Acceptance Criteria</h3>
+      <ul>
+        <li>Screenshot captured for all 7 platforms in dark theme</li>
+        <li>All screenshots saved with correct naming convention (platform-name-dark.png)</li>
+        <li>Screenshot files are valid PNG images (> 0 bytes)</li>
+        <li>Each screenshot clearly shows the platform frame UI</li>
+        <li>No rendering errors or blank screenshots</li>
+      </ul>
+    </div>
+  </div>
+
+  <div style="text-align: center; margin-top: 20px; opacity: 0.5; font-size: 12px;">
+    Generated by Vista Dark Theme Screenshot Infrastructure (Bead bf-b6pnm)
+  </div>
+</body>
+</html>`;
+
+fs.writeFileSync(path.join(DIR, 'index.html'), indexHTML);
+console.log('✅ Generated index.html');
+
+server.listen(PORT, () => {
+  console.log('🌙 Dark Theme Platform Screenshot Server');
+  console.log('='.repeat(60));
+  console.log(`Server running at: http://localhost:${PORT}/`);
+  console.log('');
+  console.log('📋 Instructions:');
+  console.log('1. Open http://localhost:8081/ in your browser');
+  console.log('2. Click each platform link to view the rendered frame');
+  console.log('3. Take a screenshot of the platform frame (the dark box)');
+  console.log('4. Save as platform-name-dark.png in this directory');
+  console.log('5. Refresh the index page to see captured status');
+  console.log('');
+  console.log('🎯 Expected output files:');
+  PLATFORMS.forEach(p => console.log(`   ${p.id}-dark.png`));
+  console.log('');
+  console.log('Press Ctrl+C to stop the server');
+});

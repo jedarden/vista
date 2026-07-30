@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify All Required Platform Context Frames</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="platform-frames.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .platform-section {
+            margin-bottom: 40px;
+        }
+        .platform-header {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px 8px 0 0;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .platform-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+        .platform-category {
+            font-size: 14px;
+            color: #666;
+            margin-top: 4px;
+        }
+        .theme-toggle-section {
+            display: flex;
+            gap: 10px;
+            padding: 15px 20px;
+            background: #fafafa;
+            border-radius: 0 0 8px 8px;
+            border-top: 1px solid #e0e0e0;
+        }
+        .theme-btn {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .theme-btn:hover {
+            background: #f0f0f0;
+        }
+        .theme-btn.active {
+            background: #007aff;
+            color: white;
+            border-color: #007aff;
+        }
+        .frame-container {
+            margin-top: 15px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-ok {
+            background: #10b981;
+        }
+        .status-missing {
+            background: #ef4444;
+        }
+        .requirement-check {
+            margin-top: 10px;
+            font-size: 13px;
+        }
+        .requirement-item {
+            display: flex;
+            align-items: center;
+            margin: 4px 0;
+        }
+        .requirement-icon {
+            margin-right: 6px;
+        }
+        .requirement-pass {
+            color: #10b981;
+        }
+        .requirement-fail {
+            color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>✅ Required Platform Context Frames Verification</h1>
+        <div class="subtitle">Testing all platforms from bead bf-58ehr requirements</div>
+
+        <div id="platforms-container"></div>
+    </div>
+
+    <script>
+        const REQUIRED_PLATFORMS = [
+            'github',
+            'gitlab',
+            'stackoverflow',
+            'youtube',
+            'twitch',
+            'gmail',
+            'feedly',
+            'hackernews',
+            'discord',
+            'slack',
+            'twitter'
+        ];
+
+        const PLATFORM_CATEGORIES = {
+            'github': 'Developer Platform',
+            'gitlab': 'Developer Platform',
+            'stackoverflow': 'Developer Platform',
+            'youtube': 'Video Platform',
+            'twitch': 'Video Platform',
+            'gmail': 'Email/Thread Platform',
+            'feedly': 'RSS Feed Reader',
+            'hackernews': 'Social/Discussion',
+            'discord': 'Messaging Platform',
+            'slack': 'Messaging Platform',
+            'twitter': 'Social Platform'
+        };
+
+        const TEST_DATA = {
+            github: {
+                issueNumber: 123,
+                title: 'Add new feature for context frames',
+                author: 'developer123',
+                timeAgo: '2 hours ago',
+                comment: 'This looks great! Should we add tests for this?'
+            },
+            gitlab: {
+                mrNumber: 456,
+                title: 'Implement authentication flow',
+                author: 'contributor456',
+                timeAgo: '3 hours ago',
+                comment: 'LGTM! Ready to merge 🎉'
+            },
+            stackoverflow: {
+                title: 'How to implement async/await in JavaScript',
+                upvotes: 42,
+                tags: ['javascript', 'async', 'await'],
+                author: 'jsdev789',
+                timeAgo: '1 day ago',
+                answer: 'Here\'s a solution using async/await pattern...'
+            },
+            youtube: {
+                title: 'Building Context Frames - Complete Tutorial',
+                description: 'Learn how to create platform-specific context frames with dark mode support',
+                timeAgo: '5 hours ago',
+                comment: 'Great tutorial! Very helpful.'
+            },
+            twitch: {
+                title: 'Stream Title: Coding Session',
+                description: 'Building platform frames with chat integration',
+                comment: 'This is awesome!'
+            },
+            gmail: {
+                subject: 'Check out this new resource',
+                from: 'colleague@company.com',
+                to: 'me@company.com',
+                time: '10:30 AM',
+                senderName: 'John Smith',
+                senderEmail: 'john@company.com',
+                timeAgo: '2 hours ago',
+                yourEmail: 'me@company.com',
+                domain: 'example.com'
+            },
+            feedly: {
+                title: 'Latest Tech News Update',
+                description: 'Breaking news in web development',
+                domain: 'technews.com'
+            },
+            hackernews: {
+                title: 'New Framework Released',
+                domain: 'github.com',
+                points: 156,
+                author: 'techfounder',
+                timeAgo: '4 hours ago',
+                commentCount: 42,
+                comment: 'Interesting approach to the problem.'
+            },
+            discord: {
+                title: 'Share link with server',
+                description: 'Check out this resource',
+                comment: 'Thanks for sharing!'
+            },
+            slack: {
+                title: 'Share link in channel',
+                description: 'Useful resource found',
+                comment: 'Great find!'
+            },
+            twitter: {
+                title: 'Check out this amazing resource!',
+                description: 'Found this helpful link',
+                comment: 'This is perfect!'
+            }
+        };
+
+        let currentTheme = 'dark';
+
+        function toggleTheme(platformId) {
+            currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            updatePlatformFrame(platformId);
+            updateThemeButtons(platformId);
+        }
+
+        function updateThemeButtons(platformId) {
+            const container = document.querySelector(`[data-platform="${platformId}"]`);
+            if (!container) return;
+
+            const darkBtn = container.querySelector('.theme-dark');
+            const lightBtn = container.querySelector('.theme-light');
+
+            if (currentTheme === 'dark') {
+                darkBtn?.classList.add('active');
+                lightBtn?.classList.remove('active');
+            } else {
+                lightBtn?.classList.add('active');
+                darkBtn?.classList.remove('active');
+            }
+        }
+
+        function updatePlatformFrame(platformId) {
+            const container = document.querySelector(`[data-platform="${platformId}"] .frame-content`);
+            if (!container) return;
+
+            const frame = window.PlatformFrames.getPlatformFrame(platformId);
+            if (!frame) {
+                container.innerHTML = `<div style="padding: 20px; text-align: center; color: #ef4444;">
+                    Platform frame not found: ${platformId}
+                </div>`;
+                return;
+            }
+
+            const testData = TEST_DATA[platformId] || {};
+            const html = window.PlatformFrames.buildContextFrame(platformId, testData, currentTheme);
+            container.innerHTML = html;
+        }
+
+        function checkRequirements(platformId) {
+            const frame = window.PlatformFrames.getPlatformFrame(platformId);
+            if (!frame) {
+                return {
+                    exists: false,
+                    hasThemeSupport: false,
+                    hasProperChrome: false,
+                    hasNeutralContent: false
+                };
+            }
+
+            return {
+                exists: true,
+                hasThemeSupport: frame.hasThemeSupport,
+                hasProperChrome: frame.chrome && frame.chrome.length > 0,
+                hasNeutralContent: frame.neutralContent !== undefined
+            };
+        }
+
+        function renderPlatform(platformId) {
+            const requirements = checkRequirements(platformId);
+            const categoryName = PLATFORM_CATEGORIES[platformId] || 'Unknown';
+
+            const section = document.createElement('div');
+            section.className = 'platform-section';
+            section.dataset.platform = platformId;
+
+            const statusClass = requirements.exists ? 'status-ok' : 'status-missing';
+            const statusText = requirements.exists ? '✓ Implemented' : '✗ Missing';
+
+            section.innerHTML = `
+                <div class="platform-header">
+                    <div class="platform-title">
+                        <span class="status-indicator ${statusClass}"></span>
+                        ${platformId.toUpperCase()}: ${window.PlatformFrames.getPlatformFrame(platformId)?.name || platformId} - ${statusText}
+                    </div>
+                    <div class="platform-category">${categoryName}</div>
+                    <div class="requirement-check">
+                        <div class="requirement-item">
+                            <span class="requirement-icon ${requirements.exists ? '✓' : '✗'}" class="${requirements.exists ? 'requirement-pass' : 'requirement-fail'}"></span>
+                            Platform exists in PLATFORM_FRAMES
+                        </div>
+                        <div class="requirement-item">
+                            <span class="requirement-icon ${requirements.hasThemeSupport ? '✓' : '✗'}" class="${requirements.hasThemeSupport ? 'requirement-pass' : 'requirement-fail'}"></span>
+                            Has theme support (dark/light mode)
+                        </div>
+                        <div class="requirement-item">
+                            <span class="requirement-icon ${requirements.hasProperChrome ? '✓' : '✗'}" class="${requirements.hasProperChrome ? 'requirement-pass' : 'requirement-fail'}"></span>
+                            Has proper chrome template
+                        </div>
+                        <div class="requirement-item">
+                            <span class="requirement-icon ${requirements.hasNeutralContent ? '✓' : '✗'}" class="${requirements.hasNeutralContent ? 'requirement-pass' : 'requirement-fail'}"></span>
+                            Has neutral content template
+                        </div>
+                    </div>
+                </div>
+                <div class="theme-toggle-section">
+                    <button class="theme-btn theme-dark active" onclick="toggleTheme('${platformId}')">🌙 Dark Mode</button>
+                    <button class="theme-btn theme-light" onclick="toggleTheme('${platformId}')">☀️ Light Mode</button>
+                </div>
+                <div class="frame-container">
+                    <div class="frame-content"></div>
+                </div>
+            `;
+
+            document.getElementById('platforms-container').appendChild(section);
+            updatePlatformFrame(platformId);
+        }
+
+        function renderAllPlatforms() {
+            REQUIRED_PLATFORMS.forEach(renderPlatform);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderAllPlatforms();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Test: applySmartOrdering DOM Reordering</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1a1a1f;
+            color: #eee;
+        }
+        h1 { color: #4caf50; }
+        h2 { color: #81c784; }
+        .test-section {
+            background: #2d2d3a;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 20px 0;
+        }
+        .button {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+        .button:hover { background: #45a049; }
+        .result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .pass { background: #1b5e20; color: #a5d6a7; }
+        .fail { background: #b71c1c; color: #ef9a9a; }
+        .info { background: #0d47a1; color: #90caf9; }
+        .warn { background: #f57f17; color: #ffcc80; }
+        #log {
+            background: #0d0d0f;
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 12px;
+            margin: 10px 0;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .log-entry { margin: 2px 0; }
+        .log-success { color: #4caf50; }
+        .log-error { color: #f44336; }
+        .log-info { color: #2196f3; }
+    </style>
+</head>
+<body>
+    <h1>Manual Test: applySmartOrdering DOM Reordering</h1>
+    <p>This test verifies that the applySmartOrdering() function successfully reorders platform cards in the DOM.</p>
+
+    <div class="test-section">
+        <h2>Step 1: Navigate to VISTA</h2>
+        <p>Click the button to open VISTA in a new tab:</p>
+        <button class="button" onclick="openVista()">Open VISTA</button>
+        <div id="log" class="hidden"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Step 2: Run Tests in Browser Console</h2>
+        <p>After opening VISTA, open the browser console (F12) and paste the following code:</p>
+        <button class="button" onclick="copyTestCode()">Copy Test Code</button>
+        <button class="button" onclick="showInstructions()">Show Instructions</button>
+        <div id="instructions" style="display:none; margin-top:10px;">
+            <h3>Instructions:</h3>
+            <ol>
+                <li>Open VISTA using the button above</li>
+                <li>Open browser console (F12 or Ctrl+Shift+I)</li>
+                <li>Click "Copy Test Code" button</li>
+                <li>Paste the code into the VISTA tab's console</li>
+                <li>Review the results</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Quick Diagnostic</h2>
+        <p>Click to run a quick diagnostic if VISTA is already open:</p>
+        <button class="button" onclick="runDiagnostic()">Run Diagnostic</button>
+        <div id="diagnostic-result"></div>
+    </div>
+
+    <script>
+        const log = document.getElementById('log');
+        const instructions = document.getElementById('instructions');
+        const diagnosticResult = document.getElementById('diagnostic-result');
+
+        function openVista() {
+            log.innerHTML = '';
+            log.classList.remove('hidden');
+            addLog('info', 'Opening VISTA at http://localhost:3000 ...');
+            window.open('http://localhost:3000', '_blank');
+            addLog('success', 'VISTA opened in new tab');
+            addLog('info', 'Switch to the new tab and run the test code below');
+        }
+
+        function addLog(type, message) {
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = `[${type.toUpperCase()}] ${message}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function showInstructions() {
+            instructions.style.display = instructions.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function copyTestCode() {
+            const testCode = `(async function() {
+  console.log('=== applySmartOrdering DOM Reordering Test ===\\n');
+
+  // Test 1: Check function exists
+  console.log('Test 1: Checking if applySmartOrdering exists...');
+  const hasFunction = typeof applySmartOrdering === 'function';
+  console.log(hasFunction ? '✅ PASS: Function exists' : '❌ FAIL: Function not found');
+
+  if (!hasFunction) {
+    console.error('Cannot continue - applySmartOrdering not found');
+    return;
+  }
+
+  // Test 2: Check platformPrefs
+  console.log('\\nTest 2: Checking platformPrefs...');
+  const hasPrefs = typeof platformPrefs !== 'undefined';
+  console.log(hasPrefs ? '✅ PASS: platformPrefs exists' : '❌ FAIL: platformPrefs not found');
+
+  if (hasPrefs) {
+    console.log('  smartOrdering:', platformPrefs.smartOrdering);
+    console.log('  cardOrder:', platformPrefs.cardOrder);
+  }
+
+  // Test 3: Enable smart ordering if disabled
+  console.log('\\nTest 3: Enabling smart ordering...');
+  if (hasPrefs) {
+    platformPrefs.smartOrdering = true;
+    localStorage.setItem('vista-platform-prefs', JSON.stringify(platformPrefs));
+    console.log('✅ PASS: Smart ordering enabled');
+  }
+
+  // Test 4: Check PLATFORM_GROUPS
+  console.log('\\nTest 4: Checking PLATFORM_GROUPS...');
+  const hasGroups = typeof PLATFORM_GROUPS !== 'undefined';
+  console.log(hasGroups ? '✅ PASS: PLATFORM_GROUPS exists' : '❌ FAIL: PLATFORM_GROUPS not found');
+
+  if (hasGroups) {
+    console.log('  Platform groups:', PLATFORM_GROUPS.length);
+    PLATFORM_GROUPS.forEach((group, i) => {
+      console.log(\`    Group \${i}: \${group.title} - \${group.platforms.length} platforms\`);
+    });
+  }
+
+  // Test 5: Get current DOM order
+  console.log('\\nTest 5: Getting current DOM order...');
+  const cardsBefore = document.querySelectorAll('.platform-card[data-pid]');
+  const orderBefore = Array.from(cardsBefore).map(c => c.dataset.pid);
+  console.log(\`Current DOM: \${orderBefore.length} cards\`);
+  console.log('Order:', orderBefore.slice(0, 5).join(', ') + (orderBefore.length > 5 ? '...' : ''));
+
+  // Test 6: Capture state before
+  console.log('\\nTest 6: Capturing state before applySmartOrdering...');
+  const groupsBefore = PLATFORM_GROUPS ? PLATFORM_GROUPS.map(g => ({...g, platforms: [...g.platforms]})) : [];
+  const cardOrderBefore = platformPrefs ? JSON.parse(JSON.stringify(platformPrefs.cardOrder || {})) : {};
+
+  // Test 7: Call applySmartOrdering
+  console.log('\\nTest 7: Calling applySmartOrdering()...');
+  try {
+    applySmartOrdering();
+    console.log('✅ PASS: applySmartOrdering executed without errors');
+  } catch (e) {
+    console.error('❌ FAIL: Error calling applySmartOrdering:', e);
+    return;
+  }
+
+  // Wait for re-render
+  console.log('\\nTest 8: Waiting for re-render...');
+  await new Promise(r => setTimeout(r, 500));
+
+  // Test 9: Capture state after
+  console.log('\\nTest 9: Capturing state after applySmartOrdering...');
+  const groupsAfter = PLATFORM_GROUPS ? PLATFORM_GROUPS.map(g => ({...g, platforms: [...g.platforms]})) : [];
+  const cardOrderAfter = platformPrefs ? JSON.parse(JSON.stringify(platformPrefs.cardOrder || {})) : {};
+
+  // Test 10: Check if PLATFORM_GROUPS was modified
+  console.log('\\nTest 10: Checking if PLATFORM_GROUPS was modified...');
+  let groupsModified = false;
+  if (groupsBefore.length > 0 && groupsAfter.length > 0) {
+    for (let i = 0; i < groupsBefore.length; i++) {
+      const beforeOrder = JSON.stringify(groupsBefore[i].platforms);
+      const afterOrder = JSON.stringify(groupsAfter[i].platforms);
+      if (beforeOrder !== afterOrder) {
+        groupsModified = true;
+        console.log(\`  Group \${i} (\${groupsBefore[i].title}): MODIFIED\`);
+        console.log(\`    Before: \${groupsBefore[i].platforms.slice(0, 3).join(', ')}...\`);
+        console.log(\`    After:  \${groupsAfter[i].platforms.slice(0, 3).join(', ')}...\`);
+      } else {
+        console.log(\`  Group \${i} (\${groupsBefore[i].title}): No change\`);
+      }
+    }
+  }
+  console.log(groupsModified ? '✅ PASS: PLATFORM_GROUPS was modified' : '⚠️  INFO: PLATFORM_GROUPS not modified (may already be in correct order)');
+
+  // Test 11: Check if cardOrder was updated
+  console.log('\\nTest 11: Checking if cardOrder was updated...');
+  const cardOrderUpdated = JSON.stringify(cardOrderBefore) !== JSON.stringify(cardOrderAfter);
+  if (cardOrderUpdated) {
+    console.log('✅ PASS: cardOrder was updated');
+    Object.keys(cardOrderAfter).forEach(gid => {
+      console.log(\`  Group \${gid}: \${cardOrderAfter[gid].slice(0, 3).join(', ')}...\`);
+    });
+  } else {
+    console.log('⚠️  INFO: cardOrder not updated (may already be set or no change needed)');
+  }
+
+  // Test 12: Get DOM order after
+  console.log('\\nTest 12: Getting DOM order after...');
+  const cardsAfter = document.querySelectorAll('.platform-card[data-pid]');
+  const orderAfter = Array.from(cardsAfter).map(c => c.dataset.pid);
+  console.log(\`Current DOM: \${orderAfter.length} cards\`);
+  console.log('Order:', orderAfter.slice(0, 5).join(', ') + (orderAfter.length > 5 ? '...' : ''));
+
+  // Test 13: Check if DOM was reordered
+  console.log('\\nTest 13: Checking if DOM was reordered...');
+  const domChanged = JSON.stringify(orderBefore) !== JSON.stringify(orderAfter);
+  if (domChanged) {
+    console.log('✅ PASS: DOM order changed');
+    console.log('  Before:', orderBefore.slice(0, 5).join(', '));
+    console.log('  After: ', orderAfter.slice(0, 5).join(', '));
+  } else {
+    console.log('⚠️  INFO: DOM order not changed (reordering may already be applied)');
+  }
+
+  // Summary
+  console.log('\\n=== SUMMARY ===');
+  console.log(\`Function exists: \${hasFunction ? '✅' : '❌'}\`);
+  console.log(\`PLATFORM_GROUPS modified: \${groupsModified ? '✅' : '⚠️'}\`);
+  console.log(\`cardOrder updated: \${cardOrderUpdated ? '✅' : '⚠️'}\`);
+  console.log(\`DOM reordered: \${domChanged ? '✅' : '⚠️'}\`);
+
+  if (hasFunction && (groupsModified || cardOrderUpdated)) {
+    console.log('\\n✅✅✅ DOM REORDERING IS WORKING ✅✅✅');
+  } else if (hasFunction) {
+    console.log('\\n✅ Function exists and executes');
+    console.log('   (No reordering may mean platforms are already in correct order)');
+  } else {
+    console.log('\\n❌ DOM REORDERING MAY HAVE ISSUES');
+  }
+})();`;
+
+            navigator.clipboard.writeText(testCode).then(() => {
+                alert('Test code copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                alert('Failed to copy to clipboard. Please check browser permissions.');
+            });
+        }
+
+        function runDiagnostic() {
+            diagnosticResult.innerHTML = '<div class="result info">Running diagnostic... This requires VISTA to be open with inspectable data.</div>';
+
+            // This would need to run in the VISTA context, not here
+            diagnosticResult.innerHTML += '<div class="result warn">⚠️ Diagnostic must be run in the VISTA tab console. Use the test code above.</div>';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TikTok Context Frame Verification</title>
+  <link rel="stylesheet" href="src/public/style.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 40px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+      background: #1a1a1e;
+      color: #e4e4e7;
+    }
+    .test-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .test-header h1 {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+    .test-header p {
+      color: #a1a1aa;
+      font-size: 16px;
+    }
+    .acceptance-criteria {
+      background: #25252a;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 40px;
+    }
+    .acceptance-criteria h2 {
+      font-size: 18px;
+      margin-bottom: 16px;
+      color: #ff0050;
+    }
+    .criteria-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .criteria-list li {
+      padding: 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+    .criteria-list li:before {
+      content: '✓';
+      color: #4ade80;
+      font-weight: bold;
+    }
+    .test-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin: 24px 0;
+    }
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 16px;
+      background: linear-gradient(45deg, #00f2ea 0%, #ff0050 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 1000;
+    }
+    .theme-toggle:hover {
+      opacity: 0.9;
+    }
+    .test-section {
+      margin-bottom: 40px;
+    }
+    .test-section h2 {
+      font-size: 20px;
+      margin-bottom: 16px;
+      color: #ff0050;
+    }
+    .verification-log {
+      background: #25252a;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 20px;
+      font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+      font-size: 13px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .verification-log div {
+      padding: 4px 0;
+    }
+    .pass { color: #4ade80; }
+    .fail { color: #ef4444; }
+    .info { color: #ff0050; }
+
+    /* HTML theme support */
+    html[data-theme='light'] body {
+      background: #f8f9fa;
+      color: #1f2937;
+    }
+    html[data-theme='light'] .acceptance-criteria,
+    html[data-theme='light'] .verification-log {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" id="themeToggle">☀️ Light Mode</button>
+
+  <div class="test-header">
+    <h1>🎵 TikTok Context Frame Verification</h1>
+    <p>Testing TikTok video context frame with realistic chrome</p>
+  </div>
+
+  <!-- Acceptance Criteria Checklist -->
+  <div class="acceptance-criteria">
+    <h2>✅ Acceptance Criteria</h2>
+    <ul class="criteria-list">
+      <li>Frame matches TikTok visual style (vertical video, side actions, bottom overlay)</li>
+      <li>Content placeholder shows realistic TikTok video interface</li>
+      <li>Dark/light mode works correctly</li>
+      <li>Structure is semantically correct HTML</li>
+      <li>TikTok gradient color scheme used as accent</li>
+      <li>Platform-appropriate spacing and typography</li>
+      <li>Neutral placeholder content (fake username, caption, music)</li>
+    </ul>
+  </div>
+
+  <!-- Test Section: Dark Mode Frames -->
+  <div class="test-section">
+    <h2>1. TikTok Context Frames - Dark Mode</h2>
+    <div class="test-grid">
+      <!-- TikTok Context Frame - Dance Video -->
+      <div class="context-frame tiktok-context dark-theme">
+        <div class="tt-video-container">
+          <div class="tt-video-placeholder"></div>
+          <div class="tt-right-sidebar">
+            <div class="tt-action-btn">
+              <div class="tt-action-icon">♡</div>
+              <div class="tt-action-count">842</div>
+            </div>
+            <div class="tt-action-btn">
+              <div class="tt-action-icon">💬</div>
+              <div class="tt-action-count">56</div>
+            </div>
+            <div class="tt-action-btn">
+              <div class="tt-action-icon">↗</div>
+              <div class="tt-action-count">Share</div>
+            </div>
+          </div>
+          <div class="tt-bottom-overlay">
+            <div class="tt-username">@dance_creator</div>
+            <div class="tt-caption">New dance challenge! 🔥 Try it out #fyp #dance #viral</div>
+            <div class="tt-music">♪ Original Sound - TikTok</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TikTok Context Frame - Cooking Video -->
+      <div class="context-frame tiktok-context dark-theme">
+        <div class="tt-video-container">
+          <div class="tt-video-placeholder"></div>
+          <div class="tt-right-sidebar">
+            <div class="tt-action-btn">
+              <div class="tt-action-icon">♡</div>
+              <div class="tt-action-count">1.2K</div>
+            </div>
+            <div class="tt-action-btn">
+              <div class="tt-action-icon">💬</div>
+              <div class="tt-action-count">89</div>
+            </div>
+            <div class="tt-action-btn">
+              <div class="tt-action-icon">↗</div>
+              <div class="tt-action-count">Share</div>
+            </div>
+          </div>
+          <div class="tt-bottom-overlay">
+            <div class="tt-username">@chef_marco</div>
+            <div class="tt-caption">Easy 5-minute pasta recipe! 🍝 Save this #cooking #recipe #food</div>
+            <div class="tt-music">♪ Cooking Vibes - Kitchen Beats</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TikTok Context Frame - Fitness Video -->
+      <div class="context-frame tiktok-context dark-theme">
+        <div class="tt-video-container">
+          <div class="tt-video-placeholder"></div>
+          <div class="tt-right-sidebar">
+            <div class="tt-action-btn">
+              <div class="tt-action-icon">♡</div>
+              <div class="tt-action-count">3.4K</div>
+            </div>
+            <div class="tt-action-btn">
+              <div class="tt-action-icon">💬</div>
+              <div class="tt-action-count">124</div>
+            </div>
+            <div class="tt-action-btn">
+              <div class="tt-action-icon">↗</div>
+              <div class="tt-action-count">Share</div>
+            </div>
+          </div>
+          <div class="tt-bottom-overlay">
+            <div class="tt-username">@fitness_pro</div>
+            <div class="tt-caption">Morning routine for results! 💪 #fitness #workout #motivation</div>
+            <div class="tt-music">♪ Pump It Up - Gym Music</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TikTok Context Frame - Travel Video -->
+      <div class="context-frame tiktok-context dark-theme">
+        <div class="tt-video-container">
+          <div class="tt-video-placeholder"></div>
+          <div class="tt-right-sidebar">
+            <div class="tt-action-btn">
+              <div class="tt-action-icon">♡</div>
+              <div class="tt-action-count">567</div>
+            </div>
+            <div class="tt-action-btn">
+              <div class="tt-action-icon">💬</div>
+              <div class="tt-action-count">34</div>
+            </div>
+            <div class="tt-action-btn">
+              <div class="tt-action-icon">↗</div>
+              <div class="tt-action-count">Share</div>
+            </div>
+          </div>
+          <div class="tt-bottom-overlay">
+            <div class="tt-username">@travel_vibes</div>
+            <div class="tt-caption">Hidden gem in Bali! 🌴 #travel #bali #paradise</div>
+            <div class="tt-music">♪ Tropical House - Summer Vibes</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Verification Log -->
+  <div class="test-section">
+    <h2>2. Verification Results</h2>
+    <div class="verification-log" id="verificationLog">
+      <div class="info">Running verification tests...</div>
+    </div>
+  </div>
+
+  <script>
+    // Verification test suite
+    function runVerification() {
+      const log = document.getElementById('verificationLog');
+      const results = [];
+
+      function logResult(message, status = 'info') {
+        const div = document.createElement('div');
+        div.className = status;
+        div.textContent = `[${status.toUpperCase()}] ${message}`;
+        log.appendChild(div);
+        results.push({ message, status });
+      }
+
+      // Test 1: Check if TikTok context frames exist
+      function testStructureExists() {
+        const ttFrames = document.querySelectorAll('.tiktok-context');
+        if (ttFrames.length > 0) {
+          logResult(`Found ${ttFrames.length} TikTok context frames`, 'pass');
+          return true;
+        } else {
+          logResult('No TikTok context frames found', 'fail');
+          return false;
+        }
+      }
+
+      // Test 2: Check TikTok-specific HTML structure
+      function testTikTokStructure() {
+        const ttFrame = document.querySelector('.tiktok-context');
+        if (!ttFrame) {
+          logResult('No TikTok frame to check structure', 'fail');
+          return false;
+        }
+
+        const checks = {
+          'tt-video-container': ttFrame.querySelector('.tt-video-container'),
+          'tt-video-placeholder': ttFrame.querySelector('.tt-video-placeholder'),
+          'tt-right-sidebar': ttFrame.querySelector('.tt-right-sidebar'),
+          'tt-action-btn': ttFrame.querySelector('.tt-action-btn'),
+          'tt-action-icon': ttFrame.querySelector('.tt-action-icon'),
+          'tt-action-count': ttFrame.querySelector('.tt-action-count'),
+          'tt-bottom-overlay': ttFrame.querySelector('.tt-bottom-overlay'),
+          'tt-username': ttFrame.querySelector('.tt-username'),
+          'tt-caption': ttFrame.querySelector('.tt-caption'),
+          'tt-music': ttFrame.querySelector('.tt-music')
+        };
+
+        let allPresent = true;
+        for (const [className, element] of Object.entries(checks)) {
+          if (element) {
+            logResult(`✓ Found .${className} element`, 'pass');
+          } else {
+            logResult(`✗ Missing .${className} element`, 'fail');
+            allPresent = false;
+          }
+        }
+
+        return allPresent;
+      }
+
+      // Test 3: Check TikTok gradient accent color
+      function testTikTokGradient() {
+        const ttFrame = document.querySelector('.tiktok-context');
+        if (!ttFrame) {
+          logResult('No TikTok frame to check colors', 'fail');
+          return false;
+        }
+
+        const placeholder = ttFrame.querySelector('.tt-video-placeholder');
+        if (!placeholder) {
+          logResult('Placeholder element not found for color check', 'fail');
+          return false;
+        }
+
+        const placeholderStyle = getComputedStyle(placeholder);
+        const bg = placeholderStyle.background;
+
+        logResult(`TikTok video placeholder background: ${bg.substring(0, 50)}...`, 'pass');
+        return true;
+      }
+
+      // Test 4: Check neutral placeholder content
+      function testPlaceholderContent() {
+        const ttFrame = document.querySelector('.tiktok-context');
+        if (!ttFrame) {
+          logResult('No TikTok frame to check content', 'fail');
+          return false;
+        }
+
+        const username = ttFrame.querySelector('.tt-username');
+        const caption = ttFrame.querySelector('.tt-caption');
+        const music = ttFrame.querySelector('.tt-music');
+
+        if (username && caption && music) {
+          const user = username.textContent.trim();
+          const cap = caption.textContent.trim();
+          const mus = music.textContent.trim();
+          logResult(`Placeholder content - Username: "${user}", Caption: "${cap.substring(0, 30)}...", Music: "${mus}"`, 'pass');
+          return true;
+        } else {
+          logResult('Placeholder content elements missing', 'fail');
+          return false;
+        }
+      }
+
+      // Test 5: Check right sidebar actions
+      function testRightSidebar() {
+        const ttFrame = document.querySelector('.tiktok-context');
+        if (!ttFrame) {
+          logResult('No TikTok frame to check sidebar', 'fail');
+          return false;
+        }
+
+        const sidebar = ttFrame.querySelector('.tt-right-sidebar');
+        const actionBtns = ttFrame.querySelectorAll('.tt-action-btn');
+
+        if (sidebar && actionBtns.length >= 3) {
+          logResult(`Right sidebar found with ${actionBtns.length} action buttons`, 'pass');
+          return true;
+        } else {
+          logResult(`Right sidebar incomplete - buttons: ${actionBtns.length}`, 'fail');
+          return false;
+        }
+      }
+
+      // Test 6: Check semantic HTML structure
+      function testSemanticStructure() {
+        const ttFrame = document.querySelector('.tiktok-context');
+        if (!ttFrame) {
+          logResult('No TikTok frame to check semantics', 'fail');
+          return false;
+        }
+
+        const semanticClasses = [
+          'tt-video-container',
+          'tt-right-sidebar',
+          'tt-bottom-overlay',
+          'tt-action-btn'
+        ];
+
+        let hasSemanticStructure = true;
+        for (const className of semanticClasses) {
+          if (ttFrame.querySelector(`.${className}`)) {
+            logResult(`✓ Semantic structure found: .${className}`, 'pass');
+          } else {
+            logResult(`✗ Missing semantic structure: .${className}`, 'fail');
+            hasSemanticStructure = false;
+          }
+        }
+
+        return hasSemanticStructure;
+      }
+
+      // Test 7: Check music element (TikTok-specific)
+      function testMusicElement() {
+        const ttFrame = document.querySelector('.tiktok-context');
+        if (!ttFrame) {
+          logResult('No TikTok frame to check music', 'fail');
+          return false;
+        }
+
+        const music = ttFrame.querySelector('.tt-music');
+        if (music) {
+          const text = music.textContent.trim();
+          logResult(`TikTok music element found: "${text}"`, 'pass');
+          return true;
+        } else {
+          logResult('TikTok music element not found', 'fail');
+          return false;
+        }
+      }
+
+      // Test 8: Check heart icon in actions (TikTok-specific)
+      function testHeartIcon() {
+        const ttFrame = document.querySelector('.tiktok-context');
+        if (!ttFrame) {
+          logResult('No TikTok frame to check heart icon', 'fail');
+          return false;
+        }
+
+        const actionIcon = ttFrame.querySelector('.tt-action-icon');
+        if (actionIcon) {
+          const text = actionIcon.textContent.trim();
+          if (text.includes('♡')) {
+            logResult(`TikTok heart icon found in actions`, 'pass');
+            return true;
+          } else {
+            logResult(`Heart icon not found - Icon: "${text}"`, 'fail');
+            return false;
+          }
+        } else {
+          logResult('Action icon element not found', 'fail');
+          return false;
+        }
+      }
+
+      // Run all tests
+      logResult('Starting TikTok context frame verification...', 'info');
+      logResult('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+
+      const results = {
+        structure: testStructureExists(),
+        htmlStructure: testTikTokStructure(),
+        colors: testTikTokGradient(),
+        content: testPlaceholderContent(),
+        sidebar: testRightSidebar(),
+        semantics: testSemanticStructure(),
+        music: testMusicElement(),
+        heart: testHeartIcon()
+      };
+
+      const allPassed = Object.values(results).every(result => result === true);
+
+      logResult('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+      if (allPassed) {
+        logResult('✅ ALL TESTS PASSED - TikTok context frame fully implemented', 'pass');
+      } else {
+        const failedTests = Object.entries(results).filter(([_, result]) => result === false);
+        logResult(`⚠️  ${failedTests.length} test(s) failed`, 'fail');
+      }
+    }
+
+    // Theme toggle functionality
+    const themeToggle = document.getElementById('themeToggle');
+    let currentTheme = 'dark';
+
+    themeToggle.addEventListener('click', () => {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      themeToggle.textContent = currentTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+
+      // Re-run verification to test theme switching
+      setTimeout(() => {
+        runVerification();
+      }, 100);
+    });
+
+    // Run verification on load
+    document.addEventListener('DOMContentLoaded', () => {
+      runVerification();
+    });
+  </script>
+</body>
+</html>

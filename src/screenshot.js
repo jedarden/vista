@@ -8,30 +8,6 @@
 const { PLATFORMS } = require('./scorer');
 
 /**
- * Rate limiting store (in-memory, resets every hour)
- */
-const rateLimitStore = new Map();
-
-/**
- * Check rate limit for an IP address
- * Returns { allowed: boolean, remaining: number }
- */
-function checkRateLimit(ip, limit = 30) {
-  const now = Date.now();
-  const hour = Math.floor(now / 3600000); // Current hour bucket
-
-  const key = `${ip}:${hour}`;
-  const count = rateLimitStore.get(key) || 0;
-
-  if (count >= limit) {
-    return { allowed: false, remaining: 0 };
-  }
-
-  rateLimitStore.set(key, count + 1);
-  return { allowed: true, remaining: limit - count - 1 };
-}
-
-/**
  * Escape HTML for SVG content
  */
 function escHtml(str) {
@@ -556,6 +532,5 @@ function isValidPlatform(platformId) {
 module.exports = {
   generateCardSVG,
   generateScreenshot,
-  checkRateLimit,
   isValidPlatform,
 };

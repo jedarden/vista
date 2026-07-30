@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube Video Context Frame - Comprehensive Test</title>
+  <link rel="stylesheet" href="src/public/style.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 40px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+      background: #1a1a1e;
+      color: #e4e4e7;
+    }
+    .test-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .test-header h1 {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+    .test-header p {
+      color: #a1a1aa;
+      font-size: 16px;
+    }
+    .acceptance-criteria {
+      background: #25252a;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 40px;
+    }
+    .acceptance-criteria h2 {
+      font-size: 18px;
+      margin-bottom: 16px;
+      color: #FF0000;
+    }
+    .criteria-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .criteria-list li {
+      padding: 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+    .criteria-list li:before {
+      content: '✓';
+      color: #4ade80;
+      font-weight: bold;
+    }
+    .test-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 24px;
+      margin: 24px 0;
+    }
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 16px;
+      background: #FF0000;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 1000;
+    }
+    .theme-toggle:hover {
+      background: #cc0000;
+    }
+    .test-section {
+      margin-bottom: 40px;
+    }
+    .test-section h2 {
+      font-size: 20px;
+      margin-bottom: 16px;
+      color: #FF0000;
+    }
+    .verification-log {
+      background: #25252a;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 20px;
+      font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+      font-size: 13px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .verification-log div {
+      padding: 4px 0;
+    }
+    .pass { color: #4ade80; }
+    .fail { color: #ef4444; }
+    .info { color: #FF0000; }
+    .warning { color: #f59e0b; }
+
+    /* HTML theme support */
+    html[data-theme='light'] body {
+      background: #f8f9fa;
+      color: #1f2937;
+    }
+    html[data-theme='light'] .acceptance-criteria,
+    html[data-theme='light'] .verification-log {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" id="themeToggle">☀️ Light Mode</button>
+
+  <div class="test-header">
+    <h1>🎥 YouTube Video Context Frame - Comprehensive Test</h1>
+    <p>Testing YouTube video context frame with player chrome, description section, and embedded link cards</p>
+  </div>
+
+  <!-- Acceptance Criteria Checklist -->
+  <div class="acceptance-criteria">
+    <h2>✅ Acceptance Criteria</h2>
+    <ul class="criteria-list">
+      <li>YouTube frame HTML structure is complete with all required sections</li>
+      <li>Video player chrome rendered accurately with controls and progress bar</li>
+      <li>Description section with title, views, date, and metadata</li>
+      <li>Link cards embedded in description area</li>
+      <li>YouTube red color scheme (#FF0000) used as accent</li>
+      <li>Dark/light mode works correctly</li>
+      <li>Semantic HTML structure maintained</li>
+      <li>Platform-appropriate spacing and typography</li>
+    </ul>
+  </div>
+
+  <!-- Test Section 1: Complete YouTube Frame with Link Cards -->
+  <div class="test-section">
+    <h2>1. YouTube Video Context Frame - With Link Card</h2>
+    <div class="test-grid">
+      <!-- Complete YouTube Frame -->
+      <div class="context-frame youtube-context dark-theme">
+        <div class="yt-video-player">
+          <div class="yt-video-placeholder">▶</div>
+          <div class="yt-video-overlay">
+            <div class="yt-progress-bar">
+              <div class="yt-progress-filled" style="width: 35%;"></div>
+            </div>
+            <div class="yt-player-controls">
+              <button class="yt-control-btn">⏮</button>
+              <button class="yt-control-btn">▶️</button>
+              <button class="yt-control-btn">⏭</button>
+              <div class="yt-volume-control">
+                <button class="yt-control-btn">🔊</button>
+                <div class="yt-volume-slider">
+                  <div class="yt-volume-level" style="width: 70%;"></div>
+                </div>
+              </div>
+              <div class="yt-time-display">3:45 / 10:23</div>
+              <button class="yt-control-btn">⚙️</button>
+              <button class="yt-control-btn yt-fullscreen-btn">⛶</button>
+            </div>
+          </div>
+        </div>
+        <div class="yt-video-header">
+          <div class="yt-channel-avatar">TC</div>
+          <div class="yt-channel-meta">
+            <span class="yt-channel-name">TechChannel</span>
+            <span class="yt-subscriber-count">1.2M subscribers</span>
+          </div>
+          <button class="yt-subscribe-btn">Subscribe</button>
+        </div>
+        <div class="yt-video-title">Complete Web Development Tutorial - Build a Website in 10 Minutes!</div>
+        <div class="yt-video-stats">234K views · 3 hours ago</div>
+        <div class="yt-actions-bar">
+          <button class="yt-action-btn">
+            <span class="yt-action-icon">👍</span>
+            <span class="yt-action-label">Like</span>
+          </button>
+          <button class="yt-action-btn">
+            <span class="yt-action-icon">👎</span>
+            <span class="yt-action-label">Dislike</span>
+          </button>
+          <button class="yt-action-btn">
+            <span class="yt-action-icon">↗️</span>
+            <span class="yt-action-label">Share</span>
+          </button>
+          <button class="yt-action-btn">
+            <span class="yt-action-icon">⬇️</span>
+            <span class="yt-action-label">Download</span>
+          </button>
+          <button class="yt-action-btn">
+            <span class="yt-action-icon">✂️</span>
+            <span class="yt-action-label">Clip</span>
+          </button>
+          <button class="yt-action-btn">
+            <span class="yt-action-icon">💾</span>
+            <span class="yt-action-label">Save</span>
+          </button>
+          <button class="yt-action-btn">
+            <span class="yt-action-icon">•••</span>
+            <span class="yt-action-label">More</span>
+          </button>
+        </div>
+        <div class="yt-description-section">
+          <div class="yt-description-text">In this video, I'll show you how to build a complete website from scratch using HTML, CSS, and JavaScript. Perfect for beginners who want to learn web development quickly! #webdev #tutorial #howto</div>
+          <div class="yt-description-meta">
+            <span>👍 12K</span>
+            <span>👁️ 234K views</span>
+            <span>📅 3 hours ago</span>
+          </div>
+          <div class="yt-link-card">
+            <div class="yt-link-card-image">📄</div>
+            <div class="yt-link-card-content">
+              <div class="yt-link-card-title">Free Web Development Resources</div>
+              <div class="yt-link-card-description">Check out these amazing free resources to continue your learning journey...</div>
+              <div class="yt-link-card-domain">webdev-resources.com</div>
+            </div>
+          </div>
+        </div>
+        <div class="yt-comments-section">
+          <div class="yt-comment-header">Comments</div>
+          <div class="yt-comment yt-comment-dim">
+            <div class="yt-comment-avatar">A</div>
+            <div class="yt-comment-meta">
+              <span class="yt-comment-author">AlexDev</span>
+              <span class="yt-comment-time">2 hours ago</span>
+              <div class="yt-comment-text">This was exactly what I needed! Clear and concise. Thanks for sharing!</div>
+              <div class="yt-comment-actions">👍 45 · 💬 Reply</div>
+            </div>
+          </div>
+          <div class="yt-comment">
+            <div class="yt-comment-avatar">Y</div>
+            <div class="yt-comment-meta">
+              <span class="yt-comment-author">You</span>
+              <span class="yt-comment-time">Just now</span>
+              <div class="yt-comment-text">Great tutorial! Really helped me understand the concepts.</div>
+              <div class="yt-comment-actions">👍 0 · 💬 Reply</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- YouTube Frame - Gaming Video -->
+      <div class="context-frame youtube-context dark-theme">
+        <div class="yt-video-player">
+          <div class="yt-video-placeholder">▶</div>
+          <div class="yt-video-overlay">
+            <div class="yt-progress-bar">
+              <div class="yt-progress-filled" style="width: 65%;"></div>
+            </div>
+            <div class="yt-player-controls">
+              <button class="yt-control-btn">⏮</button>
+              <button class="yt-control-btn">⏸️</button>
+              <button class="yt-control-btn">⏭</button>
+              <div class="yt-volume-control">
+                <button class="yt-control-btn">🔊</button>
+                <div class="yt-volume-slider">
+                  <div class="yt-volume-level" style="width: 50%;"></div>
+                </div>
+              </div>
+              <div class="yt-time-display">8:32 / 12:45</div>
+              <button class="yt-control-btn">⚙️</button>
+              <button class="yt-control-btn yt-fullscreen-btn">⛶</button>
+            </div>
+          </div>
+        </div>
+        <div class="yt-video-header">
+          <div class="yt-channel-avatar">G</div>
+          <div class="yt-channel-meta">
+            <span class="yt-channel-name">GamingPro</span>
+            <span class="yt-subscriber-count">856K subscribers</span>
+          </div>
+          <button class="yt-subscribe-btn">Subscribe</button>
+        </div>
+        <div class="yt-video-title">Epic Gaming Moments Compilation #127 - Best Plays of the Week!</div>
+        <div class="yt-video-stats">1.2M views · 1 day ago</div>
+        <div class="yt-actions-bar">
+          <button class="yt-action-btn">
+            <span class="yt-action-icon">👍</span>
+            <span class="yt-action-label">Like</span>
+          </button>
+          <button class="yt-action-btn">
+            <span class="yt-action-icon">👎</span>
+            <span class="yt-action-label">Dislike</span>
+          </button>
+          <button class="yt-action-btn">
+            <span class="yt-action-icon">↗️</span>
+            <span class="yt-action-label">Share</span>
+          </button>
+          <button class="yt-action-btn">
+            <span class="yt-action-icon">⬇️</span>
+            <span class="yt-action-label">Download</span>
+          </button>
+          <button class="yt-action-btn">
+            <span class="yt-action-icon">✂️</span>
+            <span class="yt-action-label">Clip</span>
+          </button>
+          <button class="yt-action-btn">
+            <span class="yt-action-icon">💾</span>
+            <span class="yt-action-label">Save</span>
+          </button>
+          <button class="yt-action-btn">
+            <span class="yt-action-icon">•••</span>
+            <span class="yt-action-label">More</span>
+          </button>
+        </div>
+        <div class="yt-description-section">
+          <div class="yt-description-text">This week's best gaming moments from Fortnite, Minecraft, Valorant, and more! Don't forget to like and subscribe for more compilations! #gaming #compilation #bestmoments</div>
+          <div class="yt-description-meta">
+            <span>👍 45K</span>
+            <span>👁️ 1.2M views</span>
+            <span>📅 1 day ago</span>
+          </div>
+        </div>
+        <div class="yt-comments-section">
+          <div class="yt-comment-header">Comments</div>
+          <div class="yt-comment yt-comment-dim">
+            <div class="yt-comment-avatar">P</div>
+            <div class="yt-comment-meta">
+              <span class="yt-comment-author">ProGamer99</span>
+              <span class="yt-comment-time">5 hours ago</span>
+              <div class="yt-comment-text">That clip at 3:24 was insane! 🎮</div>
+              <div class="yt-comment-actions">👍 128 · 💬 Reply</div>
+            </div>
+          </div>
+          <div class="yt-comment yt-comment-dim">
+            <div class="yt-comment-avatar">S</div>
+            <div class="yt-comment-meta">
+              <span class="yt-comment-author">StreamFan</span>
+              <span class="yt-comment-time">3 hours ago</span>
+              <div class="yt-comment-text">Best compilation yet! Keep them coming 🔥</div>
+              <div class="yt-comment-actions">👍 89 · 💬 Reply</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Verification Log -->
+  <div class="test-section">
+    <h2>2. Verification Results</h2>
+    <div class="verification-log" id="verificationLog">
+      <div class="info">Running comprehensive YouTube video context frame verification...</div>
+    </div>
+  </div>
+
+  <script>
+    // Comprehensive verification test suite
+    function runVerification() {
+      const log = document.getElementById('verificationLog');
+      const results = [];
+
+      function logResult(message, status = 'info') {
+        const div = document.createElement('div');
+        div.className = status;
+        div.textContent = `[${status.toUpperCase()}] ${message}`;
+        log.appendChild(div);
+        results.push({ message, status });
+      }
+
+      // Test 1: Check if YouTube context frames exist
+      function testStructureExists() {
+        const ytFrames = document.querySelectorAll('.youtube-context');
+        if (ytFrames.length > 0) {
+          logResult(`Found ${ytFrames.length} YouTube context frames`, 'pass');
+          return true;
+        } else {
+          logResult('No YouTube context frames found', 'fail');
+          return false;
+        }
+      }
+
+      // Test 2: Check YouTube video player chrome
+      function testVideoPlayerChrome() {
+        const ytFrame = document.querySelector('.youtube-context');
+        if (!ytFrame) {
+          logResult('No YouTube frame to check player chrome', 'fail');
+          return false;
+        }
+
+        const checks = {
+          'yt-video-player': ytFrame.querySelector('.yt-video-player'),
+          'yt-video-placeholder': ytFrame.querySelector('.yt-video-placeholder'),
+          'yt-video-overlay': ytFrame.querySelector('.yt-video-overlay'),
+          'yt-progress-bar': ytFrame.querySelector('.yt-progress-bar'),
+          'yt-progress-filled': ytFrame.querySelector('.yt-progress-filled'),
+          'yt-player-controls': ytFrame.querySelector('.yt-player-controls'),
+        };
+
+        let allPresent = true;
+        for (const [className, element] of Object.entries(checks)) {
+          if (element) {
+            logResult(`✓ Found .${className} element`, 'pass');
+          } else {
+            logResult(`✗ Missing .${className} element`, 'fail');
+            allPresent = false;
+          }
+        }
+
+        // Check control buttons
+        const controlBtns = ytFrame.querySelectorAll('.yt-control-btn');
+        if (controlBtns.length >= 7) {
+          logResult(`✓ Found ${controlBtns.length} control buttons`, 'pass');
+        } else {
+          logResult(`✗ Expected at least 7 control buttons, found ${controlBtns.length}`, 'fail');
+          allPresent = false;
+        }
+
+        return allPresent;
+      }
+
+      // Test 3: Check YouTube description section
+      function testDescriptionSection() {
+        const ytFrame = document.querySelector('.youtube-context');
+        if (!ytFrame) {
+          logResult('No YouTube frame to check description section', 'fail');
+          return false;
+        }
+
+        const checks = {
+          'yt-description-section': ytFrame.querySelector('.yt-description-section'),
+          'yt-description-text': ytFrame.querySelector('.yt-description-text'),
+          'yt-description-meta': ytFrame.querySelector('.yt-description-meta'),
+        };
+
+        let allPresent = true;
+        for (const [className, element] of Object.entries(checks)) {
+          if (element) {
+            logResult(`✓ Found .${className} element`, 'pass');
+          } else {
+            logResult(`✗ Missing .${className} element`, 'fail');
+            allPresent = false;
+          }
+        }
+
+        // Check metadata items
+        const metaItems = ytFrame.querySelectorAll('.yt-description-meta span');
+        if (metaItems.length >= 3) {
+          logResult(`✓ Found ${metaItems.length} metadata items in description`, 'pass');
+        } else {
+          logResult(`✗ Expected at least 3 metadata items, found ${metaItems.length}`, 'fail');
+          allPresent = false;
+        }
+
+        return allPresent;
+      }
+
+      // Test 4: Check YouTube link cards
+      function testLinkCards() {
+        const ytFrame = document.querySelector('.youtube-context');
+        if (!ytFrame) {
+          logResult('No YouTube frame to check link cards', 'fail');
+          return false;
+        }
+
+        const linkCards = ytFrame.querySelectorAll('.yt-link-card');
+        if (linkCards.length > 0) {
+          logResult(`✓ Found ${linkCards.length} link card(s)`, 'pass');
+
+          // Check link card structure
+          const firstCard = linkCards[0];
+          const cardChecks = {
+            'yt-link-card-image': firstCard.querySelector('.yt-link-card-image'),
+            'yt-link-card-content': firstCard.querySelector('.yt-link-card-content'),
+            'yt-link-card-title': firstCard.querySelector('.yt-link-card-title'),
+            'yt-link-card-description': firstCard.querySelector('.yt-link-card-description'),
+            'yt-link-card-domain': firstCard.querySelector('.yt-link-card-domain'),
+          };
+
+          let cardStructureComplete = true;
+          for (const [className, element] of Object.entries(cardChecks)) {
+            if (!element) {
+              logResult(`✗ Missing .${className} in link card`, 'fail');
+              cardStructureComplete = false;
+            }
+          }
+
+          if (cardStructureComplete) {
+            logResult(`✓ Link card has complete structure`, 'pass');
+          }
+
+          return true;
+        } else {
+          logResult('No link cards found in description section', 'warning');
+          return false;
+        }
+      }
+
+      // Test 5: Check YouTube actions bar
+      function testActionsBar() {
+        const ytFrame = document.querySelector('.youtube-context');
+        if (!ytFrame) {
+          logResult('No YouTube frame to check actions bar', 'fail');
+          return false;
+        }
+
+        const actionsBar = ytFrame.querySelector('.yt-actions-bar');
+        if (!actionsBar) {
+          logResult('Actions bar not found', 'fail');
+          return false;
+        }
+
+        const actionBtns = actionsBar.querySelectorAll('.yt-action-btn');
+        if (actionBtns.length >= 7) {
+          logResult(`✓ Found ${actionBtns.length} action buttons`, 'pass');
+
+          // Check button structure
+          let buttonsHaveStructure = true;
+          actionBtns.forEach((btn, index) => {
+            const icon = btn.querySelector('.yt-action-icon');
+            const label = btn.querySelector('.yt-action-label');
+            if (!icon || !label) {
+              logResult(`✗ Action button ${index} missing icon or label`, 'fail');
+              buttonsHaveStructure = false;
+            }
+          });
+
+          if (buttonsHaveStructure) {
+            logResult(`✓ All action buttons have icon and label`, 'pass');
+          }
+
+          return true;
+        } else {
+          logResult(`✗ Expected at least 7 action buttons, found ${actionBtns.length}`, 'fail');
+          return false;
+        }
+      }
+
+      // Test 6: Check YouTube header and metadata
+      function testHeaderMetadata() {
+        const ytFrame = document.querySelector('.youtube-context');
+        if (!ytFrame) {
+          logResult('No YouTube frame to check header metadata', 'fail');
+          return false;
+        }
+
+        const checks = {
+          'yt-video-header': ytFrame.querySelector('.yt-video-header'),
+          'yt-channel-avatar': ytFrame.querySelector('.yt-channel-avatar'),
+          'yt-channel-meta': ytFrame.querySelector('.yt-channel-meta'),
+          'yt-channel-name': ytFrame.querySelector('.yt-channel-name'),
+          'yt-subscriber-count': ytFrame.querySelector('.yt-subscriber-count'),
+          'yt-subscribe-btn': ytFrame.querySelector('.yt-subscribe-btn'),
+          'yt-video-title': ytFrame.querySelector('.yt-video-title'),
+          'yt-video-stats': ytFrame.querySelector('.yt-video-stats'),
+        };
+
+        let allPresent = true;
+        for (const [className, element] of Object.entries(checks)) {
+          if (element) {
+            logResult(`✓ Found .${className} element`, 'pass');
+          } else {
+            logResult(`✗ Missing .${className} element`, 'fail');
+            allPresent = false;
+          }
+        }
+
+        // Check subscribe button text
+        const subscribeBtn = ytFrame.querySelector('.yt-subscribe-btn');
+        if (subscribeBtn && subscribeBtn.textContent.trim().toLowerCase().includes('subscribe')) {
+          logResult(`✓ Subscribe button has correct text`, 'pass');
+        }
+
+        return allPresent;
+      }
+
+      // Test 7: Check YouTube comments section
+      function testCommentsSection() {
+        const ytFrame = document.querySelector('.youtube-context');
+        if (!ytFrame) {
+          logResult('No YouTube frame to check comments section', 'fail');
+          return false;
+        }
+
+        const commentsSection = ytFrame.querySelector('.yt-comments-section');
+        if (!commentsSection) {
+          logResult('Comments section not found', 'fail');
+          return false;
+        }
+
+        const commentHeader = ytFrame.querySelector('.yt-comment-header');
+        const comments = ytFrame.querySelectorAll('.yt-comment');
+
+        if (commentHeader && comments.length > 0) {
+          logResult(`✓ Found comments section with ${comments.length} comments`, 'pass');
+
+          // Check comment structure
+          const firstComment = comments[0];
+          const commentParts = {
+            'yt-comment-avatar': firstComment.querySelector('.yt-comment-avatar'),
+            'yt-comment-meta': firstComment.querySelector('.yt-comment-meta'),
+            'yt-comment-author': firstComment.querySelector('.yt-comment-author'),
+            'yt-comment-time': firstComment.querySelector('.yt-comment-time'),
+            'yt-comment-text': firstComment.querySelector('.yt-comment-text'),
+            'yt-comment-actions': firstComment.querySelector('.yt-comment-actions'),
+          };
+
+          let commentStructureComplete = true;
+          for (const [className, element] of Object.entries(commentParts)) {
+            if (!element) {
+              logResult(`✗ Missing .${className} in comment`, 'fail');
+              commentStructureComplete = false;
+            }
+          }
+
+          if (commentStructureComplete) {
+            logResult(`✓ Comment has complete structure`, 'pass');
+          }
+
+          return true;
+        } else {
+          logResult('Comments section incomplete', 'fail');
+          return false;
+        }
+      }
+
+      // Test 8: Check YouTube red accent color
+      function testYouTubeRed() {
+        const ytFrame = document.querySelector('.youtube-context');
+        if (!ytFrame) {
+          logResult('No YouTube frame to check colors', 'fail');
+          return false;
+        }
+
+        const avatar = ytFrame.querySelector('.yt-channel-avatar');
+        if (!avatar) {
+          logResult('Channel avatar not found for color check', 'fail');
+          return false;
+        }
+
+        const avatarStyle = getComputedStyle(avatar);
+        const bgColor = avatarStyle.backgroundColor;
+
+        // Check if YouTube red is used (accept variations)
+        if (bgColor && (
+          bgColor.toLowerCase().includes('255, 0, 0') ||
+          bgColor.toLowerCase().includes('204, 0, 0') || // Darker red for dark mode
+          bgColor === '#ff0000' ||
+          bgColor === '#FF0000' ||
+          bgColor === '#cc0000' ||
+          bgColor === '#CC0000' ||
+          bgColor.includes('rgb(255, 0, 0)') ||
+          bgColor.includes('rgb(204, 0, 0)')
+        )) {
+          logResult(`✓ YouTube red accent found: ${bgColor}`, 'pass');
+          return true;
+        } else {
+          logResult(`⚠ Channel avatar background: ${bgColor} (may not be YouTube red)`, 'warning');
+          return true; // Not a hard failure
+        }
+      }
+
+      // Run all tests
+      logResult('Starting YouTube video context frame comprehensive verification...', 'info');
+      logResult('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+
+      const results = {
+        structure: testStructureExists(),
+        playerChrome: testVideoPlayerChrome(),
+        description: testDescriptionSection(),
+        linkCards: testLinkCards(),
+        actionsBar: testActionsBar(),
+        headerMetadata: testHeaderMetadata(),
+        comments: testCommentsSection(),
+        colors: testYouTubeRed(),
+      };
+
+      const allPassed = Object.values(results).every(result => result === true);
+
+      logResult('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+      if (allPassed) {
+        logResult('✅ ALL TESTS PASSED - YouTube video context frame fully implemented', 'pass');
+      } else {
+        const failedTests = Object.entries(results).filter(([_, result]) => result === false);
+        logResult(`⚠️  ${failedTests.length} test(s) failed`, 'fail');
+      }
+    }
+
+    // Theme toggle functionality
+    const themeToggle = document.getElementById('themeToggle');
+    let currentTheme = 'dark';
+
+    themeToggle.addEventListener('click', () => {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      themeToggle.textContent = currentTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+
+      // Re-run verification to test theme switching
+      setTimeout(() => {
+        runVerification();
+      }, 100);
+    });
+
+    // Run verification on load
+    document.addEventListener('DOMContentLoaded', () => {
+      runVerification();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reddit Frame Theme Chrome Test</title>
+  <link rel="stylesheet" href="src/public/frames-theme.css">
+  <link rel="stylesheet" href="src/public/social-platforms-frames.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #1a1a1e;
+      color: #e4e4e7;
+    }
+
+    .test-section {
+      margin-bottom: 40px;
+    }
+
+    .test-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: #e4e4e7;
+    }
+
+    .test-container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      background: var(--color-accent-indigo-500, #6366f1);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      z-index: 1000;
+      transition: opacity 0.2s ease;
+    }
+
+    .theme-toggle:hover {
+      opacity: 0.9;
+    }
+
+    /* Light theme for page */
+    body.light-theme {
+      background: #ffffff;
+      color: #1f2937;
+    }
+
+    body.light-theme .test-title {
+      color: #1f2937;
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" onclick="toggleTheme()">Switch to Light Theme</button>
+
+  <div class="test-container">
+    <div class="test-section">
+      <h1 class="test-title">Reddit Frame - Dark Theme</h1>
+      <div id="reddit-dark-frame"></div>
+    </div>
+
+    <div class="test-section">
+      <h1 class="test-title">Reddit Frame Chrome Elements Test</h1>
+      <div id="reddit-chrome-test"></div>
+    </div>
+  </div>
+
+  <script>
+    function renderRedditFrame(containerId, theme = 'dark') {
+      const themeClass = theme === 'light' ? 'light-theme' : '';
+      const container = document.getElementById(containerId);
+
+      container.innerHTML = `
+        <div class="reddit-context ${themeClass} platform-frame">
+          <div class="rd-post-card">
+            <!-- Subreddit Header -->
+            <div class="rd-subreddit-header">
+              <div class="rd-subreddit-icon">r/</div>
+              <div class="rd-subreddit-details">
+                <div class="rd-subreddit-name">r/programming</div>
+                <div class="rd-subreddit-meta">4.2M members · 12.5K online</div>
+              </div>
+              <button class="rd-join-btn">Join</button>
+            </div>
+
+            <!-- Main Post -->
+            <div class="rd-main-post">
+              <!-- Upvote Section -->
+              <div class="rd-upvote-section">
+                <div class="rd-upvote-arrow">▲</div>
+                <div class="rd-vote-count">15.2K</div>
+                <div class="rd-downvote-arrow">▼</div>
+              </div>
+
+              <!-- Post Content -->
+              <div class="rd-post-main">
+                <div class="rd-post-meta">
+                  <span class="rd-subreddit-link">r/programming</span>
+                  <span class="rd-post-author">• Posted by u/software_engineer</span>
+                  <span class="rd-post-time">• 3h ago</span>
+                </div>
+                <div class="rd-post-title">Best practices for writing clean, maintainable code in 2024</div>
+
+                <!-- Link Preview -->
+                <a href="#" class="rd-link-preview">
+                  <div class="rd-link-image" style="background: linear-gradient(135deg, #ff4500 0%, #7193ff 100%);"></div>
+                  <div class="rd-link-content">
+                    <div class="rd-link-title">Clean Code: A Handbook of Agile Software Craftsmanship</div>
+                    <div class="rd-link-domain">example.com</div>
+                    <div class="rd-link-description">Learn the essential techniques for writing code that's easy to understand, test, and maintain...</div>
+                  </div>
+                </a>
+
+                <!-- Post Actions -->
+                <div class="rd-post-actions">
+                  <span>💬 847 comments</span>
+                  <span>🔗 Share</span>
+                  <span>💾 Save</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Comments Section -->
+            <div class="rd-comments-section">
+              <div class="rd-comments-header">Comments</div>
+              <div class="rd-comment">
+                <div class="rd-comment-avatar">U</div>
+                <div class="rd-comment-content">
+                  <div class="rd-comment-meta">
+                    <span class="rd-comment-author">udev_guru</span>
+                    <span class="rd-comment-time">2h ago</span>
+                  </div>
+                  <div class="rd-comment-body">Excellent summary! I'd also add that proper documentation is key for long-term maintainability.</div>
+                </div>
+              </div>
+              <div class="rd-comment rd-comment-dim">
+                <div class="rd-comment-avatar">C</div>
+                <div class="rd-comment-content">
+                  <div class="rd-comment-meta">
+                    <span class="rd-comment-author">code_reviewer</span>
+                    <span class="rd-comment-time">1h ago</span>
+                  </div>
+                  <div class="rd-comment-body">Great discussion topic! Thanks for posting this comprehensive guide.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderChromeTest(containerId, theme = 'dark') {
+      const themeClass = theme === 'light' ? 'light-theme' : '';
+      const container = document.getElementById(containerId);
+
+      container.innerHTML = `
+        <div class="reddit-context ${themeClass} platform-frame">
+          <div class="rd-post-card">
+            <div class="frame-chrome">
+              <div class="frame-chrome-header">
+                Reddit Frame Chrome Test
+              </div>
+              <div class="frame-chrome-navigation">
+                <button class="active">Home</button>
+                <button>Popular</button>
+                <button>All</button>
+              </div>
+            </div>
+
+            <div style="padding: 16px;">
+              <p style="margin: 0 0 8px 0; font-size: 14px; opacity: 0.7;">Chrome elements test content...</p>
+            </div>
+
+            <div class="frame-chrome-footer">
+              © 2024 Reddit Frame Test - Footer content here
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function toggleTheme() {
+      const body = document.body;
+      const button = document.querySelector('.theme-toggle');
+      const isLight = body.classList.contains('light-theme');
+
+      if (isLight) {
+        body.classList.remove('light-theme');
+        button.textContent = 'Switch to Light Theme';
+        renderRedditFrame('reddit-dark-frame', 'dark');
+        renderChromeTest('reddit-chrome-test', 'dark');
+      } else {
+        body.classList.add('light-theme');
+        button.textContent = 'Switch to Dark Theme';
+        renderRedditFrame('reddit-dark-frame', 'light');
+        renderChromeTest('reddit-chrome-test', 'light');
+      }
+    }
+
+    // Initialize with dark theme
+    renderRedditFrame('reddit-dark-frame', 'dark');
+    renderChromeTest('reddit-chrome-test', 'dark');
+  </script>
+</body>
+</html>

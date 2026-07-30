@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>iMessage - Light Mode Frame</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+      background: #ffffff;
+      color: #000000;
+    }
+
+    .imessage-context {
+      display: flex;
+      flex-direction: column;
+      min-height: 400px;
+      background: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .im-chat {
+      flex: 1;
+      padding: 16px 20px;
+      overflow-y: auto;
+    }
+
+    .im-message {
+      display: flex;
+      margin-bottom: 12px;
+    }
+
+    .im-message-dim {
+      opacity: 0.6;
+    }
+
+    .im-message-received {
+      justify-content: flex-start;
+    }
+
+    .im-message-sent {
+      justify-content: flex-end;
+    }
+
+    .im-bubble {
+      max-width: 75%;
+      padding: 10px 14px;
+      border-radius: 18px;
+    }
+
+    .im-bubble-received {
+      background: #e5e5ea;
+      color: #000000;
+    }
+
+    .im-bubble-sent {
+      background: #0b93ff;
+      color: #ffffff;
+    }
+
+    .im-sender-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: #000000;
+      margin-bottom: 4px;
+    }
+
+    .im-message-body {
+      font-size: 15px;
+      line-height: 1.4;
+      color: #000000;
+    }
+
+    .im-link-preview {
+      margin-top: 8px;
+      background: #f0f0f0;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .im-link-image {
+      width: 100%;
+      height: 120px;
+      background: linear-gradient(135deg, #0b93ff 0%, #0078e7 100%);
+    }
+
+    .im-link-info {
+      padding: 8px 10px;
+    }
+
+    .im-link-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #000000;
+    }
+
+    .im-link-domain {
+      font-size: 11px;
+      color: #8e8e93;
+    }
+  </style>
+</head>
+<body>
+  <div class="imessage-context">
+    <div class="im-chat">
+      <div class="im-message im-message-received im-message-dim">
+        <div class="im-bubble im-bubble-received">
+          <div class="im-sender-name">Project Manager</div>
+          <div class="im-message-body">You should see this resource I found for the project.</div>
+        </div>
+      </div>
+
+      <div class="im-message im-message-sent">
+        <div class="im-bubble im-bubble-sent">
+          <div class="im-message-body">Thanks! Let me check it out.</div>
+        </div>
+      </div>
+
+      <div class="im-message im-message-sent">
+        <div class="im-bubble im-bubble-sent">
+          <div class="im-link-preview">
+            <div class="im-link-image"></div>
+            <div class="im-link-info">
+              <div class="im-link-title">Best Practices for Modern Web Development</div>
+              <div class="im-link-domain">website.com</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

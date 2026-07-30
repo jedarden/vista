@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Platform Comparison Summary Test</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0f1117;
+      color: #e8eaf0;
+      padding: 20px;
+    }
+    .test-section {
+      max-width: 800px;
+      margin: 0 auto 40px;
+    }
+    .test-section h2 {
+      margin-bottom: 20px;
+      font-size: 20px;
+    }
+    .platform-comparison-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .platform-comparison-summary {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      padding: 16px 20px;
+      background: linear-gradient(135deg, #5b8dee 0%, #7aa3f5 100%);
+      border-radius: 12px;
+      color: white;
+    }
+    .summary-stat {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .summary-stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .summary-stat-label {
+      font-size: 14px;
+      font-weight: 500;
+      opacity: 0.9;
+    }
+    .platform-comparison-row {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 16px;
+      background: #1e2330;
+      border-radius: 12px;
+    }
+    .platform-comparison-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .platform-comparison-card {
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      max-height: 200px;
+      overflow-y: auto;
+      padding: 12px;
+      background: #181c24;
+      border-radius: 8px;
+    }
+    .platform-comparison-card.before-card::before {
+      content: 'Before';
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      font-size: 10px;
+      font-weight: 600;
+      color: #7b82a8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .platform-comparison-card.after-card::before {
+      content: 'After';
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      font-size: 10px;
+      font-weight: 600;
+      color: #7b82a8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .card-content {
+      line-height: 1.6;
+    }
+    .card-content p {
+      margin-bottom: 8px;
+    }
+    .platform-comparison-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #2a3040;
+      margin-bottom: 8px;
+    }
+    .platform-comparison-name {
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .platform-comparison-score {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .platform-comparison-grade {
+      font-size: 18px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 6px;
+    }
+    .test-description {
+      background: #181c24;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border-left: 4px solid #5b8dee;
+    }
+    .test-description h3 {
+      margin-top: 0;
+      margin-bottom: 8px;
+    }
+    .test-description ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+    .test-description li {
+      margin-bottom: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-section">
+    <h2>Platform Comparison Summary & Scroll-Lock Test</h2>
+
+    <div class="test-description">
+      <h3>Testing Features</h3>
+      <ul>
+        <li><strong>Summary Bar:</strong> Shows counts (17 identical, 8 differ, 6 missing tags on URL B)</li>
+        <li><strong>Scroll-Lock:</strong> Scroll either column - the other should follow</li>
+        <li><strong>Implementation:</strong> Added to app.js and style.css</li>
+      </ul>
+    </div>
+
+    <div class="platform-comparison-grid" id="platformComparisonGrid">
+      <!-- Summary bar will be inserted here -->
+    </div>
+  </div>
+
+  <script>
+    // Simulate the summary bar rendering
+    const grid = document.getElementById('platformComparisonGrid');
+
+    // Create summary bar with sample counts
+    const identicalCount = 17;
+    const differCount = 8;
+    const missingTagsCount = 6;
+
+    const summaryBar = document.createElement('div');
+    summaryBar.className = 'platform-comparison-summary';
+    summaryBar.innerHTML = `
+      <div class="summary-stat">
+        <span class="summary-stat-value">${identicalCount}</span>
+        <span class="summary-stat-label">identical</span>
+      </div>
+      <div class="summary-stat">
+        <span class="summary-stat-value">${differCount}</span>
+        <span class="summary-stat-label">differ</span>
+      </div>
+      <div class="summary-stat">
+        <span class="summary-stat-value">${missingTagsCount}</span>
+        <span class="summary-stat-label">missing tags on URL B</span>
+      </div>
+    `;
+    grid.appendChild(summaryBar);
+
+    // Add sample platform rows with scrollable content
+    const platforms = ['Twitter', 'Facebook', 'LinkedIn'];
+
+    platforms.forEach((platform, index) => {
+      const row = document.createElement('div');
+      row.className = 'platform-comparison-row';
+
+      const header = document.createElement('div');
+      header.className = 'platform-comparison-header';
+      header.innerHTML = `
+        <div class="platform-comparison-name">
+          <span>🌐</span>
+          <span>${platform}</span>
+        </div>
+        <div class="platform-comparison-score">
+          <span class="platform-comparison-grade" style="background:#22c55e;color:white;">A</span>
+          <span class="platform-comparison-change" style="color:#22c55e;">↑ Improved</span>
+          <span class="platform-comparison-grade" style="background:#22c55e;color:white;">A+</span>
+        </div>
+      `;
+      row.appendChild(header);
+
+      const cardsContainer = document.createElement('div');
+      cardsContainer.className = 'platform-comparison-cards';
+
+      // Create before card with long content
+      const beforeCard = document.createElement('div');
+      beforeCard.className = 'platform-comparison-card before-card';
+      beforeCard.innerHTML = `
+        <div class="card-content">
+          <p><strong>Title:</strong> This is a long title that should demonstrate the scroll-lock functionality when comparing platforms.</p>
+          <p><strong>Description:</strong> Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.</p>
+          <p><strong>Additional fields:</strong> This is extra content to make the card scrollable, which will help test the synchronization between the two columns.</p>
+          <p><strong>More content:</strong> Even more text to ensure there's enough scrolling to observe the synchronization effect clearly.</p>
+          <p><strong>Bottom content:</strong> This content at the bottom should be visible when scrolled, and both cards should show the same relative position.</p>
+        </div>
+      `;
+
+      // Create after card with long content
+      const afterCard = document.createElement('div');
+      afterCard.className = 'platform-comparison-card after-card';
+      afterCard.innerHTML = `
+        <div class="card-content">
+          <p><strong>Title:</strong> This is a long title that should demonstrate the scroll-lock functionality when comparing platforms.</p>
+          <p><strong>Description:</strong> Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.</p>
+          <p><strong>Additional fields:</strong> This is extra content to make the card scrollable, which will help test the synchronization between the two columns.</p>
+          <p><strong>More content:</strong> Even more text to ensure there's enough scrolling to observe the synchronization effect clearly.</p>
+          <p><strong>Bottom content:</strong> This content at the bottom should be visible when scrolled, and both cards should show the same relative position.</p>
+        </div>
+      `;
+
+      cardsContainer.appendChild(beforeCard);
+      cardsContainer.appendChild(afterCard);
+      row.appendChild(cardsContainer);
+      grid.appendChild(row);
+
+      // Setup scroll-lock
+      setupScrollLock(beforeCard, afterCard);
+    });
+
+    // Scroll-lock synchronization function
+    function setupScrollLock(el1, el2) {
+      if (!el1 || !el2) return;
+
+      let isScrolling1 = false;
+      let isScrolling2 = false;
+
+      el1.addEventListener('scroll', () => {
+        if (!isScrolling2) {
+          isScrolling1 = true;
+          const scrollRatio = el1.scrollTop / (el1.scrollHeight - el1.clientHeight);
+          el2.scrollTop = scrollRatio * (el2.scrollHeight - el2.clientHeight);
+          setTimeout(() => { isScrolling1 = false; }, 50);
+        }
+      });
+
+      el2.addEventListener('scroll', () => {
+        if (!isScrolling1) {
+          isScrolling2 = true;
+          const scrollRatio = el2.scrollTop / (el2.scrollHeight - el2.clientHeight);
+          el1.scrollTop = scrollRatio * (el1.scrollHeight - el1.clientHeight);
+          setTimeout(() => { isScrolling2 = false; }, 50);
+        }
+      });
+    }
+  </script>
+</body>
+</html>

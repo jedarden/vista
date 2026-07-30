@@ -1,0 +1,120 @@
+{
+  "testName": "Article Page Type",
+  "pageType": "article",
+  "expectedOrder": [
+    "twitter",
+    "facebook",
+    "linkedin",
+    "reddit",
+    "bluesky",
+    "threads",
+    "mastodon"
+  ],
+  "actualOrder": [
+    "twitter",
+    "facebook",
+    "linkedin",
+    "reddit",
+    "bluesky",
+    "threads",
+    "mastodon",
+    "google",
+    "tumblr",
+    "pinterest"
+  ],
+  "comparison": {
+    "passed": true,
+    "matches": [
+      {
+        "platform": "twitter",
+        "position": 0,
+        "status": "exact_match"
+      },
+      {
+        "platform": "facebook",
+        "position": 1,
+        "status": "exact_match"
+      },
+      {
+        "platform": "linkedin",
+        "position": 2,
+        "status": "exact_match"
+      },
+      {
+        "platform": "reddit",
+        "position": 3,
+        "status": "exact_match"
+      },
+      {
+        "platform": "bluesky",
+        "position": 4,
+        "status": "exact_match"
+      },
+      {
+        "platform": "threads",
+        "position": 5,
+        "status": "exact_match"
+      },
+      {
+        "platform": "mastodon",
+        "position": 6,
+        "status": "exact_match"
+      }
+    ],
+    "mismatches": [],
+    "missing": [],
+    "extra": [
+      {
+        "platform": "google",
+        "position": 7
+      },
+      {
+        "platform": "tumblr",
+        "position": 8
+      },
+      {
+        "platform": "pinterest",
+        "position": 9
+      }
+    ],
+    "details": {
+      "twitter": {
+        "status": "MATCH",
+        "expectedPosition": 0,
+        "actualPosition": 0
+      },
+      "facebook": {
+        "status": "MATCH",
+        "expectedPosition": 1,
+        "actualPosition": 1
+      },
+      "linkedin": {
+        "status": "MATCH",
+        "expectedPosition": 2,
+        "actualPosition": 2
+      },
+      "reddit": {
+        "status": "MATCH",
+        "expectedPosition": 3,
+        "actualPosition": 3
+      },
+      "bluesky": {
+        "status": "MATCH",
+        "expectedPosition": 4,
+        "actualPosition": 4
+      },
+      "threads": {
+        "status": "MATCH",
+        "expectedPosition": 5,
+        "actualPosition": 5
+      },
+      "mastodon": {
+        "status": "MATCH",
+        "expectedPosition": 6,
+        "actualPosition": 6
+      }
+    }
+  },
+  "passed": true,
+  "timestamp": "2026-07-23T20:47:00.239Z"
+}

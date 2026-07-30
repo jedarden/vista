@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stack Overflow - Light Mode Frame</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #ffffff;
+      color: #232629;
+    }
+
+    .stackoverflow-context {
+      display: flex;
+      flex-direction: column;
+      min-height: 450px;
+      background: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .so-question-header {
+      display: flex;
+      gap: 20px;
+      padding: 20px 24px;
+      background: #ffffff;
+      border-bottom: 1px solid #d6d6d6;
+    }
+
+    .so-votes {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      min-width: 60px;
+    }
+
+    .so-upvote, .so-downvote {
+      font-size: 24px;
+      color: #6a737c;
+      cursor: pointer;
+    }
+
+    .so-vote-count {
+      font-size: 20px;
+      font-weight: 700;
+      color: #232629;
+    }
+
+    .so-question-main {
+      flex: 1;
+    }
+
+    .so-question-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #232629;
+      margin-bottom: 12px;
+    }
+
+    .so-question-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .so-tags {
+      display: flex;
+      gap: 8px;
+    }
+
+    .so-tag {
+      padding: 4px 12px;
+      background: #e1ecf4;
+      color: #39739d;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    .so-author {
+      font-size: 13px;
+      color: #6a737c;
+    }
+
+    .so-answers-list {
+      flex: 1;
+      padding: 20px 24px;
+      overflow-y: auto;
+    }
+
+    .so-answer {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .so-answer-dim {
+      opacity: 0.6;
+    }
+
+    .so-answer-votes {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      min-width: 60px;
+    }
+
+    .so-check {
+      font-size: 24px;
+      color: #39739d;
+    }
+
+    .so-answer-content {
+      flex: 1;
+    }
+
+    .so-answer-body {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #232629;
+      background: #f8f9fa;
+      border: 1px solid #d6d6d6;
+      border-radius: 6px;
+      padding: 12px 16px;
+    }
+
+    .so-answer-meta {
+      font-size: 12px;
+      color: #6a737c;
+      margin-top: 8px;
+    }
+
+    .so-answer-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 8px;
+    }
+
+    .so-accept-btn {
+      font-size: 12px;
+      color: #39739d;
+      background: #e1ecf4;
+      border: 1px solid #39739d;
+      border-radius: 4px;
+      padding: 4px 12px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="stackoverflow-context">
+    <div class="so-question-header">
+      <div class="so-votes">
+        <span class="so-upvote">▲</span>
+        <span class="so-vote-count">42</span>
+        <span class="so-downvote">▼</span>
+      </div>
+      <div class="so-question-main">
+        <div class="so-question-title">How to efficiently merge two sorted arrays in JavaScript?</div>
+        <div class="so-question-meta">
+          <div class="so-tags">
+            <span class="so-tag">javascript</span>
+            <span class="so-tag">arrays</span>
+            <span class="so-tag">algorithm</span>
+          </div>
+          <span class="so-author">asked by devcoder2024 2 hours ago</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="so-answers-list">
+      <div class="so-answer so-answer-dim">
+        <div class="so-answer-votes">
+          <span class="so-upvote">▲</span>
+          <span class="so-vote-count">5</span>
+          <span class="so-downvote">▼</span>
+          <span class="so-check">✓</span>
+        </div>
+        <div class="so-answer-content">
+          <div class="so-answer-body">Here's an efficient O(n+m) solution using two pointers:</div>
+          <div class="so-answer-meta">answered by algo_master 1 hour ago</div>
+        </div>
+      </div>
+
+      <div class="so-answer so-answer-dim">
+        <div class="so-answer-votes">
+          <span class="so-upvote">▲</span>
+          <span class="so-vote-count">3</span>
+          <span class="so-downvote">▼</span>
+        </div>
+        <div class="so-answer-content">
+          <div class="so-answer-body">You could also use the built-in sort method, but it's less efficient:</div>
+          <div class="so-answer-meta">answered by helpful_dev 45 min ago</div>
+        </div>
+      </div>
+
+      <div class="so-answer">
+        <div class="so-answer-votes">
+          <span class="so-upvote">▲</span>
+          <span class="so-vote-count">0</span>
+          <span class="so-downvote">▼</span>
+        </div>
+        <div class="so-answer-content">
+          <div class="so-answer-body">Here's another approach using ES6 spread syntax and concat method:</div>
+          <div class="so-answer-meta">answered by You just now</div>
+          <div class="so-answer-actions">
+            <span class="so-accept-btn">Accept</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

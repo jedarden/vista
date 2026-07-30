@@ -1,0 +1,1237 @@
+/*
+ * Enhanced Platform Frames Theme System
+ *
+ * Comprehensive CSS variable system and responsive styling for platform context frames
+ *
+ * Features:
+ * - Complete CSS variable system for dark/light theme switching
+ * - Responsive design with mobile-first approach
+ * - Platform-specific theming hooks
+ * - Accessibility-focused styling
+ * - Performance-optimized animations
+ */
+
+/* ============================================================================
+   CSS VARIABLE SYSTEM FOR THEME SWITCHING
+   ============================================================================ */
+
+/**
+ * Root theme variables - Dark mode (default)
+ *
+ * These variables are defined at the root level and used throughout
+ * all platform context frames for consistent theming.
+ */
+:root {
+  /* Base colors - Dark mode */
+  --frame-bg-dark: var(--color-bg-dark-primary);
+  --frame-surface-dark: var(--color-bg-dark-elevated);
+  --frame-border-dark: var(--color-border-dark-default);
+  --frame-text-primary-dark: var(--color-text-dark-primary);
+  --frame-text-secondary-dark: var(--color-text-dark-secondary);
+  --frame-text-muted-dark: var(--color-text-dark-muted);
+  --frame-accent-dark: var(--color-accent-indigo-500);
+  --frame-accent-bg-dark: var(--color-accent-indigo-600);
+  --frame-link-color-dark: var(--color-link-indigo-400);
+  --frame-divider-dark: var(--color-border-dark-default);
+  --frame-input-bg-dark: var(--color-bg-dark-input);
+  --frame-overlay-dark: var(--color-overlay-dark);
+  --frame-shadow-dark: var(--shadow-dark-lg);
+
+  /* Spacing system */
+  --frame-spacing-xs: 4px;
+  --frame-spacing-sm: 8px;
+  --frame-spacing-md: 12px;
+  --frame-spacing-lg: 16px;
+  --frame-spacing-xl: 24px;
+
+  /* Border radius */
+  --frame-radius-sm: 6px;
+  --frame-radius-md: 10px;
+  --frame-radius-lg: 14px;
+  --frame-radius-full: 9999px;
+
+  /* Typography */
+  --frame-font-xs: 11px;
+  --frame-font-sm: 12px;
+  --frame-font-base: 14px;
+  --frame-font-lg: 16px;
+  --frame-font-xl: 18px;
+
+  /* Transitions */
+  --frame-transition-fast: 150ms ease;
+  --frame-transition-base: 200ms ease;
+  --frame-transition-slow: 300ms ease;
+
+  /* Z-index layers */
+  --frame-z-base: 1;
+  --frame-z-overlay: 10;
+  --frame-z-dropdown: 100;
+  --frame-z-modal: 1000;
+}
+
+/**
+ * Light mode theme variables
+ *
+ * When [data-theme="light"] is set on the document, these variables
+ * override the dark mode defaults.
+ */
+[data-theme='light'] {
+  /* Base colors - Light mode */
+  --frame-bg-light: var(--color-bg-light-primary);
+  --frame-surface-light: var(--color-bg-light-elevated);
+  --frame-border-light: var(--color-border-light-default);
+  --frame-text-primary-light: var(--color-text-light-primary);
+  --frame-text-secondary-light: var(--color-text-light-secondary);
+  --frame-text-muted-light: var(--color-text-light-muted);
+  --frame-accent-light: var(--color-accent-indigo-600);
+  --frame-accent-bg-light: var(--color-accent-indigo-100);
+  --frame-link-color-light: var(--color-link-indigo-600);
+  --frame-divider-light: var(--color-border-light-default);
+  --frame-input-bg-light: var(--color-bg-light-input);
+  --frame-overlay-light: var(--color-overlay-light);
+  --frame-shadow-light: var(--shadow-light-lg);
+}
+
+/**
+ * Platform-specific theme variable mappings
+ *
+ * Each platform context frame uses these mappings for their specific
+ * theme variables. The CSS variables are applied to .{platform}-context elements.
+ */
+
+/* Social media platforms - Facebook, LinkedIn, Instagram */
+.facebook-context, .linkedin-context, .instagram-context {
+  --frame-bg: var(--frame-bg-dark, var(--color-facebook-dark-surface));
+  --frame-surface: var(--frame-surface-dark, var(--color-facebook-hover-bg));
+  --frame-border: var(--frame-border-dark, var(--color-facebook-dark-border));
+  --frame-text-primary: var(--frame-text-primary-dark, var(--color-facebook-dark-text-primary));
+  --frame-text-secondary: var(--frame-text-secondary-dark, var(--color-facebook-dark-text-secondary));
+  --frame-text-muted: var(--frame-text-muted-dark, var(--color-facebook-dark-text-muted));
+  --frame-accent: var(--frame-accent-dark, var(--color-facebook-gradient-blue));
+  --frame-accent-bg: var(--frame-accent-bg-dark, var(--color-facebook-gradient-blue));
+  --frame-link-color: var(--frame-link-color-dark, var(--color-facebook-gradient-blue));
+  --frame-divider: var(--frame-divider-dark, var(--color-facebook-dark-border));
+  --frame-input-bg: var(--frame-input-bg-dark, var(--color-facebook-hover-bg));
+  --frame-overlay: var(--frame-overlay-dark, var(--color-overlay-dark));
+}
+
+.facebook-context.light-theme, .linkedin-context.light-theme, .instagram-context.light-theme {
+  --frame-bg: var(--frame-bg-light, var(--color-facebook-light-bg));
+  --frame-surface: var(--frame-surface-light, var(--color-facebook-light-surface));
+  --frame-border: var(--frame-border-light, var(--color-facebook-light-border));
+  --frame-text-primary: var(--frame-text-primary-light, var(--color-facebook-light-text-primary));
+  --frame-text-secondary: var(--frame-text-secondary-light, var(--color-facebook-light-text-secondary));
+  --frame-text-muted: var(--frame-text-muted-light, var(--color-facebook-light-text-muted));
+  --frame-accent: var(--frame-accent-light, var(--color-facebook-accent));
+  --frame-accent-bg: var(--frame-accent-bg-light, var(--color-facebook-accent));
+  --frame-link-color: var(--frame-link-color-light, var(--color-facebook-accent));
+  --frame-divider: var(--frame-divider-light, var(--color-facebook-light-border));
+  --frame-input-bg: var(--frame-input-bg-light, var(--color-facebook-light-bg));
+  --frame-overlay: var(--frame-overlay-light, var(--color-overlay-light));
+}
+
+/* Twitter/X-specific platform variables - mapped from frames-theme.css */
+.twitter-context {
+  --frame-bg: var(--twitter-bg, var(--frame-bg-dark, var(--color-twitter-black)));
+  --frame-surface: var(--twitter-surface, var(--frame-surface-dark, var(--color-twitter-dark-surface)));
+  --frame-border: var(--twitter-border, var(--frame-border-dark, var(--color-twitter-dark-border)));
+  --frame-text-primary: var(--twitter-text-primary, var(--frame-text-primary-dark, var(--color-twitter-dark-text-primary)));
+  --frame-text-secondary: var(--twitter-text-secondary, var(--frame-text-secondary-dark, var(--color-twitter-dark-text-secondary)));
+  --frame-text-muted: var(--twitter-text-muted, var(--frame-text-muted-dark, var(--color-twitter-dark-text-secondary)));
+  --frame-accent: var(--twitter-accent, var(--frame-accent-dark, var(--color-twitter-blue)));
+  --frame-accent-bg: var(--twitter-accent-bg, var(--frame-accent-bg-dark, var(--color-twitter-blue-dark)));
+  --frame-link-color: var(--twitter-link-color, var(--frame-link-color-dark, var(--color-twitter-blue)));
+  --frame-divider: var(--twitter-divider, var(--frame-divider-dark, var(--color-twitter-dark-border)));
+  --frame-input-bg: var(--twitter-input-bg, var(--frame-input-bg-dark, var(--color-twitter-dark-surface)));
+  --frame-overlay: var(--twitter-overlay, var(--frame-overlay-dark, var(--color-overlay-dark-heavy)));
+}
+
+.twitter-context.light-theme {
+  --frame-bg: var(--twitter-bg, var(--frame-bg-light, var(--color-bg-light-primary)));
+  --frame-surface: var(--twitter-surface, var(--frame-surface-light, var(--color-twitter-light-surface)));
+  --frame-border: var(--twitter-border, var(--frame-border-light, var(--color-twitter-light-border)));
+  --frame-text-primary: var(--twitter-text-primary, var(--frame-text-primary-light, var(--color-twitter-light-text-primary)));
+  --frame-text-secondary: var(--twitter-text-secondary, var(--frame-text-secondary-light, var(--color-twitter-light-text-secondary)));
+  --frame-text-muted: var(--twitter-text-muted, var(--frame-text-muted-light, var(--color-twitter-light-text-secondary)));
+  --frame-accent: var(--twitter-accent, var(--frame-accent-light, var(--color-twitter-blue)));
+  --frame-accent-bg: var(--twitter-accent-bg, var(--frame-accent-bg-light, var(--color-twitter-blue-dark)));
+  --frame-link-color: var(--twitter-link-color, var(--frame-link-color-light, var(--color-twitter-blue)));
+  --frame-divider: var(--twitter-divider, var(--frame-divider-light, var(--color-twitter-light-border)));
+  --frame-input-bg: var(--twitter-input-bg, var(--frame-input-bg-light, var(--color-bg-light-primary)));
+  --frame-overlay: var(--twitter-overlay, var(--frame-overlay-light, var(--color-overlay-light)));
+}
+
+/* Messaging platforms - Slack, Discord, iMessage, WhatsApp */
+.slack-context, .discord-context, .imessage-context, .whatsapp-context {
+  --frame-bg: var(--frame-bg-dark, var(--color-bg-dark-primary));
+  --frame-surface: var(--frame-surface-dark, var(--color-bg-dark-elevated));
+  --frame-border: var(--frame-border-dark, var(--color-border-dark-default));
+  --frame-text-primary: var(--frame-text-primary-dark, var(--color-text-dark-primary));
+  --frame-text-secondary: var(--frame-text-secondary-dark, var(--color-text-dark-secondary));
+  --frame-text-muted: var(--frame-text-muted-dark, var(--color-text-dark-muted));
+  --frame-accent: var(--frame-accent-dark, var(--color-slack-accent));
+  --frame-accent-bg: var(--frame-accent-bg-dark, var(--color-slack-accent));
+  --frame-link-color: var(--frame-link-color-dark, var(--color-slack-link));
+  --frame-divider: var(--frame-divider-dark, var(--color-border-dark-default));
+  --frame-input-bg: var(--frame-input-bg-dark, var(--color-bg-dark-elevated));
+  --frame-overlay: var(--frame-overlay-dark, var(--color-overlay-dark));
+}
+
+.slack-context.light-theme, .discord-context.light-theme,
+.imessage-context.light-theme, .whatsapp-context.light-theme {
+  --frame-bg: var(--frame-bg-light, var(--color-bg-light-primary));
+  --frame-surface: var(--frame-surface-light, var(--color-bg-light-elevated));
+  --frame-border: var(--frame-border-light, var(--color-border-light-default));
+  --frame-text-primary: var(--frame-text-primary-light, var(--color-text-light-primary));
+  --frame-text-secondary: var(--frame-text-secondary-light, var(--color-text-light-secondary));
+  --frame-text-muted: var(--frame-text-muted-light, var(--color-text-light-muted));
+  --frame-accent: var(--frame-accent-light, var(--color-slack-accent));
+  --frame-accent-bg: var(--frame-accent-bg-light, var(--color-accent-indigo-100));
+  --frame-link-color: var(--frame-link-color-light, var(--color-slack-link));
+  --frame-divider: var(--frame-divider-light, var(--color-border-light-default));
+  --frame-input-bg: var(--frame-input-bg-light, var(--color-bg-light-input));
+  --frame-overlay: var(--frame-overlay-light, var(--color-overlay-light));
+}
+
+/* Developer platforms - GitHub, GitLab, Stack Overflow */
+.github-context, .gitlab-context, .stackoverflow-context {
+  --frame-bg: var(--frame-bg-dark, var(--color-bg-dark-primary));
+  --frame-surface: var(--frame-surface-dark, var(--color-bg-dark-elevated));
+  --frame-border: var(--frame-border-dark, var(--color-border-dark-default));
+  --frame-text-primary: var(--frame-text-primary-dark, var(--color-text-dark-primary));
+  --frame-text-secondary: var(--frame-text-secondary-dark, var(--color-text-dark-secondary));
+  --frame-text-muted: var(--frame-text-muted-dark, var(--color-text-dark-muted));
+  --frame-accent: var(--frame-accent-dark, var(--color-github-accent));
+  --frame-accent-bg: var(--frame-accent-bg-dark, var(--color-accent-indigo-600));
+  --frame-link-color: var(--frame-link-color-dark, var(--color-github-link));
+  --frame-divider: var(--frame-divider-dark, var(--color-border-dark-default));
+  --frame-input-bg: var(--frame-input-bg-dark, var(--color-bg-dark-primary));
+  --frame-overlay: var(--frame-overlay-dark, var(--color-overlay-dark));
+}
+
+.github-context.light-theme, .gitlab-context.light-theme, .stackoverflow-context.light-theme {
+  --frame-bg: var(--frame-bg-light, var(--color-bg-light-primary));
+  --frame-surface: var(--frame-surface-light, var(--color-bg-light-elevated));
+  --frame-border: var(--frame-border-light, var(--color-border-light-default));
+  --frame-text-primary: var(--frame-text-primary-light, var(--color-text-light-primary));
+  --frame-text-secondary: var(--frame-text-secondary-light, var(--color-text-light-secondary));
+  --frame-text-muted: var(--frame-text-muted-light, var(--color-text-light-muted));
+  --frame-accent: var(--frame-accent-light, var(--color-accent-indigo-600));
+  --frame-accent-bg: var(--frame-accent-bg-light, var(--color-accent-indigo-100));
+  --frame-link-color: var(--frame-link-color-light, var(--color-link-indigo-600));
+  --frame-divider: var(--frame-divider-light, var(--color-border-light-default));
+  --frame-input-bg: var(--frame-input-bg-light, var(--color-bg-light-input));
+  --frame-overlay: var(--frame-overlay-light, var(--color-overlay-light));
+}
+
+/* Email clients - Gmail, Outlook */
+.gmail-context, .outlook-context {
+  --frame-bg: var(--frame-bg-dark, var(--color-bg-dark-primary));
+  --frame-surface: var(--frame-surface-dark, var(--color-bg-dark-elevated));
+  --frame-border: var(--frame-border-dark, var(--color-border-dark-default));
+  --frame-text-primary: var(--frame-text-primary-dark, var(--color-text-dark-primary));
+  --frame-text-secondary: var(--frame-text-secondary-dark, var(--color-text-dark-secondary));
+  --frame-text-muted: var(--frame-text-muted-dark, var(--color-text-dark-muted));
+  --frame-accent: var(--frame-accent-dark, var(--color-accent-indigo-400));
+  --frame-accent-bg: var(--frame-accent-bg-dark, var(--color-accent-indigo-400));
+  --frame-link-color: var(--frame-link-color-dark, var(--color-link-indigo-400));
+  --frame-divider: var(--frame-divider-dark, var(--color-border-dark-default));
+  --frame-input-bg: var(--frame-input-bg-dark, var(--color-bg-dark-elevated));
+  --frame-overlay: var(--frame-overlay-dark, var(--color-overlay-dark));
+}
+
+.gmail-context.light-theme, .outlook-context.light-theme {
+  --frame-bg: var(--frame-bg-light, var(--color-bg-light-primary));
+  --frame-surface: var(--frame-surface-light, var(--color-bg-light-elevated));
+  --frame-border: var(--frame-border-light, var(--color-border-light-default));
+  --frame-text-primary: var(--frame-text-primary-light, var(--color-text-light-primary));
+  --frame-text-secondary: var(--frame-text-secondary-light, var(--color-text-light-secondary));
+  --frame-text-muted: var(--frame-text-muted-light, var(--color-text-light-muted));
+  --frame-accent: var(--frame-accent-light, var(--color-accent-indigo-600));
+  --frame-accent-bg: var(--frame-accent-bg-light, var(--color-accent-indigo-100));
+  --frame-link-color: var(--frame-link-color-light, var(--color-link-indigo-600));
+  --frame-divider: var(--frame-divider-light, var(--color-border-light-default));
+  --frame-input-bg: var(--frame-input-bg-light, var(--color-bg-light-input));
+  --frame-overlay: var(--frame-overlay-light, var(--color-overlay-light));
+}
+
+/* Video platforms - YouTube, Twitch */
+.yt-context, .twitch-context {
+  --frame-bg: var(--frame-bg-dark, var(--color-youtube-dark-bg));
+  --frame-surface: var(--frame-surface-dark, var(--color-youtube-dark-surface));
+  --frame-border: var(--frame-border-dark, var(--color-youtube-dark-border));
+  --frame-text-primary: var(--frame-text-primary-dark, var(--color-white));
+  --frame-text-secondary: var(--frame-text-secondary-dark, var(--color-youtube-dark-text-secondary));
+  --frame-text-muted: var(--frame-text-muted-dark, var(--color-text-dark-secondary));
+  --frame-accent: var(--frame-accent-dark, var(--color-youtube-red));
+  --frame-accent-bg: var(--frame-accent-bg-dark, var(--color-youtube-red));
+  --frame-link-color: var(--frame-link-color-dark, var(--color-youtube-link));
+  --frame-divider: var(--frame-divider-dark, var(--color-youtube-dark-border));
+  --frame-input-bg: var(--frame-input-bg-dark, var(--color-youtube-dark-surface));
+  --frame-overlay: var(--frame-overlay-dark, var(--color-overlay-dark-heavy));
+}
+
+.yt-context.light-theme, .twitch-context.light-theme {
+  --frame-bg: var(--frame-bg-light, var(--color-bg-light-primary));
+  --frame-surface: var(--frame-surface-light, var(--color-youtube-light-surface));
+  --frame-border: var(--frame-border-light, var(--color-youtube-light-border));
+  --frame-text-primary: var(--frame-text-primary-light, var(--color-youtube-light-text-primary));
+  --frame-text-secondary: var(--frame-text-secondary-light, var(--color-youtube-light-text-secondary));
+  --frame-text-muted: var(--frame-text-muted-light, var(--color-text-light-muted));
+  --frame-accent: var(--frame-accent-light, var(--color-youtube-red));
+  --frame-accent-bg: var(--frame-accent-bg-light, var(--color-youtube-red));
+  --frame-link-color: var(--frame-link-color-light, var(--color-youtube-link-blue));
+  --frame-divider: var(--frame-divider-light, var(--color-youtube-light-border));
+  --frame-input-bg: var(--frame-input-bg-light, var(--color-bg-light-primary));
+  --frame-overlay: var(--frame-overlay-light, var(--color-overlay-light));
+}
+
+/* RSS/Feed platforms - Feedly */
+.fl-context {
+  --frame-bg: var(--frame-bg-dark, var(--color-bg-dark-primary));
+  --frame-surface: var(--frame-surface-dark, var(--color-bg-dark-elevated));
+  --frame-border: var(--frame-border-dark, var(--color-border-dark-default));
+  --frame-text-primary: var(--frame-text-primary-dark, var(--color-text-dark-primary));
+  --frame-text-secondary: var(--frame-text-secondary-dark, var(--color-text-dark-secondary));
+  --frame-text-muted: var(--frame-text-muted-dark, var(--color-text-dark-muted));
+  --frame-accent: var(--frame-accent-dark, var(--color-accent-indigo-500));
+  --frame-accent-bg: var(--frame-accent-bg-dark, var(--color-accent-indigo-600));
+  --frame-link-color: var(--frame-link-color-dark, var(--color-link-indigo-400));
+  --frame-divider: var(--frame-divider-dark, var(--color-border-dark-default));
+  --frame-input-bg: var(--frame-input-bg-dark, var(--color-bg-dark-elevated));
+  --frame-overlay: var(--frame-overlay-dark, var(--color-overlay-dark));
+}
+
+.fl-context.light-theme {
+  --frame-bg: var(--frame-bg-light, var(--color-bg-light-primary));
+  --frame-surface: var(--frame-surface-light, var(--color-bg-light-elevated));
+  --frame-border: var(--frame-border-light, var(--color-border-light-default));
+  --frame-text-primary: var(--frame-text-primary-light, var(--color-text-light-primary));
+  --frame-text-secondary: var(--frame-text-secondary-light, var(--color-text-light-secondary));
+  --frame-text-muted: var(--frame-text-muted-light, var(--color-text-light-muted));
+  --frame-accent: var(--frame-accent-light, var(--color-accent-indigo-600));
+  --frame-accent-bg: var(--frame-accent-bg-light, var(--color-accent-indigo-100));
+  --frame-link-color: var(--frame-link-color-light, var(--color-link-indigo-600));
+  --frame-divider: var(--frame-divider-light, var(--color-border-light-default));
+  --frame-input-bg: var(--frame-input-bg-light, var(--color-bg-light-input));
+  --frame-overlay: var(--frame-overlay-light, var(--color-overlay-light));
+}
+
+/* Discussion platforms - Hacker News */
+.hn-context {
+  --frame-bg: var(--frame-bg-dark, var(--color-bg-dark-primary));
+  --frame-surface: var(--frame-surface-dark, var(--color-bg-dark-elevated));
+  --frame-border: var(--frame-border-dark, var(--color-border-dark-default));
+  --frame-text-primary: var(--frame-text-primary-dark, var(--color-text-dark-primary));
+  --frame-text-secondary: var(--frame-text-secondary-dark, var(--color-text-dark-secondary));
+  --frame-text-muted: var(--frame-text-muted-dark, var(--color-text-dark-muted));
+  --frame-accent: var(--frame-accent-dark, var(--color-stackoverflow-accent));
+  --frame-accent-bg: var(--frame-accent-bg-dark, var(--color-stackoverflow-accent));
+  --frame-link-color: var(--frame-link-color-dark, var(--color-stackoverflow-accent));
+  --frame-divider: var(--frame-divider-dark, var(--color-border-dark-default));
+  --frame-input-bg: var(--frame-input-bg-dark, var(--color-bg-dark-elevated));
+  --frame-overlay: var(--frame-overlay-dark, var(--color-overlay-dark));
+}
+
+.hn-context.light-theme {
+  --frame-bg: var(--frame-bg-light, var(--color-bg-light-primary));
+  --frame-surface: var(--frame-surface-light, var(--color-bg-light-elevated));
+  --frame-border: var(--frame-border-light, var(--color-border-light-default));
+  --frame-text-primary: var(--frame-text-primary-light, var(--color-text-light-primary));
+  --frame-text-secondary: var(--frame-text-secondary-light, var(--color-text-light-secondary));
+  --frame-text-muted: var(--frame-text-muted-light, var(--color-text-light-muted));
+  --frame-accent: var(--frame-accent-light, var(--color-stackoverflow-accent));
+  --frame-accent-bg: var(--frame-accent-bg-light, var(--color-accent-indigo-100));
+  --frame-link-color: var(--frame-link-color-light, var(--color-stackoverflow-accent));
+  --frame-divider: var(--frame-divider-light, var(--color-border-light-default));
+  --frame-input-bg: var(--frame-input-bg-light, var(--color-bg-light-input));
+  --frame-overlay: var(--frame-overlay-light, var(--color-overlay-light));
+}
+
+/* Social platforms - Twitter/X */
+.tw-context {
+  --frame-bg: var(--frame-bg-dark, var(--color-twitter-black));
+  --frame-surface: var(--frame-surface-dark, var(--color-twitter-dark-surface));
+  --frame-border: var(--frame-border-dark, var(--color-twitter-dark-border));
+  --frame-text-primary: var(--frame-text-primary-dark, var(--color-twitter-dark-text-primary));
+  --frame-text-secondary: var(--frame-text-secondary-dark, var(--color-twitter-dark-text-secondary));
+  --frame-text-muted: var(--frame-text-muted-dark, var(--color-twitter-dark-text-secondary));
+  --frame-accent: var(--frame-accent-dark, var(--color-twitter-blue));
+  --frame-accent-bg: var(--frame-accent-bg-dark, var(--color-twitter-blue));
+  --frame-link-color: var(--frame-link-color-dark, var(--color-twitter-blue));
+  --frame-divider: var(--frame-divider-dark, var(--color-twitter-dark-border));
+  --frame-input-bg: var(--frame-input-bg-dark, var(--color-twitter-dark-surface));
+  --frame-overlay: var(--frame-overlay-dark, var(--color-overlay-dark-heavy));
+}
+
+.tw-context.light-theme {
+  --frame-bg: var(--frame-bg-light, var(--color-bg-light-primary));
+  --frame-surface: var(--frame-surface-light, var(--color-twitter-light-surface));
+  --frame-border: var(--frame-border-light, var(--color-twitter-light-border));
+  --frame-text-primary: var(--frame-text-primary-light, var(--color-twitter-light-text-primary));
+  --frame-text-secondary: var(--frame-text-secondary-light, var(--color-twitter-light-text-secondary));
+  --frame-text-muted: var(--frame-text-muted-light, var(--color-twitter-light-text-secondary));
+  --frame-accent: var(--frame-accent-light, var(--color-twitter-blue));
+  --frame-accent-bg: var(--frame-accent-bg-light, var(--color-accent-indigo-100));
+  --frame-link-color: var(--frame-link-color-light, var(--color-twitter-blue));
+  --frame-divider: var(--frame-divider-light, var(--color-twitter-light-border));
+  --frame-input-bg: var(--frame-input-bg-light, var(--color-twitter-light-border));
+  --frame-overlay: var(--frame-overlay-light, var(--color-overlay-light));
+}
+
+/* ============================================================================
+   RESPONSIVE FRAME STYLES
+   ============================================================================ */
+
+/**
+ * Mobile-first responsive design
+ * Frames adapt their layout and sizing based on available viewport
+ */
+
+/* Base responsive container */
+.context-frame {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  border-radius: var(--frame-radius-lg);
+  overflow: hidden;
+  transition: all var(--frame-transition-base);
+}
+
+/* Mobile devices (< 480px) */
+@media (max-width: 479px) {
+  .context-frame {
+    font-size: var(--frame-font-sm);
+    border-radius: var(--frame-radius-md);
+  }
+
+  .context-frame .frame-avatar,
+  .context-frame .context-frame-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .context-frame .frame-avatar-sm,
+  .context-frame .context-frame-avatar-sm {
+    width: 24px;
+    height: 24px;
+  }
+
+  /* Compact spacing for mobile */
+  .context-frame .context-frame-header,
+  .context-frame .context-frame-footer {
+    padding: var(--frame-spacing-sm) var(--frame-spacing-md);
+  }
+
+  /* Stack elements vertically */
+  .context-frame .context-frame-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--frame-spacing-xs);
+  }
+}
+
+/* Tablet devices (480px - 768px) */
+@media (min-width: 480px) and (max-width: 767px) {
+  .context-frame {
+    max-width: 500px;
+  }
+
+  .context-frame .frame-avatar,
+  .context-frame .context-frame-avatar {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* Desktop devices (768px+) */
+@media (min-width: 768px) {
+  .context-frame {
+    max-width: 600px;
+  }
+
+  .context-frame .frame-avatar,
+  .context-frame .context-frame-avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  /* Show additional elements on desktop */
+  .context-frame .desktop-only {
+    display: flex !important;
+  }
+
+  /* Enhanced hover states */
+  .context-frame .frame-link:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-hover-sm);
+  }
+}
+
+/* ============================================================================
+   ACCESSIBILITY ENHANCEMENTS
+   ============================================================================ */
+
+/* Focus visible for keyboard navigation */
+.context-frame a:focus-visible,
+.context-frame button:focus-visible,
+.context-frame [role="button"]:focus-visible {
+  outline: 2px solid var(--frame-accent);
+  outline-offset: 2px;
+  border-radius: var(--frame-radius-sm);
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .context-frame,
+  .context-frame *,
+  .context-frame *::before,
+  .context-frame *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .context-frame {
+    border-width: 2px;
+  }
+
+  .context-frame .frame-link {
+    text-decoration: underline;
+  }
+
+  .context-frame .context-frame-avatar,
+  .context-frame .context-frame-icon {
+    border: 1px solid currentColor;
+  }
+}
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ============================================================================
+   PERFORMANCE OPTIMIZATIONS
+   ============================================================================ */
+
+/* GPU acceleration for transforms */
+.context-frame .context-frame-image,
+.context-frame .context-frame-thumbnail {
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+/* Contain paint for complex elements */
+.context-frame .context-frame-content {
+  contain: layout style paint;
+}
+
+/* Optimize image loading */
+.img-loading-container {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(
+    90deg,
+    var(--frame-surface) 25%,
+    var(--frame-border) 50%,
+    var(--frame-surface) 75%
+  );
+  background-size: 200% 100%;
+  animation: loading-shimmer 1.5s infinite;
+}
+
+.img-loading-container img {
+  opacity: 0;
+  transition: opacity var(--frame-transition-base);
+}
+
+.img-loading-container img.loaded {
+  opacity: 1;
+}
+
+@keyframes loading-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ============================================================================
+   ANIMATIONS AND TRANSITIONS
+   ============================================================================ */
+
+/* Fade in animation */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.context-frame-animate-in {
+  animation: fade-in var(--frame-transition-base);
+}
+
+/* Pulse animation for loading states */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.context-frame-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Scale animation for interactions */
+@keyframes scale-in {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.context-frame-scale-in {
+  animation: scale-in var(--frame-transition-base);
+}
+
+/* ============================================================================
+   THEME TRANSITION SUPPORT
+   ============================================================================ */
+
+/**
+ * Smooth transitions when switching between dark and light themes
+ * These transitions apply to all theme-dependent properties
+ */
+
+.context-frame,
+.context-frame *,
+.context-frame *::before,
+.context-frame *::after {
+  transition-property:
+    background,
+    background-color,
+    border-color,
+    color,
+    fill,
+    stroke;
+  transition-duration: var(--frame-transition-base);
+  transition-timing-function: ease;
+}
+
+/* Exclude specific elements from theme transitions */
+.context-frame img,
+.context-frame video,
+.context-frame svg {
+  transition: none;
+}
+
+/* ============================================================================
+   UTILITY CLASSES
+   ============================================================================ */
+
+/* Layout utilities */
+.context-frame-flex {
+  display: flex;
+}
+
+.context-frame-flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.context-frame-items-center {
+  align-items: center;
+}
+
+.context-frame-justify-between {
+  justify-content: space-between;
+}
+
+/* Spacing utilities */
+.context-frame-gap-xs { gap: var(--frame-spacing-xs); }
+.context-frame-gap-sm { gap: var(--frame-spacing-sm); }
+.context-frame-gap-md { gap: var(--frame-spacing-md); }
+.context-frame-gap-lg { gap: var(--frame-spacing-lg); }
+
+/* Text utilities */
+.context-frame-text-center { text-align: center; }
+.context-frame-text-left { text-align: left; }
+.context-frame-text-right { text-align: right; }
+
+/* Display utilities */
+.context-frame-hidden { display: none; }
+.context-frame-block { display: block; }
+.context-frame-inline-block { display: inline-block; }
+
+/* ============================================================================
+   PRINT STYLES
+   ============================================================================ */
+
+@media print {
+  .context-frame {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid var(--color-border-print);
+  }
+
+  .context-frame .context-frame-image {
+    max-width: 100%;
+  }
+
+  .context-frame .desktop-only,
+  .context-frame .interactive-element {
+    display: none;
+  }
+}
+
+/* ============================================================================
+   STACK OVERFLOW CONTEXT FRAME STYLES
+   ============================================================================ */
+
+/**
+ * Stack Overflow theme variables
+ *
+ * Stack Overflow uses a distinctive orange color scheme (#f48024)
+ * with specific dark/light themes for Q&A content
+ */
+
+.stackoverflow-context {
+  --so-bg-dark: var(--color-bg-dark-primary);
+  --so-surface-dark: var(--color-bg-dark-elevated);
+  --so-border-dark: var(--color-border-dark-default);
+  --so-text-primary-dark: var(--color-text-dark-primary);
+  --so-text-secondary-dark: var(--color-text-dark-secondary);
+  --so-text-muted-dark: var(--color-text-dark-muted);
+  --so-accent-dark: var(--color-stackoverflow-accent);
+  --so-accent-bg-dark: var(--color-stackoverflow-accent);
+  --so-link-color-dark: var(--color-stackoverflow-link);
+  --so-code-bg-dark: var(--color-bg-dark-input);
+  --so-badge-gold: var(--color-stackoverflow-badge-gold);
+  --so-badge-silver: var(--color-stackoverflow-badge-silver);
+  --so-badge-bronze: var(--color-stackoverflow-badge-bronze);
+  --so-success-dark: var(--color-stackoverflow-success-dark);
+  --so-error-dark: var(--color-stackoverflow-error-dark);
+
+  --frame-bg: var(--so-bg-dark);
+  --frame-surface: var(--so-surface-dark);
+  --frame-border: var(--so-border-dark);
+  --frame-text-primary: var(--so-text-primary-dark);
+  --frame-text-secondary: var(--so-text-secondary-dark);
+  --frame-text-muted: var(--so-text-muted-dark);
+  --frame-accent: var(--so-accent-dark);
+  --frame-accent-bg: var(--so-accent-bg-dark);
+  --frame-link-color: var(--so-link-color-dark);
+}
+
+.stackoverflow-context.light-theme {
+  --so-bg-light: var(--color-bg-light-primary);
+  --so-surface-light: var(--color-bg-light-elevated);
+  --so-border-light: var(--color-border-light-default);
+  --so-text-primary-light: var(--color-text-light-primary);
+  --so-text-secondary-light: var(--color-text-light-secondary);
+  --so-text-muted-light: var(--color-text-light-muted);
+  --so-accent-light: var(--color-stackoverflow-accent);
+  --so-accent-bg-light: var(--color-accent-indigo-100);
+  --so-link-color-light: var(--color-stackoverflow-link);
+  --so-code-bg-light: var(--color-bg-light-elevated);
+  --so-success-light: var(--color-stackoverflow-success-light);
+  --so-error-light: var(--color-stackoverflow-error-light);
+
+  --frame-bg: var(--so-bg-light);
+  --frame-surface: var(--so-surface-light);
+  --frame-border: var(--so-border-light);
+  --frame-text-primary: var(--so-text-primary-light);
+  --frame-text-secondary: var(--so-text-secondary-light);
+  --frame-text-muted: var(--so-text-muted-light);
+  --frame-accent: var(--so-accent-light);
+  --frame-accent-bg: var(--so-accent-bg-light);
+  --frame-link-color: var(--so-link-color-light);
+}
+
+/**
+ * Stack Overflow frame base styles
+ */
+
+.stackoverflow-context {
+  border-radius: var(--frame-radius-md);
+  overflow: hidden;
+  background: var(--frame-bg);
+  border: 1px solid var(--frame-border);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--frame-text-primary);
+  transition: background var(--frame-transition-base),
+              border-color var(--frame-transition-base);
+}
+
+/**
+ * Question header styles
+ */
+
+.so-question-header {
+  display: flex;
+  gap: var(--frame-spacing-md);
+  padding: var(--frame-spacing-lg);
+  border-bottom: 1px solid var(--frame-border);
+}
+
+.so-votes {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--frame-spacing-xs);
+  min-width: 48px;
+  text-align: center;
+}
+
+.so-upvote,
+.so-downvote {
+  font-size: 20px;
+  color: var(--frame-text-muted);
+  cursor: pointer;
+  user-select: none;
+  transition: color var(--frame-transition-fast);
+}
+
+.so-upvote:hover,
+.so-downvote:hover {
+  color: var(--frame-accent);
+}
+
+.so-vote-count {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--frame-text-primary);
+}
+
+.so-question-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--frame-spacing-sm);
+}
+
+.so-question-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--frame-link-color);
+  line-height: 1.3;
+}
+
+.so-question-body {
+  color: var(--frame-text-primary);
+  line-height: 1.6;
+}
+
+.so-question-body p {
+  margin: 0 0 var(--frame-spacing-sm);
+}
+
+.so-question-body code {
+  background: var(--so-code-bg-dark, var(--so-code-bg-light));
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+  font-size: 12px;
+}
+
+.so-question-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--frame-spacing-md);
+  align-items: center;
+  margin-top: var(--frame-spacing-sm);
+}
+
+.so-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--frame-spacing-xs);
+}
+
+.so-tags span {
+  background: var(--frame-accent-bg);
+  color: var(--frame-accent);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.so-author {
+  font-size: 12px;
+  color: var(--frame-text-secondary);
+  margin-left: auto;
+}
+
+/**
+ * Code block styles with syntax highlighting
+ */
+
+.so-code-block {
+  background: var(--so-code-bg-dark, var(--so-code-bg-light));
+  border: 1px solid var(--frame-border);
+  border-radius: 6px;
+  padding: var(--frame-spacing-md);
+  margin: var(--frame-spacing-sm) 0;
+  font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-x: auto;
+  color: var(--frame-text-primary);
+}
+
+.so-code-block .comment {
+  color: var(--color-syntax-comment-dark);
+}
+
+.so-code-block .keyword {
+  color: var(--color-syntax-keyword-dark);
+}
+
+.so-code-block .function {
+  color: var(--color-syntax-function-dark);
+}
+
+.so-code-block .string {
+  color: var(--color-syntax-string-dark);
+}
+
+.so-code-block .number {
+  color: var(--color-syntax-number-dark);
+}
+
+.so-code-block .variable {
+  color: var(--color-syntax-variable-dark);
+}
+
+.light-theme .so-code-block .comment {
+  color: var(--color-syntax-comment-light);
+}
+
+.light-theme .so-code-block .keyword {
+  color: var(--color-syntax-keyword-light);
+}
+
+.light-theme .so-code-block .function {
+  color: var(--color-syntax-function-light);
+}
+
+.light-theme .so-code-block .string {
+  color: var(--color-syntax-string-light);
+}
+
+.light-theme .so-code-block .number {
+  color: var(--color-syntax-number-light);
+}
+
+/**
+ * Tabs navigation
+ */
+
+.so-tabs {
+  display: flex;
+  gap: var(--frame-spacing-sm);
+  padding: var(--frame-spacing-md) var(--frame-spacing-lg);
+  border-bottom: 1px solid var(--frame-border);
+  background: var(--frame-surface);
+}
+
+.so-tab {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--frame-text-secondary);
+  cursor: pointer;
+  transition: all var(--frame-transition-fast);
+  background: transparent;
+  border: none;
+}
+
+.so-tab:hover {
+  background: var(--frame-border);
+  color: var(--frame-text-primary);
+}
+
+.so-tab.active {
+  background: var(--frame-accent);
+  color: var(--color-white);
+}
+
+.so-tab-count {
+  opacity: 0.8;
+  font-size: 11px;
+  margin-left: 4px;
+}
+
+/**
+ * Answers list
+ */
+
+.so-answers-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.so-answer {
+  display: flex;
+  gap: var(--frame-spacing-md);
+  padding: var(--frame-spacing-lg);
+  border-bottom: 1px solid var(--frame-border);
+  transition: background var(--frame-transition-base);
+}
+
+.so-answer:last-child {
+  border-bottom: none;
+}
+
+.so-answer:hover {
+  background: var(--frame-surface);
+}
+
+.so-answer-dim {
+  opacity: 0.6;
+}
+
+.so-accepted-answer {
+  background: var(--frame-accent-bg);
+  border-left: 3px solid var(--frame-accent);
+}
+
+.so-answer-votes {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--frame-spacing-xs);
+  min-width: 48px;
+  text-align: center;
+}
+
+.so-check {
+  color: var(--so-success-dark, var(--so-success-light));
+  font-size: 24px;
+  font-weight: bold;
+  margin-top: var(--frame-spacing-xs);
+}
+
+.so-answer-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--frame-spacing-sm);
+}
+
+.so-answer-body {
+  color: var(--frame-text-primary);
+  line-height: 1.6;
+}
+
+.so-answer-body code {
+  background: var(--so-code-bg-dark, var(--so-code-bg-light));
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+  font-size: 12px;
+}
+
+.so-answer-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--frame-spacing-md);
+  margin-top: var(--frame-spacing-sm);
+  font-size: 12px;
+  color: var(--frame-text-secondary);
+}
+
+/**
+ * User cards
+ */
+
+.so-user-card {
+  display: flex;
+  align-items: center;
+  gap: var(--frame-spacing-sm);
+}
+
+.so-user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  background: var(--frame-accent);
+  color: var(--color-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.so-user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.so-user-name {
+  font-weight: 600;
+  color: var(--frame-link-color);
+  font-size: 13px;
+}
+
+.so-user-reputation {
+  font-size: 11px;
+  color: var(--frame-text-secondary);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+/**
+ * Badge styles
+ */
+
+.so-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+  font-size: 10px;
+  font-weight: bold;
+  color: var(--color-white);
+}
+
+.so-badge-gold {
+  background: var(--so-badge-gold);
+}
+
+.so-badge-silver {
+  background: var(--so-badge-silver);
+}
+
+.so-badge-bronze {
+  background: var(--so-badge-bronze);
+}
+
+/**
+ * Link card embedded in answers
+ */
+
+.so-link-card {
+  display: flex;
+  gap: var(--frame-spacing-md);
+  background: var(--frame-surface);
+  border: 1px solid var(--frame-border);
+  border-radius: var(--frame-radius-sm);
+  padding: var(--frame-spacing-md);
+  margin: var(--frame-spacing-md) 0;
+  text-decoration: none;
+  color: inherit;
+  transition: all var(--frame-transition-fast);
+}
+
+.so-link-card:hover {
+  background: var(--frame-border);
+  box-shadow: var(--shadow-hover-sm);
+}
+
+.so-link-card-icon {
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: var(--frame-accent-bg);
+  border-radius: var(--frame-radius-sm);
+  flex-shrink: 0;
+}
+
+.so-link-card-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.so-link-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--frame-link-color);
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+
+.so-link-card-description {
+  font-size: 12px;
+  color: var(--frame-text-secondary);
+  line-height: 1.4;
+  margin-bottom: 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.so-link-card-domain {
+  font-size: 11px;
+  color: var(--frame-text-muted);
+  font-weight: 500;
+}
+
+/**
+ * Responsive design
+ */
+
+@media (max-width: 600px) {
+  .so-question-header,
+  .so-answer {
+    padding: var(--frame-spacing-md);
+    gap: var(--frame-spacing-sm);
+  }
+
+  .so-question-title {
+    font-size: 15px;
+  }
+
+  .so-tabs {
+    padding: var(--frame-spacing-sm) var(--frame-spacing-md);
+    overflow-x: auto;
+  }
+
+  .so-link-card {
+    flex-direction: column;
+    gap: var(--frame-spacing-sm);
+  }
+
+  .so-link-card-icon {
+    width: 100%;
+    height: 32px;
+  }
+}
+  }
+}

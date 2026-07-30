@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Twitter/X Frame Theme Visual Test</title>
+  <link rel="stylesheet" href="src/public/style.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 40px 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    .test-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .test-header h1 {
+      font-size: 32px;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .test-header p {
+      color: var(--text2);
+      font-size: 16px;
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 16px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 1000;
+      transition: background 0.3s ease;
+    }
+
+    .theme-toggle:hover {
+      opacity: 0.9;
+    }
+
+    .test-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 24px;
+      margin: 24px 0;
+    }
+
+    .verification-list {
+      background: var(--bg2);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 40px;
+      border: 1px solid var(--border);
+    }
+
+    .verification-list h2 {
+      font-size: 18px;
+      margin-bottom: 16px;
+      color: var(--accent);
+    }
+
+    .check-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .check-list li {
+      padding: 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+
+    .check-list li:before {
+      content: '☐';
+      color: var(--accent);
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    .instructions {
+      background: var(--bg2);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 24px;
+      border: 1px solid var(--border);
+    }
+
+    .instructions h3 {
+      margin-bottom: 8px;
+    }
+
+    .instructions ol {
+      margin-left: 20px;
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" id="themeToggle">☀️ Switch to Light Mode</button>
+
+  <div class="test-header">
+    <h1>𝕏 Twitter/X Frame Visual Theme Test</h1>
+    <p>Interactive visual verification of theme switching for all frame elements</p>
+  </div>
+
+  <div class="instructions">
+    <h3>📋 Test Instructions:</h3>
+    <ol>
+      <li>Observe the current (dark) theme appearance of all frame elements</li>
+      <li>Click the "Switch to Light Mode" button in the top-right corner</li>
+      <li>Verify that ALL elements update to light theme colors:</li>
+      <ul>
+        <li>Text colors (author name, handle, post content, link titles)</li>
+        <li>Background colors (main background, card backgrounds)</li>
+        <li>Border colors</li>
+        <li>Avatar placeholder</li>
+        <li>Verified badge</li>
+        <li>Action icons and counts</li>
+        <li>Link preview placeholder</li>
+      </ul>
+      <li>Check the checklist below as you verify each element</li>
+      <li>Toggle back to dark mode and verify smooth transition</li>
+    </ol>
+  </div>
+
+  <div class="verification-list">
+    <h2>✅ Visual Verification Checklist</h2>
+    <ul class="check-list">
+      <li>Author names update color (#e7e9ea → #0f1419)</li>
+      <li>Author handles update color (#71767b → #536471)</li>
+      <li>Post content text updates color (#e7e9ea → #0f1419)</li>
+      <li>Frame background updates (#000000 → #ffffff)</li>
+      <li>Link card background updates (#16181c → #f7f9f9)</li>
+      <li>Link card border updates (#2f3336 → #eff3f4)</li>
+      <li>Avatar placeholder updates (#2f3336 → #eff3f4)</li>
+      <li>Verified badge stays blue (#1d9bf0 in both themes)</li>
+      <li>Action icons and counts update color (#71767b → #536471)</li>
+      <li>Link preview placeholder updates (#2f3336 → #eff3f4)</li>
+      <li>Link title updates color (#e7e9ea → #0f1419)</li>
+      <li>Link domain updates color (#71767b → #536471)</li>
+      <li>Transitions are smooth (0.2s-0.3s)</li>
+      <li>No visual glitches during theme switch</li>
+      <li>All elements update simultaneously</li>
+    </ul>
+  </div>
+
+  <h2 style="color: var(--accent);">Test Frames</h2>
+  <div class="test-grid">
+    <!-- Twitter Context Frame 1 -->
+    <div class="context-frame twitter-context dark-theme">
+      <div class="tw-post-header">
+        <div class="tw-avatar"></div>
+        <div class="tw-post-meta">
+          <span class="tw-author-name">Alex Johnson</span>
+          <span class="tw-author-handle">@alexj</span>
+          <span class="tw-post-time">· 2h</span>
+        </div>
+        <span class="tw-verified">✓</span>
+      </div>
+      <div class="tw-post-content">Check out this amazing article! 📚</div>
+      <div class="tw-link-card">
+        <div class="tw-context-placeholder"></div>
+        <div class="tw-context-meta">
+          <div class="tw-context-title">Understanding Modern Web Development</div>
+          <div class="tw-context-domain">devblog.com</div>
+        </div>
+      </div>
+      <div class="tw-post-actions">
+        <div class="tw-post-action-item reply">
+          <span class="tw-action-icon">💬</span>
+          <span class="tw-action-count">12</span>
+        </div>
+        <div class="tw-post-action-item retweet">
+          <span class="tw-action-icon">🔁</span>
+          <span class="tw-action-count">34</span>
+        </div>
+        <div class="tw-post-action-item like">
+          <span class="tw-action-icon">❤️</span>
+          <span class="tw-action-count">128</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Twitter Context Frame 2 -->
+    <div class="context-frame twitter-context dark-theme">
+      <div class="tw-post-header">
+        <div class="tw-avatar"></div>
+        <div class="tw-post-meta">
+          <span class="tw-author-name">Tech News Daily</span>
+          <span class="tw-author-handle">@technewsdaily</span>
+          <span class="tw-post-time">· 4h</span>
+        </div>
+        <span class="tw-verified">✓</span>
+      </div>
+      <div class="tw-post-content">Breaking: Major breakthrough in renewable energy ⚡</div>
+      <div class="tw-link-card">
+        <div class="tw-context-placeholder"></div>
+        <div class="tw-context-meta">
+          <div class="tw-context-title">New Battery Technology</div>
+          <div class="tw-context-domain">renewableenergy.com</div>
+        </div>
+      </div>
+      <div class="tw-post-actions">
+        <div class="tw-post-action-item reply">
+          <span class="tw-action-icon">💬</span>
+          <span class="tw-action-count">234</span>
+        </div>
+        <div class="tw-post-action-item retweet">
+          <span class="tw-action-icon">🔁</span>
+          <span class="tw-action-count">892</span>
+        </div>
+        <div class="tw-post-action-item like">
+          <span class="tw-action-icon">❤️</span>
+          <span class="tw-action-count">2.4K</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Twitter Context Frame 3 -->
+    <div class="context-frame twitter-context dark-theme">
+      <div class="tw-post-header">
+        <div class="tw-avatar"></div>
+        <div class="tw-post-meta">
+          <span class="tw-author-name">Sarah Chen</span>
+          <span class="tw-author-handle">@sarahc_dev</span>
+          <span class="tw-post-time">· 6h</span>
+        </div>
+      </div>
+      <div class="tw-post-content">Just shipped this new feature! 🚀</div>
+      <div class="tw-link-card">
+        <div class="tw-context-placeholder"></div>
+        <div class="tw-context-meta">
+          <div class="tw-context-title">Introducing the New Dashboard</div>
+          <div class="tw-context-domain">devblog.com</div>
+        </div>
+      </div>
+      <div class="tw-post-actions">
+        <div class="tw-post-action-item reply">
+          <span class="tw-action-icon">💬</span>
+          <span class="tw-action-count">45</span>
+        </div>
+        <div class="tw-post-action-item retweet">
+          <span class="tw-action-icon">🔁</span>
+          <span class="tw-action-count">123</span>
+        </div>
+        <div class="tw-post-action-item like">
+          <span class="tw-action-icon">❤️</span>
+          <span class="tw-action-count">456</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const themeToggle = document.getElementById('themeToggle');
+    let currentTheme = 'dark';
+
+    themeToggle.addEventListener('click', () => {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      themeToggle.textContent = currentTheme === 'dark' ? '☀️ Switch to Light Mode' : '🌙 Switch to Dark Mode';
+
+      // Update Twitter context frame themes
+      const twFrames = document.querySelectorAll('.twitter-context');
+      twFrames.forEach(frame => {
+        frame.classList.remove('dark-theme', 'light-theme');
+        frame.classList.add(`${currentTheme}-theme`);
+      });
+
+      // Update checklist based on theme
+      const checkItems = document.querySelectorAll('.check-list li');
+      if (currentTheme === 'light') {
+        checkItems.forEach(item => {
+          item.style.opacity = '0.7';
+        });
+      } else {
+        checkItems.forEach(item => {
+          item.style.opacity = '1';
+        });
+      }
+    });
+
+    // Enable checklist items on click
+    document.querySelectorAll('.check-list li').forEach(item => {
+      item.style.cursor = 'pointer';
+      item.addEventListener('click', () => {
+        const current = item.style.getPropertyValue('--content');
+        if (item.textContent.includes('☐')) {
+          item.textContent = item.textContent.replace('☐', '☑');
+        } else {
+          item.textContent = item.textContent.replace('☑', '☐');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

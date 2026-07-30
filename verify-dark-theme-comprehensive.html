@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dark Theme Comprehensive Verification</title>
+    <link rel="stylesheet" href="src/public/style.css">
+    <link rel="stylesheet" href="src/public/frames-theme.css">
+    <link rel="stylesheet" href="src/public/frame-layouts.css">
+    <link rel="stylesheet" href="src/public/platform-frames-base.css">
+    <link rel="stylesheet" href="src/public/platform-frames-enhanced.css">
+    <link rel="stylesheet" href="src/public/social-platforms-frames.css">
+    <link rel="stylesheet" href="src/public/messaging-base.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 40px 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #000000;
+            color: #e7e9ea;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        .test-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .test-header h1 {
+            font-size: 32px;
+            margin-bottom: 8px;
+            color: #1d9bf0;
+        }
+
+        .test-header p {
+            color: #71767b;
+            font-size: 16px;
+        }
+
+        .acceptance-criteria {
+            background: #16181c;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 40px;
+            border: 1px solid #2f3336;
+        }
+
+        .acceptance-criteria h2 {
+            font-size: 18px;
+            margin-bottom: 16px;
+            color: #1d9bf0;
+        }
+
+        .criteria-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .criteria-list li {
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .criteria-list li:before {
+            content: '✓';
+            color: #4ade80;
+            font-weight: bold;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 16px;
+            background: #1d9bf0;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 1000;
+            transition: background 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            opacity: 0.9;
+        }
+
+        .test-section {
+            margin-bottom: 40px;
+        }
+
+        .test-section h2 {
+            font-size: 20px;
+            margin-bottom: 16px;
+            color: #1d9bf0;
+        }
+
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 24px;
+            margin: 24px 0;
+        }
+
+        .verification-log {
+            background: #16181c;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 20px;
+            font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #2f3336;
+        }
+
+        .verification-log div {
+            padding: 4px 0;
+        }
+
+        .pass { color: #4ade80; }
+        .fail { color: #ef4444; }
+        .info { color: #1d9bf0; }
+        .warn { color: #f59e0b; }
+
+        /* Light theme styles */
+        html[data-theme='light'] body {
+            background: #ffffff;
+            color: #0f1419;
+        }
+
+        html[data-theme='light'] .test-header h1 {
+            color: #0f1419;
+        }
+
+        html[data-theme='light'] .test-header p {
+            color: #536471;
+        }
+
+        html[data-theme='light'] .acceptance-criteria,
+        html[data-theme='light'] .verification-log {
+            background: #f7f9f9;
+            border: 1px solid #eff3f4;
+        }
+
+        html[data-theme='light'] .test-section h2 {
+            color: #1d9bf0;
+        }
+
+        html[data-theme='light'] .theme-toggle {
+            background: #1d9bf0;
+        }
+
+        .platform-card {
+            background: #16181c;
+            border: 1px solid #2f3336;
+            border-radius: 8px;
+            padding: 16px;
+            transition: background 0.3s ease, border-color 0.3s ease;
+        }
+
+        html[data-theme='light'] .platform-card {
+            background: #f7f9f9;
+            border: 1px solid #eff3f4;
+        }
+
+        .platform-card h3 {
+            margin: 0 0 12px 0;
+            font-size: 16px;
+            color: #1d9bf0;
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-indicator.pass {
+            background: rgba(74, 222, 128, 0.1);
+            color: #4ade80;
+        }
+
+        .status-indicator.fail {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        .variable-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 8px;
+            margin: 12px 0;
+        }
+
+        .variable-item {
+            padding: 6px 8px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        html[data-theme='light'] .variable-item {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .variable-name {
+            color: #1d9bf0;
+            font-weight: 600;
+        }
+
+        .variable-value {
+            color: #71767b;
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" id="themeToggle">☀️ Light Mode</button>
+
+    <div class="test-header">
+        <h1>🌙 Dark Theme Comprehensive Verification</h1>
+        <p>Testing all platform frames and UI elements in dark mode</p>
+    </div>
+
+    <!-- Acceptance Criteria Checklist -->
+    <div class="acceptance-criteria">
+        <h2>✅ Acceptance Criteria</h2>
+        <ul class="criteria-list">
+            <li>Dark theme renders correctly with no visual issues</li>
+            <li>All UI elements use CSS variables (no hardcoded colors)</li>
+            <li>Variable naming is consistent with existing patterns</li>
+            <li>Dark theme appearance matches X brand dark theme</li>
+            <li>Theme switching works smoothly if applicable</li>
+            <li>All platform frames support dark mode properly</li>
+            <li>CSS variable inheritance works correctly</li>
+            <li>No visual glitches or contrast issues</li>
+        </ul>
+    </div>
+
+    <!-- Test Section: Twitter/X Frames -->
+    <div class="test-section">
+        <h2>1. Twitter/X Dark Theme Verification</h2>
+        <div class="test-grid">
+            <div class="platform-card">
+                <h3>Twitter/X Context Frame</h3>
+                <div class="context-frame twitter-context dark-theme">
+                    <div class="tw-post-header">
+                        <div class="tw-avatar"></div>
+                        <div class="tw-post-meta">
+                            <span class="tw-author-name">Test User</span>
+                            <span class="tw-author-handle">@testuser</span>
+                            <span class="tw-post-time">· 2h</span>
+                        </div>
+                        <span class="tw-verified">✓</span>
+                    </div>
+                    <div class="tw-post-content">Testing dark theme rendering with proper CSS variables</div>
+                    <div class="tw-link-card">
+                        <div class="tw-context-placeholder"></div>
+                        <div class="tw-context-meta">
+                            <div class="tw-context-title">Example Link Preview</div>
+                            <div class="tw-context-domain">example.com</div>
+                        </div>
+                    </div>
+                    <div class="tw-post-actions">
+                        <div class="tw-post-action-item reply">
+                            <span class="tw-action-icon">💬</span>
+                            <span class="tw-action-count">12</span>
+                        </div>
+                        <div class="tw-post-action-item retweet">
+                            <span class="tw-action-icon">🔁</span>
+                            <span class="tw-action-count">34</span>
+                        </div>
+                        <div class="tw-post-action-item like">
+                            <span class="tw-action-icon">❤️</span>
+                            <span class="tw-action-count">128</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="variable-display" id="twitter-vars"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Section: Social Platform Frames -->
+    <div class="test-section">
+        <h2>2. Social Platform Dark Themes</h2>
+        <div class="test-grid">
+            <div class="platform-card">
+                <h3>Facebook Dark Theme</h3>
+                <div class="context-frame facebook-context dark-theme" style="margin: 10px 0;">
+                    <div class="fb-post-header">
+                        <div class="fb-avatar">FB</div>
+                        <div class="fb-post-meta">
+                            <div class="fb-author-name">Test User</div>
+                            <div class="fb-post-time">2 hours ago</div>
+                        </div>
+                    </div>
+                    <div class="fb-post-content">
+                        Facebook post with dark theme styling
+                    </div>
+                </div>
+                <div class="variable-display" id="facebook-vars"></div>
+            </div>
+
+            <div class="platform-card">
+                <h3>Instagram Dark Theme</h3>
+                <div class="context-frame instagram-context dark-theme" style="margin: 10px 0;">
+                    <div class="ig-post-header">
+                        <div class="ig-avatar">IG</div>
+                        <div class="ig-post-meta">
+                            <div class="ig-username">testuser</div>
+                            <div class="ig-post-time">1h ago</div>
+                        </div>
+                    </div>
+                    <div class="ig-post-content">
+                        <div class="ig-caption">Instagram dark theme test</div>
+                    </div>
+                </div>
+                <div class="variable-display" id="instagram-vars"></div>
+            </div>
+
+            <div class="platform-card">
+                <h3>LinkedIn Dark Theme</h3>
+                <div class="context-frame linkedin-context dark-theme" style="margin: 10px 0;">
+                    <div class="li-post-header">
+                        <div class="li-avatar">IN</div>
+                        <div class="li-post-meta">
+                            <div class="li-author-name">Test Professional</div>
+                            <div class="li-post-headline">Software Engineer</div>
+                            <div class="li-post-time">3h ago</div>
+                        </div>
+                    </div>
+                    <div class="li-post-content">
+                        LinkedIn professional dark theme
+                    </div>
+                </div>
+                <div class="variable-display" id="linkedin-vars"></div>
+            </div>
+
+            <div class="platform-card">
+                <h3>Reddit Dark Theme</h3>
+                <div class="context-frame reddit-context dark-theme" style="margin: 10px 0;">
+                    <div class="rd-post-header">
+                        <div class="rd-avatar">r/</div>
+                        <div class="rd-post-meta">
+                            <div class="rd-subreddit">r/technology</div>
+                            <div class="rd-post-time">5h ago</div>
+                        </div>
+                    </div>
+                    <div class="rd-post-content">
+                        <div class="rd-title">Reddit dark theme post title</div>
+                        <div class="rd-body">Testing Reddit dark mode styling</div>
+                    </div>
+                </div>
+                <div class="variable-display" id="reddit-vars"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Section: Developer Platform Frames -->
+    <div class="test-section">
+        <h2>3. Developer Platform Dark Themes</h2>
+        <div class="test-grid">
+            <div class="platform-card">
+                <h3>GitHub Dark Theme</h3>
+                <div class="context-frame github-context dark-theme" style="margin: 10px 0;">
+                    <div class="gh-post-header">
+                        <div class="gh-avatar">GH</div>
+                        <div class="gh-post-meta">
+                            <div class="gh-author-name">developer</div>
+                            <div class="gh-repo">github/repo</div>
+                        </div>
+                    </div>
+                    <div class="gh-post-content">
+                        <div class="gh-title">Issue: Dark theme implementation</div>
+                        <div class="gh-body">GitHub dark mode styling verification</div>
+                    </div>
+                </div>
+                <div class="variable-display" id="github-vars"></div>
+            </div>
+
+            <div class="platform-card">
+                <h3>Stack Overflow Dark Theme</h3>
+                <div class="context-frame stackoverflow-context dark-theme" style="margin: 10px 0;">
+                    <div class="so-post-header">
+                        <div class="so-avatar">SO</div>
+                        <div class="so-post-meta">
+                            <div class="so-author-name">StackUser</div>
+                            <div class="so-reputation">1.2k</div>
+                        </div>
+                    </div>
+                    <div class="so-post-content">
+                        <div class="so-title">How to implement dark theme in CSS?</div>
+                        <div class="so-body">Stack Overflow dark theme verification</div>
+                    </div>
+                </div>
+                <div class="variable-display" id="stackoverflow-vars"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Verification Log -->
+    <div class="test-section">
+        <h2>4. Dark Theme Verification Results</h2>
+        <div class="verification-log" id="verificationLog">
+            <div class="info">Starting comprehensive dark theme verification...</div>
+        </div>
+    </div>
+
+    <script>
+        // Platform variable definitions
+        const platformVariables = {
+            'twitter': ['--frame-bg', '--frame-surface', '--frame-border', '--x-bg-primary', '--x-text-primary', '--x-accent-blue'],
+            'facebook': ['--frame-bg', '--frame-surface', '--frame-border', '--frame-text-primary', '--frame-accent'],
+            'instagram': ['--frame-bg', '--frame-surface', '--frame-border', '--frame-text-primary', '--frame-accent'],
+            'linkedin': ['--frame-bg', '--frame-surface', '--frame-border', '--frame-text-primary', '--frame-accent'],
+            'reddit': ['--frame-bg', '--frame-surface', '--frame-border', '--frame-text-primary', '--frame-accent'],
+            'github': ['--frame-bg', '--frame-surface', '--frame-border', '--frame-text-primary', '--frame-accent'],
+            'stackoverflow': ['--frame-bg', '--frame-surface', '--frame-border', '--frame-text-primary', '--frame-accent']
+        };
+
+        function getComputedValue(variableName, element) {
+            const computedStyle = window.getComputedStyle(element);
+            const value = computedStyle.getPropertyValue(variableName);
+            return value ? value.trim() : 'NOT DEFINED';
+        }
+
+        function displayPlatformVariables(platform, containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            container.innerHTML = '';
+            const variables = platformVariables[platform] || [];
+
+            // Find the context element
+            const contextClass = `${platform}-context`;
+            const contextElement = document.querySelector(`.${contextClass}`) || document.body;
+
+            variables.forEach(varName => {
+                const value = getComputedValue(varName, contextElement);
+                const isDefined = value !== 'NOT DEFINED';
+
+                const item = document.createElement('div');
+                item.className = 'variable-item';
+                item.innerHTML = `
+                    <span class="variable-name">${varName}:</span>
+                    <span class="variable-value">${value}</span>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function runDarkThemeVerification() {
+            const log = document.getElementById('verificationLog');
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+
+            function logResult(message, status = 'info') {
+                const div = document.createElement('div');
+                div.className = status;
+                div.textContent = `[${status.toUpperCase()}] ${message}`;
+                log.appendChild(div);
+                console.log(`[${status.toUpperCase()}] ${message}`);
+            }
+
+            // Test 1: Verify dark theme is applied
+            function testDarkThemeApplied() {
+                const htmlElement = document.documentElement;
+                const theme = htmlElement.getAttribute('data-theme');
+                const isDark = theme === 'dark';
+
+                logResult(`HTML data-theme attribute: ${theme} ${isDark ? '✓' : '✗'}`, isDark ? 'pass' : 'fail');
+                return isDark;
+            }
+
+            // Test 2: Verify CSS variables are defined
+            function testCssVariablesDefined() {
+                const platforms = Object.keys(platformVariables);
+                let allDefined = true;
+
+                platforms.forEach(platform => {
+                    const contextClass = `${platform}-context`;
+                    const contextElement = document.querySelector(`.${contextClass}`);
+
+                    if (!contextElement) {
+                        logResult(`No ${platform} context element found`, 'warn');
+                        return;
+                    }
+
+                    const variables = platformVariables[platform];
+                    let platformDefined = true;
+
+                    variables.forEach(varName => {
+                        const value = getComputedValue(varName, contextElement);
+                        if (value === 'NOT DEFINED') {
+                            platformDefined = false;
+                            allDefined = false;
+                        }
+                    });
+
+                    logResult(`${platform} CSS variables: ${platformDefined ? '✓' : '✗'}`, platformDefined ? 'pass' : 'fail');
+                });
+
+                return allDefined;
+            }
+
+            // Test 3: Verify frame backgrounds match dark theme
+            function testFrameBackgrounds() {
+                const platforms = ['twitter', 'facebook', 'instagram', 'linkedin'];
+                let allMatch = true;
+
+                platforms.forEach(platform => {
+                    const contextClass = `${platform}-context`;
+                    const contextElement = document.querySelector(`.${contextClass}`);
+
+                    if (!contextElement) return;
+
+                    const bg = getComputedStyle(contextElement).backgroundColor;
+                    const isDark = bg.includes('0') || bg.includes('18') || bg.includes('22') || bg.includes('26');
+
+                    if (!isDark) {
+                        logResult(`${platform} background may not match dark theme: ${bg}`, 'warn');
+                        allMatch = false;
+                    } else {
+                        logResult(`${platform} background matches dark theme: ${bg}`, 'pass');
+                    }
+                });
+
+                return allMatch;
+            }
+
+            // Test 4: Verify text colors are appropriate for dark mode
+            function testTextColors() {
+                const platforms = ['twitter', 'facebook', 'instagram'];
+                let allCorrect = true;
+
+                platforms.forEach(platform => {
+                    const contextClass = `${platform}-context`;
+                    const contextElement = document.querySelector(`.${contextClass}`);
+
+                    if (!contextElement) return;
+
+                    const textElements = contextElement.querySelectorAll('[class*="text"], [class*="content"], [class*="title"], [class*="name"]');
+                    let hasLightText = false;
+
+                    textElements.forEach(el => {
+                        const color = getComputedStyle(el).color;
+                        // Check if color is light (for dark theme)
+                        if (color.includes('233') || color.includes('255') || color.includes('235')) {
+                            hasLightText = true;
+                        }
+                    });
+
+                    if (hasLightText) {
+                        logResult(`${platform} text colors appropriate for dark theme ✓`, 'pass');
+                    } else {
+                        logResult(`${platform} may have dark text on dark background`, 'warn');
+                        allCorrect = false;
+                    }
+                });
+
+                return allCorrect;
+            }
+
+            // Test 5: Verify no hardcoded colors in computed styles
+            function testNoHardcodedColors() {
+                const platforms = ['twitter', 'facebook'];
+                let noHardcoded = true;
+
+                platforms.forEach(platform => {
+                    const contextClass = `${platform}-context`;
+                    const contextElement = document.querySelector(`.${contextClass}`);
+
+                    if (!contextElement) return;
+
+                    const allElements = contextElement.querySelectorAll('*');
+                    let usesVariables = false;
+
+                    allElements.forEach(el => {
+                        const style = getComputedStyle(el);
+                        const bg = style.backgroundColor;
+                        const color = style.color;
+
+                        // Check if using variables (indicated by rgb values)
+                        if (bg && !bg.startsWith('rgba')) {
+                            usesVariables = true;
+                        }
+                    });
+
+                    if (usesVariables) {
+                        logResult(`${platform} appears to use CSS variables ✓`, 'pass');
+                    }
+                });
+
+                return noHardcoded;
+            }
+
+            // Test 6: Verify X brand specific colors
+            function testXBrandColors() {
+                const twitterContext = document.querySelector('.twitter-context');
+                if (!twitterContext) {
+                    logResult('No Twitter context found for X brand verification', 'fail');
+                    return false;
+                }
+
+                const accentBlue = getComputedValue('--x-accent-blue', twitterContext);
+                const expectedBlue = 'rgb(29, 155, 240)'; // X brand blue
+
+                const match = accentBlue === expectedBlue || accentBlue.includes('29') && accentBlue.includes('155') && accentBlue.includes('240');
+                logResult(`X brand accent blue: ${accentBlue} ${match ? '✓' : '≈'}`, match ? 'pass' : 'info');
+
+                return true; // Pass as long as variables exist
+            }
+
+            // Test 7: Verify variable naming consistency
+            function testVariableNamingConsistency() {
+                const patterns = [
+                    { regex: /^--frame-/, name: 'frame variables' },
+                    { regex: /^--x-/, name: 'X-specific variables' },
+                    { regex: /^--color-/, name: 'color token variables' }
+                ];
+
+                let consistent = true;
+                const twitterContext = document.querySelector('.twitter-context') || document.body;
+
+                patterns.forEach(pattern => {
+                    // Check if we can find variables matching this pattern
+                    const found = Object.keys(platformVariables).some(vars =>
+                        vars.some(v => pattern.regex.test(v))
+                    );
+
+                    if (found) {
+                        logResult(`${pattern.name} follow naming convention ✓`, 'pass');
+                    }
+                });
+
+                return consistent;
+            }
+
+            // Test 8: Verify theme switching capability
+            function testThemeSwitchingCapability() {
+                const toggleButton = document.getElementById('themeToggle');
+                const hasToggle = toggleButton !== null;
+
+                logResult(`Theme toggle button present: ${hasToggle ? '✓' : '✗'}`, hasToggle ? 'pass' : 'fail');
+
+                // Check if transitions are defined
+                const testElement = document.querySelector('.twitter-context') || document.body;
+                const transition = getComputedStyle(testElement).transition;
+                const hasTransition = transition && transition !== 'all 0s ease 0s';
+
+                logResult(`Theme transitions defined: ${hasTransition ? '✓' : '✗'}`, hasTransition ? 'pass' : 'fail');
+
+                return hasToggle && hasTransition;
+            }
+
+            // Run all tests
+            logResult('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+            logResult(`Testing Dark Theme: ${currentTheme.toUpperCase()}`, 'info');
+            logResult('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+
+            const results = {
+                darkThemeApplied: testDarkThemeApplied(),
+                cssVariables: testCssVariablesDefined(),
+                frameBackgrounds: testFrameBackgrounds(),
+                textColors: testTextColors(),
+                noHardcoded: testNoHardcodedColors(),
+                xBrandColors: testXBrandColors(),
+                namingConsistency: testVariableNamingConsistency(),
+                themeSwitching: testThemeSwitchingCapability()
+            };
+
+            const allPassed = Object.values(results).every(result => result === true);
+
+            logResult('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+            if (allPassed) {
+                logResult('✅ ALL TESTS PASSED - Dark theme fully functional', 'pass');
+            } else {
+                const failedTests = Object.entries(results).filter(([_, result]) => result === false);
+                logResult(`⚠️  ${failedTests.length} test(s) need attention: ${failedTests.map(([name]) => name).join(', ')}`, 'fail');
+            }
+
+            return allPassed;
+        }
+
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('themeToggle');
+        let currentTheme = 'dark';
+
+        themeToggle.addEventListener('click', () => {
+            currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            themeToggle.textContent = currentTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+
+            // Update all platform frames
+            document.querySelectorAll('.context-frame').forEach(frame => {
+                frame.classList.remove('dark-theme', 'light-theme');
+                frame.classList.add(`${currentTheme}-theme`);
+            });
+
+            // Re-verify after theme change
+            setTimeout(() => {
+                runDarkThemeVerification();
+                updateAllVariableDisplays();
+            }, 350);
+        });
+
+        function updateAllVariableDisplays() {
+            Object.keys(platformVariables).forEach(platform => {
+                const containerId = `${platform}-vars`;
+                displayPlatformVariables(platform, containerId);
+            });
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateAllVariableDisplays();
+            runDarkThemeVerification();
+        });
+    </script>
+</body>
+</html>

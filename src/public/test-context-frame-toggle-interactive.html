@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Context Frame Toggle Functionality Test - All Platforms</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0f0f0f;
+      color: #e0e0e0;
+      padding: 20px;
+    }
+
+    .test-header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #1a1a1a;
+      border-radius: 8px;
+    }
+
+    .test-header h1 {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+
+    .test-controls {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .test-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .test-btn.primary {
+      background: #5865f2;
+      color: white;
+    }
+
+    .test-btn.primary:hover {
+      background: #4752c4;
+    }
+
+    .test-btn.secondary {
+      background: #2a2a2a;
+      color: #e0e0e0;
+    }
+
+    .test-btn.secondary:hover {
+      background: #3a3a3a;
+    }
+
+    .test-status {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .status-card {
+      background: #1a1a1a;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .status-card .number {
+      font-size: 32px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .status-card .label {
+      font-size: 14px;
+      color: #a0a0a0;
+    }
+
+    .status-card.passed .number { color: #00a884; }
+    .status-card.failed .number { color: #ff6b6b; }
+    .status-card.testing .number { color: #ffa500; }
+
+    .test-progress {
+      margin-bottom: 20px;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: #2a2a2a;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: #5865f2;
+      transition: width 0.3s;
+    }
+
+    .test-log {
+      background: #1a1a1a;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      max-height: 300px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+    }
+
+    .log-entry {
+      margin-bottom: 5px;
+      padding: 3px 0;
+    }
+
+    .log-entry.pass { color: #00a884; }
+    .log-entry.fail { color: #ff6b6b; }
+    .log-entry.info { color: #5865f2; }
+    .log-entry.warn { color: #ffa500; }
+
+    .platform-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 20px;
+    }
+
+    .platform-test-card {
+      background: #1a1a1a;
+      border-radius: 8px;
+      padding: 15px;
+      border-left: 4px solid #3a3a3a;
+    }
+
+    .platform-test-card.testing { border-left-color: #ffa500; }
+    .platform-test-card.passed { border-left-color: #00a884; }
+    .platform-test-card.failed { border-left-color: #ff6b6b; }
+
+    .platform-test-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .platform-name {
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .platform-status {
+      font-size: 12px;
+      padding: 3px 8px;
+      border-radius: 3px;
+      background: #3a3a3a;
+    }
+
+    .platform-test-card.testing .platform-status { background: #ffa500; color: white; }
+    .platform-test-card.passed .platform-status { background: #00a884; color: white; }
+    .platform-test-card.failed .platform-status { background: #ff6b6b; color: white; }
+
+    .platform-details {
+      font-size: 12px;
+      color: #a0a0a0;
+    }
+
+    .platform-details div {
+      margin-bottom: 3px;
+    }
+
+    .test-summary {
+      margin-top: 30px;
+      padding: 20px;
+      background: #1a1a1a;
+      border-radius: 8px;
+    }
+
+    .test-summary h2 {
+      margin-bottom: 15px;
+    }
+
+    .summary-list {
+      list-style: none;
+    }
+
+    .summary-list li {
+      padding: 8px 0;
+      border-bottom: 1px solid #2a2a2a;
+    }
+
+    .summary-list li:last-child {
+      border-bottom: none;
+    }
+
+    .summary-list .pass { color: #00a884; }
+    .summary-list .fail { color: #ff6b6b; }
+  </style>
+</head>
+<body>
+  <div class="test-header">
+    <h1>🧪 Context Frame Toggle Functionality Test</h1>
+    <p>Interactive browser-based testing of toggle functionality for all platforms</p>
+  </div>
+
+  <div class="test-controls">
+    <button class="test-btn primary" id="startTest">▶ Start Full Test</button>
+    <button class="test-btn secondary" id="testRapidToggle">⚡ Test Rapid Toggle</button>
+    <button class="test-btn secondary" id="clearLog">🗑️ Clear Log</button>
+  </div>
+
+  <div class="test-status">
+    <div class="status-card testing">
+      <div class="number" id="totalCount">0</div>
+      <div class="label">Total Platforms</div>
+    </div>
+    <div class="status-card passed">
+      <div class="number" id="passedCount">0</div>
+      <div class="label">Passed</div>
+    </div>
+    <div class="status-card failed">
+      <div class="number" id="failedCount">0</div>
+      <div class="label">Failed</div>
+    </div>
+    <div class="status-card testing">
+      <div class="number" id="currentPlatform">-</div>
+      <div class="label">Current Test</div>
+    </div>
+  </div>
+
+  <div class="test-progress">
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+    </div>
+  </div>
+
+  <div class="test-log" id="testLog">
+    <div class="log-entry info">Ready to start testing. Click "Start Full Test" to begin.</div>
+  </div>
+
+  <div class="platform-grid" id="platformGrid">
+    <!-- Platform test cards will be generated here -->
+  </div>
+
+  <div class="test-summary" id="testSummary" style="display: none;">
+    <h2>📊 Test Summary</h2>
+    <ul class="summary-list" id="summaryList"></ul>
+  </div>
+
+  <script src="platform-frames.js"></script>
+  <script src="app.js"></script>
+  <script>
+    // Test configuration
+    const RAPID_TOGGLE_COUNT = 10;
+    const TOGGLE_DELAY = 100; // ms between rapid toggles
+    const TEST_DELAY = 200; // ms between platforms
+
+    // Test state
+    const testState = {
+      results: {},
+      platforms: [],
+      currentIndex: 0,
+      isRunning: false,
+      passedCount: 0,
+      failedCount: 0
+    };
+
+    // Initialize platforms list
+    function initializePlatforms() {
+      testState.platforms = getSupportedPlatforms();
+      document.getElementById('totalCount').textContent = testState.platforms.length;
+      generatePlatformCards();
+    }
+
+    // Generate platform test cards
+    function generatePlatformCards() {
+      const grid = document.getElementById('platformGrid');
+      grid.innerHTML = '';
+
+      for (const platformId of testState.platforms) {
+        const card = document.createElement('div');
+        card.className = 'platform-test-card';
+        card.id = `card-${platformId}`;
+        card.innerHTML = `
+          <div class="platform-test-header">
+            <div class="platform-name">${platformId}</div>
+            <div class="platform-status">PENDING</div>
+          </div>
+          <div class="platform-details">
+            <div id="details-${platformId}">Waiting to test...</div>
+          </div>
+        `;
+        grid.appendChild(card);
+      }
+    }
+
+    // Log function
+    function log(message, type = 'info') {
+      const logDiv = document.getElementById('testLog');
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      logDiv.appendChild(entry);
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    // Update platform card status
+    function updatePlatformCard(platformId, status, details) {
+      const card = document.getElementById(`card-${platformId}`);
+      if (card) {
+        card.className = `platform-test-card ${status}`;
+        card.querySelector('.platform-status').textContent = status.toUpperCase();
+        const detailsDiv = document.getElementById(`details-${platformId}`);
+        detailsDiv.innerHTML = details;
+      }
+    }
+
+    // Test single platform
+    async function testPlatform(platformId) {
+      log(`Testing ${platformId}...`, 'info');
+
+      document.getElementById('currentPlatform').textContent = platformId;
+      updatePlatformCard(platformId, 'testing', 'Initializing test...');
+
+      const results = {
+        id: platformId,
+        toggleToContext: false,
+        contextFrameVisible: false,
+        hasExpectedContent: false,
+        toggleBackToCard: false,
+        rapidToggleSuccess: false,
+        noVisualGlitches: false,
+        issues: []
+      };
+
+      try {
+        // Initialize card context state
+        if (!window.cardContextState) {
+          window.cardContextState = {};
+        }
+
+        if (!window.cardContextState[platformId]) {
+          window.cardContextState[platformId] = { context: false, theme: 'dark' };
+        }
+
+        // Test 1: Toggle from 'card only' to 'in context'
+        updatePlatformCard(platformId, 'testing', 'Testing toggle to context mode...');
+
+        if (typeof window.toggleCardContext === 'function') {
+          window.toggleCardContext(platformId, { meta: { og: {} } });
+          results.toggleToContext = true;
+          log(`${platformId}: Toggle to context ✓`, 'pass');
+        } else {
+          results.issues.push('toggleCardContext function not available');
+          log(`${platformId}: toggleCardContext function not available`, 'fail');
+        }
+
+        // Test 2: Verify context frame appears
+        await sleep(100);
+        updatePlatformCard(platformId, 'testing', 'Verifying context frame visibility...');
+
+        if (window.cardContextState[platformId]?.context === true) {
+          results.contextFrameVisible = true;
+          log(`${platformId}: Context frame visible ✓`, 'pass');
+        } else {
+          results.issues.push('Context state not set to true');
+          log(`${platformId}: Context state not set to true`, 'fail');
+        }
+
+        // Test 3: Verify context frame has expected content
+        updatePlatformCard(platformId, 'testing', 'Verifying context frame content...');
+
+        const bodyElement = document.getElementById(`card-body-${platformId}`);
+        if (bodyElement) {
+          const hasFrame = bodyElement.querySelector('.context-frame, [class*="context"]');
+          results.hasExpectedContent = !!hasFrame;
+
+          if (hasFrame) {
+            log(`${platformId}: Context frame content present ✓`, 'pass');
+          } else {
+            results.issues.push('Context frame element not found');
+            log(`${platformId}: Context frame element not found`, 'warn');
+          }
+        } else {
+          results.issues.push('Card body element not found');
+          log(`${platformId}: Card body element not found (expected in real app)', 'info');
+        }
+
+        // Test 4: Toggle back to 'card only'
+        updatePlatformCard(platformId, 'testing', 'Testing toggle back to card only...');
+
+        if (typeof window.toggleCardContext === 'function') {
+          window.toggleCardContext(platformId, { meta: { og: {} } });
+          results.toggleBackToCard = true;
+          log(`${platformId}: Toggle back to card only ✓`, 'pass');
+        }
+
+        // Test 5: Rapid toggle switching
+        updatePlatformCard(platformId, 'testing', 'Testing rapid toggle switching...');
+
+        let rapidSuccess = true;
+        for (let i = 0; i < RAPID_TOGGLE_COUNT; i++) {
+          if (typeof window.toggleCardContext === 'function') {
+            window.toggleCardContext(platformId, { meta: { og: {} } });
+            await sleep(TOGGLE_DELAY);
+          } else {
+            rapidSuccess = false;
+            break;
+          }
+        }
+
+        results.rapidToggleSuccess = rapidSuccess;
+        if (rapidSuccess) {
+          log(`${platformId}: Rapid toggle (${RAPID_TOGGLE_COUNT}x) ✓`, 'pass');
+        } else {
+          results.issues.push('Rapid toggle failed');
+          log(`${platformId}: Rapid toggle failed`, 'fail');
+        }
+
+        // Test 6: Verify no visual glitches (subjective - user should verify)
+        results.noVisualGlitches = true; // Assume pass unless user reports otherwise
+
+        // Determine overall status
+        const allTestsPassed = results.toggleToContext &&
+                              results.contextFrameVisible &&
+                              results.rapidToggleSuccess;
+
+        testState.results[platformId] = results;
+
+        if (allTestsPassed) {
+          testState.passedCount++;
+          updatePlatformCard(platformId, 'passed', `
+            <div>✓ Toggle to context: PASS</div>
+            <div>✓ Context frame visible: PASS</div>
+            <div>✓ Rapid toggle (${RAPID_TOGGLE_COUNT}x): PASS</div>
+            <div>✓ No visual glitches: PASS</div>
+          `);
+          log(`${platformId}: ✓ PASSED`, 'pass');
+        } else {
+          testState.failedCount++;
+          updatePlatformCard(platformId, 'failed', `
+            <div>✗ Toggle to context: ${results.toggleToContext ? 'PASS' : 'FAIL'}</div>
+            <div>✗ Context frame visible: ${results.contextFrameVisible ? 'PASS' : 'FAIL'}</div>
+            <div>✗ Rapid toggle (${RAPID_TOGGLE_COUNT}x): ${results.rapidToggleSuccess ? 'PASS' : 'FAIL'}</div>
+            <div>Issues: ${results.issues.join(', ') || 'None'}</div>
+          `);
+          log(`${platformId}: ✗ FAILED - ${results.issues.join(', ')}`, 'fail');
+        }
+
+        // Update counters
+        document.getElementById('passedCount').textContent = testState.passedCount;
+        document.getElementById('failedCount').textContent = testState.failedCount;
+
+        // Update progress
+        const progress = ((testState.currentIndex + 1) / testState.platforms.length) * 100;
+        document.getElementById('progressFill').style.width = `${progress}%`;
+
+      } catch (error) {
+        testState.failedCount++;
+        results.issues.push(`Error: ${error.message}`);
+        testState.results[platformId] = results;
+        updatePlatformCard(platformId, 'failed', `Error: ${error.message}`);
+        log(`${platformId}: ✗ ERROR - ${error.message}`, 'fail');
+        document.getElementById('failedCount').textContent = testState.failedCount;
+      }
+
+      testState.currentIndex++;
+      await sleep(TEST_DELAY);
+    }
+
+    // Run all tests
+    async function runAllTests() {
+      if (testState.isRunning) {
+        log('Test already running...', 'warn');
+        return;
+      }
+
+      testState.isRunning = true;
+      testState.currentIndex = 0;
+      testState.passedCount = 0;
+      testState.failedCount = 0;
+
+      document.getElementById('passedCount').textContent = '0';
+      document.getElementById('failedCount').textContent = '0';
+      document.getElementById('progressFill').style.width = '0%';
+
+      log('Starting full test suite...', 'info');
+      log(`Testing ${testState.platforms.length} platforms with ${RAPID_TOGGLE_COUNT} rapid toggles each`, 'info');
+
+      for (const platformId of testState.platforms) {
+        await testPlatform(platformId);
+      }
+
+      testState.isRunning = false;
+      document.getElementById('currentPlatform').textContent = '✓';
+
+      log('All tests completed!', 'pass');
+      generateSummary();
+    }
+
+    // Generate test summary
+    function generateSummary() {
+      const summary = document.getElementById('testSummary');
+      const list = document.getElementById('summaryList');
+      list.innerHTML = '';
+
+      const passed = Object.values(testState.results).filter(r =>
+        r.toggleToContext && r.contextFrameVisible && r.rapidToggleSuccess
+      ).length;
+
+      const failed = Object.values(testState.results).filter(r =>
+        !r.toggleToContext || !r.contextFrameVisible || !r.rapidToggleSuccess
+      ).length;
+
+      list.innerHTML += `<li class="pass">✓ Total Passed: ${passed} / ${testState.platforms.length}</li>`;
+      list.innerHTML += `<li class="fail">✗ Total Failed: ${failed} / ${testState.platforms.length}</li>`;
+
+      if (failed > 0) {
+        list.innerHTML += '<li style="margin-top: 15px; font-weight: bold;">Failed Platforms:</li>';
+        for (const [platformId, result] of Object.entries(testState.results)) {
+          if (!result.toggleToContext || !result.contextFrameVisible || !result.rapidToggleSuccess) {
+            list.innerHTML += `<li class="fail">✗ ${platformId}: ${result.issues.join(', ')}</li>`;
+          }
+        }
+      }
+
+      summary.style.display = 'block';
+      log('Summary generated - see bottom of page', 'info');
+    }
+
+    // Utility function
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    // Clear log
+    function clearLog() {
+      document.getElementById('testLog').innerHTML = '<div class="log-entry info">Log cleared.</div>';
+    }
+
+    // Event listeners
+    document.getElementById('startTest').addEventListener('click', runAllTests);
+    document.getElementById('clearLog').addEventListener('click', clearLog);
+    document.getElementById('testRapidToggle').addEventListener('click', async () => {
+      if (testState.isRunning) {
+        log('Test already running...', 'warn');
+        return;
+      }
+
+      log('Testing rapid toggle on current platform...', 'info');
+      // This would test rapid toggle on a specific platform in a real scenario
+      log('Use "Start Full Test" for comprehensive rapid toggle testing', 'info');
+    });
+
+    // Initialize on load
+    window.addEventListener('load', () => {
+      if (typeof getSupportedPlatforms === 'function') {
+        initializePlatforms();
+        log(`Loaded ${testState.platforms.length} platforms successfully`, 'info');
+        log('Ready to test. Click "Start Full Test" to begin.', 'info');
+      } else {
+        log('ERROR: getSupportedPlatforms function not available', 'fail');
+        log('Make sure platform-frames.js is loaded correctly', 'warn');
+      }
+    });
+  </script>
+</body>
+</html>

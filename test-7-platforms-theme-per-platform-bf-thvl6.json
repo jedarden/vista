@@ -1,0 +1,26 @@
+{
+  "timestamp": "2026-07-26T01:30:18.047Z",
+  "bead": "bf-thvl6",
+  "platforms": [
+    "reddit",
+    "twitter",
+    "facebook",
+    "linkedin",
+    "instagram",
+    "youtube",
+    "tiktok"
+  ],
+  "themes": [
+    "dark",
+    "light"
+  ],
+  "checks": {
+    "passed": 160,
+    "failed": 0
+  },
+  "summary": {
+    "totalPlatforms": 7,
+    "allPassed": true
+  },
+  "failures": []
+}

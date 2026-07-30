@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jira - Light Mode Frame</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #ffffff;
+      color: #172b4d;
+    }
+
+    .jira-context {
+      display: flex;
+      flex-direction: column;
+      min-height: 350px;
+      background: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .ji-issue-header {
+      padding: 16px 20px;
+      background: #f4f5f7;
+      border-bottom: 1px solid #dfe1e6;
+    }
+
+    .ji-issue-key {
+      font-size: 12px;
+      font-weight: 600;
+      color: #0052cc;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .ji-issue-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #172b4d;
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+
+    .ji-issue-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .ji-status {
+      padding: 4px 12px;
+      background: #deebff;
+      color: #0052cc;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .ji-priority {
+      padding: 4px 12px;
+      background: #f4f5f7;
+      color: #5e6c84;
+      border-radius: 12px;
+      font-size: 12px;
+      border: 1px solid #dfe1e6;
+    }
+
+    .ji-assignee {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #5e6c84;
+      font-size: 12px;
+    }
+
+    .ji-assignee:before {
+      content: '👤';
+      font-size: 14px;
+    }
+
+    .ji-activity-stream {
+      flex: 1;
+      padding: 16px 20px;
+      overflow-y: auto;
+      background: #ffffff;
+    }
+
+    .ji-comment {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .ji-comment-dim {
+      opacity: 0.5;
+    }
+
+    .ji-comment-avatar {
+      width: 32px;
+      height: 32px;
+      background: #dfe1e6;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .ji-comment-content {
+      flex: 1;
+    }
+
+    .ji-comment-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .ji-comment-author {
+      font-weight: 600;
+      color: #172b4d;
+      font-size: 13px;
+    }
+
+    .ji-comment-time {
+      color: #9fadbd;
+      font-size: 12px;
+    }
+
+    .ji-comment-body {
+      color: #172b4d;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .ji-link-preview {
+      margin-top: 8px;
+      padding: 12px;
+      background: #f4f5f7;
+      border-radius: 6px;
+      border: 1px solid #dfe1e6;
+    }
+
+    .ji-title {
+      font-weight: 600;
+      color: #172b4d;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .ji-desc {
+      color: #5e6c84;
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .ji-domain {
+      color: #0052cc;
+      font-size: 12px;
+    }
+
+    /* Board View Styles */
+    .ji-board-view {
+      display: flex;
+      gap: 12px;
+      padding: 16px;
+      background: #ffffff;
+      overflow-x: auto;
+    }
+
+    .ji-column {
+      min-width: 260px;
+      background: #f4f5f7;
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    .ji-column-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      padding: 8px;
+    }
+
+    .ji-column-title {
+      font-weight: 600;
+      font-size: 13px;
+      color: #172b4d;
+      text-transform: uppercase;
+    }
+
+    .ji-column-count {
+      background: #dfe1e6;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      color: #5e6c84;
+    }
+
+    .ji-issue-card {
+      background: #ffffff;
+      border: 1px solid #dfe1e6;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .ji-issue-card:hover {
+      border-color: #0052cc;
+      box-shadow: 0 2px 6px rgba(0, 82, 204, 0.15);
+    }
+
+    .ji-card-key {
+      font-size: 11px;
+      font-weight: 600;
+      color: #0052cc;
+      margin-bottom: 4px;
+    }
+
+    .ji-card-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: #172b4d;
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+
+    .ji-card-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .ji-card-priority {
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #f4f5f7;
+      color: #5e6c84;
+    }
+
+    .ji-card-priority.high {
+      background: #ffebe6;
+      color: #de350b;
+    }
+
+    .ji-card-priority.medium {
+      background: #fffae6;
+      color: #ff991f;
+    }
+
+    .ji-card-assignee {
+      width: 20px;
+      height: 20px;
+      background: #0052cc;
+      border-radius: 50%;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+
+    /* Navigation Bar */
+    .ji-nav {
+      background: #ffffff;
+      border-bottom: 1px solid #dfe1e6;
+      padding: 0 16px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .ji-nav-logo {
+      font-weight: 700;
+      color: #0052cc;
+      font-size: 16px;
+    }
+
+    .ji-nav-search {
+      flex: 1;
+      background: #f4f5f7;
+      border: 1px solid #dfe1e6;
+      border-radius: 4px;
+      padding: 6px 12px;
+      font-size: 13px;
+      color: #172b4d;
+    }
+
+    .ji-nav-search::placeholder {
+      color: #9fadbd;
+    }
+
+    .ji-nav-item {
+      padding: 6px 12px;
+      color: #5e6c84;
+      font-size: 13px;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .ji-nav-item:hover {
+      color: #172b4d;
+    }
+
+    .ji-nav-item.active {
+      color: #0052cc;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div class="jira-context">
+    <div class="ji-nav">
+      <div class="ji-nav-logo">JIRA</div>
+      <input class="ji-nav-search" placeholder="Search issues, projects, and more...">
+      <div class="ji-nav-item">Projects</div>
+      <div class="ji-nav-item active">Board</div>
+      <div class="ji-nav-item">Backlog</div>
+      <div class="ji-nav-item">Issues</div>
+    </div>
+
+    <div class="ji-board-view">
+      <!-- To Do Column -->
+      <div class="ji-column">
+        <div class="ji-column-header">
+          <div class="ji-column-title">To Do</div>
+          <div class="ji-column-count">3</div>
+        </div>
+        <div class="ji-issue-card">
+          <div class="ji-card-key">PROJ-142</div>
+          <div class="ji-card-title">Implement user authentication flow</div>
+          <div class="ji-card-meta">
+            <span class="ji-card-priority high">High</span>
+            <div class="ji-card-assignee">JD</div>
+          </div>
+        </div>
+        <div class="ji-issue-card">
+          <div class="ji-card-key">PROJ-138</div>
+          <div class="ji-card-title">Add OAuth2 provider support</div>
+          <div class="ji-card-meta">
+            <span class="ji-card-priority medium">Medium</span>
+            <div class="ji-card-assignee">SK</div>
+          </div>
+        </div>
+        <div class="ji-issue-card">
+          <div class="ji-card-key">PROJ-129</div>
+          <div class="ji-card-title">Set up unit testing framework</div>
+          <div class="ji-card-meta">
+            <span class="ji-card-priority medium">Medium</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- In Progress Column -->
+      <div class="ji-column">
+        <div class="ji-column-header">
+          <div class="ji-column-title">In Progress</div>
+          <div class="ji-column-count">2</div>
+        </div>
+        <div class="ji-issue-card" style="border-color: #0052cc; box-shadow: 0 2px 6px rgba(0, 82, 204, 0.15);">
+          <div class="ji-card-key">PROJ-123</div>
+          <div class="ji-card-title">Implement user authentication feature</div>
+          <div class="ji-card-meta">
+            <span class="ji-card-priority high">High</span>
+            <div class="ji-card-assignee">JD</div>
+          </div>
+        </div>
+        <div class="ji-issue-card">
+          <div class="ji-card-key">PROJ-117</div>
+          <div class="ji-card-title">Database migration for user tables</div>
+          <div class="ji-card-meta">
+            <span class="ji-card-priority high">High</span>
+            <div class="ji-card-assignee">MR</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Done Column -->
+      <div class="ji-column">
+        <div class="ji-column-header">
+          <div class="ji-column-title">Done</div>
+          <div class="ji-column-count">4</div>
+        </div>
+        <div class="ji-issue-card">
+          <div class="ji-card-key">PROJ-115</div>
+          <div class="ji-card-title">Design authentication UI screens</div>
+          <div class="ji-card-meta">
+            <span class="ji-card-priority medium">Medium</span>
+            <div class="ji-card-assignee">AS</div>
+          </div>
+        </div>
+        <div class="ji-issue-card">
+          <div class="ji-card-key">PROJ-108</div>
+          <div class="ji-card-title">Update dependency packages</div>
+          <div class="ji-card-meta">
+            <span class="ji-card-priority">Low</span>
+          </div>
+        </div>
+        <div class="ji-issue-card">
+          <div class="ji-card-key">PROJ-102</div>
+          <div class="ji-card-title">Write API documentation</div>
+          <div class="ji-card-meta">
+            <span class="ji-card-priority medium">Medium</span>
+            <div class="ji-card-assignee">SK</div>
+          </div>
+        </div>
+        <div class="ji-issue-card">
+          <div class="ji-card-key">PROJ-099</div>
+          <div class="ji-card-title">Set up development environment</div>
+          <div class="ji-card-meta">
+            <span class="ji-card-priority high">High</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

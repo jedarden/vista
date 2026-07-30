@@ -1,0 +1,30 @@
+{
+  "timestamp": "2026-07-23T14:06:17.736Z",
+  "results": {
+    "totalPassed": 14,
+    "totalWarnings": 0,
+    "totalIssues": 0,
+    "passed": true
+  },
+  "details": {
+    "passedChecks": [
+      "VS Code frame defined",
+      "JetBrains frame defined",
+      "VS Code theme vars complete",
+      "JetBrains theme vars complete",
+      "VS Code CSS classes defined",
+      "JetBrains CSS classes defined",
+      "Test page includes IDE frames",
+      "Test page has theme controls",
+      "VS Code theme vars syntax OK",
+      "JetBrains theme vars syntax OK",
+      "VS Code colors valid format",
+      "JetBrains colors valid format",
+      "No common JS error patterns",
+      "style.css properly linked"
+    ],
+    "warnings": [],
+    "issues": []
+  },
+  "conclusion": "All static checks passed - IDE frames are properly configured with no console error sources detected"
+}

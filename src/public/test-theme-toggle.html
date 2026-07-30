@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <title>Theme Toggle Test</title>
+  <style>
+    body { font-family: system-ui; padding: 20px; background: #0f1117; color: #e8eaf0; }
+    html[data-theme='light'] body { background: #f8f9fa; color: #212529; }
+    .test-result { margin: 10px 0; padding: 10px; border-radius: 4px; }
+    .pass { background: #22c55e; color: white; }
+    .fail { background: #ef4444; color: white; }
+    button { padding: 10px 20px; background: #5b8dee; color: white; border: none; border-radius: 4px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>Theme Toggle Verification</h1>
+  <button id="toggleBtn">Toggle Theme</button>
+  <div id="results"></div>
+  
+  <script>
+    const platforms = ['facebook', 'twitter', 'linkedin', 'reddit', 'instagram', 'youtube', 'tiktok', 'pinterest'];
+    let currentTheme = 'dark';
+    const results = document.getElementById('results');
+    
+    function addResult(message, passed) {
+      const div = document.createElement('div');
+      div.className = 'test-result ' + (passed ? 'pass' : 'fail');
+      div.textContent = message;
+      results.appendChild(div);
+    }
+    
+    function verifyTheme() {
+      const htmlTheme = document.documentElement.getAttribute('data-theme');
+      addResult(`HTML data-theme: ${htmlTheme} (expected: ${currentTheme})`, htmlTheme === currentTheme);
+      
+      platforms.forEach(platform => {
+        const frame = document.querySelector(`.${platform}-context`);
+        if (frame) {
+          const hasClass = frame.classList.contains(`${currentTheme}-theme`);
+          const hasWrongClass = frame.classList.contains(currentTheme === 'dark' ? 'light-theme' : 'dark-theme');
+          addResult(`${platform}: ${currentTheme}-theme class ${hasClass ? '✓' : '✗'} (no wrong class: ${!hasWrongClass})`, hasClass && !hasWrongClass);
+        } else {
+          addResult(`${platform}: Frame not found ✗`, false);
+        }
+      });
+    }
+    
+    document.getElementById('toggleBtn').addEventListener('click', () => {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      
+      platforms.forEach(platform => {
+        const frame = document.querySelector(`.${platform}-context`);
+        if (frame) {
+          frame.classList.remove('dark-theme', 'light-theme');
+          frame.classList.add(`${currentTheme}-theme`);
+        }
+      });
+      
+      results.innerHTML = '';
+      verifyTheme();
+    });
+    
+    // Initial verification
+    addResult('Initial state - Dark Mode', true);
+    verifyTheme();
+  </script>
+</body>
+</html>

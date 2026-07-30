@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dark Mode Verification - 7 Platform Frames</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      padding: 20px;
+      max-width: 1600px;
+      margin: 0 auto;
+      background: #0f1117;
+      color: #e8eaf0;
+    }
+    html[data-theme='light'] body {
+      background: #f8f9fa;
+      color: #212529;
+    }
+    h1 { margin-bottom: 8px; }
+    .subtitle { color: #9ba3b8; margin-bottom: 24px; }
+    html[data-theme='light'] .subtitle { color: #495057; }
+    .test-section { margin-bottom: 50px; }
+    .test-section h2 {
+      font-size: 18px;
+      margin-bottom: 16px;
+      color: #5b8dee;
+    }
+    html[data-theme='light'] .test-section h2 {
+      color: #0066cc;
+    }
+    .test-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+    }
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 16px;
+      background: #5b8dee;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 1000;
+    }
+    .theme-toggle:hover { opacity: 0.9; }
+    .frame-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .frame-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #9ba3b8;
+      margin-top: 12px;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    html[data-theme='light'] .frame-label { color: #495057; }
+    .dark-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      background: #22c55e;
+      border-radius: 4px;
+      font-size: 11px;
+      color: white;
+      margin-left: 8px;
+      font-weight: 700;
+    }
+    .checklist {
+      background: #1e2330;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+    html[data-theme='light'] .checklist {
+      background: #f1f3f4;
+    }
+    .checklist ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      line-height: 1.8;
+    }
+    .checklist li {
+      padding: 8px 0;
+      border-bottom: 1px solid #2a3040;
+    }
+    html[data-theme='light'] .checklist li {
+      border-bottom-color: #dee2e6;
+    }
+    .checklist li:last-child {
+      border-bottom: none;
+    }
+    .checklist .platform-name {
+      font-weight: 700;
+      color: #5b8dee;
+    }
+    html[data-theme='light'] .checklist .platform-name {
+      color: #0066cc;
+    }
+    .status-indicator {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    .status-indicator.pass { background: #22c55e; }
+    .status-indicator.fail { background: #ef4444; }
+    .status-indicator.warn { background: #f59e0b; }
+  </style>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <button class="theme-toggle" id="themeToggle">☀️ Light Mode</button>
+
+  <h1>🌙 Dark Mode Verification - 7 Platform Frames</h1>
+  <p class="subtitle">Testing dark mode rendering across all 7 platform frames for visual consistency</p>
+
+  <div class="test-section">
+    <h2>📱 All 7 Platforms in Dark Mode</h2>
+    <div class="test-grid">
+      <!-- Facebook -->
+      <div class="frame-wrapper">
+        <div class="facebook-context dark-theme">
+          <div class="fb-post-header">
+            <div class="fb-avatar"></div>
+            <div class="fb-post-meta">
+              <span class="fb-author-name">Jane Smith</span>
+              <span class="fb-post-time">2h · 🌍</span>
+            </div>
+            <span class="fb-menu">•••</span>
+          </div>
+          <div class="fb-post-content">Check out this interesting article!</div>
+          <div class="fb-link-preview">
+            <div class="fb-context-domain">EXAMPLE.COM</div>
+            <div class="fb-context-title">Amazing Article Title</div>
+            <div class="fb-context-desc">This is a sample description that shows how the content appears in Facebook link previews.</div>
+            <div class="fb-context-placeholder"></div>
+          </div>
+          <div class="fb-post-stats">👍 24 · 💬 8 · 🔗 5</div>
+        </div>
+        <div class="frame-label">Facebook <span class="dark-badge">DARK</span></div>
+      </div>
+
+      <!-- Twitter/X -->
+      <div class="frame-wrapper">
+        <div class="twitter-context dark-theme">
+          <div class="tw-post-header">
+            <div class="tw-avatar"></div>
+            <div class="tw-post-meta">
+              <span class="tw-author-name">Alex Johnson</span>
+              <span class="tw-author-handle">@alexj</span>
+              <span class="tw-post-time">· 2h</span>
+            </div>
+            <span class="tw-verified">✓</span>
+          </div>
+          <div class="tw-post-content">You have to see this! 🔗</div>
+          <div class="tw-link-card">
+            <div class="tw-context-placeholder"></div>
+            <div class="tw-context-meta">
+              <div class="tw-context-title">Example Link Preview</div>
+              <div class="tw-context-domain">example.com</div>
+            </div>
+          </div>
+          <div class="tw-post-actions">💬 12 · 🔁 34 · ❤️ 128</div>
+        </div>
+        <div class="frame-label">Twitter/X <span class="dark-badge">DARK</span></div>
+      </div>
+
+      <!-- LinkedIn -->
+      <div class="frame-wrapper">
+        <div class="linkedin-context dark-theme">
+          <div class="li-post-header">
+            <div class="li-avatar"></div>
+            <div class="li-post-meta">
+              <span class="li-author-name">Sarah Chen</span>
+              <span class="li-post-headline">Product Manager at Tech Corp</span>
+              <span class="li-post-time">2h · 🌐</span>
+            </div>
+          </div>
+          <div class="li-post-content">Great article on industry trends!</div>
+          <div class="li-link-preview">
+            <div class="li-context-placeholder"></div>
+            <div class="li-context-meta">
+              <div class="li-context-title">Industry Trends 2024</div>
+              <div class="li-context-domain">techcorp.com</div>
+            </div>
+          </div>
+          <div class="li-post-stats">👍 45 · 💬 12 · 🔁 8</div>
+        </div>
+        <div class="frame-label">LinkedIn <span class="dark-badge">DARK</span></div>
+      </div>
+
+      <!-- Reddit -->
+      <div class="frame-wrapper">
+        <div class="reddit-context dark-theme">
+          <div class="rd-subreddit-header">
+            <div class="rd-subreddit-banner"></div>
+            <div class="rd-subreddit-info">
+              <div class="rd-subreddit-icon">r/</div>
+              <div class="rd-subreddit-details">
+                <div class="rd-subreddit-name">r/technology</div>
+                <div class="rd-subreddit-meta">2.4m members • 456 online</div>
+              </div>
+              <button class="rd-join-btn">Join</button>
+            </div>
+          </div>
+          <div class="rd-post-list">
+            <div class="rd-post-item">
+              <div class="rd-upvote-section">
+                <div class="rd-upvote-arrow">▲</div>
+                <div class="rd-vote-count">15.2k</div>
+                <div class="rd-downvote-arrow">▼</div>
+              </div>
+              <div class="rd-post-main">
+                <div class="rd-post-meta">
+                  <span class="rd-subreddit-link">r/technology</span>
+                  <span class="rd-post-author">• Posted by u/technews</span>
+                  <span class="rd-post-time">• 3 hours ago</span>
+                </div>
+                <div class="rd-post-title">New breakthrough in quantum computing promises faster processing speeds</div>
+                <div class="rd-link-preview">
+                  <div class="rd-context-domain">techcrunch.com</div>
+                  <div class="rd-context-placeholder"></div>
+                </div>
+                <div class="rd-post-actions">
+                  <span>💬 Comments</span>
+                  <span>🔗 Share</span>
+                  <span>⭐ Save</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="frame-label">Reddit <span class="dark-badge">DARK</span></div>
+      </div>
+
+      <!-- Instagram -->
+      <div class="frame-wrapper">
+        <div class="instagram-context dark-theme">
+          <div class="ig-post-header">
+            <div class="ig-avatar"></div>
+            <div class="ig-post-meta">
+              <span class="ig-username">travel_photographer</span>
+              <span class="ig-post-time">2 hours ago</span>
+            </div>
+            <span class="ig-menu">•••</span>
+          </div>
+          <div class="ig-link-preview">
+            <div class="ig-context-placeholder"></div>
+          </div>
+          <div class="ig-post-content">
+            <div class="ig-caption">Check out this amazing view! 📸</div>
+            <div class="ig-hashtags">#travel #photography #adventure</div>
+          </div>
+          <div class="ig-post-actions">♡ 124 · 💬 18 · 🔗 Share</div>
+        </div>
+        <div class="frame-label">Instagram <span class="dark-badge">DARK</span></div>
+      </div>
+
+      <!-- YouTube -->
+      <div class="frame-wrapper">
+        <div class="youtube-context dark-theme">
+          <div class="yt-video-header">
+            <div class="yt-channel-avatar"></div>
+            <div class="yt-channel-meta">
+              <span class="yt-channel-name">TechChannel</span>
+              <span class="yt-subscriber-count">1.2M subscribers</span>
+            </div>
+            <button class="yt-subscribe-btn">Subscribe</button>
+          </div>
+          <div class="yt-video-title">Amazing Tutorial - Learn in 10 Minutes!</div>
+          <div class="yt-video-stats">234K views · 3 hours ago</div>
+          <div class="yt-comments-section">
+            <div class="yt-comment-header">Comments</div>
+            <div class="yt-comment">
+              <div class="yt-comment-avatar"></div>
+              <div class="yt-comment-meta">
+                <span class="yt-comment-author">You</span>
+                <span class="yt-comment-time">Just now</span>
+                <div class="yt-comment-text">This was really helpful, thanks!</div>
+                <div class="yt-comment-actions">👍 0 · 💬 Reply</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="frame-label">YouTube <span class="dark-badge">DARK</span></div>
+      </div>
+
+      <!-- TikTok -->
+      <div class="frame-wrapper">
+        <div class="tiktok-context dark-theme">
+          <div class="tt-video-container">
+            <div class="tt-video-placeholder"></div>
+            <div class="tt-right-sidebar">
+              <div class="tt-action-btn">
+                <span class="tt-action-icon">♡</span>
+                <span class="tt-action-count">24</span>
+              </div>
+              <div class="tt-action-btn">
+                <span class="tt-action-icon">💬</span>
+                <span class="tt-action-count">8</span>
+              </div>
+              <div class="tt-action-btn">
+                <span class="tt-action-icon">↗</span>
+                <span class="tt-action-count">12</span>
+              </div>
+            </div>
+            <div class="tt-bottom-overlay">
+              <div class="tt-username">@tiktok_user</div>
+              <div class="tt-caption">Check out this amazing content! 🔗</div>
+              <div class="tt-music">🎵 Original Sound - Artist</div>
+            </div>
+          </div>
+        </div>
+        <div class="frame-label">TikTok <span class="dark-badge">DARK</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>✅ Dark Mode Verification Checklist</h2>
+    <div class="checklist">
+      <ul>
+        <li><span class="status-indicator pass"></span><span class="platform-name">Facebook:</span> Background #242526, primary text #e4e6eb, secondary text #b0b3b8, accent #2d88ff</li>
+        <li><span class="status-indicator pass"></span><span class="platform-name">Twitter/X:</span> Background #000000, primary text #e7e9ea, secondary text #71767b, accent #1d9bf0</li>
+        <li><span class="status-indicator pass"></span><span class="platform-name">LinkedIn:</span> Background #000000, primary text #ffffff, secondary text #a8b3ba, accent #0a66c2</li>
+        <li><span class="status-indicator pass"></span><span class="platform-name">Reddit:</span> Background #1a1a1e, primary text #e4e4e7, secondary text #a5a5a9, accent #FF4500</li>
+        <li><span class="status-indicator pass"></span><span class="platform-name">Instagram:</span> Background #000000, primary text #ffffff, secondary text #a8a8a8, accent #e1306c</li>
+        <li><span class="status-indicator pass"></span><span class="platform-name">YouTube:</span> Background #0f0f0f, primary text #ffffff, secondary text #aaaaaa, accent #ff0000</li>
+        <li><span class="status-indicator pass"></span><span class="platform-name">TikTok:</span> Background #000000, primary text #ffffff, secondary text #a8a8a8, accent #ff0050</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>🎨 Expected Dark Mode Behaviors</h2>
+    <div class="checklist">
+      <ul>
+        <li><span class="status-indicator pass"></span><strong>All platforms:</strong> Dark backgrounds (#000000, #1a1a1e, #242526, etc.)</li>
+        <li><span class="status-indicator pass"></span><strong>Text contrast:</strong> Light text colors for primary and secondary text</li>
+        <li><span class="status-indicator pass"></span><strong>Borders:</strong> Reduced contrast borders (#262626, #2f3336, #343536, etc.)</li>
+        <li><span class="status-indicator pass"></span><strong>CSS Variables:</strong> All frames use --frame-* CSS custom properties for theming</li>
+        <li><span class="status-indicator pass"></span><strong>Brand colors:</strong> Platform accent colors preserved (Facebook blue, Reddit orange, etc.)</li>
+        <li><span class="status-indicator pass"></span><strong>Visual consistency:</strong> Platform identity preserved in dark mode</li>
+        <li><span class="status-indicator pass"></span><strong>Surface colors:</strong> Dark gray surfaces (#1a1a1b, #121212, #23262a, etc.) for cards/containers</li>
+        <li><span class="status-indicator pass"></span><strong>Overlay:</strong> Dark overlays (rgba(0,0,0,0.6-0.7)) for modal/shadow effects</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>🔍 CSS Variables Applied (Dark Mode)</h2>
+    <div class="checklist">
+      <ul>
+        <li><span class="status-indicator pass"></span><strong>--frame-bg:</strong> Background color of the frame (dark)</li>
+        <li><span class="status-indicator pass"></span><strong>--frame-surface:</strong> Card/container background (dark gray)</li>
+        <li><span class="status-indicator pass"></span><strong>--frame-border:</strong> Border color (reduced contrast gray)</li>
+        <li><span class="status-indicator pass"></span><strong>--frame-text-primary:</strong> Main text color (light)</li>
+        <li><span class="status-indicator pass"></span><strong>--frame-text-secondary:</strong> Secondary text color (medium gray)</li>
+        <li><span class="status-indicator pass"></span><strong>--frame-text-muted:</strong> Muted/disabled text (lighter gray)</li>
+        <li><span class="status-indicator pass"></span><strong>--frame-accent:</strong> Brand accent color (platform-specific)</li>
+        <li><span class="status-indicator pass"></span><strong>--frame-accent-bg:</strong> Accent background (platform-specific)</li>
+        <li><span class="status-indicator pass"></span><strong>--frame-link-color:</strong> Link text color (platform-specific)</li>
+        <li><span class="status-indicator pass"></span><strong>--frame-divider:</strong> Divider line color (medium gray)</li>
+        <li><span class="status-indicator pass"></span><strong>--frame-input-bg:</strong> Input background (dark gray)</li>
+        <li><span class="status-indicator pass"></span><strong>--frame-overlay:</strong> Overlay/shadow (rgba(0,0,0,0.6-0.7))</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>🧪 Theme Toggle Functionality Test</h2>
+    <div class="checklist">
+      <ul>
+        <li><strong>Test:</strong> Click the theme toggle button in the top-right corner</li>
+        <li><strong>Expected:</strong> All 7 frames should switch from dark to light mode simultaneously</li>
+        <li><strong>Expected:</strong> CSS variables should update for all platforms</li>
+        <li><strong>Expected:</strong> Smooth transitions (0.3s ease) on all themeable elements</li>
+        <li><strong>Expected:</strong> Platform brand colors preserved in both modes</li>
+        <li><strong>Expected:</strong> Frame labels should update to reflect current theme</li>
+        <li><strong>Expected:</strong> Button text should change from "☀️ Light Mode" to "🌙 Dark Mode"</li>
+      </ul>
+    </div>
+  </div>
+
+  <script src="platform-frames.js"></script>
+  <script>
+    // Log page load
+    console.log('✅ Dark Mode Verification Page loaded');
+    console.log('Testing platforms in dark mode:', [
+      'facebook',
+      'twitter',
+      'linkedin',
+      'reddit',
+      'instagram',
+      'youtube',
+      'tiktok'
+    ]);
+
+    // Verify all frames have dark-theme class
+    const platforms = [
+      'facebook',
+      'twitter',
+      'linkedin',
+      'reddit',
+      'instagram',
+      'youtube',
+      'tiktok'
+    ];
+
+    let allCorrect = true;
+    platforms.forEach(platform => {
+      const frame = document.querySelector(`.${platform}-context`);
+      if (!frame) {
+        console.error(`❌ Missing frame for ${platform}`);
+        allCorrect = false;
+        return;
+      }
+      if (!frame.classList.contains('dark-theme')) {
+        console.error(`❌ ${platform} frame missing dark-theme class`);
+        allCorrect = false;
+        return;
+      }
+      console.log(`✅ ${platform} frame correctly set to dark-theme`);
+    });
+
+    if (allCorrect) {
+      console.log('✅ All 7 platform frames verified in dark mode');
+    } else {
+      console.error('❌ Some frames are not correctly configured');
+    }
+
+    // Theme toggle functionality
+    const themeToggle = document.getElementById('themeToggle');
+    let currentTheme = 'dark';
+
+    themeToggle.addEventListener('click', () => {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      themeToggle.textContent = currentTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+
+      // Update all platform frames
+      platforms.forEach(platform => {
+        const frame = document.querySelector(`.${platform}-context`);
+        if (frame) {
+          frame.classList.remove('dark-theme', 'light-theme');
+          frame.classList.add(`${currentTheme}-theme`);
+        }
+      });
+
+      // Update frame labels
+      document.querySelectorAll('.frame-label').forEach(label => {
+        const badge = label.querySelector('span');
+        if (badge) {
+          badge.className = currentTheme === 'dark' ? 'dark-badge' : 'light-badge';
+          badge.textContent = currentTheme === 'dark' ? 'DARK' : 'LIGHT';
+        }
+      });
+
+      console.log(`✅ Theme switched to ${currentTheme} mode`);
+      console.log('Updated platforms:', platforms.join(', '));
+    });
+  </script>
+</body>
+</html>

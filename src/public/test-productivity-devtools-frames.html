@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Productivity & Dev-Tools Context Frames Verification</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 40px 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+      background: #1a1a1e;
+      color: #e4e4e7;
+    }
+    .test-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .test-header h1 {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+    .test-header p {
+      color: #a1a1aa;
+      font-size: 16px;
+    }
+    .acceptance-criteria {
+      background: #25252a;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 40px;
+    }
+    .acceptance-criteria h2 {
+      font-size: 18px;
+      margin-bottom: 16px;
+      color: #6366f1;
+    }
+    .criteria-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .criteria-list li {
+      padding: 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+    .criteria-list li:before {
+      content: '✓';
+      color: #4ade80;
+      font-weight: bold;
+    }
+    .test-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+      gap: 24px;
+      margin: 24px 0;
+    }
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 16px;
+      background: #6366f1;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 1000;
+    }
+    .theme-toggle:hover {
+      opacity: 0.9;
+    }
+    .test-section {
+      margin-bottom: 60px;
+    }
+    .test-section h2 {
+      font-size: 20px;
+      margin-bottom: 16px;
+      color: #6366f1;
+    }
+    .platform-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #6366f1;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+    /* HTML theme support */
+    html[data-theme='light'] body {
+      background: #ffffff;
+      color: #1f2937;
+    }
+    html[data-theme='light'] .acceptance-criteria {
+      background: #f8f9fa;
+      border: 1px solid #e5e7eb;
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme 🌓</button>
+
+  <div class="test-header">
+    <h1>Productivity & Dev-Tools Context Frames</h1>
+    <p>Verification test page for 7 productivity and development tool platforms</p>
+  </div>
+
+  <div class="acceptance-criteria">
+    <h2>Acceptance Criteria</h2>
+    <ul class="criteria-list">
+      <li>All 7 productivity/dev-tool platforms have context frames in src/public/platform-frames.js</li>
+      <li>Each captures distinct UI patterns (Notion's block editor, VS Code's panel layout, Jira's issue tracking)</li>
+      <li>Dark/light mode works for all 7 platforms</li>
+      <li>Frames integrate with existing PLATFORMS_WITH_THEME enum</li>
+      <li>Total platform count reaches 31+ when combined with previous beads</li>
+    </ul>
+  </div>
+
+  <div class="test-section">
+    <h2>Note-Taking Apps</h2>
+    <div class="test-grid">
+      <div>
+        <div class="platform-label">Notion</div>
+        <div class="notion-context dark-theme" style="--frame-bg: #191919; --frame-surface: #2f2f2f; --frame-border: #3f3f3f; --frame-text-primary: #e6e6e6; --frame-text-secondary: #9a9a9a; --frame-text-muted: #6a6a6a; --frame-accent: #2383e2; --frame-accent-bg: #2383e2; --frame-link-color: #2383e2; --frame-divider: #3f3f3f; --frame-input-bg: #2f2f2f; --frame-overlay: rgba(0, 0, 0, 0.6);">
+          <div class="no-page-header">
+            <div class="no-page-icon">📄</div>
+            <div class="no-page-title">Project Documentation</div>
+            <div class="no-page-meta">
+              <span class="no-author">Jane Smith</span>
+              <span class="no-time">2 hours ago</span>
+            </div>
+          </div>
+          <div class="no-content">
+            <div class="no-block no-block-dim">
+              <div class="no-block-text">Some project notes here...</div>
+            </div>
+            <div class="no-block no-block-dim">
+              <div class="no-block-callout">
+                <span class="no-emoji">💡</span>
+                <span class="no-callout-text">Important note about the deadline</span>
+              </div>
+            </div>
+            <div class="no-block">
+              <div class="no-link-preview">
+                <div class="no-link-thumb-placeholder"></div>
+                <div class="no-link-meta">
+                  <div class="no-link-title">Example Resource Link</div>
+                  <div class="no-link-domain">example.com</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="platform-label">Evernote</div>
+        <div class="evernote-context dark-theme" style="--frame-bg: #1a1a1a; --frame-surface: #2a2a2a; --frame-border: #3a3a3a; --frame-text-primary: #e0e0e0; --frame-text-secondary: #a0a0a0; --frame-text-muted: #6a6a6a; --frame-accent: #00a82d; --frame-accent-bg: #00a82d; --frame-link-color: #00a82d; --frame-divider: #3a3a3a; --frame-input-bg: #2a2a2a; --frame-overlay: rgba(0, 0, 0, 0.6);">
+          <div class="ev-notebook-header">
+            <div class="ev-notebook-icon">📒</div>
+            <div class="ev-notebook-title">Research Notebook</div>
+          </div>
+          <div class="ev-note-list">
+            <div class="ev-note ev-note-dim">
+              <div class="ev-note-title">Previous Note</div>
+              <div class="ev-note-preview">Some preview text...</div>
+              <div class="ev-note-meta">2 hours ago</div>
+            </div>
+            <div class="ev-note">
+              <div class="ev-note-title">Research Links</div>
+              <div class="ev-note-content">
+                <div class="ev-link-card">
+                  <div class="ev-link-thumb-placeholder"></div>
+                  <div class="ev-link-domain">example.com</div>
+                </div>
+              </div>
+              <div class="ev-note-meta">Just now</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>Developer Tools</h2>
+    <div class="test-grid">
+      <div>
+        <div class="platform-label">VS Code</div>
+        <div class="vscode-context dark-theme" style="--frame-bg: #1e1e1e; --frame-surface: #252526; --frame-border: #3e3e42; --frame-text-primary: #d4d4d4; --frame-text-secondary: #858585; --frame-text-muted: #6e6e6e; --frame-accent: #0078d4; --frame-accent-bg: #0078d4; --frame-link-color: #3794ff; --frame-divider: #3e3e42; --frame-input-bg: #3c3c3c; --frame-overlay: rgba(0, 0, 0, 0.6);">
+          <div class="vs-sidebar">
+            <div class="vs-explorer">Explorer</div>
+            <div class="vs-file vs-file-active">app.js</div>
+            <div class="vs-file">README.md</div>
+          </div>
+          <div class="vs-editor">
+            <div class="vs-tab-bar">
+              <div class="vs-tab vs-tab-active">app.js</div>
+            </div>
+            <div class="vs-content">
+              <div class="vs-comment vs-comment-dim">
+                <span class="vs-comment-author">Dev</span>
+                <span class="vs-comment-time">2 hours ago</span>
+                <div class="vs-comment-body">// TODO: Review this code</div>
+              </div>
+              <div class="vs-comment">
+                <span class="vs-comment-author">You</span>
+                <span class="vs-comment-time">Just now</span>
+                <div class="vs-comment-body">// Fixed the issue with data fetching</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="platform-label">JetBrains IDE</div>
+        <div class="jetbrains-context dark-theme" style="--frame-bg: #2b2b2b; --frame-surface: #313335; --frame-border: #4e5254; --frame-text-primary: #a9b7c6; --frame-text-secondary: #808080; --frame-text-muted: #6e6e6e; --frame-accent: #6c8eba; --frame-accent-bg: #4e6a91; --frame-link-color: #589df6; --frame-divider: #4e5254; --frame-input-bg: #3c3f41; --frame-overlay: rgba(0, 0, 0, 0.6);">
+          <div class="jb-navigation-bar">
+            <span class="jb-menu-item">File</span>
+            <span class="jb-menu-item">Edit</span>
+            <span class="jb-menu-item">View</span>
+            <span class="jb-menu-item">Navigate</span>
+            <span class="jb-menu-item">Code</span>
+            <span class="jb-menu-item">Refactor</span>
+            <span class="jb-menu-item">Build</span>
+            <span class="jb-menu-item">Run</span>
+            <span class="jb-menu-item">Tools</span>
+          </div>
+          <div class="jb-content-area">
+            <div class="jb-sidebar">
+              <div class="jb-project-header">MyProject</div>
+              <div class="jb-explorer">Project</div>
+              <div class="jb-file-tree">
+                <div class="jb-folder">
+                  <div class="jb-folder-name">src</div>
+                  <div class="jb-file jb-file-active">Main.java</div>
+                  <div class="jb-file">App.java</div>
+                </div>
+                <div class="jb-folder">
+                  <div class="jb-folder-name">test</div>
+                  <div class="jb-file">Test.java</div>
+                </div>
+              </div>
+            </div>
+            <div class="jb-main-area">
+              <div class="jb-editor">
+                <div class="jb-tab-bar">
+                  <div class="jb-tab jb-tab-active">Main.java</div>
+                  <div class="jb-tab">README.md</div>
+                </div>
+                <div class="jb-content">
+                  <div class="jb-comment jb-comment-dim">
+                    <span class="jb-comment-author">Developer</span>
+                    <span class="jb-comment-time">2 hours ago</span>
+                    <div class="jb-comment-body">// TODO: Review this implementation</div>
+                  </div>
+                  <div class="jb-comment">
+                    <span class="jb-comment-author">You</span>
+                    <span class="jb-comment-time">Just now</span>
+                    <div class="jb-comment-body">// Updated the algorithm for better performance</div>
+                  </div>
+                </div>
+              </div>
+              <div class="jb-status-bar">
+                <div class="jb-status-left">
+                  <span class="jb-status-item">✓</span>
+                  <span class="jb-status-item">JUnit: OK</span>
+                </div>
+                <div class="jb-status-right">
+                  <span class="jb-status-item">Line 42</span>
+                  <span class="jb-status-item">UTF-8</span>
+                  <span class="jb-status-item">4 spaces</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>Project Management</h2>
+    <div class="test-grid">
+      <div>
+        <div class="platform-label">Jira</div>
+        <div class="jira-context dark-theme" style="--frame-bg: #0d1216; --frame-surface: #1a2129; --frame-border: #2e3947; --frame-text-primary: #b6c2cf; --frame-text-secondary: #7a869a; --frame-text-muted: #5c6779; --frame-accent: #0052cc; --frame-accent-bg: #0052cc; --frame-link-color: #579dff; --frame-divider: #2e3947; --frame-input-bg: #1a2129; --frame-overlay: rgba(0, 0, 0, 0.6);">
+          <div class="ji-issue-header">
+            <div class="ji-issue-key">PROJ-123</div>
+            <div class="ji-issue-title">Implement user authentication feature</div>
+            <div class="ji-issue-meta">
+              <span class="ji-status">In Progress</span>
+              <span class="ji-priority">High</span>
+              <span class="ji-assignee">John Doe</span>
+            </div>
+          </div>
+          <div class="ji-activity-stream">
+            <div class="ji-comment ji-comment-dim">
+              <div class="ji-comment-avatar"></div>
+              <div class="ji-comment-content">
+                <span class="ji-comment-author">Teammate</span>
+                <span class="ji-comment-time">2 hours ago</span>
+                <div class="ji-comment-body">Made some progress on this!</div>
+              </div>
+            </div>
+            <div class="ji-comment">
+              <div class="ji-comment-avatar"></div>
+              <div class="ji-comment-content">
+                <span class="ji-comment-author">You</span>
+                <span class="ji-comment-time">Just now</span>
+                <div class="ji-comment-body">I've completed the authentication flow. Ready for review!</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="platform-label">Trello</div>
+        <div class="trello-context dark-theme" style="--frame-bg: #1e1e1e; --frame-surface: #2a2a2a; --frame-border: #3a3a3a; --frame-text-primary: #e0e0e0; --frame-text-secondary: #a0a0a0; --frame-text-muted: #6a6a6a; --frame-accent: #0079bf; --frame-accent-bg: #0079bf; --frame-link-color: #0079bf; --frame-divider: #3a3a3a; --frame-input-bg: #2a2a2a; --frame-overlay: rgba(0, 0, 0, 0.6);">
+          <div class="tr-board-header">
+            <div class="tr-board-title">Sprint Board</div>
+          </div>
+          <div class="tr-card-list">
+            <div class="tr-card tr-card-dim">
+              <div class="tr-card-title">Another task</div>
+              <div class="tr-card-meta">
+                <span class="tr-labels">🏷️ Labels</span>
+                <span class="tr-checklist">✓ 1/3</span>
+              </div>
+            </div>
+            <div class="tr-card">
+              <div class="tr-card-title">Fix navigation bug</div>
+              <div class="tr-card-desc">Users are experiencing issues with the main navigation menu not responding</div>
+              <div class="tr-card-meta">
+                <span class="tr-labels">🐛 Bug</span>
+                <span class="tr-checklist">✓ 2/2</span>
+              </div>
+              <div class="tr-card-attachment">
+                <div class="tr-attachment-placeholder"></div>
+                <div class="tr-attachment-domain">bugreport.com</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="platform-label">Asana</div>
+        <div class="asana-context dark-theme" style="--frame-bg: #1f1f1f; --frame-surface: #2a2a2a; --frame-border: #3a3a3a; --frame-text-primary: #e0e0e0; --frame-text-secondary: #a0a0a0; --frame-text-muted: #6a6a6a; --frame-accent: #7f54b3; --frame-accent-bg: #7f54b3; --frame-link-color: #4da3ff; --frame-divider: #3a3a3a; --frame-input-bg: #2a2a2a; --frame-overlay: rgba(0, 0, 0, 0.6);">
+          <div class="as-task-header">
+            <div class="as-task-id">AS-456</div>
+            <div class="as-task-title">Design system component library</div>
+            <div class="as-task-meta">
+              <span class="as-project">Product Design</span>
+              <span class="as-assignee">Sarah Chen</span>
+              <span class="as-due-date">Due tomorrow</span>
+            </div>
+          </div>
+          <div class="as-comments-section">
+            <div class="as-comment as-comment-dim">
+              <div class="as-comment-avatar"></div>
+              <div class="as-comment-content">
+                <span class="as-comment-author">Teammate</span>
+                <span class="as-comment-time">2 hours ago</span>
+                <div class="as-comment-body">Making good progress on this task!</div>
+              </div>
+            </div>
+            <div class="as-comment">
+              <div class="as-comment-avatar"></div>
+              <div class="as-comment-content">
+                <span class="as-comment-author">You</span>
+                <span class="as-comment-time">Just now</span>
+                <div class="as-comment-body">Added the button component and card styles. Ready for review!</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleTheme() {
+      const html = document.documentElement;
+      const currentTheme = html.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', newTheme);
+
+      // Update all context frames
+      document.querySelectorAll('.notion-context, .evernote-context, .vscode-context, .jetbrains-context, .jira-context, .trello-context, .asana-context').forEach(el => {
+        el.classList.remove('dark-theme', 'light-theme');
+        el.classList.add(newTheme + '-theme');
+      });
+    }
+  </script>
+</body>
+</html>

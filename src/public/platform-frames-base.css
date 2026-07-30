@@ -1,0 +1,1062 @@
+/*
+ * Platform Frames Base CSS Infrastructure
+ *
+ * Comprehensive foundation for all platform context frames with:
+ * - Complete CSS variable system for dark/light theme switching
+ * - Base frame primitives (container, chrome, avatar, username, timestamp, metadata)
+ * - Neutral placeholder content styles
+ * - Responsive layout utilities
+ * - Platform-specific theming hooks
+ *
+ * @version 1.0.0
+ * @requires No dependencies (standalone base)
+ */
+
+/* ============================================================================
+   CSS THEME VARIABLE SYSTEM
+   ============================================================================ */
+
+/**
+ * Root theme variables - Dark mode (default)
+ *
+ * These variables provide the foundation for all platform theming.
+ * Each platform can override these with their specific colors while
+ * maintaining consistent naming and structure.
+ */
+:root {
+  /* Primary Theme Colors - Dark Mode */
+  --frame-bg: var(--color-bg-dark-primary);
+  --frame-surface: var(--color-bg-dark-elevated);
+  --frame-border: var(--color-border-dark-default);
+  --frame-text-primary: var(--color-text-dark-primary);
+  --frame-text-secondary: var(--color-text-dark-secondary);
+  --frame-text-muted: var(--color-text-dark-muted);
+  --frame-accent: var(--color-accent-indigo-500);
+  --frame-accent-bg: var(--color-accent-indigo-600);
+  --frame-link-color: var(--color-link-indigo-400);
+  --frame-divider: var(--color-border-dark-default);
+  --frame-input-bg: var(--color-bg-dark-input);
+  --frame-overlay: var(--color-overlay-dark);
+
+  /* Spacing System */
+  --frame-spacing-xs: 4px;
+  --frame-spacing-sm: 8px;
+  --frame-spacing-md: 12px;
+  --frame-spacing-lg: 16px;
+  --frame-spacing-xl: 24px;
+  --frame-spacing-2xl: 32px;
+
+  /* Border Radius */
+  --frame-radius-sm: 6px;
+  --frame-radius-md: 10px;
+  --frame-radius-lg: 14px;
+  --frame-radius-full: 9999px;
+
+  /* Typography Scale */
+  --frame-font-xs: 11px;
+  --frame-font-sm: 12px;
+  --frame-font-base: 14px;
+  --frame-font-lg: 16px;
+  --frame-font-xl: 18px;
+  --frame-font-2xl: 20px;
+
+  /* Transitions */
+  --frame-transition-fast: 150ms ease;
+  --frame-transition-base: 200ms ease;
+  --frame-transition-slow: 300ms ease;
+
+  /* Shadows */
+  --frame-shadow-sm: var(--shadow-sm);
+  --frame-shadow-md: var(--shadow-md);
+  --frame-shadow-lg: var(--shadow-lg);
+  --frame-shadow-xl: var(--shadow-xl);
+
+  /* Z-Index Scale */
+  --frame-z-base: 1;
+  --frame-z-elevated: 10;
+  --frame-z-dropdown: 100;
+  --frame-z-modal: 1000;
+  --frame-z-toast: 2000;
+}
+
+/**
+ * Light mode theme variables
+ *
+ * Applied when [data-theme="light"] is set on the document or
+ * when .light-theme class is added to frame containers.
+ */
+[data-theme='light'] {
+  --frame-bg: var(--color-bg-light-primary);
+  --frame-surface: var(--color-bg-light-elevated);
+  --frame-border: var(--color-border-light-default);
+  --frame-text-primary: var(--color-text-light-primary);
+  --frame-text-secondary: var(--color-text-light-secondary);
+  --frame-text-muted: var(--color-text-light-muted);
+  --frame-accent: var(--color-accent-indigo-600);
+  --frame-accent-bg: var(--color-accent-indigo-100);
+  --frame-link-color: var(--color-link-indigo-600);
+  --frame-divider: var(--color-border-light-default);
+  --frame-input-bg: var(--color-bg-light-input);
+  --frame-overlay: var(--color-overlay-light);
+}
+
+/* ============================================================================
+   BASE FRAME CONTAINER
+   ============================================================================ */
+
+/**
+ * Core frame container class
+ *
+ * Provides the foundational structure for all platform context frames.
+ * Handles positioning, sizing, and basic theming.
+ */
+.platform-frame {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  background: var(--frame-bg);
+  border: 1px solid var(--frame-border);
+  border-radius: var(--frame-radius-lg);
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  font-size: var(--frame-font-base);
+  line-height: 1.5;
+  color: var(--frame-text-primary);
+  box-shadow: var(--frame-shadow-md);
+  transition: background var(--frame-transition-base),
+              border-color var(--frame-transition-base),
+              box-shadow var(--frame-transition-base);
+}
+
+/**
+ * Frame container variants
+ */
+.platform-frame-compact {
+  max-width: 400px;
+  font-size: var(--frame-font-sm);
+  border-radius: var(--frame-radius-md);
+}
+
+.platform-frame-expanded {
+  max-width: 700px;
+  font-size: var(--frame-font-lg);
+}
+
+/**
+ * Frame chrome elements (headers, navigation, footers)
+ *
+ * These elements provide the platform-specific UI chrome that surrounds
+ * the actual content (navigation bars, toolbars, status bars, etc.)
+ */
+.frame-chrome {
+  background: var(--frame-surface);
+  border-bottom: 1px solid var(--frame-divider);
+  padding: var(--frame-spacing-md) var(--frame-spacing-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--frame-spacing-md);
+  transition: background var(--frame-transition-base),
+              border-color var(--frame-transition-base);
+}
+
+.frame-chrome-header {
+  font-weight: 600;
+  font-size: var(--frame-font-sm);
+  color: var(--frame-text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.frame-chrome-navigation {
+  display: flex;
+  align-items: center;
+  gap: var(--frame-spacing-sm);
+  margin-left: auto;
+}
+
+.frame-chrome-footer {
+  background: var(--frame-surface);
+  border-top: 1px solid var(--frame-divider);
+  padding: var(--frame-spacing-sm) var(--frame-spacing-lg);
+  font-size: var(--frame-font-xs);
+  color: var(--frame-text-muted);
+  transition: background var(--frame-transition-base),
+              border-color var(--frame-transition-base);
+}
+
+/* ============================================================================
+   USER PROFILE ELEMENTS
+   ============================================================================ */
+
+/**
+ * Avatar components
+ *
+ * Circular profile images with size variants and loading states
+ */
+.frame-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--frame-radius-full);
+  background: var(--frame-surface);
+  border: 1px solid var(--frame-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  transition: border-color var(--frame-transition-base);
+}
+
+.frame-avatar-sm {
+  width: 32px;
+  height: 32px;
+}
+
+.frame-avatar-lg {
+  width: 48px;
+  height: 48px;
+}
+
+.frame-avatar-xl {
+  width: 64px;
+  height: 64px;
+}
+
+.frame-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.frame-avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--frame-surface) 0%, var(--frame-border) 100%);
+  color: var(--frame-text-muted);
+  font-size: var(--frame-font-lg);
+  font-weight: 600;
+}
+
+/**
+ * Username and handle components
+ */
+.frame-username {
+  font-weight: 600;
+  font-size: var(--frame-font-base);
+  color: var(--frame-text-primary);
+  line-height: 1.2;
+  transition: color var(--frame-transition-base);
+}
+
+.frame-username-link {
+  color: var(--frame-link-color);
+  text-decoration: none;
+  transition: color var(--frame-transition-fast);
+}
+
+.frame-username-link:hover {
+  color: var(--frame-accent);
+  text-decoration: underline;
+}
+
+.frame-userhandle {
+  font-size: var(--frame-font-sm);
+  color: var(--frame-text-secondary);
+  font-weight: 400;
+  margin-top: 2px;
+}
+
+.frame-user-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  background: var(--frame-accent-bg);
+  color: var(--frame-accent);
+  border-radius: var(--frame-radius-sm);
+  font-size: var(--frame-font-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-left: var(--frame-spacing-xs);
+}
+
+/**
+ * Timestamp components
+ */
+.frame-timestamp {
+  font-size: var(--frame-font-xs);
+  color: var(--frame-text-muted);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.frame-timestamp-dot {
+  display: inline-block;
+  width: 2px;
+  height: 2px;
+  background: var(--frame-text-muted);
+  border-radius: 50%;
+  margin: 0 var(--frame-spacing-xs);
+  vertical-align: middle;
+}
+
+/* ============================================================================
+   POST METADATA ELEMENTS
+   ============================================================================ */
+
+/**
+ * Post metadata wrapper
+ *
+ * Contains user info, timestamps, and other post-level metadata
+ */
+.frame-post-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--frame-spacing-md);
+  padding: var(--frame-spacing-md) var(--frame-spacing-lg);
+}
+
+.frame-post-meta-vertical {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--frame-spacing-sm);
+}
+
+.frame-post-meta-compact {
+  padding: var(--frame-spacing-sm) var(--frame-spacing-md);
+  gap: var(--frame-spacing-sm);
+}
+
+/**
+ * User info section within post metadata
+ */
+.frame-user-info {
+  display: flex;
+  align-items: center;
+  gap: var(--frame-spacing-sm);
+  flex: 1;
+  min-width: 0;
+}
+
+.frame-user-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.frame-user-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--frame-spacing-sm);
+  margin-left: auto;
+}
+
+/**
+ * Post content area
+ */
+.frame-post-content {
+  padding: 0 var(--frame-spacing-lg) var(--frame-spacing-md);
+  color: var(--frame-text-primary);
+  font-size: var(--frame-font-base);
+  line-height: 1.5;
+  word-wrap: break-word;
+}
+
+.frame-post-text {
+  margin-bottom: var(--frame-spacing-sm);
+}
+
+.frame-post-text-compact {
+  font-size: var(--frame-font-sm);
+  line-height: 1.4;
+}
+
+/**
+ * Post statistics (likes, comments, shares, etc.)
+ */
+.frame-post-stats {
+  display: flex;
+  align-items: center;
+  gap: var(--frame-spacing-lg);
+  padding: var(--frame-spacing-sm) var(--frame-spacing-lg);
+  border-top: 1px solid var(--frame-divider);
+  font-size: var(--frame-font-sm);
+  color: var(--frame-text-secondary);
+  transition: border-color var(--frame-transition-base);
+}
+
+.frame-stat-item {
+  display: flex;
+  align-items: center;
+  gap: var(--frame-spacing-xs);
+  cursor: pointer;
+  transition: color var(--frame-transition-fast);
+}
+
+.frame-stat-item:hover {
+  color: var(--frame-accent);
+}
+
+.frame-stat-icon {
+  font-size: var(--frame-font-base);
+}
+
+.frame-stat-count {
+  font-weight: 600;
+}
+
+/* ============================================================================
+   NEUTRAL PLACEHOLDER CONTENT STYLES
+   ============================================================================ */
+
+/**
+ * Neutral content wrapper
+ *
+ * Provides spacing and background for content cards within frames
+ */
+.frame-neutral-content {
+  padding: var(--frame-spacing-lg);
+  background: var(--frame-bg);
+  transition: background var(--frame-transition-base);
+}
+
+.frame-neutral-content-compact {
+  padding: var(--frame-spacing-md);
+}
+
+.frame-neutral-content-spacious {
+  padding: var(--frame-spacing-xl);
+}
+
+/**
+ * Content card wrapper
+ *
+ * Wraps link previews and other content with proper spacing
+ */
+.frame-content-card {
+  background: var(--frame-surface);
+  border: 1px solid var(--frame-border);
+  border-radius: var(--frame-radius-md);
+  overflow: hidden;
+  margin: var(--frame-spacing-sm) 0;
+  transition: background var(--frame-transition-base),
+              border-color var(--frame-transition-base);
+}
+
+.frame-content-card-hoverable:hover {
+  background: var(--frame-bg);
+  border-color: var(--frame-accent);
+  box-shadow: var(--frame-shadow-md);
+  transform: translateY(-1px);
+}
+
+/**
+ * Card spacing utilities
+ */
+.frame-card-spacer {
+  margin: var(--frame-spacing-sm) 0;
+}
+
+.frame-card-spacer-sm {
+  margin: var(--frame-spacing-xs) 0;
+}
+
+.frame-card-spacer-lg {
+  margin: var(--frame-spacing-md) 0;
+}
+
+/**
+ * Placeholder content styles for loading/empty states
+ */
+.frame-placeholder {
+  background: linear-gradient(
+    90deg,
+    var(--frame-surface) 25%,
+    var(--frame-border) 50%,
+    var(--frame-surface) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--frame-radius-sm);
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.frame-placeholder-text {
+  height: 14px;
+  margin: var(--frame-spacing-xs) 0;
+  width: 100%;
+}
+
+.frame-placeholder-text-short {
+  width: 60%;
+}
+
+.frame-placeholder-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--frame-radius-full);
+}
+
+.frame-placeholder-image {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+}
+
+/* ============================================================================
+   RESPONSIVE LAYOUT UTILITIES
+   ============================================================================ */
+
+/**
+ * Responsive grid system for multiple frames
+ */
+.frame-grid {
+  display: grid;
+  gap: var(--frame-spacing-lg);
+  width: 100%;
+}
+
+.frame-grid-1 {
+  grid-template-columns: 1fr;
+}
+
+.frame-grid-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.frame-grid-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+/**
+ * Responsive breakpoint utilities
+ */
+
+/* Mobile (< 480px) */
+@media (max-width: 479px) {
+  .platform-frame {
+    font-size: var(--frame-font-sm);
+    border-radius: var(--frame-radius-md);
+  }
+
+  .frame-post-meta {
+    padding: var(--frame-spacing-sm) var(--frame-spacing-md);
+    gap: var(--frame-spacing-sm);
+  }
+
+  .frame-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .frame-avatar-sm {
+    width: 24px;
+    height: 24px;
+  }
+
+  .frame-post-content {
+    padding: 0 var(--frame-spacing-md) var(--frame-spacing-sm);
+  }
+
+  .frame-neutral-content {
+    padding: var(--frame-spacing-md);
+  }
+
+  .frame-grid-2,
+  .frame-grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Tablet (480px - 768px) */
+@media (min-width: 480px) and (max-width: 767px) {
+  .platform-frame {
+    max-width: 500px;
+  }
+
+  .frame-grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Desktop (768px+) */
+@media (min-width: 768px) {
+  .platform-frame {
+    max-width: 600px;
+  }
+
+  .desktop-only {
+    display: flex !important;
+  }
+
+  .desktop-block {
+    display: block !important;
+  }
+}
+
+/* Large Desktop (1200px+) */
+@media (min-width: 1200px) {
+  .platform-frame-expanded {
+    max-width: 800px;
+  }
+}
+
+/**
+ * Flexbox utilities for frame layouts
+ */
+.frame-flex {
+  display: flex;
+}
+
+.frame-flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.frame-flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.frame-items-center {
+  align-items: center;
+}
+
+.frame-items-start {
+  align-items: flex-start;
+}
+
+.frame-justify-between {
+  justify-content: space-between;
+}
+
+.frame-justify-center {
+  justify-content: center;
+}
+
+.frame-gap-sm {
+  gap: var(--frame-spacing-sm);
+}
+
+.frame-gap-md {
+  gap: var(--frame-spacing-md);
+}
+
+.frame-gap-lg {
+  gap: var(--frame-spacing-lg);
+}
+
+/* ============================================================================
+   PLATFORM-SPECIFIC THEME HOOKS
+   ============================================================================ */
+
+/**
+ * Platform theme variable overrides
+ *
+ * Each platform can define their specific colors by setting CSS variables
+ * within their platform context class. These variables fall back to the
+ * global frame variables.
+ */
+
+/* Social Platforms */
+.twitter-context {
+  /* Base frame variables */
+  --frame-bg: var(--color-twitter-black);
+  --frame-surface: var(--color-twitter-dark-surface);
+  --frame-border: var(--color-twitter-dark-border);
+  --frame-text-primary: var(--color-twitter-dark-text-primary);
+  --frame-text-secondary: var(--color-twitter-dark-text-secondary);
+  --frame-text-muted: var(--color-twitter-dark-text-secondary);
+  --frame-accent: var(--color-twitter-blue);
+  --frame-link-color: var(--color-twitter-blue);
+
+  /* X-specific enhanced variables */
+  --x-bg-primary: var(--color-twitter-black);
+  --x-bg-secondary: var(--color-twitter-dark-surface);
+  --x-bg-tertiary: var(--color-twitter-dark-border);
+  --x-border-color: var(--color-twitter-dark-border);
+  --x-text-primary: var(--color-twitter-dark-text-primary);
+  --x-text-secondary: var(--color-twitter-dark-text-secondary);
+  --x-text-muted: var(--color-twitter-dark-text-secondary);
+  --x-accent-blue: var(--color-twitter-blue);
+  --x-accent-blue-hover: var(--color-twitter-blue-dark);
+  --x-like-color: var(--color-twitter-pink);
+  --x-retweet-color: var(--color-twitter-green);
+  --x-reply-color: var(--color-twitter-dark-text-secondary);
+  --x-view-color: var(--color-twitter-dark-text-secondary);
+  /* Avatar System Variables (PHASE 1 - CRITICAL) */
+  --x-avatar-bg: #71767b;
+  --x-avatar-border: #2f3336;
+  /* Placeholder System Variables (PHASE 1 - CRITICAL) */
+  --x-placeholder-bg: #2f3336;
+  --x-placeholder-gradient: linear-gradient(135deg, #2f3336 0%, #3d4145 100%);
+  /* Hover State Variables (PHASE 2 - ENHANCEMENT) */
+  --x-hover-bg: rgba(255, 255, 255, 0.03);
+  --x-hover-subtle: rgba(255, 255, 255, 0.015);
+  --x-link-card-hover-border: #1d9bf0;
+}
+
+.twitter-context.light-theme,
+.twitter-context[data-theme='light'] {
+  /* Base frame variables */
+  --frame-bg: var(--color-bg-light-primary);
+  --frame-surface: var(--color-twitter-light-surface);
+  --frame-border: var(--color-twitter-light-border);
+  --frame-text-primary: var(--color-twitter-light-text-primary);
+  --frame-text-secondary: var(--color-twitter-light-text-secondary);
+  --frame-text-muted: var(--color-twitter-light-text-secondary);
+  --frame-accent: var(--color-twitter-blue);
+  --frame-link-color: var(--color-twitter-blue);
+
+  /* X-specific enhanced variables */
+  --x-bg-primary: var(--color-bg-light-primary);
+  --x-bg-secondary: var(--color-twitter-light-surface);
+  --x-bg-tertiary: var(--color-twitter-light-border);
+  --x-border-color: var(--color-twitter-light-border);
+  --x-text-primary: var(--color-twitter-light-text-primary);
+  --x-text-secondary: var(--color-twitter-light-text-secondary);
+  --x-text-muted: var(--color-twitter-light-text-secondary);
+  --x-accent-blue: var(--color-twitter-blue);
+  --x-accent-blue-hover: var(--color-twitter-blue-dark);
+  --x-like-color: var(--color-twitter-pink);
+  --x-retweet-color: var(--color-twitter-green);
+  --x-reply-color: var(--color-twitter-light-text-secondary);
+  --x-view-color: var(--color-twitter-light-text-secondary);
+  /* Avatar System Variables (PHASE 1 - CRITICAL) */
+  --x-avatar-bg: #536471;
+  --x-avatar-border: #eff3f4;
+  /* Placeholder System Variables (PHASE 1 - CRITICAL) */
+  --x-placeholder-bg: #eff3f4;
+  --x-placeholder-gradient: linear-gradient(135deg, #eff3f4 0%, #e3e7e9 100%);
+  /* Hover State Variables (PHASE 2 - ENHANCEMENT) */
+  --x-hover-bg: rgba(0, 0, 0, 0.04);
+  --x-hover-subtle: rgba(0, 0, 0, 0.02);
+  --x-link-card-hover-border: #1d9bf0;
+}
+
+.facebook-context {
+  --frame-bg: var(--color-facebook-dark-bg);
+  --frame-surface: var(--color-facebook-dark-surface);
+  --frame-border: var(--color-facebook-dark-border);
+  --frame-text-primary: var(--color-facebook-dark-text-primary);
+  --frame-text-secondary: var(--color-facebook-dark-text-secondary);
+  --frame-accent: var(--color-facebook-accent);
+  --frame-link-color: var(--color-facebook-accent);
+}
+
+.linkedin-context {
+  --frame-bg: var(--color-linkedin-dark-bg);
+  --frame-surface: var(--color-linkedin-dark-surface);
+  --frame-border: var(--color-linkedin-dark-border);
+  --frame-text-primary: var(--color-linkedin-dark-text-primary);
+  --frame-text-secondary: var(--color-linkedin-dark-text-secondary);
+  --frame-text-muted: var(--color-linkedin-dark-text-muted);
+  --frame-accent: var(--color-linkedin-accent);
+  --frame-link-color: var(--color-linkedin-accent);
+  --frame-divider: var(--color-linkedin-dark-border);
+  --frame-input-bg: var(--color-linkedin-dark-surface);
+  --frame-overlay: var(--color-overlay-dark);
+  --linkedin-hover-bg: var(--color-linkedin-hover-bg);
+}
+
+.linkedin-context.light-theme,
+.linkedin-context[data-theme='light'] {
+  --frame-bg: var(--color-linkedin-light-bg);
+  --frame-surface: var(--color-linkedin-light-surface);
+  --frame-border: var(--color-linkedin-light-border);
+  --frame-text-primary: var(--color-linkedin-light-text-primary);
+  --frame-text-secondary: var(--color-linkedin-light-text-secondary);
+  --frame-text-muted: var(--color-linkedin-light-text-muted);
+  --frame-accent: var(--color-linkedin-accent);
+  --frame-link-color: var(--color-linkedin-accent);
+  --frame-divider: var(--color-linkedin-light-border);
+  --frame-input-bg: var(--color-linkedin-light-bg);
+  --frame-overlay: var(--color-overlay-light);
+  --linkedin-hover-bg: var(--color-linkedin-light-hover-bg);
+}
+
+/* Messaging Platforms */
+.slack-context {
+  --frame-bg: var(--color-bg-dark-primary);
+  --frame-surface: var(--color-bg-dark-elevated);
+  --frame-border: var(--color-border-dark-default);
+  --frame-text-primary: var(--color-text-dark-primary);
+  --frame-text-secondary: var(--color-text-dark-secondary);
+  --frame-accent: var(--color-slack-accent);
+  --frame-link-color: var(--color-slack-link);
+}
+
+.discord-context {
+  --frame-bg: var(--color-bg-dark-primary);
+  --frame-surface: var(--color-bg-dark-elevated);
+  --frame-border: var(--color-border-dark-default);
+  --frame-text-primary: var(--color-text-dark-primary);
+  --frame-text-secondary: var(--color-text-dark-secondary);
+  --frame-accent: var(--color-discord-accent);
+  --frame-link-color: var(--color-discord-link);
+}
+
+/* Developer Platforms */
+.github-context {
+  --frame-bg: var(--color-bg-dark-primary);
+  --frame-surface: var(--color-bg-dark-elevated);
+  --frame-border: var(--color-border-dark-default);
+  --frame-text-primary: var(--color-text-dark-primary);
+  --frame-text-secondary: var(--color-text-dark-secondary);
+  --frame-accent: var(--color-github-accent);
+  --frame-link-color: var(--color-github-link);
+}
+
+.stackoverflow-context {
+  --frame-bg: var(--color-bg-dark-primary);
+  --frame-surface: var(--color-bg-dark-elevated);
+  --frame-border: var(--color-border-dark-default);
+  --frame-text-primary: var(--color-text-dark-primary);
+  --frame-text-secondary: var(--color-text-dark-secondary);
+  --frame-accent: var(--color-stackoverflow-accent);
+  --frame-link-color: var(--color-stackoverflow-link);
+}
+
+/* Video Platforms */
+.youtube-context {
+  --frame-bg: var(--color-youtube-dark-bg);
+  --frame-surface: var(--color-youtube-dark-surface);
+  --frame-border: var(--color-youtube-dark-border);
+  --frame-text-primary: var(--color-white);
+  --frame-text-secondary: var(--color-youtube-dark-text-secondary);
+  --frame-accent: var(--color-youtube-red);
+  --frame-link-color: var(--color-youtube-link);
+}
+
+.twitch-context {
+  --frame-bg: var(--color-twitch-dark-bg);
+  --frame-surface: var(--color-twitch-dark-surface);
+  --frame-border: var(--color-twitch-dark-border);
+  --frame-text-primary: var(--color-twitch-dark-text-primary);
+  --frame-text-secondary: var(--color-twitch-dark-text-secondary);
+  --frame-accent: var(--color-twitch-purple);
+  --frame-link-color: var(--color-twitch-purple);
+}
+
+/* ============================================================================
+   ACCESSIBILITY FEATURES
+   ============================================================================ */
+
+/**
+ * Focus visible for keyboard navigation
+ */
+.platform-frame a:focus-visible,
+.platform-frame button:focus-visible,
+.platform-frame [role="button"]:focus-visible {
+  outline: 2px solid var(--frame-accent);
+  outline-offset: 2px;
+  border-radius: var(--frame-radius-sm);
+}
+
+/**
+ * Reduced motion support
+ */
+@media (prefers-reduced-motion: reduce) {
+  .platform-frame,
+  .platform-frame *,
+  .platform-frame *::before,
+  .platform-frame *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/**
+ * High contrast mode support
+ */
+@media (prefers-contrast: high) {
+  .platform-frame {
+    border-width: 2px;
+  }
+
+  .frame-content-card {
+    border-width: 2px;
+  }
+}
+
+/**
+ * Screen reader only content
+ */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ============================================================================
+   UTILITY CLASSES
+   ============================================================================ */
+
+/**
+ * Display utilities
+ */
+.frame-hidden {
+  display: none;
+}
+
+.frame-block {
+  display: block;
+}
+
+.frame-inline-block {
+  display: inline-block;
+}
+
+/**
+ * Text utilities
+ */
+.frame-text-center {
+  text-align: center;
+}
+
+.frame-text-left {
+  text-align: left;
+}
+
+.frame-text-right {
+  text-align: right;
+}
+
+.frame-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/**
+ * Color utilities
+ */
+.frame-text-accent {
+  color: var(--frame-accent);
+}
+
+.frame-text-secondary {
+  color: var(--frame-text-secondary);
+}
+
+.frame-text-muted {
+  color: var(--frame-text-muted);
+}
+
+/**
+ * Spacing utilities
+ */
+.frame-m-0 { margin: 0; }
+.frame-mt-sm { margin-top: var(--frame-spacing-sm); }
+.frame-mb-sm { margin-bottom: var(--frame-spacing-sm); }
+.frame-p-0 { padding: 0; }
+.frame-p-sm { padding: var(--frame-spacing-sm); }
+.frame-p-md { padding: var(--frame-spacing-md); }
+
+/* ============================================================================
+   THEME SWITCHING MECHANISM
+   ============================================================================ */
+
+/**
+ * Theme transition support
+ *
+ * Provides smooth transitions when switching between dark and light themes.
+ * The .theme-switching class can be temporarily applied during theme changes
+ * to prevent visual glitches.
+ */
+.platform-frame,
+.frame-chrome,
+.frame-content-card,
+.frame-post-stats,
+.frame-avatar {
+  transition-property: background, border-color, color, box-shadow;
+  transition-duration: var(--frame-transition-base);
+  transition-timing-function: ease;
+}
+
+/**
+ * Theme switching prevention class
+ *
+ * Add this class during theme changes to prevent flicker
+ */
+.theme-switching,
+.theme-switching * {
+  transition: none !important;
+}
+
+/**
+ * Light theme modifier class
+ *
+ * Can be applied to individual frames to override the global theme
+ */
+.platform-frame.light-theme {
+  --frame-bg: var(--color-bg-light-primary);
+  --frame-surface: var(--color-bg-light-elevated);
+  --frame-border: var(--color-border-light-default);
+  --frame-text-primary: var(--color-text-light-primary);
+  --frame-text-secondary: var(--color-text-light-secondary);
+  --frame-text-muted: var(--color-text-light-muted);
+  --frame-accent: var(--color-accent-indigo-600);
+  --frame-accent-bg: var(--color-accent-indigo-100);
+  --frame-link-color: var(--color-link-indigo-600);
+  --frame-divider: var(--color-border-light-default);
+  --frame-input-bg: var(--color-bg-light-input);
+  --frame-overlay: var(--color-overlay-light);
+}
+
+/**
+ * Dark theme modifier class (explicit dark mode)
+ */
+.platform-frame.dark-theme {
+  --frame-bg: var(--color-bg-dark-primary);
+  --frame-surface: var(--color-bg-dark-elevated);
+  --frame-border: var(--color-border-dark-default);
+  --frame-text-primary: var(--color-text-dark-primary);
+  --frame-text-secondary: var(--color-text-dark-secondary);
+  --frame-text-muted: var(--color-text-dark-muted);
+  --frame-accent: var(--color-accent-indigo-500);
+  --frame-accent-bg: var(--color-accent-indigo-600);
+  --frame-link-color: var(--color-link-indigo-400);
+  --frame-divider: var(--color-border-dark-default);
+  --frame-input-bg: var(--color-bg-dark-input);
+  --frame-overlay: var(--color-overlay-dark);
+}
+
+/* ============================================================================
+   PRINT STYLES
+   ============================================================================ */
+
+@media print {
+  .platform-frame {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid var(--color-border-print);
+    max-width: 100%;
+  }
+
+  .frame-chrome-navigation,
+  .frame-post-stats,
+  .desktop-only {
+    display: none;
+  }
+
+  .frame-content-card {
+    page-break-inside: avoid;
+  }
+}

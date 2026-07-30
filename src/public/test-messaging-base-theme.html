@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Messaging Base Theme Test Harness</title>
+  <link rel="stylesheet" href="messaging-base.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .test-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .test-header {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .test-header h1 {
+      margin: 0 0 10px 0;
+      color: #333;
+    }
+    .test-header p {
+      margin: 0;
+      color: #666;
+      font-size: 14px;
+    }
+    .test-section {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .test-section h2 {
+      margin: 0 0 15px 0;
+      font-size: 18px;
+      color: #333;
+      border-bottom: 2px solid #e0e0e0;
+      padding-bottom: 10px;
+    }
+    .test-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    .demo-frame {
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .demo-label {
+      background: #f0f0f0;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #666;
+      border-bottom: 1px solid #e0e0e0;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <div class="test-header">
+      <h1>Messaging Base Theme Test Harness</h1>
+      <p>Testing CSS variables, typography, avatars, timestamps, and link cards in dark and light modes</p>
+    </div>
+
+    <!-- Theme Switcher -->
+    <div class="test-section">
+      <h2>Theme Switcher</h2>
+      <div class="theme-switcher">
+        <button class="theme-switcher-btn active" id="darkBtn" onclick="setTheme('dark')">Dark Theme</button>
+        <button class="theme-switcher-btn" id="lightBtn" onclick="setTheme('light')">Light Theme</button>
+      </div>
+    </div>
+
+    <!-- CSS Variables Test -->
+    <div class="test-section">
+      <h2>CSS Variables</h2>
+      <div class="test-grid">
+        <div class="demo-frame">
+          <div class="demo-label">Dark Mode Variables</div>
+          <div class="messaging-context" id="dark-vars">
+            <div style="padding: 15px; font-size: 12px; font-family: monospace;">
+              <div>msg-bg: <span style="background: var(--msg-bg); padding: 2px 8px; border-radius: 3px;">█</span></div>
+              <div>msg-text: <span style="color: var(--msg-text);">Sample text</span></div>
+              <div>msg-bubble-sent: <span style="background: var(--msg-bubble-sent); padding: 2px 8px; border-radius: 3px; color: var(--msg-bubble-sent-text);">Sent</span></div>
+              <div>msg-bubble-rcvd: <span style="background: var(--msg-bubble-rcvd); padding: 2px 8px; border-radius: 3px; color: var(--msg-bubble-rcvd-text);">Rcvd</span></div>
+              <div>msg-timestamp: <span style="color: var(--msg-timestamp);">10:30 AM</span></div>
+              <div>msg-meta: <span style="color: var(--msg-meta);">✓✓</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="demo-frame">
+          <div class="demo-label">Light Mode Variables</div>
+          <div class="messaging-context light-theme" id="light-vars">
+            <div style="padding: 15px; font-size: 12px; font-family: monospace;">
+              <div>msg-bg: <span style="background: var(--msg-bg); padding: 2px 8px; border-radius: 3px;">█</span></div>
+              <div>msg-text: <span style="color: var(--msg-text);">Sample text</span></div>
+              <div>msg-bubble-sent: <span style="background: var(--msg-bubble-sent); padding: 2px 8px; border-radius: 3px; color: var(--msg-bubble-sent-text);">Sent</span></div>
+              <div>msg-bubble-rcvd: <span style="background: var(--msg-bubble-rcvd); padding: 2px 8px; border-radius: 3px; color: var(--msg-bubble-rcvd-text);">Rcvd</span></div>
+              <div>msg-timestamp: <span style="color: var(--msg-timestamp);">10:30 AM</span></div>
+              <div>msg-meta: <span style="color: var(--msg-meta);">✓✓</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Typography Test -->
+    <div class="test-section">
+      <h2>Typography</h2>
+      <div class="test-grid">
+        <div class="demo-frame">
+          <div class="demo-label">Text Sizes</div>
+          <div class="messaging-context" id="typography-test">
+            <div style="padding: 15px;">
+              <div class="msg-text-sm">Small text (12px)</div>
+              <div class="msg-text">Base text (14px)</div>
+              <div class="msg-text-lg">Large text (16px)</div>
+            </div>
+          </div>
+        </div>
+        <div class="demo-frame">
+          <div class="demo-label">Message Text</div>
+          <div class="messaging-context" id="message-text-test">
+            <div style="padding: 15px;">
+              <div class="msg-text">This is a regular message with normal text weight and color.</div>
+              <div class="msg-text-sm">This is secondary text, often used for metadata and timestamps.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Avatar Styles Test -->
+    <div class="test-section">
+      <h2>Avatar Styles</h2>
+      <div class="test-grid">
+        <div class="demo-frame">
+          <div class="demo-label">Avatar Shapes</div>
+          <div class="messaging-context" id="avatar-shapes">
+            <div style="padding: 15px; display: flex; gap: 10px; align-items: center;">
+              <div class="msg-avatar msg-avatar-circle">JD</div>
+              <div class="msg-avatar msg-avatar-rounded">AB</div>
+              <div class="msg-avatar msg-avatar-square">XY</div>
+            </div>
+          </div>
+        </div>
+        <div class="demo-frame">
+          <div class="demo-label">Avatar Sizes</div>
+          <div class="messaging-context" id="avatar-sizes">
+            <div style="padding: 15px; display: flex; gap: 10px; align-items: center;">
+              <div class="msg-avatar msg-avatar-sm">S</div>
+              <div class="msg-avatar msg-avatar-md">M</div>
+              <div class="msg-avatar msg-avatar-lg">L</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timestamp Styles Test -->
+    <div class="test-section">
+      <h2>Timestamp Styles</h2>
+      <div class="test-grid">
+        <div class="demo-frame">
+          <div class="demo-label">Timestamp Formats</div>
+          <div class="messaging-context" id="timestamp-formats">
+            <div style="padding: 15px;">
+              <div class="msg-timestamp">10:30 AM</div>
+              <div class="msg-timestamp-inline">10:30 AM</div>
+              <div class="msg-timestamp-block">10:30 AM</div>
+            </div>
+          </div>
+        </div>
+        <div class="demo-frame">
+          <div class="demo-label">Date Separator</div>
+          <div class="messaging-context" id="date-separator">
+            <div style="padding: 15px;">
+              <div class="msg-timestamp-separator">Today</div>
+              <div class="msg-timestamp-separator">Yesterday</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Message Bubbles Test -->
+    <div class="test-section">
+      <h2>Message Bubbles</h2>
+      <div class="test-grid">
+        <div class="demo-frame">
+          <div class="demo-label">Sent Messages</div>
+          <div class="messaging-context" id="sent-bubbles">
+            <div style="padding: 15px;">
+              <div class="msg-message msg-message-sent">
+                <div class="msg-bubble msg-bubble-sent">Hello!</div>
+              </div>
+              <div class="msg-message msg-message-sent">
+                <div class="msg-bubble msg-bubble-sent">This is a sent message with more text</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="demo-frame">
+          <div class="demo-label">Received Messages</div>
+          <div class="messaging-context" id="rcvd-bubbles">
+            <div style="padding: 15px;">
+              <div class="msg-message msg-message-rcvd">
+                <div class="msg-bubble msg-bubble-rcvd">Hi there!</div>
+              </div>
+              <div class="msg-message msg-message-rcvd">
+                <div class="msg-bubble msg-bubble-rcvd">This is a received message</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Link Card Test -->
+    <div class="test-section">
+      <h2>Link Card Attachments</h2>
+      <div class="test-grid">
+        <div class="demo-frame">
+          <div class="demo-label">Standard Link Card</div>
+          <div class="messaging-context" id="link-card-standard">
+            <div style="padding: 15px;">
+              <a href="#" class="msg-link-card">
+                <div class="msg-link-card-image">
+                  <img src="https://picsum.photos/400/200" alt="Link preview">
+                </div>
+                <div class="msg-link-card-content">
+                  <div class="msg-link-card-domain">example.com</div>
+                  <div class="msg-link-card-title">Understanding Context Frames</div>
+                  <div class="msg-link-card-description">Learn how platform context frames work and why they matter for link previews.</div>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="demo-frame">
+          <div class="demo-label">Compact Link Card</div>
+          <div class="messaging-context" id="link-card-compact">
+            <div style="padding: 15px;">
+              <a href="#" class="msg-link-card msg-link-card-compact">
+                <div class="msg-link-card-content">
+                  <div class="msg-link-card-title">Understanding Context Frames</div>
+                  <div class="msg-link-card-description">Learn how platform context frames work</div>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Metadata and Read Receipts Test -->
+    <div class="test-section">
+      <h2>Metadata and Read Receipts</h2>
+      <div class="test-grid">
+        <div class="demo-frame">
+          <div class="demo-label">Read Receipts</div>
+          <div class="messaging-context" id="read-receipts">
+            <div style="padding: 15px;">
+              <div class="msg-metadata">
+                <span class="msg-checkmark-sent"></span>
+                <span>Sent</span>
+              </div>
+              <div class="msg-metadata">
+                <span class="msg-checkmark-delivered"></span>
+                <span>Delivered</span>
+              </div>
+              <div class="msg-metadata">
+                <span class="msg-checkmark-read"></span>
+                <span>Read</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="demo-frame">
+          <div class="demo-label">Combined Example</div>
+          <div class="messaging-context" id="combined-example">
+            <div style="padding: 15px;">
+              <div class="msg-message msg-message-sent">
+                <div class="msg-bubble msg-bubble-sent">Hey!</div>
+                <div class="msg-metadata">
+                  <span class="msg-timestamp">10:30 AM</span>
+                  <span class="msg-checkmark-read"></span>
+                </div>
+              </div>
+              <div class="msg-message msg-message-rcvd">
+                <div class="msg-bubble msg-bubble-rcvd">Hi! Check this link</div>
+                <div class="msg-metadata">
+                  <span class="msg-timestamp">10:32 AM</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Full Chat Example -->
+    <div class="test-section">
+      <h2>Full Chat Example</h2>
+      <div class="demo-frame">
+        <div class="demo-label">Complete Messaging Interface</div>
+        <div class="messaging-context" id="full-chat">
+          <div style="padding: 15px;">
+            <div class="msg-timestamp-separator">Today</div>
+
+            <div class="msg-message msg-message-rcvd">
+              <div style="display: flex; gap: 10px; align-items: flex-end;">
+                <div class="msg-avatar msg-avatar-circle">AB</div>
+                <div>
+                  <div class="msg-bubble msg-bubble-rcvd">Hey! Check out this article</div>
+                  <div class="msg-metadata">
+                    <span class="msg-timestamp">10:30 AM</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="msg-message msg-message-rcvd">
+              <div style="display: flex; gap: 10px; align-items: flex-end;">
+                <div class="msg-avatar msg-avatar-circle">AB</div>
+                <div>
+                  <a href="#" class="msg-link-card">
+                    <div class="msg-link-card-image">
+                      <img src="https://picsum.photos/400/200" alt="Preview">
+                    </div>
+                    <div class="msg-link-card-content">
+                      <div class="msg-link-card-domain">example.com</div>
+                      <div class="msg-link-card-title">Understanding Context Frames</div>
+                      <div class="msg-link-card-description">Learn how platform context frames work</div>
+                    </div>
+                  </a>
+                  <div class="msg-metadata">
+                    <span class="msg-timestamp">10:30 AM</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="msg-message msg-message-sent">
+              <div style="display: flex; gap: 10px; align-items: flex-end; justify-content: flex-end;">
+                <div>
+                  <div class="msg-bubble msg-bubble-sent">Thanks! I'll take a look</div>
+                  <div class="msg-metadata" style="justify-content: flex-end;">
+                    <span class="msg-timestamp">10:32 AM</span>
+                    <span class="msg-checkmark-read"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="msg-message msg-message-sent">
+              <div style="display: flex; gap: 10px; align-items: flex-end; justify-content: flex-end;">
+                <div>
+                  <div class="msg-bubble msg-bubble-sent">This looks really interesting!</div>
+                  <div class="msg-metadata" style="justify-content: flex-end;">
+                    <span class="msg-timestamp">10:33 AM</span>
+                    <span class="msg-checkmark-read"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Responsive Test -->
+    <div class="test-section">
+      <h2>Responsive Design</h2>
+      <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Resize the browser to test responsive behavior. Breakpoints: &lt;480px (mobile), 480-768px (tablet), &gt;768px (desktop)</p>
+      <div class="demo-frame">
+        <div class="demo-label">Responsive Chat Interface</div>
+        <div class="messaging-context" id="responsive-chat">
+          <div style="padding: 15px;">
+            <div class="msg-timestamp-separator">Today</div>
+
+            <div class="msg-message msg-message-rcvd">
+              <div style="display: flex; gap: 10px; align-items: flex-end;">
+                <div class="msg-avatar msg-avatar-circle">U</div>
+                <div>
+                  <div class="msg-bubble msg-bubble-rcvd">This is a longer message to test how the interface handles text wrapping and responsiveness across different screen sizes</div>
+                  <div class="msg-metadata">
+                    <span class="msg-timestamp">10:30 AM</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="msg-message msg-message-sent">
+              <div style="display: flex; gap: 10px; align-items: flex-end; justify-content: flex-end;">
+                <div>
+                  <div class="msg-bubble msg-bubble-sent">Received! I'll test this on different devices</div>
+                  <div class="msg-metadata" style="justify-content: flex-end;">
+                    <span class="msg-timestamp">10:32 AM</span>
+                    <span class="msg-checkmark-read"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentTheme = 'dark';
+
+    function setTheme(theme) {
+      currentTheme = theme;
+
+      // Update buttons
+      document.getElementById('darkBtn').classList.toggle('active', theme === 'dark');
+      document.getElementById('lightBtn').classList.toggle('active', theme === 'light');
+
+      // Update all messaging contexts
+      const contexts = document.querySelectorAll('.messaging-context');
+
+      contexts.forEach(ctx => {
+        // Skip the light mode demo context which should always be light
+        if (ctx.id === 'light-vars') return;
+
+        // Apply theme
+        if (theme === 'light') {
+          ctx.classList.add('light-theme');
+        } else {
+          ctx.classList.remove('light-theme');
+        }
+      });
+
+      console.log(`Theme switched to: ${theme}`);
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('Messaging base theme test harness loaded');
+
+      // Log all CSS variables for debugging
+      const testCtx = document.querySelector('#dark-vars');
+      if (testCtx && window.getComputedStyle) {
+        const styles = window.getComputedStyle(testCtx);
+        console.log('Dark mode CSS variables:');
+        ['--msg-bg', '--msg-text', '--msg-bubble-sent', '--msg-bubble-rcvd', '--msg-timestamp', '--msg-meta'].forEach(varName => {
+          console.log(`  ${varName}: ${styles.getPropertyValue(varName)}`);
+        });
+      }
+    });
+  </script>
+</body>
+</html>

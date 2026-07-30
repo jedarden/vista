@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<!--
+  ============================================================================
+  ALL-Platform Theme-Support Acceptance Harness (bf-1l2bl)
+  ============================================================================
+  Parent bead: verify all platform frames have complete theme support.
+
+  This harness loads the REAL production runtime (platform-frames.js +
+  frames-theme.js), renders every platform context frame via the SAME
+  buildContextFrame() code path the app uses, then drives the global toggle
+  through FrameTheme.updateAllPlatformFrames('dark'|'light') and asserts, per
+  platform:
+
+    1. The frame rendered with hasThemeSupport === true
+    2. data-theme + data-frame-theme attributes swap to the requested theme
+    3. The {theme}-theme class swaps on the frame
+    4. The platform's --frame-bg CSS variable matches themeVars[theme] exactly
+    5. dark --frame-bg !== light --frame-bg (the toggle is visually meaningful)
+
+  RUN: served over HTTP (npm start) → open verify-all-44-theme-bf-1l2bl.html.
+       Tests auto-run on load; results land on window.__themeResults and are
+       also rendered into #report below for screenshots.
+  ============================================================================
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>All-Platform Theme-Support Verification (bf-1l2bl)</title>
+  <link rel="stylesheet" href="platform-frames-base.css" onerror="null;" />
+  <link rel="stylesheet" href="frames-theme.css" onerror="null;" />
+  <link rel="stylesheet" href="style.css" onerror="null;" />
+  <style>
+    body { background: #0d0d10; color: #e4e4e7; font-family: system-ui, sans-serif; margin: 0; padding: 24px; }
+    h1 { font-size: 18px; margin: 0 0 4px; }
+    .sub { color: #9ca3af; font-size: 12px; margin-bottom: 16px; }
+    #summary { font-size: 14px; margin-bottom: 16px; padding: 10px 14px; border-radius: 8px; background: #1a1a1e; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+    .cell { background: #15151a; border: 1px solid #2a2a2e; border-radius: 10px; padding: 10px; }
+    .cell h3 { font-size: 12px; margin: 0 0 6px; display: flex; justify-content: space-between; gap: 8px; }
+    .pill { font-size: 11px; padding: 1px 7px; border-radius: 999px; }
+    .pill.pass { background: #14532d; color: #4ade80; }
+    .pill.fail { background: #7f1d1d; color: #f87171; }
+    .frame-wrap { border-radius: 8px; overflow: hidden; }
+    .frame-wrap .context-frame { margin: 0 !important; max-width: 100% !important; }
+    .vrow { font-size: 11px; color: #a1a1aa; margin-top: 6px; display: flex; gap: 6px; align-items: center; }
+    .swatch { width: 12px; height: 12px; border-radius: 3px; border: 1px solid #3a3a3f; display: inline-block; }
+    .err { color: #f87171; font-size: 11px; margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <h1>All-Platform Theme-Support Verification — bf-1l2bl</h1>
+  <div class="sub">Production runtime: platform-frames.js + frames-theme.js · drives FrameTheme.updateAllPlatformFrames()</div>
+  <div id="summary">Running…</div>
+  <div id="report" class="grid"></div>
+
+  <!-- Real production modules -->
+  <script src="platform-frames.js"></script>
+  <script src="frames-theme.js"></script>
+
+  <script>
+    (async function run() {
+      const PF = window.PlatformFrames;
+      const platforms = PF.getSupportedPlatforms(); // excludes 'generic'
+      const keys = [...platforms, 'generic'];
+      const sample = {
+        title: 'How to Build Resilient Distributed Systems',
+        description: 'A practical guide to designing systems that survive partial failure, network partitions, and the chaos of production traffic.',
+        domain: 'example.com',
+        site: 'Example Engineering',
+        image: '', // keep deterministic — no network
+        dominantColor: '#1d4ed8',
+      };
+
+      // Render every platform frame into the DOM (dark initially).
+      const report = document.getElementById('report');
+      const cells = {};
+      keys.forEach(id => {
+        const html = PF.buildContextFrame(id, { ...sample }, 'dark');
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.innerHTML = `<h3><span>${id} <em style="color:#71717a">— ${PF.getPlatformFrame(id).name}</em></span><span class="pill" data-pill>…</span></h3>
+          <div class="frame-wrap" data-wrap></div>
+          <div class="vrow" data-info></div>
+          <div class="err" data-err></div>`;
+        cell.querySelector('[data-wrap]').innerHTML = html;
+        report.appendChild(cell);
+        cells[id] = cell;
+      });
+
+      const results = [];
+      let pass = 0, fail = 0;
+
+      for (const id of keys) {
+        const cell = cells[id];
+        const frame = cell.querySelector('.context-frame');
+        const errs = [];
+        const cfg = PF.getPlatformFrame(id);
+        const ok = (cond, msg) => { if (!cond) errs.push(msg); return cond; };
+
+        // 1. hasThemeSupport flag
+        ok(PF.hasThemeSupport(id), 'hasThemeSupport !== true');
+
+        // helper: read a var off the live frame
+        const readVar = (v) => (frame.style.getPropertyValue(v) || '').trim();
+
+        // 2-4. DARK pass
+        window.FrameTheme.updateAllPlatformFrames('dark');
+        const dBg = cfg.themeVars.dark['--frame-bg'];
+        const dBgLive = readVar('--frame-bg');
+        ok(frame.getAttribute('data-theme') === 'dark', 'data-theme != dark');
+        ok(frame.classList.contains('dark-theme'), 'missing dark-theme class');
+        ok(dBgLive.toLowerCase() === dBg.toLowerCase(), `dark --frame-bg live(${dBgLive}) != cfg(${dBg})`);
+
+        // 2-4. LIGHT pass
+        window.FrameTheme.updateAllPlatformFrames('light');
+        const lBg = cfg.themeVars.light['--frame-bg'];
+        const lBgLive = readVar('--frame-bg');
+        ok(frame.getAttribute('data-theme') === 'light', 'data-theme != light');
+        ok(frame.classList.contains('light-theme'), 'missing light-theme class');
+        ok(lBgLive.toLowerCase() === lBg.toLowerCase(), `light --frame-bg live(${lBgLive}) != cfg(${lBg})`);
+
+        // 5. toggle is meaningful
+        ok(dBg.toLowerCase() !== lBg.toLowerCase(), `dark bg === light bg (${dBg}) — toggle not meaningful`);
+
+        // settle back to dark for the screenshot
+        window.FrameTheme.updateAllPlatformFrames('dark');
+
+        const passed = errs.length === 0;
+        passed ? pass++ : fail++;
+        results.push({ id, name: cfg.name, passed, errs, darkBg: dBg, lightBg: lBg });
+
+        cell.querySelector('[data-pill]').textContent = passed ? 'PASS' : 'FAIL';
+        cell.querySelector('[data-pill]').className = 'pill ' + (passed ? 'pass' : 'fail');
+        cell.querySelector('[data-info]').innerHTML =
+          `<span class="swatch" style="background:${dBg}"></span>dark ${dBg}` +
+          `<span style="color:#52525b">→</span>` +
+          `<span class="swatch" style="background:${lBg}"></span>light ${lBg}`;
+        if (!passed) cell.querySelector('[data-err]').textContent = errs.join(' · ');
+      }
+
+      document.getElementById('summary').innerHTML =
+        `<b>${pass}/${results.length} platforms pass</b> · ${fail} fail · ` +
+        `dark/light toggle verified via FrameTheme.updateAllPlatformFrames()`;
+
+      window.__themeResults = { pass, fail, total: results.length, results, generatedAt: new Date().toISOString() };
+      document.body.setAttribute('data-done', '1');
+    })();
+  </script>
+</body>
+</html>

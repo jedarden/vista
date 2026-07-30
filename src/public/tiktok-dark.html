@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TikTok - Dark Mode Frame</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+      background: #000000;
+      color: #ffffff;
+      padding: 20px;
+    }
+
+    .tiktok-context.dark-theme {
+      display: flex;
+      flex-direction: column;
+      min-height: 600px;
+      background: #000000;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .tt-video-container {
+      display: flex;
+      flex: 1;
+      position: relative;
+      background: #121212;
+    }
+
+    .tt-video-placeholder {
+      flex: 1;
+      background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .tt-video-placeholder::before {
+      content: "🎵";
+      font-size: 48px;
+    }
+
+    .tt-right-sidebar {
+      position: absolute;
+      right: 12px;
+      bottom: 80px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .tt-action-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .tt-action-icon {
+      font-size: 28px;
+      cursor: pointer;
+    }
+
+    .tt-action-count {
+      font-size: 12px;
+      color: #ffffff;
+    }
+
+    .tt-bottom-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 60px;
+      padding: 16px;
+      background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+    }
+
+    .tt-username {
+      font-size: 16px;
+      font-weight: 600;
+      color: #ffffff;
+      margin-bottom: 8px;
+    }
+
+    .tt-caption {
+      font-size: 14px;
+      color: #ffffff;
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+
+    .tt-music {
+      font-size: 13px;
+      color: #a8a8a8;
+    }
+  </style>
+</head>
+<body>
+  <div class="tiktok-context dark-theme">
+    <div class="tt-video-container">
+      <div class="tt-video-placeholder"></div>
+      <div class="tt-right-sidebar">
+        <div class="tt-action-btn">
+          <span class="tt-action-icon">♡</span>
+          <span class="tt-action-count">24</span>
+        </div>
+        <div class="tt-action-btn">
+          <span class="tt-action-icon">💬</span>
+          <span class="tt-action-count">8</span>
+        </div>
+        <div class="tt-action-btn">
+          <span class="tt-action-icon">↗</span>
+          <span class="tt-action-count">12</span>
+        </div>
+      </div>
+      <div class="tt-bottom-overlay">
+        <div class="tt-username">@tiktok_user</div>
+        <div class="tt-caption">Check out this amazing content! 🔗</div>
+        <div class="tt-music">🎵 Original Sound - Artist</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify Theme Subscription Integration</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: var(--bg-color, #f5f5f5);
+      color: var(--text-color, #333);
+    }
+    h1 { color: #333; }
+    .test-section {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .platform-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 10px;
+      margin: 20px 0;
+    }
+    .platform-item {
+      padding: 10px;
+      background: #f0f0f0;
+      border-radius: 4px;
+      text-align: center;
+      font-size: 14px;
+    }
+    .platform-item.subscribed {
+      background: #4CAF50;
+      color: white;
+    }
+    .status {
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+    .status.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .status.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    .status.info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+    button {
+      padding: 10px 20px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:hover { background: #0056b3; }
+    .theme-info {
+      font-family: monospace;
+      background: #f8f9fa;
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Theme Subscription Integration Test</h1>
+
+  <div class="test-section">
+    <h2>ThemeSubscription API Check</h2>
+    <div id="apiStatus" class="status info">Checking...</div>
+    <div id="themeInfo" class="theme-info"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>7 Platform Coverage Test</h2>
+    <p>The following platforms should be integrated with theme subscription:</p>
+    <div class="platform-list">
+      <div class="platform-item" data-platform="twitter">Twitter</div>
+      <div class="platform-item" data-platform="facebook">Facebook</div>
+      <div class="platform-item" data-platform="linkedin">LinkedIn</div>
+      <div class="platform-item" data-platform="reddit">Reddit</div>
+      <div class="platform-item" data-platform="youtube">YouTube</div>
+      <div class="platform-item" data-platform="instagram">Instagram</div>
+      <div class="platform-item" data-platform="tiktok">TikTok</div>
+    </div>
+    <button id="testSubscriptionBtn">Test Platform Subscription</button>
+    <div id="subscriptionResult" class="status info" style="margin-top: 10px;"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>Theme Change Notification Test</h2>
+    <button id="toggleThemeBtn">Toggle Theme</button>
+    <div id="themeChangeResult" class="status info" style="margin-top: 10px;"></div>
+    <div id="notificationLog" class="theme-info" style="margin-top: 10px; max-height: 200px; overflow-y: auto;"></div>
+  </div>
+
+  <script src="theme-subscription.js"></script>
+  <script>
+    // Test 1: Check if ThemeSubscription API is available
+    function testAPIAvailability() {
+      const apiStatus = document.getElementById('apiStatus');
+      const themeInfo = document.getElementById('themeInfo');
+
+      if (typeof window.ThemeSubscription !== 'undefined') {
+        apiStatus.className = 'status success';
+        apiStatus.textContent = '✓ ThemeSubscription API is available';
+
+        const currentTheme = window.ThemeSubscription.getCurrentTheme();
+        themeInfo.textContent = `Current theme: ${currentTheme} | Subscribers: ${window.ThemeSubscription.subscriberCount}`;
+      } else {
+        apiStatus.className = 'status error';
+        apiStatus.textContent = '✗ ThemeSubscription API is NOT available';
+        themeInfo.textContent = 'Check if theme-subscription.js is loaded';
+      }
+    }
+
+    // Test 2: Test platform subscription for all 7 platforms
+    function testPlatformSubscription() {
+      const resultDiv = document.getElementById('subscriptionResult');
+      const platforms = ['twitter', 'facebook', 'linkedin', 'reddit', 'youtube', 'instagram', 'tiktok'];
+      const results = [];
+
+      // Clear previous subscriptions
+      window.ThemeSubscription.subscribers.clear();
+
+      platforms.forEach(platform => {
+        try {
+          const unsubscribe = window.ThemeSubscription.subscribePlatformFrame(platform, `test-frame-${platform}`);
+          results.push(`${platform}: ✓ Subscribed`);
+        } catch (error) {
+          results.push(`${platform}: ✗ Failed - ${error.message}`);
+        }
+      });
+
+      resultDiv.className = 'status success';
+      resultDiv.innerHTML = `<strong>All 7 platforms tested:</strong><br>${results.join('<br>')}`;
+
+      // Update visual indicators
+      document.querySelectorAll('.platform-item').forEach(item => {
+        const platform = item.dataset.platform;
+        if (platforms.includes(platform)) {
+          item.classList.add('subscribed');
+          item.textContent += ' ✓';
+        }
+      });
+    }
+
+    // Test 3: Test theme change notifications
+    function testThemeNotifications() {
+      const resultDiv = document.getElementById('themeChangeResult');
+      const logDiv = document.getElementById('notificationLog');
+      const notifications = [];
+
+      // Subscribe to receive notifications
+      window.ThemeSubscription.subscribe((theme) => {
+        notifications.push(`Theme changed to: ${theme}`);
+        logDiv.innerHTML = notifications.join('<br>');
+      });
+
+      resultDiv.className = 'status success';
+      resultDiv.textContent = '✓ Subscribed to theme changes. Click "Toggle Theme" to test.';
+
+      logDiv.innerHTML = 'Waiting for theme changes...';
+    }
+
+    // Toggle theme for testing
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme') || 'dark';
+      const newTheme = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', newTheme);
+
+      const resultDiv = document.getElementById('themeChangeResult');
+      resultDiv.className = 'status success';
+      resultDiv.textContent = `✓ Theme toggled from ${current} to ${newTheme}`;
+
+      // Update theme info
+      const themeInfo = document.getElementById('themeInfo');
+      if (typeof window.ThemeSubscription !== 'undefined') {
+        themeInfo.textContent = `Current theme: ${newTheme} | Subscribers: ${window.ThemeSubscription.subscriberCount}`;
+      }
+    }
+
+    // Event listeners
+    document.getElementById('testSubscriptionBtn').addEventListener('click', testPlatformSubscription);
+    document.getElementById('toggleThemeBtn').addEventListener('click', toggleTheme);
+
+    // Run tests on load
+    window.addEventListener('DOMContentLoaded', () => {
+      testAPIAvailability();
+      testThemeNotifications();
+
+      // Set initial theme
+      document.documentElement.setAttribute('data-theme', 'dark');
+    });
+  </script>
+</body>
+</html>

@@ -1,6 +1,28 @@
 'use strict';
 /* VISTA frontend application */
 
+/**
+ * Platform Context Frames Configuration
+ *
+ * @import { PlatformFramesConfig } from '../platform-frames.config.ts'
+ *
+ * This file integrates with the platform-frames configuration system.
+ * TypeScript source: ../platform-frames.config.ts
+ * Type definitions: ../types/platform-frames.d.ts
+ * Runtime implementation: platform-frames.js (loaded as global script)
+ *
+ * The platform-frames.config.ts provides the authoritative mapping of all 43 platforms
+ * to their frame types, chrome HTML templates, and theming configuration.
+ * This JavaScript runtime accesses that configuration through the global PLATFORM_FRAMES object.
+ *
+ * The following are loaded from platform-frames.js and available in global scope:
+ * - PLATFORM_FRAMES: Platform frame configuration object
+ * - getPlatformFrame(platformId): Get platform frame configuration
+ * - buildContextFrame(pid, contentData, theme): Build context frame HTML
+ * - hasThemeSupport(platformId): Check if platform supports theme toggle
+ * - getThemeVars(platformId, theme): Get theme variables for a platform
+ */
+
 // ── State ──
 let currentData = null;
 let currentMode = 'url'; // 'url' | 'paste' | 'compare'
@@ -9,7 +31,27 @@ let compareData = { before: null, after: null, swapped: false }; // Comparison s
 let hasCelebratedPerfectScore = false; // Track one-time celebration per session
 let isFreshFetch = true; // Track whether current inspection is a fresh fetch (vs page load auto-inspect)
 let currentTab = 'previews'; // Active tab state for hash encoding
+let tabRestoredFromHash = false; // True when initial load restored #tab= — prevents results render from clobbering it
 let pendingWhatIfTags = null; // Store pending What If tags from hash before data loads
+
+// ── Platform Config (fetched from server) ──
+let PLATFORM_SKELETON_TYPES = null; // Will be fetched from /api/platforms
+
+/**
+ * Fetch platform configuration from the server
+ * This ensures the client uses the same platform→skeleton-type mapping as the server
+ */
+async function fetchPlatformConfig() {
+  try {
+    const response = await fetch('/api/platforms');
+    const data = await response.json();
+    PLATFORM_SKELETON_TYPES = data.platformSkeletonMap;
+  } catch (err) {
+    console.error('Failed to fetch platform config:', err);
+    // Fallback to minimal mapping if fetch fails
+    PLATFORM_SKELETON_TYPES = { google: 'text-only' };
+  }
+}
 
 // ── Debug Flags ──
 /**
@@ -29,7 +71,7 @@ let pendingWhatIfTags = null; // Store pending What If tags from hash before dat
  * - Output array after reordering
  * - localStorage save operations
  */
-let DEBUG_SMART_ORDERING = false; // Set to true to enable smart ordering debug logs
+let DEBUG_SMART_ORDERING = true; // Set to true to enable smart ordering debug logs
 
 // ── Keyboard Navigation State ──
 let focusedCardIndex = -1; // Index of currently focused card in preview grid
@@ -62,20 +104,36 @@ function announce(message, priority = 'polite') {
 function initTheme() {
   const savedTheme = localStorage.getItem('vista-theme');
   if (savedTheme) {
+    // Explicit user choice wins and persists over the system preference.
     globalTheme = savedTheme;
+    applyTheme(globalTheme);
   } else {
-    // Check system preference
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
-      globalTheme = 'light';
-    }
+    // No explicit choice yet: follow the OS color-scheme WITHOUT persisting,
+    // so a later system change (see listener below) keeps taking effect.
+    const sysLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+    globalTheme = sysLight ? 'light' : globalTheme;
+    applyTheme(globalTheme, { persist: false });
   }
-  applyTheme(globalTheme);
+
+  // Live-track the OS color-scheme for as long as the user hasn't made an
+  // explicit choice. The guard short-circuits once they toggle the theme
+  // manually (which persists 'vista-theme'), so their choice then wins.
+  const schemeMql = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)');
+  if (schemeMql && typeof schemeMql.addEventListener === 'function' && !window.__vistaSchemeListener) {
+    schemeMql.addEventListener('change', (e) => {
+      if (localStorage.getItem('vista-theme')) return; // user choice wins
+      applyTheme(e.matches ? 'light' : 'dark', { persist: false });
+    });
+    window.__vistaSchemeListener = true;
+  }
 }
 
-function applyTheme(theme) {
+function applyTheme(theme, { persist = true } = {}) {
   globalTheme = theme;
   document.documentElement.setAttribute('data-theme', theme);
-  localStorage.setItem('vista-theme', theme);
+  // Only persist when the user makes an explicit choice; system-derived themes
+  // stay transient so prefers-color-scheme changes can keep re-applying.
+  if (persist) localStorage.setItem('vista-theme', theme);
 
   // Update theme toggle icon and accessible label
   const themeToggle = document.getElementById('globalThemeToggle');
@@ -84,14 +142,61 @@ function applyTheme(theme) {
     themeToggle.querySelector('.theme-icon-dark').style.display = theme === 'light' ? 'inline' : 'none';
     themeToggle.setAttribute('aria-label', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
   }
+
+  // Sync all card themes with the new global theme
+  Object.keys(cardContextState).forEach(pid => {
+    if (cardContextState[pid] && PLATFORMS_WITH_THEME.includes(pid)) {
+      cardContextState[pid].theme = theme;
+    }
+  });
+
+  // Re-render cards that support theme to update their appearance
+  if (currentData) {
+    renderPreviews(currentData);
+  }
 }
 
 function toggleGlobalTheme() {
   const newTheme = globalTheme === 'dark' ? 'light' : 'dark';
   applyTheme(newTheme);
-  // Re-render cards that support theme to update their appearance
-  if (currentData) {
-    renderPreviews(currentData);
+}
+
+/**
+ * Subscribe the most recently inserted frame for a platform to theme changes
+ * This should be called immediately after inserting a frame's HTML into the DOM
+ * @param {string} platformId - Platform ID (e.g., 'twitter', 'facebook')
+ */
+function subscribeFrameToTheme(platformId) {
+  // Find the most recently inserted frame for this platform
+  // Frames have IDs like 'frame-twitter-1', 'frame-facebook-2', etc.
+  // We use the attribute selector to find all frames for this platform and take the last one
+  const platformFrames = document.querySelectorAll(`[data-platform="${platformId}"].context-frame`);
+  if (platformFrames.length === 0) {
+    console.warn(`[subscribeFrameToTheme] No frame found for platform: ${platformId}`);
+    return;
+  }
+
+  // Get the most recently inserted frame (last in the list)
+  const latestFrame = platformFrames[platformFrames.length - 1];
+  const frameId = latestFrame.id;
+
+  if (!frameId) {
+    console.warn(`[subscribeFrameToTheme] Frame has no ID for platform: ${platformId}`);
+    return;
+  }
+
+  // Check if ThemeSubscription API is available
+  if (typeof window.ThemeSubscription === 'undefined') {
+    console.warn('[subscribeFrameToTheme] ThemeSubscription API not available');
+    return;
+  }
+
+  // Subscribe this frame to theme changes
+  try {
+    window.ThemeSubscription.subscribePlatformFrame(platformId, frameId);
+    console.log(`[subscribeFrameToTheme] Subscribed frame ${frameId} for platform ${platformId}`);
+  } catch (error) {
+    console.error(`[subscribeFrameToTheme] Failed to subscribe frame ${frameId}:`, error);
   }
 }
 
@@ -115,6 +220,7 @@ const summaryUrl = $('#summaryUrl');
 const diagBadge = $('#diagBadge');
 const previewGrid = $('#previewGrid');
 const diagPanel = $('#diagPanel');
+const diagProgress = $('#diagProgress');
 const rawTagsPanel = $('#rawTagsPanel');
 const redirectPanel = $('#redirectPanel');
 const fixesPanel = $('#fixesPanel');
@@ -132,12 +238,14 @@ const tabCompareBtn = $('#tabCompareBtn');
 const cropperViewport = $('#cropperViewport');
 const cropperImage = $('#cropperImage');
 const cropperOverlay = $('#cropperOverlay');
+const cropperEmpty = $('#cropperEmpty');
 const cropperControls = $('#cropperControls');
 const cropperContainer = $('#cropperContainer');
 const downloadOverlayBtn = $('#downloadOverlayBtn');
 const safeZoneInfo = $('#safeZoneInfo');
 const imageInfo = $('#imageInfo');
 const cropperBadge = $('#cropperBadge');
+const cropperCategoryLegend = $('#cropperCategoryLegend');
 
 // Badge modal DOM refs
 const badgeBtn = $('#badgeBtn');
@@ -280,6 +388,10 @@ badgeModal?.addEventListener('click', (e) => {
   if (e.target === badgeModal) closeBadgeModal();
 });
 
+qrModal?.addEventListener('click', (e) => {
+  if (e.target === qrModal) closeQrModal();
+});
+
 // OG Generator event listeners
 oggenBgType?.addEventListener('change', handleBgTypeChange);
 oggenBgColor?.addEventListener('input', updateOggenCanvas);
@@ -343,8 +455,10 @@ document.querySelectorAll('.tabs-inner[role="tablist"]').forEach(tablist => {
   });
 });
 
-// Example chips
-document.querySelectorAll('.chip').forEach(chip => {
+// Example chips (URL mode — scoped to [data-url] so the sitemap chips,
+// which use [data-sitemap] and have their own handler below, don't double-fire
+// and trigger inspectUrl(undefined))
+document.querySelectorAll('.chip[data-url]').forEach(chip => {
   chip.addEventListener('click', () => {
     urlInput.value = chip.dataset.url;
     switchMode('url');
@@ -400,7 +514,11 @@ function updateHash(options = {}) {
   }
 
   const hash = parts.length > 0 ? `#${parts.join('&')}` : '';
-  history.replaceState(null, null, hash);
+  // Rebuild the URL from pathname + search so the ?url= query param is preserved
+  // while the hash is replaced. An empty `hash` must clear the fragment — passing
+  // '' to replaceState resolves against the current URL and would leave a stale #…
+  // behind (e.g. switching back to the default tab must drop #tab=diagnostics).
+  history.replaceState(null, null, window.location.pathname + window.location.search + hash);
 }
 
 /**
@@ -413,6 +531,8 @@ function restoreHashState() {
   if (state.tab) {
     const tabBtn = document.querySelector(`.tab-btn[data-tab="${state.tab}"]`);
     if (tabBtn) {
+      // Remember we restored a tab so the results render doesn't clobber it
+      tabRestoredFromHash = true;
       switchTab(state.tab);
     }
   }
@@ -483,8 +603,41 @@ window.addEventListener('DOMContentLoaded', () => {
 // Global theme toggle listener
 document.getElementById('globalThemeToggle')?.addEventListener('click', toggleGlobalTheme);
 
+// Watch for theme changes from external sources (e.g., frames-theme.js, direct DOM manipulation)
+const themeObserver = new MutationObserver((mutations) => {
+  mutations.forEach((mutation) => {
+    if (mutation.attributeName === 'data-theme') {
+      const newTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+      // Update global theme variable if changed externally
+      if (globalTheme !== newTheme) {
+        globalTheme = newTheme;
+        // Sync all card themes with the new global theme
+        Object.keys(cardContextState).forEach(pid => {
+          if (cardContextState[pid] && PLATFORMS_WITH_THEME.includes(pid)) {
+            cardContextState[pid].theme = newTheme;
+          }
+        });
+        // Update all platform frames to reflect new theme
+        if (typeof window !== 'undefined' && window.FrameTheme && typeof window.FrameTheme.updateAllPlatformFrames === 'function') {
+          window.FrameTheme.updateAllPlatformFrames(newTheme);
+        }
+        // Re-render cards that support theme to update their appearance
+        if (currentData) {
+          renderPreviews(currentData);
+        }
+      }
+    }
+  });
+});
+
+themeObserver.observe(document.documentElement, {
+  attributes: true,
+  attributeFilter: ['data-theme']
+});
+
 // ── Mode switching ──
 function switchMode(mode) {
+  const wasCompareMode = currentMode === 'compare';
   currentMode = mode;
   if (mode === 'url') {
     urlMode.classList.remove('hidden');
@@ -526,6 +679,13 @@ function switchMode(mode) {
     navInspect?.classList.remove('active');
     navPaste?.classList.remove('active');
     navCompare?.classList.remove('active');
+  }
+
+  // Update hash: remove compare mode parameters when leaving compare mode
+  // Since currentMode is no longer 'compare', updateHash will automatically skip
+  // adding the mode=compare and b= parameters
+  if (wasCompareMode && mode !== 'compare') {
+    updateHash();
   }
 }
 
@@ -650,7 +810,13 @@ async function progressiveLoad({ url, html, base }) {
   hero.classList.add('compact');
   document.body.classList.add('has-results');
   resultsSection.classList.remove('hidden');
-  switchTab('previews');
+  // Respect a tab restored from #tab= on initial load; otherwise default to previews.
+  // Consume the flag here so subsequent (user-initiated) inspections reset to previews.
+  if (tabRestoredFromHash) {
+    tabRestoredFromHash = false;
+  } else {
+    switchTab('previews');
+  }
 
   // Render summary bar and text-based previews
   renderSummaryBar(metaData);
@@ -658,7 +824,7 @@ async function progressiveLoad({ url, html, base }) {
 
   // Update URL for sharing
   if (metaData.url && metaData.url !== window.location.href) {
-	history.pushState({}, '', '/?url=' + encodeURIComponent(metaData.url));
+	history.pushState({}, '', '/?url=' + encodeURIComponent(metaData.url) + window.location.hash);
   }
 
   // Step 3: Fetch images and headers in parallel, update UI as each completes
@@ -788,6 +954,10 @@ async function finalizeProgressiveLoad(metaData, imagesData, headersData, startT
   initCacheHub();
   generateCodeSnippet();
 
+  // Apply What If disabled tags (#without=) that were pending before data loaded.
+  // handleResult is no longer reached in the progressive flow, so apply here once data is ready.
+  applyPendingWhatIfTags();
+
   // Announce final results
   if (completeData.scoring) {
 	const { grade, score } = completeData.scoring.overall;
@@ -841,6 +1011,11 @@ function mergeData(metaData, imagesData, headersData) {
 	  previews: imagesData.previews,
 	  imageProbe: imagesData.imageProbe,
 	  cropper: imagesData.cropper,
+	  // autoFixes computed WITH the real imageProbe — a superset of the
+	  // headers-derived list (which is computed with imageProbe=null).
+	  // Overwrites the headers-only autoFixes set earlier when headers arrived
+	  // before images, so the final Fix list reflects image findings too.
+	  autoFixes: imagesData.autoFixes,
 	});
   }
 
@@ -853,7 +1028,21 @@ function mergeData(metaData, imagesData, headersData) {
 	  server: headersData.server,
 	  diagnostics: headersData.diagnostics || [],
 	  headerAnalysis: headersData.headerAnalysis,
+	  // Raw response headers — renderRedirects() builds the "All Response
+	  // Headers" table from this argument and exportHeadersAsJson() reads
+	  // currentData.responseHeaders. The headers endpoint returns it; the
+	  // legacy /api/preview carries it at the top level too. Without this,
+	  // both the headers table and the JSON export were empty in the
+	  // progressive flow. (bf-59t)
+	  responseHeaders: headersData.responseHeaders,
 	});
+	// autoFixes fallback: when headers arrive before images, imagesData is null
+	// so the block above didn't run — populate from the headers list so Fix
+	// buttons appear at the headers step rather than waiting on image probing.
+	// Once images arrive, the images block sets the (superset) autoFixes.
+	if (!merged.autoFixes && headersData.autoFixes) {
+	  merged.autoFixes = headersData.autoFixes;
+	}
   }
 
   return merged;
@@ -932,57 +1121,25 @@ async function verifyClientSideTags(html, serverMeta) {
     // Wait a bit for JavaScript to execute (max 2 seconds)
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    // Extract meta tags from the rendered DOM
-    const clientMetas = new Map();
-    const metaTags = iframeDoc.querySelectorAll('meta[property], meta[name]');
+    // Extract meta tags from the rendered DOM (after JS execution). These are
+    // real DOM elements — normalizeMetaTag() in client-side-diff.js handles
+    // them via getAttribute(), and handles rawTags objects via .property/.name.
+    const clientTags = Array.from(
+      iframeDoc.querySelectorAll('meta[property], meta[name]')
+    );
 
-    metaTags.forEach(tag => {
-      const property = tag.getAttribute('property');
-      const name = tag.getAttribute('name');
-      const content = tag.getAttribute('content');
-      const key = property || name;
+    // Server-side raw tags come straight from parseMetaTags() — the HTML a
+    // crawler sees, before any JavaScript runs.
+    const serverTags = (serverMeta && serverMeta.rawTags) || [];
 
-      if (key && content) {
-        const lowerKey = key.toLowerCase();
-        // Focus on og:* and twitter:* tags
-        if (lowerKey.startsWith('og:') || lowerKey.startsWith('twitter:')) {
-          clientMetas.set(lowerKey, content);
-        }
-      }
-    });
+    // Counted-multiset diff (duplicate- and order-aware). Tags present only
+    // after JS, or in extra copies post-JS, are exactly what a non-JS crawler
+    // will miss. The previous Map-keyed-on-tag-name approach collapsed
+    // duplicates, so a JS-injected second og:image silently passed undetected.
+    const { clientOnlyTags, differingTags } = diffClientSideTags(serverTags, clientTags);
 
-    // Build set of server-side meta tags (from raw HTML, no JS execution)
-    const serverMetas = new Map();
-    if (serverMeta.rawTags) {
-      serverMeta.rawTags.forEach(tag => {
-        const key = tag.property || tag.name;
-        if (key && tag.content) {
-          const lowerKey = key.toLowerCase();
-          if (lowerKey.startsWith('og:') || lowerKey.startsWith('twitter:')) {
-            serverMetas.set(lowerKey, tag.content);
-          }
-        }
-      });
-    }
-
-    // Find tags that only exist client-side (injected by JS)
-    const clientOnlyTags = [];
-    for (const [key, value] of clientMetas) {
-      if (!serverMetas.has(key)) {
-        clientOnlyTags.push({ key, value });
-      }
-    }
-
-    // Find tags with different values between server and client
-    const differingTags = [];
-    for (const [key, clientValue] of clientMetas) {
-      const serverValue = serverMetas.get(key);
-      if (serverValue && serverValue !== clientValue) {
-        differingTags.push({ key, serverValue, clientValue });
-      }
-    }
-
-    // Create diagnostic findings
+    // Tags injected entirely by JavaScript — the key is absent from the raw
+    // HTML, so a non-JS crawler never sees them at all.
     if (clientOnlyTags.length > 0) {
       const tagList = clientOnlyTags.slice(0, 5).map(t => t.key).join(', ');
       const more = clientOnlyTags.length > 5 ? ` (+${clientOnlyTags.length - 5} more)` : '';
@@ -990,19 +1147,22 @@ async function verifyClientSideTags(html, serverMeta) {
         severity: 'error',
         code: 'js-injected-tags',
         message: `Meta tags only appear after JavaScript executes: ${tagList}${more} — social crawlers that don't execute JS will not see these tags`,
-        fix: 'Move critical meta tags to static HTML in <head>, or use Server-Side Rendering (SSR) to ensure tags exist in the initial HTML response',
-        platforms: 'Facebook, LinkedIn, Twitter, WhatsApp, and most other crawlers',
+        fix: 'Move critical meta tags into the static HTML in <head>, or use Server-Side Rendering (SSR) / prerendering so the tags exist in the initial HTML response',
+        platforms: 'Facebook, LinkedIn, X, WhatsApp, and most other crawlers',
+        requiresAsyncVerification: true,
       });
     }
 
+    // Tags whose value (or copy count) changed after JS execution.
     if (differingTags.length > 0) {
       const tagList = differingTags.slice(0, 3).map(t => t.key).join(', ');
       findings.push({
         severity: 'warning',
         code: 'js-modified-tags',
-        message: `Meta tags have different values after JavaScript execution: ${tagList} — crawlers may see different values than browsers`,
-        fix: 'Ensure meta tags have correct values in the initial HTML, or use SSR to render the correct values server-side',
+        message: `Meta tags have different values (or extra copies) after JavaScript execution: ${tagList} — crawlers may see different values than browsers`,
+        fix: 'Ensure meta tags have the correct values in the initial HTML, or use SSR / prerendering to render the correct values server-side',
         platforms: 'Multiple platforms (crawler-dependent)',
+        requiresAsyncVerification: true,
       });
     }
   } catch (e) {
@@ -1250,7 +1410,7 @@ const PLATFORM_GROUPS = [
     id: 'collab',
     title: 'Collaboration & Productivity',
     collapsed: true,
-    platforms: ['notion','jira','github','trello','figma'],
+    platforms: ['notion','jira','github','trello','figma','vscode','jetbrains'],
   },
   {
     id: 'content',
@@ -1265,7 +1425,7 @@ const PLATFORM_ICONS = {
   mastodon: '🐘', bluesky: '🦋', threads: '🧵', tumblr: '📷', pinterest: '📌',
   slack: '💬', discord: '🎮', whatsapp: '📱', imessage: '💬', telegram: '✈️',
   signal: '🔐', teams: '👥', googlechat: '💬', zoom: '🎥', line: '📲', kakaotalk: '💛',
-  notion: '📝', jira: '🔧', github: '🐙', trello: '📋', figma: '🎨',
+  notion: '📝', jira: '🔧', github: '🐙', trello: '📋', figma: '🎨', vscode: '💻', jetbrains: '🔨',
   medium: '📖', substack: '📧', outlook: '📨', gmail: '📩', feedly: '📰',
 };
 
@@ -1276,52 +1436,16 @@ const PLATFORM_NAMES = {
   slack: 'Slack', discord: 'Discord', whatsapp: 'WhatsApp', imessage: 'iMessage',
   telegram: 'Telegram', signal: 'Signal', teams: 'Microsoft Teams',
   googlechat: 'Google Chat', zoom: 'Zoom Chat', line: 'Line', kakaotalk: 'KakaoTalk',
-  notion: 'Notion', jira: 'Jira / Confluence', github: 'GitHub', trello: 'Trello', figma: 'Figma',
+  notion: 'Notion', jira: 'Jira / Confluence', github: 'GitHub', trello: 'Trello', figma: 'Figma', vscode: 'VS Code', jetbrains: 'JetBrains IDE',
   medium: 'Medium', substack: 'Substack', outlook: 'Outlook', gmail: 'Gmail', feedly: 'Feedly / RSS',
 };
 
 // ── Platform Skeleton Types ──
-// Defines which skeleton layout each platform uses during loading state
+// Fetched from /api/platforms endpoint
 // 'tall': Image on top (Facebook, Twitter, LinkedIn, Reddit, etc.)
 // 'short': Thumbnail on left (WhatsApp, Slack, Notion, etc.)
 // 'text-only': No image region (Google search results)
-const PLATFORM_SKELETON_TYPES = {
-  // Social & Microblogging
-  google: 'text-only',
-  facebook: 'tall',
-  twitter: 'tall',
-  linkedin: 'tall',
-  reddit: 'tall',
-  mastodon: 'tall',
-  bluesky: 'tall',
-  threads: 'tall',
-  tumblr: 'tall',
-  pinterest: 'tall',
-  // Messaging
-  slack: 'short',
-  discord: 'tall',
-  whatsapp: 'short',
-  imessage: 'short',
-  telegram: 'tall',
-  signal: 'short',
-  teams: 'tall',
-  googlechat: 'tall',
-  zoom: 'tall',
-  line: 'tall',
-  kakaotalk: 'tall',
-  // Collaboration & Productivity
-  notion: 'short',
-  jira: 'short',
-  github: 'tall',
-  trello: 'short',
-  figma: 'short',
-  // Content, Email & RSS
-  medium: 'tall',
-  substack: 'tall',
-  outlook: 'short',
-  gmail: 'short',
-  feedly: 'short',
-};
+// PLATFORM_SKELETON_TYPES is populated by fetchPlatformConfig() from server
 
 // ── Platform Crop Specifications ──
 // Each platform has: aspect ratio (min/max), crop mode (center/cover/contain), display size
@@ -1357,6 +1481,8 @@ const PLATFORM_CROPS = {
   github: { category: 'collaboration', aspect: { min: 1.91, max: 1.91 }, cropMode: 'cover', displaySize: { w: 1200, h: 630 }, note: '1200×630 optimal' },
   trello: { category: 'collaboration', aspect: { min: 1, max: 1 }, cropMode: 'cover', displaySize: { w: 300, h: 300 }, note: '56px wide thumbnail' },
   figma: { category: 'collaboration', aspect: { min: 1.5, max: 1.5 }, cropMode: 'cover', displaySize: { w: 600, h: 400 }, note: '56px wide thumbnail' },
+  vscode: { category: 'collaboration', aspect: { min: 0, max: Infinity }, cropMode: 'contain', displaySize: null, note: 'IDE context frame, flexible aspect' },
+  jetbrains: { category: 'collaboration', aspect: { min: 0, max: Infinity }, cropMode: 'contain', displaySize: null, note: 'IDE context frame, flexible aspect' },
 
   // Content (orange)
   medium: { category: 'content', aspect: { min: 1.91, max: 1.91 }, cropMode: 'cover', displaySize: { w: 1200, h: 630 }, note: '1200×630 optimal' },
@@ -1388,6 +1514,13 @@ const CATEGORY_LABELS = {
   email: 'Email',
   rss: 'RSS / Readers',
 };
+
+// Distinct color for the safe-zone (intersection) overlay. Cyan is deliberately
+// unused by any platform category (see CATEGORY_COLORS above), so the
+// intersection rectangle can never be mistaken for a single platform's crop.
+// The overlay is drawn with a dark halo behind this color so it stays visible
+// on both light and dark OG images.
+const SAFE_ZONE_COLOR = '#22d3ee';
 
 // Platform character limits (title and description truncation points)
 const PLATFORM_CHAR_LIMITS = {
@@ -1455,9 +1588,14 @@ Object.keys(PLATFORM_CROPS).forEach(pid => cropperState.enabledPlatforms.add(pid
 
 // ── Skeleton Rendering ──
 
-// Get skeleton type for a platform
+// Get skeleton type for a platform.
+// Normalize underscores → hyphens so the client's hyphen comparisons
+// ('text-only') work regardless of whether the value came from the server
+// (skeleton-types.js uses 'text_only') or the fetch fallback ('text-only').
+// Without this, Google's text_only from the server failed the hyphen check
+// and it rendered an empty skeleton body.
 function getSkeletonType(pid) {
-  return PLATFORM_SKELETON_TYPES[pid] || 'tall';
+  return (PLATFORM_SKELETON_TYPES[pid] || 'tall').replace(/_/g, '-');
 }
 
 // Get skeleton HTML for a platform based on its skeleton type
@@ -1520,6 +1658,25 @@ function getSkeletonHtml(pid) {
 }
 
 // Render skeleton cards for all platforms
+/**
+ * Make a platform-group header an accessible disclosure toggle.
+ * Adds role="button" + tabindex (keyboard activation is handled by the
+ * global [role="button"] Enter/Space listener) and keeps aria-expanded in
+ * sync with the group's `collapsed` class. Idempotent: re-renders refresh
+ * role/aria-expanded without stacking duplicate click listeners.
+ */
+function setupGroupHeader(header, groupEl) {
+  header.setAttribute('role', 'button');
+  header.tabIndex = 0;
+  header.setAttribute('aria-expanded', String(!groupEl.classList.contains('collapsed')));
+  if (header.dataset.a11yBound === '1') return;
+  header.dataset.a11yBound = '1';
+  header.addEventListener('click', () => {
+    groupEl.classList.toggle('collapsed');
+    header.setAttribute('aria-expanded', String(!groupEl.classList.contains('collapsed')));
+  });
+}
+
 function renderSkeletons() {
   previewGrid.innerHTML = '';
   let globalIndex = 0;
@@ -1537,21 +1694,25 @@ function renderSkeletons() {
       <span class="group-title">${escHtml(group.title)}</span>
       <span class="group-subtitle">Loading...</span>
     `;
-    header.addEventListener('click', () => {
-      groupEl.classList.toggle('collapsed');
-    });
+    setupGroupHeader(header, groupEl);
     groupEl.appendChild(header);
 
     const row = document.createElement('div');
     row.className = 'cards-row skeleton-row';
     row.dataset.groupId = group.id;
 
-    // Use custom order if available, otherwise use default group order
+    // Use custom order if available and smart ordering is not in progress
+    // Otherwise use default group order to prevent race conditions
     let platforms = group.platforms;
-    if (platformPrefs.cardOrder[group.id]) {
+    if (platformPrefs.cardOrder[group.id] && !isApplyingSmartOrder) {
       const customOrder = platformPrefs.cardOrder[group.id].filter(pid => group.platforms.includes(pid));
       const newPlatforms = group.platforms.filter(pid => !customOrder.includes(pid));
       platforms = [...customOrder, ...newPlatforms];
+      if (DEBUG_SMART_ORDERING) {
+        console.log(`[renderSkeletons] Group ${group.id}: using custom order from cardOrder:`, platforms);
+      }
+    } else if (isApplyingSmartOrder && DEBUG_SMART_ORDERING) {
+      console.log(`[renderSkeletons] Group ${group.id}: skipping cardOrder during smart ordering, using default:`, platforms);
     }
 
     platforms.forEach((pid, i) => {
@@ -1561,11 +1722,8 @@ function renderSkeletons() {
       card.dataset.groupId = group.id;
 
       // Stagger animation: 50ms delay per card (unless reduced motion preferred)
-      if (!prefersReducedMotion()) {
-        card.style.animationDelay = (globalIndex * 50) + 'ms';
-      } else {
-        card.style.animationDelay = '0ms';
-      }
+      const animDelay = !prefersReducedMotion() ? globalIndex * 50 : 0;
+      card.style.setProperty('--stagger-delay', animDelay + 'ms');
 
       card.innerHTML = getSkeletonHtml(pid);
       row.appendChild(card);
@@ -1583,7 +1741,34 @@ function showSkeletonCards() {
 }
 
 function renderPreviews(data) {
+  console.log('[renderPreviews] Called with cardOrder available:', platformPrefs.cardOrder);
+
+  // P1 - Concurrent Render Race fix: Prevent multiple simultaneous renders
+  if (isRendering) {
+    if (DEBUG_SMART_ORDERING) {
+      console.log('[renderPreviews] Already rendering - queueing with latest data');
+    }
+    // Store the latest data to render after current render completes
+    pendingRenderAfterCurrent = data;
+    return;
+  }
+
+  // P0 - Race condition fix: Queue render if smart ordering is in progress
+  if (isApplyingSmartOrder) {
+    if (DEBUG_SMART_ORDERING) {
+      console.log('[renderPreviews] Smart ordering in progress - queueing render with latest data');
+    }
+    // Store the latest data to render after smart ordering completes
+    pendingRenderData = data;
+    return; // Skip rendering during smart ordering to prevent race conditions
+  }
+
+  // P1 - Set rendering guard flag
+  isRendering = true;
+
   previewGrid.innerHTML = '';
+  let globalIndex = 0; // Global index for stagger delay calculation
+
   PLATFORM_GROUPS.forEach((group, gi) => {
     const groupEl = document.createElement('div');
     groupEl.className = 'platform-group' + (group.collapsed ? ' collapsed' : '');
@@ -1603,32 +1788,74 @@ function renderPreviews(data) {
       <span class="group-title">${escHtml(group.title)}</span>
       <span class="group-subtitle">${gPassing} &#10003; ${gWarn > 0 ? gWarn + ' &#9888; ' : ''}${gFail > 0 ? gFail + ' &#10007;' : ''}</span>
     `;
-    header.addEventListener('click', () => {
-      groupEl.classList.toggle('collapsed');
-    });
+    setupGroupHeader(header, groupEl);
     groupEl.appendChild(header);
 
     const row = document.createElement('div');
     row.className = 'cards-row';
     row.dataset.groupId = group.id;
 
-    // Use custom order if available, otherwise use default group order
+    // Use custom order if available and smart ordering is not in progress
+    // Otherwise use default group order to prevent race conditions
     let platforms = group.platforms;
-    if (platformPrefs.cardOrder[group.id]) {
-      // Filter to only include platforms that still exist in the group
-      const customOrder = platformPrefs.cardOrder[group.id].filter(pid => group.platforms.includes(pid));
-      // Add any new platforms that aren't in the custom order yet
-      const newPlatforms = group.platforms.filter(pid => !customOrder.includes(pid));
-      platforms = [...customOrder, ...newPlatforms];
+    if (platformPrefs.cardOrder[group.id] && !isApplyingSmartOrder) {
+      // P2 - Filter Orphan Bug fix: Properly handle platforms that exist in group.platforms
+      // but not in cardOrder, without treating them as "new" platforms that get appended
+      const cardOrderForGroup = platformPrefs.cardOrder[group.id];
+
+      // First, collect all platforms that exist in both places
+      const existingInCardOrder = cardOrderForGroup.filter(pid => group.platforms.includes(pid));
+
+      // Then, collect platforms that are in the group but NOT in cardOrder
+      const missingFromCardOrder = group.platforms.filter(pid => !cardOrderForGroup.includes(pid));
+
+      // For missing platforms, insert them at their original group position, not at the end
+      // This prevents order drift when cardOrder is stale
+      const platformsWithProperPosition = [];
+      let cardOrderIdx = 0;
+      let groupIdx = 0;
+
+      while (cardOrderIdx < existingInCardOrder.length || groupIdx < group.platforms.length) {
+        const cardOrderNext = existingInCardOrder[cardOrderIdx];
+        const groupNext = group.platforms[groupIdx];
+
+        if (cardOrderNext && cardOrderNext === groupNext) {
+          // Platform exists in both - use cardOrder position
+          platformsWithProperPosition.push(cardOrderNext);
+          cardOrderIdx++;
+          groupIdx++;
+        } else if (missingFromCardOrder.includes(groupNext)) {
+          // Platform is in group but missing from cardOrder - insert here
+          platformsWithProperPosition.push(groupNext);
+          groupIdx++;
+        } else if (cardOrderNext) {
+          // Platform is in cardOrder but we've passed it in group - add from cardOrder
+          platformsWithProperPosition.push(cardOrderNext);
+          cardOrderIdx++;
+        } else {
+          groupIdx++;
+        }
+      }
+
+      platforms = platformsWithProperPosition;
+
+      console.log(`[renderPreviews] Group ${group.id}: using cardOrder for custom order:`, platforms);
+      if (DEBUG_SMART_ORDERING) {
+        console.log(`[DEBUG] Full cardOrder data:`, platformPrefs.cardOrder[group.id]);
+      }
+    } else if (isApplyingSmartOrder && DEBUG_SMART_ORDERING) {
+      console.log(`[renderPreviews] Group ${group.id}: skipping cardOrder during smart ordering, using default:`, platforms);
     }
 
     platforms.forEach((pid, i) => {
       const scoreData = data.scoring.scores[pid];
       if (!scoreData) return;
       // Respect prefers-reduced-motion for staggered animation delay
-      const animDelay = prefersReducedMotion() ? 0 : i * 60;
+      // 50ms delay per card using global index (not per-group index)
+      const animDelay = prefersReducedMotion() ? 0 : globalIndex * 50;
       const card = buildCard(pid, scoreData, data, animDelay, group.id);
       row.appendChild(card);
+      globalIndex++;
     });
 
     groupEl.appendChild(row);
@@ -1637,6 +1864,20 @@ function renderPreviews(data) {
 
   // Initialize drag and drop for cards
   initCardDragAndDrop();
+
+  // P1 - Clear rendering guard flag after DOM is complete
+  isRendering = false;
+
+  // Process any pending render that was queued while this render was in progress
+  if (pendingRenderAfterCurrent) {
+    if (DEBUG_SMART_ORDERING) {
+      console.log('[renderPreviews] Processing queued render after completion');
+    }
+    const dataToRender = pendingRenderAfterCurrent;
+    pendingRenderAfterCurrent = null;
+    // Use setTimeout to avoid recursive call stack
+    setTimeout(() => renderPreviews(dataToRender), 0);
+  }
 }
 
 /**
@@ -1672,9 +1913,7 @@ function renderTextPreviewsOnly(data) {
         <span class="group-title">${escHtml(group.title)}</span>
         <span class="group-subtitle">${gPassing} &#10003; ${gWarn > 0 ? gWarn + ' &#9888; ' : ''}${gFail > 0 ? gFail + ' &#10007;' : ''}</span>
       `;
-      header.addEventListener('click', () => {
-        groupEl.classList.toggle('collapsed');
-      });
+      setupGroupHeader(header, groupEl);
     } else {
       // Fallback: create new group structure (shouldn't happen with proper skeleton flow)
       groupEl = document.createElement('div');
@@ -1695,9 +1934,7 @@ function renderTextPreviewsOnly(data) {
         <span class="group-title">${escHtml(group.title)}</span>
         <span class="group-subtitle">${gPassing} &#10003; ${gWarn > 0 ? gWarn + ' &#9888; ' : ''}${gFail > 0 ? gFail + ' &#10007;' : ''}</span>
       `;
-      header.addEventListener('click', () => {
-        groupEl.classList.toggle('collapsed');
-      });
+      setupGroupHeader(header, groupEl);
       groupEl.appendChild(header);
 
       row = document.createElement('div');
@@ -1707,12 +1944,18 @@ function renderTextPreviewsOnly(data) {
       previewGrid.appendChild(groupEl);
     }
 
-    // Use custom order if available
+    // Use custom order if available and smart ordering is not in progress
+    // Otherwise use default group order to prevent race conditions
     let platforms = group.platforms;
-    if (platformPrefs.cardOrder[group.id]) {
+    if (platformPrefs.cardOrder[group.id] && !isApplyingSmartOrder) {
       const customOrder = platformPrefs.cardOrder[group.id].filter(pid => group.platforms.includes(pid));
       const newPlatforms = group.platforms.filter(pid => !customOrder.includes(pid));
       platforms = [...customOrder, ...newPlatforms];
+      if (DEBUG_SMART_ORDERING) {
+        console.log(`[renderTextPreviewsOnly] Group ${group.id}: using custom order from cardOrder:`, platforms);
+      }
+    } else if (isApplyingSmartOrder && DEBUG_SMART_ORDERING) {
+      console.log(`[renderTextPreviewsOnly] Group ${group.id}: skipping cardOrder during smart ordering, using default:`, platforms);
     }
 
     // Crossfade: fade out skeleton cards, then replace with text-only cards
@@ -1732,19 +1975,18 @@ function renderTextPreviewsOnly(data) {
 
         // After fade-out, replace with text-only card
         setTimeout(() => {
-          const textCard = buildTextOnlyCard(pid, scoreData, data, reducedMotion ? 0 : i * 60, group.id);
+          const textCard = buildTextOnlyCard(pid, scoreData, data, animDelay, group.id);
 
           // Add fade-in animation
           if (!reducedMotion) {
             textCard.classList.add('skeleton-fade-in');
-            textCard.style.animationDelay = animDelay + 'ms';
           }
 
           existingSkeleton.replaceWith(textCard);
         }, reducedMotion ? 0 : 150 + animDelay);
       } else {
         // No skeleton found, directly add text-only card
-        const textCard = buildTextOnlyCard(pid, scoreData, data, reducedMotion ? 0 : i * 60, group.id);
+        const textCard = buildTextOnlyCard(pid, scoreData, data, animDelay, group.id);
 
         if (!reducedMotion) {
           textCard.classList.add('skeleton-fade-in');
@@ -1765,16 +2007,21 @@ function renderTextPreviewsOnly(data) {
 function buildTextOnlyCard(pid, scoreData, data, animDelay, groupId) {
   const card = document.createElement('div');
   card.className = `platform-card ${gradeClass(scoreData.grade)}`;
-  card.style.animationDelay = animDelay + 'ms';
+  card.style.setProperty('--stagger-delay', animDelay + 'ms');
   card.dataset.pid = pid;
   card.dataset.groupId = groupId;
   card.dataset.loadingImages = 'true';
   card.tabIndex = -1;
   card.draggable = true;
+  // Custom focusable widget (roving tabindex + arrow/Enter keys). role="group"
+  // labels the container without forbidding its nested buttons the way
+  // role="button" would.
+  card.setAttribute('role', 'group');
+  card.setAttribute('aria-label', `${PLATFORM_NAMES[pid] || pid} preview card`);
 
   // Initialize context state
   if (!cardContextState[pid]) {
-    cardContextState[pid] = { context: false, theme: 'dark' };
+    cardContextState[pid] = { context: false, theme: globalTheme };
   }
 
   // Header with loading badge
@@ -1787,14 +2034,14 @@ function buildTextOnlyCard(pid, scoreData, data, animDelay, groupId) {
     <span class="card-platform-name">${escHtml(PLATFORM_NAMES[pid] || pid)}</span>
     <div class="card-header-controls">
       ${supportsTheme ? `
-        <button class="card-theme-toggle" data-pid="${pid}" title="Toggle theme" disabled>
+        <button class="card-theme-toggle" data-pid="${pid}" title="Toggle theme" aria-label="Toggle light/dark theme" disabled>
           <span class="theme-icon">${cardContextState[pid].theme === 'dark' ? '🌙' : '☀️'}</span>
         </button>
       ` : ''}
-      <button class="card-screenshot-btn" data-pid="${pid}" title="Download screenshot" disabled>
+      <button class="card-screenshot-btn" data-pid="${pid}" title="Download screenshot" aria-label="Download screenshot" disabled>
         <span>&#128190;</span>
       </button>
-      <button class="card-context-toggle" data-pid="${pid}" title="Toggle context view" disabled>
+      <button class="card-context-toggle" data-pid="${pid}" title="Toggle context view" aria-label="Toggle context view" disabled>
         <span class="context-icon">🃏</span>
         <span class="context-label">Loading...</span>
       </button>
@@ -1831,6 +2078,18 @@ function buildTextOnlyCard(pid, scoreData, data, animDelay, groupId) {
       footer.appendChild(div);
     });
     card.appendChild(footer);
+  }
+
+  // Event listeners for toggles
+  const screenshotBtn = header.querySelector('.card-screenshot-btn');
+  screenshotBtn.addEventListener('click', () => downloadScreenshot(pid, data));
+
+  const contextToggle = header.querySelector('.card-context-toggle');
+  contextToggle.addEventListener('click', () => toggleCardContext(pid, data));
+
+  const themeToggle = header.querySelector('.card-theme-toggle');
+  if (themeToggle) {
+    themeToggle.addEventListener('click', () => toggleCardTheme(pid, data));
   }
 
   return card;
@@ -1929,11 +2188,16 @@ function updatePreviewsWithImages(data) {
 function buildCard(pid, scoreData, data, animDelay, groupId) {
   const card = document.createElement('div');
   card.className = `platform-card ${gradeClass(scoreData.grade)}`;
-  card.style.animationDelay = animDelay + 'ms';
+  card.style.setProperty('--stagger-delay', animDelay + 'ms');
   card.dataset.pid = pid;
   card.dataset.groupId = groupId;
   card.tabIndex = -1; // Make focusable but not tab-focused by default
   card.draggable = true; // Enable drag and drop
+  // Custom focusable widget (roving tabindex + arrow/Enter keys). role="group"
+  // labels the container without forbidding its nested buttons the way
+  // role="button" would.
+  card.setAttribute('role', 'group');
+  card.setAttribute('aria-label', `${PLATFORM_NAMES[pid] || pid} preview card`);
 
   // Initialize context state for this card
   if (!cardContextState[pid]) {
@@ -1950,14 +2214,14 @@ function buildCard(pid, scoreData, data, animDelay, groupId) {
     <span class="card-platform-name">${escHtml(PLATFORM_NAMES[pid] || pid)}</span>
     <div class="card-header-controls">
       ${supportsTheme ? `
-        <button class="card-theme-toggle" data-pid="${pid}" title="Toggle theme">
+        <button class="card-theme-toggle" data-pid="${pid}" title="Toggle theme" aria-label="Toggle light/dark theme">
           <span class="theme-icon">${cardContextState[pid].theme === 'dark' ? '🌙' : '☀️'}</span>
         </button>
       ` : ''}
-      <button class="card-screenshot-btn" data-pid="${pid}" title="Download screenshot">
+      <button class="card-screenshot-btn" data-pid="${pid}" title="Download screenshot" aria-label="Download screenshot">
         <span>&#128190;</span>
       </button>
-      <button class="card-context-toggle" data-pid="${pid}" title="Toggle context view">
+      <button class="card-context-toggle" data-pid="${pid}" title="Toggle context view" aria-label="Toggle context view">
         <span class="context-icon">${cardContextState[pid].context ? '🖼️' : '🃏'}</span>
         <span class="context-label">${cardContextState[pid].context ? 'In context' : 'Card only'}</span>
       </button>
@@ -1973,6 +2237,11 @@ function buildCard(pid, scoreData, data, animDelay, groupId) {
 
   if (cardContextState[pid].context) {
     body.innerHTML = renderPlatformWithContext(pid, data.meta, data.imageProbe, data.finalUrl, cardContextState[pid].theme, data.dominantColor);
+    // Subscribe frame to theme changes for all 7 platform frames
+    // All platforms: twitter, facebook, linkedin, reddit, youtube, instagram, tiktok
+    if (['twitter', 'facebook', 'linkedin', 'reddit', 'youtube', 'instagram', 'tiktok'].includes(pid)) {
+      subscribeFrameToTheme(pid);
+    }
   } else {
     body.innerHTML = renderPlatformCard(pid, data.meta, data.imageProbe, data.finalUrl, data.dominantColor);
   }
@@ -2029,7 +2298,7 @@ async function downloadScreenshot(pid, data) {
         meta: data.meta,
         imageProbe: data.imageProbe,
         url: data.finalUrl || data.url,
-        format: 'svg',
+        format: 'png',
       }),
     });
 
@@ -2045,7 +2314,7 @@ async function downloadScreenshot(pid, data) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${pid}-card.svg`;
+    a.download = `${pid}-card.png`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -2073,6 +2342,10 @@ function toggleCardContext(pid, data) {
   if (body) {
     if (cardContextState[pid].context) {
       body.innerHTML = renderPlatformWithContext(pid, data.meta, data.imageProbe, data.finalUrl, cardContextState[pid].theme, data.dominantColor);
+      // Subscribe frame to theme changes for all 7 platform frames
+      if (['twitter', 'facebook', 'linkedin', 'reddit', 'youtube', 'instagram', 'tiktok'].includes(pid)) {
+        subscribeFrameToTheme(pid);
+      }
     } else {
       body.innerHTML = renderPlatformCard(pid, data.meta, data.imageProbe, data.finalUrl, data.dominantColor);
     }
@@ -2081,13 +2354,37 @@ function toggleCardContext(pid, data) {
 }
 
 function toggleCardTheme(pid, data) {
+  // Ensure state is initialized (edge case protection)
+  if (!cardContextState[pid]) {
+    console.warn(`[toggleCardTheme] State not initialized for pid=${pid}, initializing with defaults`);
+    cardContextState[pid] = { context: false, theme: 'dark' };
+  }
+
+  // Validate data parameter
+  if (!data || !data.meta) {
+    console.error(`[toggleCardTheme] Invalid data parameter for pid=${pid}:`, data);
+    return;
+  }
+
+  // Toggle theme between dark and light
+  const oldTheme = cardContextState[pid].theme;
   cardContextState[pid].theme = cardContextState[pid].theme === 'dark' ? 'light' : 'dark';
+  console.log(`[toggleCardTheme] Toggled theme for ${pid}: ${oldTheme} → ${cardContextState[pid].theme}`);
+
+  // Re-render card body if in context mode
   if (cardContextState[pid].context) {
     const body = document.getElementById(`card-body-${pid}`);
     if (body) {
-      body.innerHTML = renderPlatformWithContext(pid, data.meta, data.imageProbe, data.finalUrl, cardContextState[pid].theme);
+      body.innerHTML = renderPlatformWithContext(pid, data.meta, data.imageProbe, data.finalUrl, cardContextState[pid].theme, data.dominantColor);
+      // Subscribe frame to theme changes for all 7 platform frames
+      if (['twitter', 'facebook', 'linkedin', 'reddit', 'youtube', 'instagram', 'tiktok'].includes(pid)) {
+        subscribeFrameToTheme(pid);
+      }
+    } else {
+      console.warn(`[toggleCardTheme] Card body element not found for pid=${pid}`);
     }
   }
+
   updateCardHeader(pid);
 }
 
@@ -2109,7 +2406,14 @@ function updateCardHeader(pid) {
 }
 
 // ── Platform card renderers ──
-function renderPlatformCard(pid, meta, imageProbe, baseUrl, dominantColor) {
+/**
+ * Render platform card HTML based on skeleton type.
+ * Uses getSkeletonType() to determine DOM structure:
+ * - TALL: Image on top, content below
+ * - SHORT: Thumbnail on left, content on right
+ * - TEXT_ONLY: No image, content only
+ */
+function renderPlatformCard(pid, meta, imageProbe, baseUrl, dominantColor, diff = null) {
   const ogTitle = meta.og.title || meta.title || '';
   const ogDesc = meta.og.description || meta.description || '';
   const ogImage = meta.og.image || meta.twitter.image || '';
@@ -2122,298 +2426,288 @@ function renderPlatformCard(pid, meta, imageProbe, baseUrl, dominantColor) {
   const domain = getDomain(baseUrl);
   const faviconUrl = meta.favicon || '';
 
-  const imgHtml = (url, cls) => url
-    ? `<div class="img-loading-container" style="background:${dominantColor || '#e0e0e0'}"><img src="${escHtml(url)}" alt="" onerror="this.parentElement.style.display='none';this.nextElementSibling?.style.display='flex'" loading="lazy" onload="this.classList.add('loaded')" /><span class="img-placeholder" style="display:none">No image</span></div>`
-    : `<span class="img-placeholder">No image</span>`;
-
+  const skeletonType = getSkeletonType(pid);
   const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
 
-  switch (pid) {
-    case 'google':
-      return `<div class="google-card">
-        <div class="google-breadcrumb">
-          <span class="google-favicon">${faviconUrl ? `<img src="${escHtml(faviconUrl)}" alt="" onerror="this.parentElement.style.background='#ddd'" loading="lazy" />` : ''}</span>
-          <span class="google-domain">${escHtml(domain)}</span>
-        </div>
-        <div class="google-title">${escHtml(trunc(meta.title || ogTitle, 60))}</div>
-        <div class="google-desc">${escHtml(trunc(meta.description || ogDesc, 158))}</div>
-      </div>`;
-
-    case 'facebook':
-    case 'threads':
-      return `<div class="${pid === 'threads' ? 'threads-card' : 'fb-card'}">
-        <div class="mock-image ${pid === 'threads' ? 'threads-image' : 'fb-image'}">${imgHtml(ogImage)}</div>
-        <div class="${pid === 'threads' ? 'threads-meta' : 'fb-meta'}">
-          <div class="${pid === 'threads' ? 'threads-domain' : 'fb-domain'}">${escHtml(domain.toUpperCase())}</div>
-          <div class="${pid === 'threads' ? 'threads-title' : 'fb-title'}">${escHtml(trunc(ogTitle, 60))}</div>
-          ${ogDesc ? `<div class="${pid === 'threads' ? 'threads-desc' : 'fb-desc'}">${escHtml(trunc(ogDesc, 160))}</div>` : ''}
-        </div>
-      </div>`;
-
-    case 'twitter': {
-      const isLarge = twitterCard === 'summary_large_image';
-      return `<div class="tw-card${isLarge ? '' : ' tw-summary'}">
-        <div class="mock-image tw-image${isLarge ? '' : ' square'}">${imgHtml(twImage)}</div>
-        <div class="tw-meta">
-          <div class="tw-title">${escHtml(trunc(twTitle, 70))}</div>
-          ${twDesc ? `<div class="tw-desc">${escHtml(trunc(twDesc, 200))}</div>` : ''}
-          <div class="tw-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
+  // Diff highlighting helpers
+  const changedFields = diff?.changedFields || [];
+  const missingTags = diff?.missingTags || [];
+  const highlight = (text, fieldPath) => {
+    if (typeof window.platformDiff?.highlightChangedText === 'function') {
+      return window.platformDiff.highlightChangedText(text, changedFields, fieldPath);
     }
-
-    case 'linkedin':
-      return `<div class="li-card">
-        <div class="mock-image li-image">${imgHtml(ogImage)}</div>
-        <div class="li-meta">
-          <div class="li-title">${escHtml(trunc(ogTitle, 60))}</div>
-          <div class="li-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
-
-    case 'reddit':
-      return `<div class="rd-card">
-        <div class="mock-image rd-image">${imgHtml(ogImage)}</div>
-        <div class="rd-meta">
-          <div class="rd-title">${escHtml(trunc(ogTitle || meta.title, 90))}</div>
-          ${ogDesc ? `<div class="rd-desc">${escHtml(trunc(ogDesc, 200))}</div>` : ''}
-          <div class="rd-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
-
-    case 'mastodon':
-      return `<div class="mastodon-card">
-        <div class="mock-image mastodon-image">${imgHtml(ogImage)}</div>
-        <div class="mastodon-meta">
-          <div class="mastodon-title">${escHtml(trunc(ogTitle, 80))}</div>
-          ${ogDesc ? `<div class="mastodon-desc">${escHtml(trunc(ogDesc, 200))}</div>` : ''}
-          <div class="mastodon-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
-
-    case 'bluesky':
-      return `<div class="bluesky-card">
-        <div class="mock-image bluesky-image">${imgHtml(ogImage)}</div>
-        <div class="bluesky-meta">
-          <div class="bluesky-title">${escHtml(trunc(ogTitle, 160))}</div>
-          ${ogDesc ? `<div class="bluesky-desc">${escHtml(trunc(ogDesc, 160))}</div>` : ''}
-          <div class="bluesky-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
-
-    case 'tumblr':
-      return `<div class="tumblr-card">
-        <div class="mock-image square" style="width:130px;flex-shrink:0;background:#2c3e50">${imgHtml(ogImage)}</div>
-        <div class="tumblr-meta">
-          <div class="tumblr-title">${escHtml(trunc(ogTitle, 60))}</div>
-          ${ogDesc ? `<div class="tumblr-desc">${escHtml(trunc(ogDesc, 120))}</div>` : ''}
-          <div class="tumblr-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
-
-    case 'pinterest':
-      return `<div class="pinterest-card">
-        <div class="mock-image vertical pinterest-image">${imgHtml(ogImage)}</div>
-        <div class="pinterest-meta">
-          <div class="pinterest-title">${escHtml(trunc(ogTitle, 60))}</div>
-          ${ogDesc ? `<div class="pinterest-desc">${escHtml(trunc(ogDesc, 100))}</div>` : ''}
-          <div class="pinterest-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
-
-    case 'slack':
-      return `<div class="slack-card">
-        <div class="slack-site">${escHtml(ogSite || domain)}</div>
-        <div class="slack-title">${escHtml(trunc(ogTitle, 80))}</div>
-        ${ogDesc ? `<div class="slack-desc">${escHtml(trunc(ogDesc, 150))}</div>` : ''}
-        ${ogImage ? `<div class="slack-image"><div class="mock-image" style="height:160px;aspect-ratio:auto">${imgHtml(ogImage)}</div></div>` : ''}
-      </div>`;
-
-    case 'discord':
-      return `<div class="discord-card" style="border-left-color:${escHtml(themeColor)}">
-        ${ogSite ? `<div class="discord-site">${escHtml(ogSite)}</div>` : ''}
-        <div class="discord-title">${escHtml(trunc(ogTitle, 256))}</div>
-        ${ogDesc ? `<div class="discord-desc">${escHtml(trunc(ogDesc, 300))}</div>` : ''}
-        ${ogImage ? `<div class="discord-image"><div class="mock-image" style="height:180px;aspect-ratio:auto;background:#1e2028">${imgHtml(ogImage)}</div></div>` : ''}
-      </div>`;
-
-    case 'whatsapp':
-      return `<div class="wa-card">
-        <div class="wa-card-inner">
-          <div class="wa-img-cell">${ogImage ? `<img src="${escHtml(ogImage)}" alt="" onerror="this.style.display='none'" loading="lazy" class="img-loading" style="width:68px;height:68px;object-fit:cover" onload="this.classList.add('loaded');this.classList.remove('img-loading')" />` : ''}</div>
-          <div class="wa-meta">
-            <div class="wa-domain">${escHtml(domain)}</div>
-            <div class="wa-title">${escHtml(trunc(ogTitle, 80))}</div>
-            ${ogDesc ? `<div class="wa-desc">${escHtml(trunc(ogDesc, 120))}</div>` : ''}
-          </div>
-        </div>
-      </div>`;
-
-    case 'imessage':
-      return `<div class="im-card">
-        <div class="mock-image im-image">${imgHtml(ogImage)}</div>
-        <div class="im-meta">
-          <div class="im-title">${escHtml(trunc(ogTitle || meta.title, 80))}</div>
-          <div class="im-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
-
-    case 'telegram':
-      return `<div class="tg-card">
-        <div class="mock-image tg-image">${imgHtml(ogImage)}</div>
-        <div class="tg-meta">
-          <div class="tg-title">${escHtml(trunc(ogTitle, 200))}</div>
-          ${ogDesc ? `<div class="tg-desc">${escHtml(trunc(ogDesc, 170))}</div>` : ''}
-          <div class="tg-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
-
-    case 'signal':
-      return `<div class="signal-card">
-        <div class="signal-img-cell">${ogImage ? `<img src="${escHtml(ogImage)}" alt="" onerror="this.style.display='none'" loading="lazy" class="img-loading" style="width:76px;height:76px;object-fit:cover" onload="this.classList.add('loaded');this.classList.remove('img-loading')" />` : ''}</div>
-        <div class="signal-meta">
-          <div class="signal-title">${escHtml(trunc(ogTitle, 80))}</div>
-          ${ogDesc ? `<div class="signal-desc">${escHtml(trunc(ogDesc, 120))}</div>` : ''}
-          <div class="signal-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
-
-    case 'teams':
-      return `<div class="teams-card">
-        <div class="mock-image teams-image">${imgHtml(ogImage)}</div>
-        <div class="teams-meta">
-          <div class="teams-title">${escHtml(trunc(ogTitle, 80))}</div>
-          ${ogDesc ? `<div class="teams-desc">${escHtml(trunc(ogDesc, 160))}</div>` : ''}
-          <div class="teams-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
-
-    case 'googlechat':
-      return `<div class="gchat-card">
-        <div class="mock-image gchat-image">${imgHtml(ogImage)}</div>
-        <div class="gchat-meta">
-          <div class="gchat-title">${escHtml(trunc(ogTitle, 80))}</div>
-          ${ogDesc ? `<div class="gchat-desc">${escHtml(trunc(ogDesc, 160))}</div>` : ''}
-          <div class="gchat-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
-
-    case 'zoom':
-    case 'line':
-    case 'kakaotalk':
-      return `<div class="generic-card">
-        <div class="mock-image generic-image">${imgHtml(ogImage)}</div>
-        <div class="generic-meta">
-          <div class="generic-title">${escHtml(trunc(ogTitle, 80))}</div>
-          ${ogDesc ? `<div class="generic-desc">${escHtml(trunc(ogDesc, 160))}</div>` : ''}
-          <div class="generic-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
-
-    case 'notion':
-      return `<div class="notion-card">
-        <div class="notion-img-cell">${ogImage ? `<img src="${escHtml(ogImage)}" alt="" onerror="this.style.display='none'" loading="lazy" class="img-loading" onload="this.classList.add('loaded');this.classList.remove('img-loading')" />` : ''}</div>
-        <div class="notion-meta">
-          <div class="notion-title">${escHtml(trunc(ogTitle, 80))}</div>
-          ${ogDesc ? `<div class="notion-desc">${escHtml(trunc(ogDesc, 120))}</div>` : ''}
-          <div class="notion-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
-
-    case 'jira':
-      return `<div class="jira-card">
-        <div class="jira-img-cell">${ogImage ? `<img src="${escHtml(ogImage)}" alt="" onerror="this.style.display='none'" loading="lazy" />` : ''}</div>
-        <div class="jira-meta">
-          <div class="jira-title">${escHtml(trunc(ogTitle, 80))}</div>
-          ${ogDesc ? `<div class="jira-desc">${escHtml(trunc(ogDesc, 120))}</div>` : ''}
-          <div class="jira-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
-
-    case 'github':
-      return `<div class="github-card">
-        <div class="mock-image github-image">${imgHtml(ogImage)}</div>
-        <div class="github-meta">
-          <div class="github-title">${escHtml(trunc(ogTitle, 80))}</div>
-          ${ogDesc ? `<div class="github-desc">${escHtml(trunc(ogDesc, 160))}</div>` : ''}
-          <div class="github-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
-
-    case 'trello':
-      return `<div class="trello-card">
-        <div class="trello-img-cell">${ogImage ? `<img src="${escHtml(ogImage)}" alt="" onerror="this.style.display='none'" loading="lazy" />` : ''}</div>
-        <div class="trello-meta">
-          <div class="trello-title">${escHtml(trunc(ogTitle, 80))}</div>
-          <div class="trello-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
-
-    case 'figma':
-      return `<div class="figma-card">
-        <div class="figma-img-cell">${ogImage ? `<img src="${escHtml(ogImage)}" alt="" onerror="this.style.display='none'" loading="lazy" />` : ''}</div>
-        <div class="figma-meta">
-          <div class="figma-title">${escHtml(trunc(ogTitle, 80))}</div>
-          ${ogDesc ? `<div class="figma-desc">${escHtml(trunc(ogDesc, 120))}</div>` : ''}
-          <div class="figma-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
-
-    case 'medium':
-    case 'substack': {
-      const cls = pid;
-      return `<div class="${cls}-card">
-        <div class="mock-image ${cls}-image">${imgHtml(ogImage)}</div>
-        <div class="${cls}-meta">
-          <div class="${cls}-title">${escHtml(trunc(ogTitle, 80))}</div>
-          ${ogDesc ? `<div class="${cls}-desc">${escHtml(trunc(ogDesc, 160))}</div>` : ''}
-          <div class="${cls}-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
+    return text;
+  };
+  const renderBadges = () => {
+    if (typeof window.platformDiff?.renderMissingTagsBadges === 'function') {
+      return window.platformDiff.renderMissingTagsBadges(missingTags);
     }
+    return '';
+  };
 
-    case 'outlook':
-    case 'gmail':
-      return `<div class="email-card">
-        <div class="email-img-cell">${ogImage ? `<img src="${escHtml(ogImage)}" alt="" onerror="this.style.display='none'" loading="lazy" />` : ''}</div>
-        <div class="email-meta">
-          <div class="email-title">${escHtml(trunc(ogTitle, 80))}</div>
-          ${ogDesc ? `<div class="email-desc">${escHtml(trunc(ogDesc, 120))}</div>` : ''}
-          <div class="email-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
-
-    case 'feedly':
-      return `<div class="feedly-card">
-        <div class="feedly-img-cell">${ogImage ? `<img src="${escHtml(ogImage)}" alt="" onerror="this.style.display='none'" loading="lazy" />` : ''}</div>
-        <div class="feedly-meta">
-          <div class="feedly-title">${escHtml(trunc(ogTitle, 80))}</div>
-          ${ogDesc ? `<div class="feedly-desc">${escHtml(trunc(ogDesc, 120))}</div>` : ''}
-          <div class="feedly-source">${escHtml(domain)} &bull; just now</div>
-        </div>
-      </div>`;
-
-    default:
-      return `<div class="generic-card">
-        <div class="mock-image generic-image">${imgHtml(ogImage)}</div>
-        <div class="generic-meta">
-          <div class="generic-title">${escHtml(trunc(ogTitle, 80))}</div>
-          ${ogDesc ? `<div class="generic-desc">${escHtml(trunc(ogDesc, 160))}</div>` : ''}
-          <div class="generic-domain">${escHtml(domain)}</div>
-        </div>
-      </div>`;
+  // Special case: Google is text-only with breadcrumb
+  if (pid === 'google') {
+    const badges = renderBadges();
+    return `<div class="google-card">
+      <div class="google-breadcrumb">
+        <span class="google-favicon">${faviconUrl ? `<img src="${escHtml(faviconUrl)}" alt="" onerror="this.parentElement.style.background='#ddd'" loading="lazy" />` : ''}</span>
+        <span class="google-domain">${escHtml(highlight(domain, 'meta.og.site_name'))}</span>
+      </div>
+      <div class="google-title">${highlight(meta.title || ogTitle, 'meta.title')}</div>
+      <div class="google-desc">${highlight(meta.description || ogDesc, 'meta.og.description')}</div>
+      ${badges ? `<div class="google-badges">${badges}</div>` : ''}
+    </div>`;
   }
+
+  // Special case: Twitter has summary vs large image variants
+  if (pid === 'twitter') {
+    const isLarge = twitterCard === 'summary_large_image';
+    const badges = renderBadges();
+    return `<div class="tw-card${isLarge ? '' : ' tw-summary'}">
+      <div class="mock-image tw-image${isLarge ? '' : ' square'}">${renderImageHtml(ogImage, dominantColor, 'tw-image')}</div>
+      <div class="tw-meta">
+        <div class="tw-title">${highlight(twTitle, 'meta.twitter.title')}</div>
+        ${twDesc ? `<div class="tw-desc">${highlight(twDesc, 'meta.twitter.description')}</div>` : ''}
+        <div class="tw-domain">${escHtml(highlight(domain, 'meta.og.site_name'))}</div>
+        ${badges ? `<div class="tw-badges">${badges}</div>` : ''}
+      </div>
+    </div>`;
+  }
+
+  // Special case: Discord and Slack have site name and image at bottom
+  if (pid === 'discord' || pid === 'slack') {
+    const cardClass = pid === 'discord' ? 'discord-card' : 'slack-card';
+    const styleAttr = pid === 'discord' ? `border-left-color:${escHtml(themeColor)}` : '';
+    const badges = renderBadges();
+    return `<div class="${cardClass}" style="${styleAttr}">
+      ${ogSite ? `<div class="${pid}-site">${escHtml(highlight(ogSite || domain, 'meta.og.site_name'))}</div>` : ''}
+      <div class="${pid}-title">${highlight(trunc(ogTitle, pid === 'discord' ? 256 : 80), 'meta.og.title')}</div>
+      ${ogDesc ? `<div class="${pid}-desc">${highlight(trunc(ogDesc, pid === 'discord' ? 300 : 150), 'meta.og.description')}</div>` : ''}
+      ${ogImage ? `<div class="${pid}-image"><div class="mock-image" style="height:${pid === 'discord' ? 180 : 160}px;aspect-ratio:auto;background:${pid === 'discord' ? '#1e2028' : 'transparent'}">${renderImageHtml(ogImage, dominantColor, pid + '-image')}</div></div>` : ''}
+      ${badges ? `<div class="${pid}-badges">${badges}</div>` : ''}
+    </div>`;
+  }
+
+  // Special case: Tumblr has square thumbnail
+  if (pid === 'tumblr') {
+    const badges = renderBadges();
+    return `<div class="tumblr-card">
+      <div class="mock-image tumblr-image square" style="width:130px;flex-shrink:0;background:#2c3e50">${renderImageHtml(ogImage, dominantColor, 'tumblr-image')}</div>
+      <div class="tumblr-meta">
+        <div class="tumblr-title">${highlight(trunc(ogTitle, 60), 'meta.og.title')}</div>
+        ${ogDesc ? `<div class="tumblr-desc">${highlight(trunc(ogDesc, 120), 'meta.og.description')}</div>` : ''}
+        <div class="tumblr-domain">${escHtml(highlight(domain, 'meta.og.site_name'))}</div>
+        ${badges ? `<div class="tumblr-badges">${badges}</div>` : ''}
+      </div>
+    </div>`;
+  }
+
+  // Special case: Pinterest has vertical image
+  if (pid === 'pinterest') {
+    const badges = renderBadges();
+    return `<div class="pinterest-card">
+      <div class="mock-image pinterest-image vertical">${renderImageHtml(ogImage, dominantColor, 'pinterest-image')}</div>
+      <div class="pinterest-meta">
+        <div class="pinterest-title">${highlight(trunc(ogTitle, 60), 'meta.og.title')}</div>
+        ${ogDesc ? `<div class="pinterest-desc">${highlight(trunc(ogDesc, 100), 'meta.og.description')}</div>` : ''}
+        <div class="pinterest-domain">${escHtml(highlight(domain, 'meta.og.site_name'))}</div>
+        ${badges ? `<div class="pinterest-badges">${badges}</div>` : ''}
+      </div>
+    </div>`;
+  }
+
+  // Special case: WhatsApp has custom image cell structure
+  if (pid === 'whatsapp') {
+    const badges = renderBadges();
+    return `<div class="wa-card">
+      <div class="wa-card-inner">
+        <div class="wa-img-cell">${ogImage ? `<img src="${escHtml(ogImage)}" alt="" onerror="this.style.display='none'" loading="lazy" class="img-loading" style="width:68px;height:68px;object-fit:cover" onload="this.classList.add('loaded');this.classList.remove('img-loading')" />` : ''}</div>
+        <div class="wa-meta">
+          <div class="wa-domain">${escHtml(highlight(domain, 'meta.og.site_name'))}</div>
+          <div class="wa-title">${highlight(trunc(ogTitle, 80), 'meta.og.title')}</div>
+          ${ogDesc ? `<div class="wa-desc">${highlight(trunc(ogDesc, 120), 'meta.og.description')}</div>` : ''}
+          ${badges ? `<div class="wa-badges">${badges}</div>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // Special case: Signal has custom image cell structure
+  if (pid === 'signal') {
+    const badges = renderBadges();
+    return `<div class="signal-card">
+      <div class="signal-img-cell">${ogImage ? `<img src="${escHtml(ogImage)}" alt="" onerror="this.style.display='none'" loading="lazy" class="img-loading" style="width:76px;height:76px;object-fit:cover" onload="this.classList.add('loaded');this.classList.remove('img-loading')" />` : ''}</div>
+      <div class="signal-meta">
+        <div class="signal-title">${highlight(trunc(ogTitle, 80), 'meta.og.title')}</div>
+        ${ogDesc ? `<div class="signal-desc">${highlight(trunc(ogDesc, 120), 'meta.og.description')}</div>` : ''}
+        <div class="signal-domain">${escHtml(highlight(domain, 'meta.og.site_name'))}</div>
+        ${badges ? `<div class="signal-badges">${badges}</div>` : ''}
+      </div>
+    </div>`;
+  }
+
+  // Special case: Feedly has "just now" timestamp
+  if (pid === 'feedly') {
+    const badges = renderBadges();
+    return `<div class="feedly-card">
+      <div class="feedly-img-cell">${ogImage ? `<img src="${escHtml(ogImage)}" alt="" onerror="this.style.display='none'" loading="lazy" />` : ''}</div>
+      <div class="feedly-meta">
+        <div class="feedly-title">${highlight(trunc(ogTitle, 80), 'meta.og.title')}</div>
+        ${ogDesc ? `<div class="feedly-desc">${highlight(trunc(ogDesc, 120), 'meta.og.description')}</div>` : ''}
+        <div class="feedly-source">${escHtml(highlight(domain, 'meta.og.site_name'))} &bull; just now</div>
+        ${badges ? `<div class="feedly-badges">${badges}</div>` : ''}
+      </div>
+    </div>`;
+  }
+
+  // Generic rendering based on skeleton type
+  return renderCardBySkeletonType(pid, skeletonType, ogTitle, ogDesc, ogImage, ogSite, domain, dominantColor, trunc, highlight, renderBadges);
+}
+
+/**
+ * Render image placeholder HTML with loading state
+ */
+function renderImageHtml(imageUrl, dominantColor, imgClass) {
+  if (!imageUrl) {
+    return '<span class="img-placeholder">No image</span>';
+  }
+  return `<div class="img-loading-container" style="background:${dominantColor || '#e0e0e0'}"><img src="${escHtml(imageUrl)}" alt="" onerror="this.parentElement.style.display='none';this.nextElementSibling?.style.display='flex'" loading="lazy" onload="this.classList.add('loaded')" /><span class="img-placeholder" style="display:none">No image</span></div>`;
+}
+
+/**
+ * Render card HTML based on skeleton type.
+ * This is the core function that wires skeleton types to DOM structure.
+ */
+function renderCardBySkeletonType(pid, skeletonType, title, desc, image, site, domain, dominantColor, trunc, highlight = null, renderBadges = null) {
+  // Platform-specific class prefix (e.g., 'facebook', 'linkedin', etc.)
+  const prefix = pid;
+
+  // TEXT_ONLY skeleton: No image, content only
+  // (Currently no platforms use this except Google, which is handled separately above)
+  if (skeletonType === 'text-only') {
+    const badges = typeof renderBadges === 'function' ? renderBadges() : '';
+    const titleHtml = highlight ? highlight(title, 'meta.og.title') : escHtml(trunc(title, 80));
+    const descHtml = desc ? (highlight ? highlight(desc, 'meta.og.description') : escHtml(trunc(desc, 160))) : '';
+    const domainHtml = highlight ? highlight(domain, 'meta.og.site_name') : escHtml(domain);
+    return `<div class="${prefix}-card">
+      <div class="${prefix}-title">${titleHtml}</div>
+      ${desc ? `<div class="${prefix}-desc">${descHtml}</div>` : ''}
+      <div class="${prefix}-domain">${domainHtml}</div>
+      ${badges ? `<div class="${prefix}-badges">${badges}</div>` : ''}
+    </div>`;
+  }
+
+  // SHORT skeleton: Thumbnail on left, content on right
+  if (skeletonType === 'short') {
+    const badges = typeof renderBadges === 'function' ? renderBadges() : '';
+    const titleHtml = highlight ? highlight(title, 'meta.og.title') : escHtml(trunc(title, 80));
+    const descHtml = desc ? (highlight ? highlight(desc, 'meta.og.description') : escHtml(trunc(desc, 120))) : '';
+    const domainHtml = highlight ? highlight(domain, 'meta.og.site_name') : escHtml(domain);
+
+    // Check if platform uses custom image cell structure (notion, jira, trello, figma, outlook, gmail, feedly)
+    const usesCustomImgCell = ['notion', 'jira', 'trello', 'figma', 'outlook', 'gmail'].includes(pid);
+
+    if (usesCustomImgCell) {
+      return `<div class="${prefix}-card">
+        <div class="${prefix}-img-cell">${image ? `<img src="${escHtml(image)}" alt="" onerror="this.style.display='none'" loading="lazy" class="img-loading" onload="this.classList.add('loaded');this.classList.remove('img-loading')" />` : ''}</div>
+        <div class="${prefix}-meta">
+          <div class="${prefix}-title">${titleHtml}</div>
+          ${desc ? `<div class="${prefix}-desc">${descHtml}</div>` : ''}
+          <div class="${prefix}-domain">${domainHtml}</div>
+          ${badges ? `<div class="${prefix}-badges">${badges}</div>` : ''}
+        </div>
+      </div>`;
+    }
+
+    // Default short structure with mock-image wrapper
+    return `<div class="${prefix}-card">
+      <div class="mock-image ${prefix}-image">${renderImageHtml(image, dominantColor, prefix + '-image')}</div>
+      <div class="${prefix}-meta">
+        <div class="${prefix}-title">${titleHtml}</div>
+        ${desc ? `<div class="${prefix}-desc">${descHtml}</div>` : ''}
+        <div class="${prefix}-domain">${domainHtml}</div>
+        ${badges ? `<div class="${prefix}-badges">${badges}</div>` : ''}
+      </div>
+    </div>`;
+  }
+
+  // TALL skeleton: Image on top, content below (default)
+  if (skeletonType === 'tall') {
+    const badges = typeof renderBadges === 'function' ? renderBadges() : '';
+    // Special case: Threads and Facebook use domain.toUpperCase()
+    const displayDomain = (pid === 'threads' || pid === 'facebook') ? domain.toUpperCase() : domain;
+    const titleHtml = highlight ? highlight(title, 'meta.og.title') : escHtml(trunc(title, 60));
+    const descHtml = desc ? (highlight ? highlight(desc, 'meta.og.description') : escHtml(trunc(desc, 160))) : '';
+    const domainHtml = highlight ? highlight(displayDomain, 'meta.og.site_name') : escHtml(displayDomain);
+
+    return `<div class="${prefix}-card">
+      <div class="mock-image ${prefix}-image">${renderImageHtml(image, dominantColor, prefix + '-image')}</div>
+      <div class="${prefix}-meta">
+        <div class="${prefix}-domain">${domainHtml}</div>
+        <div class="${prefix}-title">${titleHtml}</div>
+        ${desc ? `<div class="${prefix}-desc">${descHtml}</div>` : ''}
+        ${badges ? `<div class="${prefix}-badges">${badges}</div>` : ''}
+      </div>
+    </div>`;
+  }
+
+  // Fallback: Generic card structure
+  const badges = typeof renderBadges === 'function' ? renderBadges() : '';
+  const titleHtml = highlight ? highlight(title, 'meta.og.title') : escHtml(trunc(title, 80));
+  const descHtml = desc ? (highlight ? highlight(desc, 'meta.og.description') : escHtml(trunc(desc, 160))) : '';
+  const domainHtml = highlight ? highlight(domain, 'meta.og.site_name') : escHtml(domain);
+
+  return `<div class="generic-card">
+    <div class="mock-image generic-image">${renderImageHtml(image, dominantColor, 'generic-image')}</div>
+    <div class="generic-meta">
+      <div class="generic-title">${titleHtml}</div>
+      ${desc ? `<div class="generic-desc">${descHtml}</div>` : ''}
+      <div class="generic-domain">${domainHtml}</div>
+      ${badges ? `<div class="generic-badges">${badges}</div>` : ''}
+    </div>
+  </div>`;
 }
 
 // ── Platform Context Frame Renderers ──
 // Uses platform-frames module for structured context frame generation
 function renderPlatformWithContext(pid, meta, imageProbe, baseUrl, theme = 'dark', dominantColor) {
-  const ogTitle = meta.og.title || meta.title || '';
-  const ogDesc = meta.og.description || meta.description || '';
-  const ogImage = meta.og.image || meta.twitter.image || '';
-  const ogSite = meta.og.site_name || '';
-  const domain = getDomain(baseUrl);
+  // ── Input Validation ──
+  // Validate platform ID parameter
+  if (!pid || typeof pid !== 'string') {
+    console.warn('[renderPlatformWithContext] Invalid platform ID provided, using safe fallback');
+    pid = 'unknown';
+  }
+
+  // Validate meta parameter - ensure it's an object
+  if (!meta || typeof meta !== 'object') {
+    console.warn('[renderPlatformWithContext] Invalid meta object provided, using empty object');
+    meta = {};
+  }
+
+  // Validate theme parameter - ensure it's a valid theme value
+  const validThemes = ['light', 'dark', 'auto'];
+  if (!theme || typeof theme !== 'string' || !validThemes.includes(theme)) {
+    console.warn(`[renderPlatformWithContext] Invalid theme "${theme}", defaulting to "dark"`);
+    theme = 'dark';
+  }
+
+  // Safely extract meta properties with fallbacks
+  const ogTitle = (meta.og && meta.og.title) || meta.title || '';
+  const ogDesc = (meta.og && meta.og.description) || meta.description || '';
+  const ogImage = (meta.og && meta.og.image) || (meta.twitter && meta.twitter.image) || '';
+  const ogSite = (meta.og && meta.og.site_name) || '';
   const themeColor = meta.themeColor || '#5865f2';
+
+  // Safely get domain - validate baseUrl first
+  let domain = '';
+  try {
+    if (baseUrl && typeof baseUrl === 'string') {
+      domain = getDomain(baseUrl);
+    }
+  } catch (e) {
+    console.warn('[renderPlatformWithContext] Error extracting domain:', e.message);
+    domain = '';
+  }
 
   // Prepare content data for the platform frame
   const contentData = {
@@ -2426,23 +2720,157 @@ function renderPlatformWithContext(pid, meta, imageProbe, baseUrl, theme = 'dark
     themeColor: themeColor,
   };
 
-  // Use new platform-frames module for platforms with structured frames
-  if (typeof buildContextFrame === 'function') {
-    switch (pid) {
-      case 'twitter':
-      case 'slack':
-      case 'discord':
-        // Proof of concept: use new structured frame generation
-        return buildContextFrame(pid, contentData, theme);
-
-      // Other platforms still use legacy renderers (to be migrated)
-      default:
-        return renderPlatformWithContextLegacy(pid, ogTitle, ogDesc, ogImage, domain, ogSite, theme, dominantColor, meta, imageProbe, baseUrl);
-    }
-  } else {
-    // Fallback if platform-frames module not loaded
-    return renderPlatformWithContextLegacy(pid, ogTitle, ogDesc, ogImage, domain, ogSite, theme, dominantColor, meta, imageProbe, baseUrl);
+  // Generate card HTML to wrap within the frame
+  // This ensures the actual platform card content is embedded inside the frame chrome
+  let cardHTML = '';
+  try {
+    cardHTML = renderPlatformCard(pid, meta, imageProbe, baseUrl, dominantColor);
+    contentData.cardHTML = cardHTML;
+  } catch (e) {
+    console.warn('[renderPlatformWithContext] Error rendering platform card:', e.message);
+    contentData.cardHTML = '';
   }
+
+  // ── Frame resolution via the centralized platform-frames config ──
+  // PLATFORM_FRAMES_CONFIG (mirrored from src/platform-frames.config.ts and
+  // exposed as the getPlatformFrameConfig() global by platform-frames-config.js)
+  // is the single source of truth for which platforms are "wired" into the
+  // context-frame system. We resolve the platform's frame metadata here and
+  // route rendering through the centralized rendering context.
+  try {
+    // Resolve frame metadata from the config. If the runtime mirror isn't
+    // loaded, treat the platform as absent and fall back safely.
+    const frameConfig = (typeof getPlatformFrameConfig === 'function')
+      ? getPlatformFrameConfig(pid)
+      : undefined;
+
+    // A platform absent from the config is not wired — fall back to the legacy
+    // renderer (which itself degrades gracefully to a generic frame). Never throw.
+    if (!frameConfig) {
+      console.warn(`[renderPlatformWithContext] Platform "${pid}" not in PLATFORM_FRAMES_CONFIG, using legacy fallback`);
+      return renderPlatformWithContextLegacy(pid, ogTitle, ogDesc, ogImage, domain, ogSite, theme, dominantColor, meta, imageProbe, baseUrl);
+    }
+
+    // Wire config-derived metadata into the centralized rendering context so
+    // downstream frame builders (buildContextFrame) receive frameType and
+    // aspectRatio sourced from platform-frames.config.ts.
+    contentData.frameType = frameConfig.frameType;
+    contentData.aspectRatio = frameConfig.aspectRatio;
+    contentData.hasThemeSupport = frameConfig.hasThemeSupport;
+
+    // Route through the centralized rendering context. Require the runtime frame
+    // module (platform-frames.js) to be loaded before proceeding.
+    if (typeof buildContextFrame !== 'function' || typeof getPlatformFrame !== 'function' || typeof PLATFORM_FRAMES === 'undefined') {
+      console.warn('[renderPlatformWithContext] platform-frames runtime not loaded, using legacy fallback');
+      return renderPlatformWithContextLegacy(pid, ogTitle, ogDesc, ogImage, domain, ogSite, theme, dominantColor, meta, imageProbe, baseUrl);
+    }
+
+    // Config says the platform is wired; confirm the runtime has its frame data.
+    const platformFrame = getPlatformFrame(pid);
+    if (!platformFrame || typeof platformFrame !== 'object' || !platformFrame.chrome) {
+      console.warn(`[renderPlatformWithContext] Invalid frame configuration for ${pid}, using fallback`);
+      return renderGenericContextFrame(pid, contentData, theme);
+    }
+
+    // Build the context frame using platform-specific configuration.
+    try {
+      const frameHTML = buildContextFrame(pid, contentData, theme);
+
+      // Validate that buildContextFrame returned valid HTML
+      if (!frameHTML || typeof frameHTML !== 'string') {
+        console.warn(`[renderPlatformWithContext] buildContextFrame returned invalid result for ${pid}, using fallback`);
+        return renderGenericContextFrame(pid, contentData, theme);
+      }
+
+      // Return the complete frame with embedded card content
+      return frameHTML;
+    } catch (buildError) {
+      // Catch errors specifically from buildContextFrame
+      console.warn(`[renderPlatformWithContext] Error building frame for ${pid}: ${buildError.message}, using fallback`);
+      return renderGenericContextFrame(pid, contentData, theme);
+    }
+  } catch (e) {
+    // Final catch-all for any unexpected errors
+    console.error('[renderPlatformWithContext] Unexpected error, using ultimate fallback:', e.message);
+    return renderSafeFallbackFrame(pid, contentData, theme);
+  }
+}
+
+/**
+ * Generic fallback context frame for unknown/unsupported platforms
+ * Provides a safe fallback when platform frame configuration is not available
+ */
+function renderGenericContextFrame(pid, contentData, theme) {
+  // Validate contentData parameter
+  if (!contentData || typeof contentData !== 'object') {
+    console.warn('[renderGenericContextFrame] Invalid contentData, using empty object');
+    contentData = {};
+  }
+
+  // Safely extract properties with fallbacks
+  const title = contentData.title || '';
+  const description = contentData.description || '';
+  const image = contentData.image || '';
+  const domain = contentData.domain || '';
+  const site = contentData.site || '';
+  const dominantColor = contentData.dominantColor;
+
+  const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
+  const esc = (str) => String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+  // Safely get platform name - validate PLATFORM_NAMES exists
+  let platformName = pid;
+  if (typeof PLATFORM_NAMES !== 'undefined' && PLATFORM_NAMES && PLATFORM_NAMES[pid]) {
+    platformName = PLATFORM_NAMES[pid];
+  }
+
+  // Safely build URL
+  const safeUrl = domain ? `https://${domain}` : '#';
+
+  // Safely render platform card - wrap in try-catch
+  let cardHTML = '';
+  try {
+    cardHTML = renderPlatformCard(pid, { og: { title, description, image } }, null, safeUrl, dominantColor);
+  } catch (e) {
+    console.warn('[renderGenericContextFrame] Error rendering platform card:', e.message);
+    cardHTML = `<div class="card-error">Unable to render card</div>`;
+  }
+
+  return `<div class="context-frame generic-context ${theme}-theme">
+    <div class="context-header"><span class="context-title">${esc(platformName)}</span></div>
+    <div class="context-body">
+      ${cardHTML}
+    </div>
+  </div>`;
+}
+
+/**
+ * Ultimate safe fallback context frame
+ * Provides a minimal safe fallback when all else fails
+ * This function should never crash and always return valid HTML
+ */
+function renderSafeFallbackFrame(pid, contentData, theme) {
+  const esc = (str) => String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+  // Validate parameters with maximum safety
+  const safePid = (pid && typeof pid === 'string') ? pid : 'unknown';
+  const safeTheme = (theme === 'light' || theme === 'dark') ? theme : 'dark';
+
+  // Safely extract contentData properties
+  const title = (contentData && typeof contentData === 'object') ? (contentData.title || 'Unknown') : 'Unknown';
+  const description = (contentData && typeof contentData === 'object') ? (contentData.description || 'No description available') : 'No description available';
+  const domain = (contentData && typeof contentData === 'object') ? (contentData.domain || '') : '';
+
+  return `<div class="context-frame safe-fallback ${safeTheme}-theme">
+    <div class="context-header"><span class="context-title">${esc(safePid)}</span></div>
+    <div class="context-body">
+      <div class="fallback-content">
+        <div class="fallback-title">${esc(title)}</div>
+        <div class="fallback-description">${esc(description)}</div>
+        ${domain ? `<div class="fallback-domain">${esc(domain)}</div>` : ''}
+      </div>
+    </div>
+  </div>`;
 }
 
 // Legacy context frame renderer (for platforms not yet migrated)
@@ -2599,7 +3027,7 @@ function renderFacebookContext(title, desc, image, domain, site, dominantColor) 
 function renderTwitterContext(title, desc, image, domain, theme, dominantColor) {
   const trunc = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : (str || '');
   const isDark = theme === 'dark';
-  return `<div class="context-frame twitter-context ${isDark ? 'twitter-dark' : 'twitter-light'}">
+  return `<div class="context-frame twitter-context ${isDark ? 'dark-theme' : 'light-theme'}">
     <div class="tw-post-header">
       <div class="tw-avatar"></div>
       <div class="tw-post-meta">
@@ -3310,11 +3738,38 @@ function renderGenericMessagingContext(title, desc, image, domain, pid) {
 }
 
 // ── Crop Visualizer ──
+// Show the cropper's empty / error state without destroying its DOM.
+//
+// In production #cropperContainer is the ANCESTOR of #cropperImage and
+// #cropperOverlay (cropper-container > cropper-main > cropper-viewport >
+// cropper-stage > image/overlay). The old code reached the empty state with
+// `cropperContainer.innerHTML = '<div class="cropper-empty">…</div>'`, which
+// DETACHES those cached element refs. Every later initCropper() then wrote to
+// detached nodes (img.src, overlay.innerHTML) — the Crop Visualizer stayed
+// blank for the rest of the session after any no-image / failed-load result.
+//
+// Fix: toggle a dedicated #cropperEmpty element (a sibling of the stage inside
+// the viewport) and reset state in place, leaving image/overlay/stage attached
+// so the next successful load recovers.
+function showCropperEmpty(message) {
+  cropperEmpty.textContent = message;
+  cropperEmpty.classList.remove('hidden');
+  cropperOverlay.innerHTML = '';
+  cropperImage.removeAttribute('src');
+  cropperBadge.textContent = '';
+  safeZoneInfo.innerHTML = '';
+  imageInfo.innerHTML = '';
+  if (cropperCategoryLegend) cropperCategoryLegend.innerHTML = '';
+  cropperControls.innerHTML = '';
+  cropperState.imageNaturalWidth = 0;
+  cropperState.imageNaturalHeight = 0;
+  cropperState.imageAspectRatio = 0;
+}
+
 function initCropper(data) {
   const ogImage = data.meta.og.image || data.meta.twitter.image;
   if (!ogImage) {
-    cropperContainer.innerHTML = '<div class="cropper-empty">No image found in meta tags.</div>';
-    cropperBadge.textContent = '';
+    showCropperEmpty('No image found in meta tags.');
     return;
   }
 
@@ -3326,6 +3781,7 @@ function initCropper(data) {
     cropperState.imageNaturalWidth = cropperImage.naturalWidth;
     cropperState.imageNaturalHeight = cropperImage.naturalHeight;
     cropperState.imageAspectRatio = cropperImage.naturalWidth / cropperImage.naturalHeight;
+    cropperEmpty.classList.add('hidden');
 
     renderImageInfo(data.imageProbe);
     renderCropperControls();
@@ -3333,7 +3789,7 @@ function initCropper(data) {
   };
 
   cropperImage.onerror = () => {
-    cropperContainer.innerHTML = '<div class="cropper-empty">Failed to load image.</div>';
+    showCropperEmpty('Failed to load image.');
   };
 
   // Download button handler
@@ -3374,7 +3830,7 @@ function renderCropperControls() {
     const color = CATEGORY_COLORS[group.id];
     html += `<div class="cropper-group" style="--group-color:${color}">`;
     html += `<div class="cropper-group-header">`;
-    html += `<input type="checkbox" class="cropper-group-toggle" data-group="${group.id}" checked />`;
+    html += `<input type="checkbox" class="cropper-group-toggle" data-group="${group.id}" aria-label="Toggle ${escHtml(group.label)} group" checked />`;
     html += `<span class="cropper-group-title">${escHtml(group.label)}</span>`;
     html += `<span class="cropper-group-count">${group.platforms.length}</span>`;
     html += '</div>';
@@ -3383,7 +3839,7 @@ function renderCropperControls() {
     group.platforms.forEach(pid => {
       const crop = PLATFORM_CROPS[pid];
       if (!crop) return;
-      const pct = calculateVisiblePercentage(crop);
+      const pct = calculateVisiblePercentage(crop, cropperState.imageNaturalWidth, cropperState.imageNaturalHeight);
       html += `<label class="cropper-platform-toggle">`;
       html += `<input type="checkbox" data-platform="${pid}" checked />`;
       html += `<span class="platform-checkbox" style="border-color:${color}"></span>`;
@@ -3398,38 +3854,76 @@ function renderCropperControls() {
   cropperControls.innerHTML = html;
 
   // Add event listeners
-  document.querySelectorAll('.cropper-group-toggle').forEach(cb => {
-    cb.addEventListener('change', (e) => {
+  // Group header toggle → check/uncheck every platform in that group, then
+  // re-sync the header (a click clears any indeterminate flag from prior edits).
+  document.querySelectorAll('.cropper-group-toggle').forEach(groupCb => {
+    groupCb.addEventListener('change', (e) => {
       const group = e.target.dataset.group;
       const platforms = groups.find(g => g.id === group)?.platforms || [];
       platforms.forEach(pid => {
-        const cb = document.querySelector(`input[data-platform="${pid}"]`);
-        if (cb) cb.checked = e.target.checked;
+        const platformCb = document.querySelector(`input[data-platform="${pid}"]`);
+        if (platformCb) platformCb.checked = e.target.checked;
       });
       updateEnabledPlatforms();
       updateCropperOverlay();
+      syncGroupToggles(groups);
     });
   });
 
+  // Individual platform toggle → redraw overlays, then re-sync every group
+  // header so a header always reflects its children (all on / all off / mixed).
   document.querySelectorAll('.cropper-platform-toggle input').forEach(cb => {
     cb.addEventListener('change', () => {
       updateEnabledPlatforms();
       updateCropperOverlay();
+      syncGroupToggles(groups);
     });
   });
 
   document.getElementById('selectAllPlatforms')?.addEventListener('click', () => {
     document.querySelectorAll('.cropper-platform-toggle input').forEach(cb => cb.checked = true);
-    document.querySelectorAll('.cropper-group-toggle').forEach(cb => cb.checked = true);
+    syncGroupToggles(groups);
     updateEnabledPlatforms();
     updateCropperOverlay();
   });
 
   document.getElementById('clearAllPlatforms')?.addEventListener('click', () => {
     document.querySelectorAll('.cropper-platform-toggle input').forEach(cb => cb.checked = false);
-    document.querySelectorAll('.cropper-group-toggle').forEach(cb => cb.checked = false);
+    syncGroupToggles(groups);
     updateEnabledPlatforms();
     updateCropperOverlay();
+  });
+
+  // State always matches the freshly-rendered checkboxes: rebuild the enabled
+  // set from them so a re-init (new image) doesn't carry over a stale selection
+  // while the checkboxes render all-checked.
+  updateEnabledPlatforms();
+  // Initialize group header state to match the default all-checked platforms.
+  syncGroupToggles(groups);
+}
+
+// Reflect each group header checkbox against its child platform toggles:
+// checked when every child is on, unchecked when every child is off, and
+// indeterminate when mixed. Without this, unchecking every platform in a group
+// by hand leaves the header visually "checked" — mislabeling the group state.
+function syncGroupToggles(groups) {
+  groups.forEach(group => {
+    const groupCb = document.querySelector(`.cropper-group-toggle[data-group="${group.id}"]`);
+    if (!groupCb) return;
+    const children = group.platforms
+      .map(pid => document.querySelector(`input[data-platform="${pid}"]`))
+      .filter(Boolean);
+    if (!children.length) return;
+    const checkedCount = children.filter(cb => cb.checked).length;
+    if (checkedCount === 0) {
+      groupCb.checked = false;
+      groupCb.indeterminate = false;
+    } else if (checkedCount === children.length) {
+      groupCb.checked = true;
+      groupCb.indeterminate = false;
+    } else {
+      groupCb.indeterminate = true;
+    }
   });
 }
 
@@ -3438,35 +3932,49 @@ function updateEnabledPlatforms() {
   document.querySelectorAll('.cropper-platform-toggle input:checked').forEach(cb => {
     cropperState.enabledPlatforms.add(cb.dataset.platform);
   });
+  // Refresh the category legend so its active/dimmed state tracks the live
+  // toggle selection. Every toggle path (individual, group, select/clear-all)
+  // and the initial renderCropperControls() call funnels through here, so this
+  // single hook keeps the legend in sync with the overlays on screen.
+  renderCategoryLegend();
 }
 
-function calculateVisiblePercentage(crop) {
-  const imgW = cropperState.imageNaturalWidth;
-  const imgH = cropperState.imageNaturalHeight;
-  if (!imgW || !imgH) return 100;
+// Build the platform-category color key shown in the cropper sidebar. Each
+// category renders as a colored swatch + label; a category is dimmed when none
+// of its platforms are currently enabled, so the key mirrors which colored
+// overlays are actually on screen. This is the visible meaning of the
+// category→color mapping that drives the overlay <rect> fills/strokes.
+function renderCategoryLegend() {
+  if (!cropperCategoryLegend) return;
 
-  const imgAR = imgW / imgH;
-  const cropAR = crop.aspect.max || crop.aspect.min;
+  // Stable display order; matches the grouped control layout above.
+  const order = ['social', 'messaging', 'collaboration', 'content', 'email', 'rss'];
 
-  let visiblePct = 100;
+  // Which categories have ≥1 enabled platform right now?
+  const activeCats = new Set();
+  cropperState.enabledPlatforms.forEach(pid => {
+    const cat = PLATFORM_CROPS[pid] && PLATFORM_CROPS[pid].category;
+    if (cat) activeCats.add(cat);
+  });
 
-  if (crop.cropMode === 'contain') {
-    // Full image visible
-    visiblePct = 100;
-  } else if (crop.cropMode === 'cover') {
-    // Calculate how much of the source image is visible
-    if (imgAR > cropAR) {
-      // Image is wider than crop - sides are cropped
-      visiblePct = Math.round((cropAR / imgAR) * 100);
-    } else if (imgAR < cropAR) {
-      // Image is taller than crop - top/bottom are cropped
-      visiblePct = Math.round((imgAR / cropAR) * 100);
-    }
-    visiblePct = Math.max(0, Math.min(100, visiblePct));
-  }
-
-  return visiblePct;
+  let html = '';
+  order.forEach(cat => {
+    const color = CATEGORY_COLORS[cat];
+    const label = CATEGORY_LABELS[cat] || cat;
+    if (!color) return;
+    const active = activeCats.has(cat);
+    html += `<div class="category-item${active ? '' : ' dim'}" title="${escHtml(label)}">`;
+    html += `<span class="category-swatch" style="background:${color};border-color:${color}"></span>`;
+    html += `<span class="category-label">${escHtml(label)}</span>`;
+    html += `</div>`;
+  });
+  cropperCategoryLegend.innerHTML = html;
 }
+
+// calculateVisiblePercentage() is provided by safe-zone.js (loaded before
+// app.js), alongside calculateCropRect() / calculateSafeZone(). It is derived
+// from calculateCropRect(), so the "% visible" shown beside each platform
+// toggle can never disagree with the rectangle drawn on screen.
 
 function updateCropperOverlay() {
   const imgW = cropperState.imageNaturalWidth;
@@ -3481,9 +3989,6 @@ function updateCropperOverlay() {
   const crops = [];
   const enabledPids = Array.from(cropperState.enabledPlatforms);
 
-  // Find intersection (safe zone)
-  let safeZone = { x: 0, y: 0, w: imgW, h: imgH };
-
   enabledPids.forEach(pid => {
     const crop = PLATFORM_CROPS[pid];
     if (!crop) return;
@@ -3491,14 +3996,15 @@ function updateCropperOverlay() {
     const rect = calculateCropRect(crop, imgW, imgH);
     if (rect) {
       crops.push({ pid, rect, color: CATEGORY_COLORS[crop.category] });
-
-      // Intersect with safe zone
-      safeZone.x = Math.max(safeZone.x, rect.x);
-      safeZone.y = Math.max(safeZone.y, rect.y);
-      safeZone.w = Math.min(safeZone.w, rect.x + rect.w) - safeZone.x;
-      safeZone.h = Math.min(safeZone.h, rect.y + rect.h) - safeZone.y;
     }
   });
+
+  // Find the safe zone (intersection of all enabled crop rects).
+  const safeZone = calculateSafeZone(
+    enabledPids.map(pid => PLATFORM_CROPS[pid]).filter(Boolean),
+    imgW,
+    imgH
+  );
 
   // Draw all platform crops (semi-transparent)
   crops.forEach(({ rect, color }) => {
@@ -3515,7 +4021,11 @@ function updateCropperOverlay() {
     svg.appendChild(rectEl);
   });
 
-  // Draw safe zone (intersection of all)
+  // Draw safe zone (intersection of all) as a single distinct accent rect. The
+  // color is cyan (SAFE_ZONE_COLOR) — unused by any platform category — so the
+  // intersection can't be mistaken for one platform's crop. A dark drop-shadow
+  // halo (set via the .safe-zone-rect CSS rule) keeps the dashed line visible on
+  // both light and dark OG images without adding a second <rect>.
   if (enabledPids.length > 0 && safeZone.w > 0 && safeZone.h > 0) {
     const safeRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
     safeRect.setAttribute('x', safeZone.x);
@@ -3523,14 +4033,14 @@ function updateCropperOverlay() {
     safeRect.setAttribute('width', safeZone.w);
     safeRect.setAttribute('height', safeZone.h);
     safeRect.setAttribute('fill', 'none');
-    safeRect.setAttribute('stroke', '#ffffff');
+    safeRect.setAttribute('stroke', SAFE_ZONE_COLOR);
     safeRect.setAttribute('stroke-width', '4');
     safeRect.setAttribute('stroke-dasharray', '12,6');
     safeRect.classList.add('safe-zone-rect');
     svg.appendChild(safeRect);
 
     // Safe zone label
-    const safePct = ((safeZone.w * safeZone.h) / (imgW * imgH) * 100).toFixed(1);
+    const safePct = (safeZone.coverage * 100).toFixed(1);
     safeZoneInfo.innerHTML = `
       <div class="info-row"><span class="info-label">Safe Zone:</span> <span class="info-value">${Math.round(safeZone.w)} × ${Math.round(safeZone.h)} px</span></div>
       <div class="info-row"><span class="info-label">Coverage:</span> <span class="info-value">${safePct}% of image</span></div>
@@ -3544,37 +4054,9 @@ function updateCropperOverlay() {
   cropperBadge.textContent = enabledPids.length;
 }
 
-function calculateCropRect(crop, imgW, imgH) {
-  const imgAR = imgW / imgH;
-  const cropAR = crop.aspect.max || crop.aspect.min;
-
-  if (crop.cropMode === 'contain') {
-    // Full image is visible
-    return { x: 0, y: 0, w: imgW, h: imgH };
-  }
-
-  if (crop.cropMode === 'cover') {
-    let cropW, cropH;
-
-    if (imgAR > cropAR) {
-      // Image is wider - crop sides
-      cropW = imgH * cropAR;
-      cropH = imgH;
-    } else {
-      // Image is taller - crop top/bottom
-      cropW = imgW;
-      cropH = imgW / cropAR;
-    }
-
-    // Center the crop
-    const x = (imgW - cropW) / 2;
-    const y = (imgH - cropH) / 2;
-
-    return { x, y, w: cropW, h: cropH };
-  }
-
-  return null;
-}
+// calculateCropRect() and calculateSafeZone() are provided by safe-zone.js
+// (loaded before app.js). Keeping the geometry there makes it unit-testable
+// under Node and fixes a coordinate-mixing bug in the old inline intersection.
 
 async function exportCropperOverlay() {
   const canvas = document.createElement('canvas');
@@ -3606,25 +4088,33 @@ async function exportCropperOverlay() {
     }
   });
 
-  // Draw safe zone
-  let safeZone = { x: 0, y: 0, w: canvas.width, h: canvas.height };
-  enabledPids.forEach(pid => {
-    const crop = PLATFORM_CROPS[pid];
-    if (!crop) return;
-    const rect = calculateCropRect(crop, canvas.width, canvas.height);
-    if (rect) {
-      safeZone.x = Math.max(safeZone.x, rect.x);
-      safeZone.y = Math.max(safeZone.y, rect.y);
-      safeZone.w = Math.min(safeZone.w, rect.x + rect.w) - safeZone.x;
-      safeZone.h = Math.min(safeZone.h, rect.y + rect.h) - safeZone.y;
-    }
-  });
+  // Draw safe zone (intersection of all enabled crop rects). Reuse the shared,
+  // unit-tested calculateSafeZone() — the same call updateCropperOverlay()
+  // makes — so the exported PNG overlay matches the on-screen one exactly.
+  // The previous inline loop here mixed a running width/height with edge
+  // coordinates (Math.min(width, x+w) - x) and under-reported the safe zone
+  // whenever the accumulated left/top offset was non-zero.
+  const safeZone = calculateSafeZone(
+    enabledPids.map(pid => PLATFORM_CROPS[pid]).filter(Boolean),
+    canvas.width,
+    canvas.height
+  );
 
   if (enabledPids.length > 0 && safeZone.w > 0 && safeZone.h > 0) {
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 6;
+    // Mirror the on-screen overlay's distinct accent + halo: a dark backing
+    // stroke (the halo) under a bright dashed accent stroke, so the exported
+    // PNG reads identically and stays visible on any image background. No fill
+    // wash — strokes run along the border only, leaving the interior crop-fill
+    // alpha (measured by the export tests) untouched.
+    ctx.strokeStyle = 'rgba(10,10,10,0.55)';
+    ctx.lineWidth = 8;
+    ctx.setLineDash([]);
+    ctx.strokeRect(safeZone.x, safeZone.y, safeZone.w, safeZone.h);
+    ctx.strokeStyle = SAFE_ZONE_COLOR;
+    ctx.lineWidth = 4;
     ctx.setLineDash([24, 12]);
     ctx.strokeRect(safeZone.x, safeZone.y, safeZone.w, safeZone.h);
+    ctx.setLineDash([]);
   }
 
   // Export
@@ -3901,7 +4391,7 @@ function renderMetadataRow(row, idx) {
     <td class="col-value">${valueDisplay}</td>
     <td class="col-source"><span class="source-badge ${sourceClass}">${sourceLabel}</span></td>
     <td class="col-copy">
-      ${hasValue ? `<button class="copy-btn" onclick="copyMetadataValue('${escHtml(String(row.value)).replace(/'/g, "\\'")}')" title="Copy value">&#128203;</button>` : ''}
+      ${hasValue ? `<button class="copy-btn" onclick="copyMetadataValue('${escHtml(String(row.value)).replace(/'/g, "\\'")}')" title="Copy value" aria-label="Copy value to clipboard">&#128203;</button>` : ''}
     </td>
   </tr>`;
 }
@@ -3957,31 +4447,20 @@ function renderRedirects(chain, headers, headerAnalysis = null) {
   </div>`;
 
   if (chain && chain.length > 0) {
-    html += `<h2 class="section-heading">Redirect Chain</h2><div class="redirect-chain">`;
-    chain.forEach((hop, i) => {
-      const isFinal = hop.isFinal;
-      const sc = hop.statusCode || 0;
-      let sCls = 's2xx';
-      if (sc >= 300 && sc < 400) sCls = 's3xx';
-      else if (sc >= 400) sCls = 's4xx';
+    html += `<h2 class="section-heading">Redirect Chain</h2>`;
 
-      html += `<div class="redirect-hop" data-hop-index="${i}">
-        <div class="hop-connector">
-          <div class="hop-dot${isFinal ? ' final' : ''}"></div>
-          ${i < chain.length - 1 ? '<div class="hop-line"></div>' : ''}
-        </div>
-        <div class="hop-info">
-          <div class="hop-url"><span class="hop-status ${sCls}">${sc}</span>${escHtml(truncateUrl(hop.url))}</div>
-          ${hop.warning ? `<div class="hop-warning">&#9888; ${escHtml(hop.warning)}</div>` : ''}
-          ${hop.redirectsTo ? `<div class="hop-redirect">&#8594; ${escHtml(truncateUrl(hop.redirectsTo))}</div>` : ''}
+    // Platform-behavior banner (hop-count + 301-vs-302 caching warnings). Lives
+    // above the diagram so the most actionable platform caveats are seen first.
+    html += renderPlatformRedirectBanner(chain);
 
-          ${hop.meta ? renderHopMeta(hop.meta, hop.metaDiff) : ''}
-
-          ${hop.metaError ? `<div class="hop-meta-error">Meta tags unavailable: ${escHtml(hop.metaError)}</div>` : ''}
-        </div>
-      </div>`;
+    // Delegate the visual diagram (numbered hops, arrows, status badges) to the
+    // pure redirect-diagram module so it is unit-testable. Meta-tag detail is
+    // rendered via the existing renderHopMeta helper, passed in as a callback.
+    // renderHopNote injects the in-diagram "common give-up point" marker.
+    html += buildRedirectChainDiagram(chain, {
+      renderMeta: (hop) => (hop.meta ? renderHopMeta(hop.meta, hop.metaDiff) : ''),
+      renderHopNote: (hop, i, c) => renderHopGiveupNote(hop, i, c),
     });
-    html += '</div>';
 
     // Add meta tag diff legend
     html += `<div class="diff-legend">
@@ -3990,6 +4469,9 @@ function renderRedirects(chain, headers, headerAnalysis = null) {
       <span class="legend-item"><span class="legend-dot removed"></span> Removed</span>
       <span class="legend-item"><span class="legend-dot critical"></span> Critical (og:image, twitter:image)</span>
     </div>`;
+
+    // Platform view: which hop each social crawler lands on + the meta it sees.
+    html += renderPlatformView(chain);
   } else {
     html += `<p style="color:var(--text2);margin-bottom:24px">No redirects — direct response.</p>`;
   }
@@ -4728,7 +5210,7 @@ function openQrModal() {
   // Generate new QR code using qrcodejs library
   // Respect prefers-reduced-motion by disabling animations
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  new QRCode(qrCode, {
+  const qr = new QRCode(qrCode, {
     text: shareUrl,
     width: 200,
     height: 200,
@@ -4736,6 +5218,17 @@ function openQrModal() {
     colorLight: '#ffffff',
     correctLevel: QRCode.CorrectLevel.H
   });
+
+  // Add alt text to the generated QR code image for accessibility
+  const qrImg = qrCode.querySelector('img, canvas');
+  if (qrImg) {
+    if (qrImg.tagName === 'IMG') {
+      qrImg.alt = 'QR code containing the share URL: ' + shareUrl;
+    } else {
+      // For canvas, add aria-label to the parent div which already has role="img"
+      qrCode.setAttribute('aria-label', 'QR code containing the share URL: ' + shareUrl);
+    }
+  }
 
   // Update the share URL input
   qrShareUrl.value = shareUrl;
@@ -4923,6 +5416,25 @@ function copyText(text) {
 window.copyText = copyText;
 window.downloadScreenshot = downloadScreenshot;
 window.renderPreviewsInternal = renderPreviews;
+
+// Expose guard functions and state for integration testing
+Object.defineProperty(window, 'isSmartOrderingActive', {
+  get: () => isSmartOrderingActive,
+  set: (val) => { isSmartOrderingActive = val; }
+});
+Object.defineProperty(window, 'isFilterOperation', {
+  get: () => isFilterOperation,
+  set: (val) => { isFilterOperation = val; }
+});
+Object.defineProperty(window, 'pendingFilterOperations', {
+  get: () => pendingFilterOperations,
+  set: (val) => { pendingFilterOperations = val; }
+});
+window.isSmartOrdering = isSmartOrdering;
+window.queueFilterOperation = queueFilterOperation;
+window.processPendingFilterOperations = processPendingFilterOperations;
+window.toggleHidden = toggleHidden;
+window.toggleFavorite = toggleFavorite;
 
 function fallbackCopy(text) {
   const ta = document.createElement('textarea');
@@ -5390,7 +5902,7 @@ function renderComparisonResults() {
   renderMetaTagDiff(data1.meta, data2.meta);
 
   // Render platform comparison
-  renderPlatformComparison(data1.scoring.scores, data2.scoring.scores);
+  renderPlatformComparison(data1, data2);
 }
 
 function renderScoreComparison(data1, data2) {
@@ -5487,14 +5999,183 @@ function renderMetaTagDiff(meta1, meta2) {
   }
 }
 
-function renderPlatformComparison(scores1, scores2) {
+/**
+ * Generate screenshot data URLs for platform comparison
+ * Creates data URLs from the rendered platform card HTML
+ * @param {string} pid - Platform ID
+ * @param {Object} data1 - Before data
+ * @param {Object} data2 - After data
+ * @returns {Object} Object with before and after screenshot data URLs
+ */
+function generatePlatformScreenshotUrls(pid, data1, data2) {
+  // Render platform cards as HTML
+  const beforeCardHtml = renderPlatformCard(
+    pid,
+    data1.meta || {},
+    data1.imageProbe,
+    data1.finalUrl,
+    data1.dominantColor
+  );
+
+  const afterCardHtml = renderPlatformCard(
+    pid,
+    data2.meta || {},
+    data2.imageProbe,
+    data2.finalUrl,
+    data2.dominantColor
+  );
+
+  // Create simple SVG data URLs with embedded HTML
+  const beforeDataUrl = createHtmlDataUrl(beforeCardHtml, data1.dominantColor || '#5865f2');
+  const afterDataUrl = createHtmlDataUrl(afterCardHtml, data2.dominantColor || '#5865f2');
+
+  return {
+    before: beforeDataUrl,
+    after: afterDataUrl
+  };
+}
+
+/**
+ * Create a data URL from HTML content using SVG foreignObject
+ * @param {string} html - HTML content to embed
+ * @param {string} backgroundColor - Background color
+ * @returns {string} SVG data URL
+ */
+function createHtmlDataUrl(html, backgroundColor = '#5865f2') {
+  // Escape the HTML for use in SVG foreignObject
+  const escapedHtml = html
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+  // Create SVG with embedded HTML
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300">
+    <foreignObject width="100%" height="100%">
+      <div xmlns="http://www.w3.org/1999/xhtml" style="background:${backgroundColor};width:100%;height:100%;padding:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#e8eaf0;box-sizing:border-box;">
+        ${html}
+      </div>
+    </foreignObject>
+  </svg>`;
+
+  return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svg)))}`;
+}
+
+/**
+ * Compute a coherent per-platform diff between URL A (before) and URL B (after).
+ *
+ * Combines two signals:
+ *   - META-level changed field paths (e.g. 'meta.og.title') — these match the
+ *     field paths renderPlatformCard()'s highlight() helper checks, so changed
+ *     rendered text lights up green. Derived from flattenMeta() of each meta.
+ *   - SCORE-level missing tags — tags flagged in URL B's platform issues/fixes
+ *     that URL A had, surfaced as red 'missing tag' badges on the card.
+ *
+ * 'identical' is true only when meta, grade, score, AND missing-tags all match,
+ * which is what the summary bar's 'identical vs differ' counts report on.
+ *
+ * @param {string} pid - Platform ID
+ * @param {Object} meta1 - URL A metadata
+ * @param {Object} meta2 - URL B metadata
+ * @param {Object} scores1 - URL A scoring.scores map
+ * @param {Object} scores2 - URL B scoring.scores map
+ * @returns {Object} { changedFields, missingTags, grade1, grade2, gradeChanged, scoreDelta, identical }
+ */
+function buildPlatformDiff(pid, meta1, meta2, scores1, scores2) {
+  const score1 = scores1 && scores1[pid];
+  const score2 = scores2 && scores2[pid];
+
+  // Meta-level diff → field paths in 'meta.<dotted.key>' form (matches renderPlatformCard highlight() calls).
+  // flattenMeta() drops empty/null/undefined, so a present-but-empty value reads as "missing".
+  const flat1 = flattenMeta(meta1 || {});
+  const flat2 = flattenMeta(meta2 || {});
+  const changedFields = [];
+  for (const key of new Set([...Object.keys(flat1), ...Object.keys(flat2)])) {
+    const v1 = key in flat1 ? flat1[key] : null;
+    const v2 = key in flat2 ? flat2[key] : null;
+    if (String(v1 ?? '') !== String(v2 ?? '')) {
+      changedFields.push('meta.' + key);
+    }
+  }
+
+  // Score-level missing tags (tags A had that B lacks), parsed from platform issues/fixes text.
+  let missingTags = [];
+  if (score1 && score2 && typeof window.platformDiff?.missingTags === 'function') {
+    missingTags = window.platformDiff.missingTags(score1, score2);
+  }
+
+  const grade1 = score1 ? score1.grade : undefined;
+  const grade2 = score2 ? score2.grade : undefined;
+  const gradeChanged = grade1 !== grade2;
+  const numScore1 = score1 && typeof score1.score === 'number' ? score1.score : null;
+  const numScore2 = score2 && typeof score2.score === 'number' ? score2.score : null;
+  const scoreDelta = (numScore1 !== null && numScore2 !== null) ? (numScore2 - numScore1) : 0;
+  const scoreChanged = scoreDelta !== 0;
+
+  const identical = changedFields.length === 0 && !gradeChanged && !scoreChanged && missingTags.length === 0;
+
+  return { changedFields, missingTags, grade1, grade2, gradeChanged, scoreDelta, identical };
+}
+
+function renderPlatformComparison(data1, data2) {
   const grid = document.getElementById('platformComparisonGrid');
   if (!grid) return;
 
   grid.innerHTML = '';
 
-  // Get all platform IDs
+  const scores1 = (data1.scoring && data1.scoring.scores) || {};
+  const scores2 = (data2.scoring && data2.scoring.scores) || {};
+  const meta1 = data1.meta || {};
+  const meta2 = data2.meta || {};
+
+  // Union of platform IDs across both results
   const allPids = new Set([...Object.keys(scores1), ...Object.keys(scores2)]);
+
+  // Build per-platform diffs (meta + score)
+  const platformDiffs = {};
+  allPids.forEach(pid => {
+    platformDiffs[pid] = buildPlatformDiff(pid, meta1, meta2, scores1, scores2);
+  });
+
+  // Calculate summary counts
+  let identicalCount = 0;
+  let differCount = 0;
+  let missingTagsCount = 0;
+  allPids.forEach(pid => {
+    const diff = platformDiffs[pid];
+    if (!diff) return;
+    if (diff.identical) identicalCount++;
+    else differCount++;
+    if (diff.missingTags && diff.missingTags.length > 0) missingTagsCount++;
+  });
+  const totalCompared = identicalCount + differCount;
+
+  // Render summary bar: readable spec-style sentence + stat tiles
+  const summaryBar = document.createElement('div');
+  summaryBar.className = 'platform-comparison-summary';
+  summaryBar.setAttribute('role', 'status');
+  const summarySentence =
+    `${identicalCount} platform${identicalCount === 1 ? '' : 's'} identical, ` +
+    `${differCount} differ${differCount === 1 ? '' : ''}, ` +
+    `${missingTagsCount} missing tag${missingTagsCount === 1 ? '' : 's'} on URL B`;
+  summaryBar.innerHTML = `
+    <div class="platform-comparison-summary-text">${escHtml(summarySentence)}</div>
+    <div class="platform-comparison-summary-stats">
+      <div class="summary-stat">
+        <span class="summary-stat-value">${identicalCount}</span>
+        <span class="summary-stat-label">identical</span>
+      </div>
+      <div class="summary-stat">
+        <span class="summary-stat-value">${differCount}</span>
+        <span class="summary-stat-label">differ</span>
+      </div>
+      <div class="summary-stat">
+        <span class="summary-stat-value">${missingTagsCount}</span>
+        <span class="summary-stat-label">missing tags on URL B</span>
+      </div>
+    </div>
+  `;
+  grid.appendChild(summaryBar);
+  announce(`Comparison: ${summarySentence} (out of ${totalCompared} platforms).`);
 
   allPids.forEach(pid => {
     const score1 = scores1[pid];
@@ -5521,9 +6202,23 @@ function renderPlatformComparison(scores1, scores2) {
       changeText = '↓ Degraded';
     }
 
+    // Get diff data for this platform
+    const diff = platformDiffs[pid] || { changedFields: [], missingTags: [], identical: true };
+
+    const imageProbe1 = data1.imageProbe;
+    const imageProbe2 = data2.imageProbe;
+    const finalUrl1 = data1.finalUrl;
+    const finalUrl2 = data2.finalUrl;
+    const dominantColor1 = data1.dominantColor;
+    const dominantColor2 = data2.dominantColor;
+
     const row = document.createElement('div');
     row.className = 'platform-comparison-row';
-    row.innerHTML = `
+
+    // Create header with platform name and change indicator
+    const header = document.createElement('div');
+    header.className = 'platform-comparison-header';
+    header.innerHTML = `
       <div class="platform-comparison-name">
         <span>${PLATFORM_ICONS[pid] || '🌐'}</span>
         <span>${escHtml(PLATFORM_NAMES[pid] || pid)}</span>
@@ -5531,11 +6226,49 @@ function renderPlatformComparison(scores1, scores2) {
       <div class="platform-comparison-score">
         <span class="platform-comparison-grade ${gradeClass(grade1)}">${grade1}</span>
         <span class="platform-comparison-change ${changeClass}">${changeText}</span>
-      </div>
-      <div class="platform-comparison-score">
         <span class="platform-comparison-grade ${gradeClass(grade2)}">${grade2}</span>
       </div>
     `;
+    row.appendChild(header);
+
+    // Create cards container
+    const cardsContainer = document.createElement('div');
+    cardsContainer.className = 'platform-comparison-cards';
+
+    // Render "before" card (with diff highlighting applied)
+    const beforeCard = document.createElement('div');
+    beforeCard.className = 'platform-comparison-card before-card';
+    beforeCard.innerHTML = renderPlatformCard(pid, meta1, imageProbe1, finalUrl1, dominantColor1, diff);
+    cardsContainer.appendChild(beforeCard);
+
+    // Render "after" card (with diff highlighting applied)
+    const afterCard = document.createElement('div');
+    afterCard.className = 'platform-comparison-card after-card';
+    afterCard.innerHTML = renderPlatformCard(pid, meta2, imageProbe2, finalUrl2, dominantColor2, diff);
+    cardsContainer.appendChild(afterCard);
+
+    row.appendChild(cardsContainer);
+
+    // Setup scroll-lock synchronization between before and after cards
+    setupScrollLock(beforeCard, afterCard);
+
+    // Add screenshot comparison if imageDiff module is available
+    if (window.imageDiff && typeof window.imageDiff.create === 'function') {
+      const screenshotUrls = generatePlatformScreenshotUrls(pid, data1, data2);
+      if (screenshotUrls.before && screenshotUrls.after) {
+        const imageDiffContainer = window.imageDiff.create({
+          before: screenshotUrls.before,
+          after: screenshotUrls.after,
+          platformId: pid,
+          platformName: PLATFORM_NAMES[pid] || pid,
+          mode: 'overlay',
+          initialPosition: 50
+        });
+        if (imageDiffContainer) {
+          row.appendChild(imageDiffContainer);
+        }
+      }
+    }
 
     grid.appendChild(row);
   });
@@ -5627,14 +6360,66 @@ async function handleSitemapSubmit() {
     // Announce sitemap results to screen readers
     const { totalFound, crawled, errors } = data;
     announce(`Sitemap analysis complete. Found ${totalFound} URLs, crawled ${crawled} pages, ${errors} errors.`);
-
-    // Scroll to results
-    if (resultsSection) resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
   } catch (err) {
-    if (sitemapProgress) sitemapProgress.classList.add('hidden');
-    showToast('Error: ' + err.message, 3000);
+    console.error('[handleSitemapSubmit] Error:', err);
+    showToast(err.message || 'Failed to analyze sitemap', 3000);
+    if (progressText) progressText.textContent = 'Failed';
+    if (progressFill) progressFill.style.width = '0%';
+    setTimeout(() => {
+      if (sitemapProgress) sitemapProgress.classList.add('hidden');
+    }, 1500);
   }
+}
+
+/**
+ * Setup scroll-lock synchronization between two scrollable elements
+ * When one scrolls, the other scrolls to the same position
+ */
+function setupScrollLock(el1, el2) {
+  if (!el1 || !el2) return;
+
+  let isScrolling1 = false;
+  let isScrolling2 = false;
+
+  // Find the first scrollable container within each card
+  const findScrollable = (element) => {
+    const candidates = element.querySelectorAll('*');
+    for (const candidate of candidates) {
+      const style = window.getComputedStyle(candidate);
+      const overflow = style.overflow;
+      const overflowY = style.overflowY;
+      if ((overflow === 'auto' || overflow === 'scroll' || overflowY === 'auto' || overflowY === 'scroll') &&
+          candidate.scrollHeight > candidate.clientHeight) {
+        return candidate;
+      }
+    }
+    return element;
+  };
+
+  const scrollable1 = findScrollable(el1);
+  const scrollable2 = findScrollable(el2);
+
+  if (!scrollable1 || !scrollable2) return;
+
+  // Synchronize scroll from element 1 to element 2
+  scrollable1.addEventListener('scroll', () => {
+    if (!isScrolling2) {
+      isScrolling1 = true;
+      const scrollRatio = scrollable1.scrollTop / (scrollable1.scrollHeight - scrollable1.clientHeight);
+      scrollable2.scrollTop = scrollRatio * (scrollable2.scrollHeight - scrollable2.clientHeight);
+      setTimeout(() => { isScrolling1 = false; }, 50);
+    }
+  });
+
+  // Synchronize scroll from element 2 to element 1
+  scrollable2.addEventListener('scroll', () => {
+    if (!isScrolling1) {
+      isScrolling2 = true;
+      const scrollRatio = scrollable2.scrollTop / (scrollable2.scrollHeight - scrollable2.clientHeight);
+      scrollable1.scrollTop = scrollRatio * (scrollable1.scrollHeight - scrollable1.clientHeight);
+      setTimeout(() => { isScrolling2 = false; }, 50);
+    }
+  });
 }
 
 function renderSitemapResults(data) {
@@ -5862,8 +6647,52 @@ function downloadFile(content, filename, mimeType) {
 let editorState = {
   original: {},
   edited: {},
-  dirty: false
+  dirty: false,
+  // Score state for UI updates (bf-ssfp): the latest re-scored result derived
+  // from the current edits. `scoring` mirrors the backend scorer shape
+  // ({ scores, overall, summary }); `meta` is the edited metadata it was scored
+  // against; `lastRescoreMs` records how long the last re-score took so the
+  // <500ms performance budget can be observed/tested. All null until the first
+  // edit re-scores, at which point getCurrentScoring() starts returning them.
+  scoring: null,
+  meta: null,
+  lastRescoreMs: 0
 };
+
+/**
+ * Single source of truth for the scores the UI should currently display.
+ *
+ * Returns the edited scoring held in editorState when the user has made edits
+ * that were re-scored, otherwise falls back to the original fetched scoring on
+ * currentData. Any UI code that needs "the scores as they stand now" should read
+ * through here rather than currentData.scoring directly, so edits are reflected.
+ *
+ * @returns {object|null} scoring object ({ scores, overall, summary }) or null
+ */
+function getCurrentScoring() {
+  if (editorState.scoring) return editorState.scoring;
+  return currentData?.scoring || null;
+}
+
+/**
+ * The metadata the current scores were computed against — edited meta if the
+ * user has edits, otherwise the original fetched meta.
+ * @returns {object|null}
+ */
+function getCurrentMeta() {
+  if (editorState.meta) return editorState.meta;
+  return currentData?.meta || null;
+}
+
+/**
+ * Clear any edited score state, so getCurrentScoring() falls back to the
+ * original fetched scores. Called on reset and when new results load.
+ */
+function clearEditedScoring() {
+  editorState.scoring = null;
+  editorState.meta = null;
+  editorState.lastRescoreMs = 0;
+}
 
 // Platform customization state
 let platformPrefs = {
@@ -5871,8 +6700,20 @@ let platformPrefs = {
   hidden: new Set(),
   columnCount: 3,
   smartOrdering: true,
-  cardOrder: {} // Map of groupId -> array of platform IDs in custom order
+  cardOrder: {}, // Map of groupId -> array of platform IDs in custom order
+  cardOrderMetadata: {} // Map of groupId -> {userModified, lastModified, modifiedBy, pageType}
 };
+
+// ── Guard flags to prevent race conditions during smart ordering ──
+let isApplyingSmartOrder = false;
+let pendingApplySmartOrder = false;
+let pendingRenderData = null; // Queue renderPreviews calls during smart ordering
+let isRendering = false; // Guard flag to prevent concurrent renders
+let pendingRenderAfterCurrent = null; // Queue renders during active render
+let currentPageType = null; // Track current page type for stale cardOrder detection
+let isFilterOperation = false; // Guard flag to prevent smart order resets during filter changes
+let isSmartOrderingActive = false; // Track when smart ordering is currently active
+let pendingFilterOperations = []; // Queue filter operations during smart ordering
 
 // Command palette state
 let commandPaletteOpen = false;
@@ -5900,6 +6741,9 @@ function initEditor(data) {
 
   editorState.edited = { ...editorState.original };
   editorState.dirty = false;
+  // Fresh results: drop any edited scores carried over from a previous URL so
+  // getCurrentScoring() reflects this fetch until the user edits again.
+  clearEditedScoring();
 
   // Populate form fields
   populateEditorForm();
@@ -6043,7 +6887,7 @@ function renderCharGauges(fieldId, text, fieldType) {
   let html = `<div class="char-gauges">`;
 
   // Summary line (always visible, clickable to expand/collapse all)
-  html += `<div class="char-gauge-summary" onclick="toggleAllCharGauges('${fieldId}')" data-field="${fieldId}">`;
+  html += `<div class="char-gauge-summary" role="button" tabindex="0" aria-expanded="true" aria-label="Toggle all character gauge groups" onclick="toggleAllCharGauges('${fieldId}')" data-field="${fieldId}">`;
   const statusEmoji = overCount > 0 ? '🔴' : warnCount > 0 ? '🟡' : '🟢';
   html += `<span class="summary-status">${statusEmoji}</span>`;
   html += `<span class="summary-text">${fieldType === 'title' ? 'Title' : 'Description'}: OK on ${okCount}/${totalCount} platforms</span>`;
@@ -6056,7 +6900,7 @@ function renderCharGauges(fieldId, text, fieldType) {
 
   PLATFORM_GROUPS.forEach(group => {
     html += `<div class="char-gauge-group ${group.collapsed ? 'collapsed' : ''}" data-group="${group.id}">`;
-    html += `<div class="char-gauge-group-header" onclick="toggleCharGaugeGroup('${group.id}')">`;
+    html += `<div class="char-gauge-group-header" role="button" tabindex="0" aria-expanded="${group.collapsed ? 'false' : 'true'}" aria-label="Toggle ${escHtml(group.title)} gauge group" onclick="toggleCharGaugeGroup('${group.id}')">`;
     html += `<span class="group-chevron">${group.collapsed ? '&#9654;' : '&#9660;'}</span>`;
     html += `<span class="group-title">${group.title}</span>`;
 
@@ -6121,10 +6965,13 @@ function toggleCharGaugeGroup(groupId) {
   const groupEl = document.querySelector(`.char-gauge-group[data-group="${groupId}"]`);
   if (groupEl) {
     groupEl.classList.toggle('collapsed');
+    const collapsed = groupEl.classList.contains('collapsed');
     const chevron = groupEl.querySelector('.group-chevron');
     if (chevron) {
-      chevron.innerHTML = groupEl.classList.contains('collapsed') ? '&#9654;' : '&#9660;';
+      chevron.innerHTML = collapsed ? '&#9654;' : '&#9660;';
     }
+    const header = groupEl.querySelector('.char-gauge-group-header');
+    if (header) header.setAttribute('aria-expanded', String(!collapsed));
   }
 }
 
@@ -6151,11 +6998,28 @@ function toggleAllCharGauges(fieldId) {
       const chevron = group.querySelector('.group-chevron');
       if (chevron) chevron.innerHTML = '&#9654;';
     }
+    const header = group.querySelector('.char-gauge-group-header');
+    if (header) header.setAttribute('aria-expanded', String(allCollapsed));
   });
+
+  const summary = container.querySelector('.char-gauge-summary');
+  if (summary) summary.setAttribute('aria-expanded', String(allCollapsed));
 }
 
 // Make toggleAllCharGauges globally accessible
 window.toggleAllCharGauges = toggleAllCharGauges;
+
+// Keyboard activation for role="button" elements built from <div>/<span>
+// (e.g. char-gauge toggles). Native <button>/<a> handle their own keys.
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const el = e.target.closest('[role="button"]');
+  if (!el) return;
+  const tag = el.tagName;
+  if (tag === 'BUTTON' || tag === 'A' || tag === 'INPUT' || tag === 'TEXTAREA') return;
+  e.preventDefault();
+  el.click();
+});
 
 function handleEditorInput(e) {
   const el = e.target;
@@ -6181,6 +7045,130 @@ function handleEditorInput(e) {
   }, 300);
 }
 
+/**
+ * Merge the current editor edits over the original fetched metadata.
+ * Returns a fresh meta object reflecting what the user has typed so far.
+ */
+function buildEditedMeta() {
+  const modifiedMeta = { ...currentData.meta };
+  const e = editorState.edited;
+
+  if (e.title) modifiedMeta.title = e.title;
+  if (e.description) modifiedMeta.description = e.description;
+  if (e['og.title']) modifiedMeta.og = { ...modifiedMeta.og, title: e['og.title'] };
+  if (e['og.description']) modifiedMeta.og = { ...modifiedMeta.og, description: e['og.description'] };
+  if (e['og.image']) modifiedMeta.og = { ...modifiedMeta.og, image: e['og.image'] };
+  if (e['og.url']) modifiedMeta.og = { ...modifiedMeta.og, url: e['og.url'] };
+  if (e['og.site_name']) modifiedMeta.og = { ...modifiedMeta.og, site_name: e['og.site_name'] };
+  if (e['og.type']) modifiedMeta.og = { ...modifiedMeta.og, type: e['og.type'] };
+  if (e['twitter.card']) modifiedMeta.twitter = { ...modifiedMeta.twitter, card: e['twitter.card'] };
+  if (e['twitter.title']) modifiedMeta.twitter = { ...modifiedMeta.twitter, title: e['twitter.title'] };
+  if (e['twitter.description']) modifiedMeta.twitter = { ...modifiedMeta.twitter, description: e['twitter.description'] };
+  if (e['twitter.image']) modifiedMeta.twitter = { ...modifiedMeta.twitter, image: e['twitter.image'] };
+
+  return modifiedMeta;
+}
+
+/**
+ * Re-score ALL 31 platforms against the current editor content.
+ *
+ * This replaces the old "simple counter" placeholder: instead of counting how
+ * many diagnostics were fixed, it runs the full scoring-simulator (scoreAll)
+ * over the edited metadata and returns fresh scores/grades for every platform,
+ * plus the recomputed overall grade and passing/warning/failing summary.
+ *
+ * @returns {{meta: object, scoring: object}|null} edited meta + full scoring, or null if unavailable
+ */
+function rescoreAllPlatforms() {
+  if (!currentData || typeof scoreAll !== 'function') return null;
+
+  const modifiedMeta = buildEditedMeta();
+  // scoreAll iterates every entry in PLATFORMS (all 31) and returns
+  // { scores: {<platformId>: {grade, score, issues, fixes, platform}}, overall, summary }
+  const scoring = scoreAll(modifiedMeta, currentData.imageProbe);
+  return { meta: modifiedMeta, scoring };
+}
+
+/**
+ * Re-score the current edits and STORE the result in editorState so the UI has
+ * a single, persistent source of truth for the updated scores (bf-ssfp).
+ *
+ * Unlike rescoreAllPlatforms() (which is a pure computation), this commits the
+ * fresh scores/grades/meta into editorState.scoring / editorState.meta, records
+ * how long the re-score took (editorState.lastRescoreMs — the <500ms budget),
+ * and returns a `modifiedData` object that renderPreviews()/renderSummaryBar()
+ * can consume. After calling this, getCurrentScoring() reflects the edits.
+ *
+ * @returns {{data: object, scoring: object, ms: number}|null}
+ */
+function applyRescore() {
+  const t0 = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+  const rescored = rescoreAllPlatforms();
+  if (!rescored) return null;
+
+  const t1 = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+  const ms = t1 - t0;
+
+  // Commit to state so any UI read (getCurrentScoring) reflects the edits.
+  editorState.scoring = rescored.scoring;
+  editorState.meta = rescored.meta;
+  editorState.lastRescoreMs = ms;
+
+  const data = { ...currentData, meta: rescored.meta, scoring: rescored.scoring };
+  return { data, scoring: rescored.scoring, ms };
+}
+
+/**
+ * Swap the grade-* class on an element without disturbing its other classes
+ * (e.g. `.focused`, drag state). Removing/adding only the grade class — rather
+ * than replacing the whole className — lets the CSS `transition` on background /
+ * color / border-left-color fire smoothly (300ms) instead of resetting state.
+ */
+function swapGradeClass(el, grade) {
+  if (!el) return;
+  [...el.classList].filter((c) => c.startsWith('grade-')).forEach((c) => el.classList.remove(c));
+  el.classList.add(gradeClass(grade));
+}
+
+/**
+ * Update the already-rendered platform cards in place from freshly re-scored
+ * edit data. Because the DOM nodes persist (rather than being rebuilt), the
+ * grade badge color and card border-left color animate via their CSS
+ * transitions when a fix moves a card from e.g. C → A. Also refreshes the card
+ * body so the edited title/description preview stays in sync.
+ *
+ * @returns {boolean} true if cards were updated in place; false if the grid has
+ *   no cards yet (caller should fall back to a full render).
+ */
+function updateEditedCardsInPlace(data) {
+  const cards = previewGrid.querySelectorAll('.platform-card[data-pid]');
+  if (!cards.length) return false;
+
+  const scores = (data.scoring && data.scoring.scores) || {};
+  cards.forEach((card) => {
+    const pid = card.dataset.pid;
+    const scoreData = scores[pid];
+    if (scoreData) {
+      // Per-card grade badge: class change drives the animated color swap.
+      const gradeBadge = card.querySelector('.card-grade');
+      if (gradeBadge) {
+        swapGradeClass(gradeBadge, scoreData.grade);
+        gradeBadge.textContent = scoreData.grade;
+      }
+      // Card grade class drives the animated border-left-color swap.
+      swapGradeClass(card, scoreData.grade);
+    }
+
+    // Keep the preview body in sync with the edited meta.
+    const body = card.querySelector(`#card-body-${pid}`);
+    if (body) {
+      body.innerHTML = renderPlatformCard(pid, data.meta, data.imageProbe, data.finalUrl, data.dominantColor);
+    }
+  });
+
+  return true;
+}
+
 function updatePreviewsWithEdits() {
   if (!currentData) return;
 
@@ -6188,30 +7176,26 @@ function updatePreviewsWithEdits() {
   const originalGrade = currentData.scoring?.overall?.grade;
   const originalScore = currentData.scoring?.overall?.score;
 
-  // Create modified meta object
-  const modifiedMeta = { ...currentData.meta };
+  // Re-score all 31 platforms from the edited content and store the result in
+  // editorState so the UI (and getCurrentScoring) has a persistent copy.
+  const applied = applyRescore();
+  const modifiedData = applied
+    ? applied.data
+    : { ...currentData, meta: buildEditedMeta() };
+  const newScoring = applied ? applied.scoring : null;
 
-  // Apply edits
-  if (editorState.edited.title) modifiedMeta.title = editorState.edited.title;
-  if (editorState.edited.description) modifiedMeta.description = editorState.edited.description;
-  if (editorState.edited['og.title']) modifiedMeta.og = { ...modifiedMeta.og, title: editorState.edited['og.title'] };
-  if (editorState.edited['og.description']) modifiedMeta.og = { ...modifiedMeta.og, description: editorState.edited['og.description'] };
-  if (editorState.edited['og.image']) modifiedMeta.og = { ...modifiedMeta.og, image: editorState.edited['og.image'] };
-  if (editorState.edited['og.url']) modifiedMeta.og = { ...modifiedMeta.og, url: editorState.edited['og.url'] };
-  if (editorState.edited['og.site_name']) modifiedMeta.og = { ...modifiedMeta.og, site_name: editorState.edited['og.site_name'] };
-  if (editorState.edited['og.type']) modifiedMeta.og = { ...modifiedMeta.og, type: editorState.edited['og.type'] };
-  if (editorState.edited['twitter.card']) modifiedMeta.twitter = { ...modifiedMeta.twitter, card: editorState.edited['twitter.card'] };
-  if (editorState.edited['twitter.title']) modifiedMeta.twitter = { ...modifiedMeta.twitter, title: editorState.edited['twitter.title'] };
-  if (editorState.edited['twitter.description']) modifiedMeta.twitter = { ...modifiedMeta.twitter, description: editorState.edited['twitter.description'] };
-  if (editorState.edited['twitter.image']) modifiedMeta.twitter = { ...modifiedMeta.twitter, image: editorState.edited['twitter.image'] };
+  // Prefer updating the existing cards in place so the grade badges and card
+  // border colors transition smoothly (300ms CSS) from the old grade to the new
+  // one. Only fall back to a destructive full render when the grid is empty
+  // (nothing to animate yet).
+  if (!updateEditedCardsInPlace(modifiedData)) {
+    renderPreviews(modifiedData);
+  }
 
-  // Re-render previews with modified data
-  const modifiedData = { ...currentData, meta: modifiedMeta };
-  renderPreviews(modifiedData);
+  // Update the summary bar (overall grade + passing/warning/failing counts)
+  if (newScoring) {
+    renderSummaryBar(modifiedData);
 
-  // Recalculate and announce score changes
-  if (typeof scoreAll === 'function') {
-    const newScoring = scoreAll(modifiedMeta, currentData.imageProbe);
     const newGrade = newScoring.overall?.grade;
     const newScore = newScoring.overall?.score;
 
@@ -6225,12 +7209,15 @@ function updatePreviewsWithEdits() {
 function resetEditor() {
   editorState.edited = { ...editorState.original };
   editorState.dirty = false;
+  // Drop stored edited scores so getCurrentScoring() falls back to the original.
+  clearEditedScoring();
   populateEditorForm();
   updateEditorCharCounts();
 
-  // Reset previews
+  // Reset previews and summary bar back to the original scores
   if (currentData) {
     renderPreviews(currentData);
+    renderSummaryBar(currentData);
   }
 
   // Announce reset
@@ -6509,6 +7496,8 @@ function generateSvelteKitSnippet(meta) {
   <meta name="twitter:description" content={meta.ogDescription} />
   <meta name="twitter:image" content={meta.ogImage} />
 </svelte:head>
+
+<slot />`;
 }
 
 function generateGatsbySnippet(meta) {
@@ -6641,9 +7630,6 @@ twitter:
 <meta name="twitter:title" content="{{ page.twitter.title | default: page.og.title | default: page.title | default: site.title }}" />
 <meta name="twitter:description" content="{{ page.twitter.description | default: page.og.description | default: page.description | default: site.description }}" />
 <meta name="twitter:image" content="{{ page.image | default: site.image | absolute_url }}" />`;
-}
-
-<slot />`;
 }
 
 function copyCodeSnippet() {
@@ -7063,8 +8049,9 @@ function initTemplates() {
   if (!grid) return;
 
   grid.innerHTML = TEMPLATES.map(tpl => `
-    <div class="template-card" data-template="${tpl.id}">
-      <div class="template-icon">${tpl.icon}</div>
+    <div class="template-card" data-template="${tpl.id}" role="button" tabindex="0"
+         aria-label="Apply ${escHtml(tpl.title)} template">
+      <div class="template-icon" aria-hidden="true">${tpl.icon}</div>
       <div class="template-title">${escHtml(tpl.title)}</div>
       <div class="template-desc">${escHtml(tpl.desc)}</div>
       <div class="template-tags">
@@ -7161,9 +8148,20 @@ function loadPlatformPrefs() {
       platformPrefs.columnCount = parsed.columnCount || 3;
       platformPrefs.smartOrdering = parsed.smartOrdering !== false;
       platformPrefs.cardOrder = parsed.cardOrder || {};
+      platformPrefs.cardOrderMetadata = parsed.cardOrderMetadata || {};
+      console.log('[loadPlatformPrefs] Loaded cardOrder:', platformPrefs.cardOrder);
+
+      if (DEBUG_SMART_ORDERING && parsed._version) {
+        console.log(`[loadPlatformPrefs] Loaded preferences version ${parsed._version} from ${new Date(parsed._timestamp).toISOString()}`);
+      }
+
+      // Clean up dangling cardOrder entries for groups that no longer exist (P2 - Missing Group Bug)
+      cleanupStaleCardOrderEntries();
     } catch (e) {
       console.warn('Failed to load platform preferences', e);
     }
+  } else {
+    console.log('[loadPlatformPrefs] No saved preferences found, using defaults');
   }
 
   updateColumnLayoutUI();
@@ -7171,15 +8169,115 @@ function loadPlatformPrefs() {
   updateHiddenList();
 }
 
+/**
+ * Clean up cardOrder entries for groups that no longer exist in PLATFORM_GROUPS
+ * This prevents dangling references and potential errors (P2 - Missing Group Bug fix)
+ */
+function cleanupStaleCardOrderEntries() {
+  if (!platformPrefs.cardOrder) return;
+
+  const validGroupIds = new Set(PLATFORM_GROUPS.map(g => g.id));
+  let hasChanges = false;
+
+  for (const groupId in platformPrefs.cardOrder) {
+    if (!validGroupIds.has(groupId)) {
+      console.log(`[cleanupStaleCardOrderEntries] Removing dangling entry for group: ${groupId}`);
+      delete platformPrefs.cardOrder[groupId];
+      if (platformPrefs.cardOrderMetadata && platformPrefs.cardOrderMetadata[groupId]) {
+        delete platformPrefs.cardOrderMetadata[groupId];
+      }
+      hasChanges = true;
+    }
+  }
+
+  if (hasChanges) {
+    savePlatformPrefs();
+  }
+}
+
 function savePlatformPrefs() {
-  const prefs = {
-    favorites: Array.from(platformPrefs.favorites),
-    hidden: Array.from(platformPrefs.hidden),
-    columnCount: platformPrefs.columnCount,
-    smartOrdering: platformPrefs.smartOrdering,
-    cardOrder: platformPrefs.cardOrder
-  };
-  localStorage.setItem('vista-platform-prefs', JSON.stringify(prefs));
+  // P0 - LocalStorage Desync fix: Implement atomic read-modify-write with version checking
+  const MAX_RETRIES = 3;
+  let attempt = 0;
+
+  while (attempt < MAX_RETRIES) {
+    try {
+      // Read current state from localStorage
+      const currentSaved = localStorage.getItem('vista-platform-prefs');
+      let currentData = null;
+      let currentVersion = 0;
+
+      if (currentSaved) {
+        try {
+          currentData = JSON.parse(currentSaved);
+          currentVersion = currentData._version || 0;
+        } catch (e) {
+          console.warn('[savePlatformPrefs] Failed to parse current localStorage data', e);
+        }
+      }
+
+      // Prepare new state with incremented version
+      const newVersion = currentVersion + 1;
+      const prefs = {
+        _version: newVersion,
+        _timestamp: Date.now(),
+        favorites: Array.from(platformPrefs.favorites),
+        hidden: Array.from(platformPrefs.hidden),
+        columnCount: platformPrefs.columnCount,
+        smartOrdering: platformPrefs.smartOrdering,
+        cardOrder: platformPrefs.cardOrder,
+        cardOrderMetadata: platformPrefs.cardOrderMetadata || {}
+      };
+
+      // Write to localStorage
+      localStorage.setItem('vista-platform-prefs', JSON.stringify(prefs));
+
+      // Verify write was successful (read back and check version)
+      const verifySaved = localStorage.getItem('vista-platform-prefs');
+      if (verifySaved) {
+        const verifyData = JSON.parse(verifySaved);
+        if (verifyData._version === newVersion) {
+          // Write was successful
+          if (DEBUG_SMART_ORDERING) {
+            console.log(`[savePlatformPrefs] Saved successfully with version ${newVersion}`);
+          }
+          return;
+        } else {
+          // Version mismatch - concurrent write detected
+          console.warn(`[savePlatformPrefs] Version mismatch: expected ${newVersion}, got ${verifyData._version}. Concurrent write detected.`);
+          attempt++;
+          if (attempt < MAX_RETRIES) {
+            console.log(`[savePlatformPrefs] Retrying (${attempt + 1}/${MAX_RETRIES})...`);
+            // Reload latest data and merge
+            if (verifyData.cardOrder) {
+              // Merge cardOrder changes - prefer newer data
+              Object.keys(verifyData.cardOrder).forEach(groupId => {
+                const groupMeta = verifyData.cardOrderMetadata?.[groupId];
+                const localMeta = platformPrefs.cardOrderMetadata?.[groupId];
+                if (groupMeta && localMeta && groupMeta.lastModified > localMeta.lastModified) {
+                  platformPrefs.cardOrder[groupId] = verifyData.cardOrder[groupId];
+                  platformPrefs.cardOrderMetadata[groupId] = groupMeta;
+                }
+              });
+            }
+            continue; // Retry with merged data
+          }
+        }
+      }
+    } catch (e) {
+      console.error('[savePlatformPrefs] Failed to save preferences:', e);
+      attempt++;
+      if (attempt < MAX_RETRIES) {
+        console.log(`[savePlatformPrefs] Retrying after error (${attempt + 1}/${MAX_RETRIES})...`);
+        continue;
+      }
+    }
+    break;
+  }
+
+  if (attempt >= MAX_RETRIES) {
+    console.error('[savePlatformPrefs] Failed to save preferences after ${MAX_RETRIES} attempts');
+  }
 }
 
 function setColumnLayout(count) {
@@ -7195,29 +8293,133 @@ function setColumnLayout(count) {
 
 function updateColumnLayoutUI() {
   document.querySelectorAll('.layout-btn').forEach(btn => {
-    btn.classList.toggle('active', parseInt(btn.dataset.columns) === platformPrefs.columnCount);
+    const isActive = parseInt(btn.dataset.columns) === platformPrefs.columnCount;
+    btn.classList.toggle('active', isActive);
+    btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
   });
 }
 
 function toggleFavorite(pid) {
-  if (platformPrefs.favorites.has(pid)) {
-    platformPrefs.favorites.delete(pid);
-  } else {
-    platformPrefs.favorites.add(pid);
+  guardWrapper('toggleFavorite', () => {
+    if (platformPrefs.favorites.has(pid)) {
+      platformPrefs.favorites.delete(pid);
+    } else {
+      platformPrefs.favorites.add(pid);
+    }
+    savePlatformPrefs();
+    updateFavoritesList();
+
+    // Clear smart ordering active flag since user manually modified favorites
+    isSmartOrderingActive = false;
+    if (DEBUG_SMART_ORDERING) {
+      console.log('[toggleFavorite] Smart ordering active flag CLEARED (user manual override)');
+    }
+  });
+}
+
+// ── Centralized guard functions for filter operations during smart ordering ──
+
+/**
+ * Check if filter operation should be deferred due to active smart ordering
+ * @returns {boolean} True if smart ordering is active and operation should be deferred
+ */
+function shouldDeferFilterOperation() {
+  return isSmartOrderingActive;
+}
+
+/**
+ * Check if smart ordering is currently active
+ *
+ * Centralized guard function that checks BOTH the user preference and runtime state
+ * to determine if smart ordering is currently active. This is the primary guard to
+ * use before any operation that might interfere with smart ordering.
+ *
+ * **Checks two conditions:**
+ * 1. User preference: `platformPrefs.smartOrdering` (is smart ordering enabled?)
+ * 2. Runtime state: `isSmartOrderingActive` (is smart ordering currently in progress?)
+ *
+ * **Usage in filter handlers:**
+ * ```javascript
+ * function myFilterHandler() {
+ *   if (isSmartOrdering()) {
+ *     queueFilterOperation(myFilterHandler, 'myFilterHandler');
+ *     return;
+ *   }
+ *   // Proceed with filter operation
+ * }
+ * ```
+ *
+ * **When to check:**
+ * - Before modifying platform order/visibility
+ * - Before resetting card order
+ * - Before any operation that might conflict with smart ordering
+ * - In async callbacks that might execute during smart ordering
+ *
+ * **Related flags:**
+ * - `isFilterOperation`: Set during filter operations to prevent smart order resets
+ * - `isApplyingSmartOrder`: Prevents concurrent renders during smart ordering
+ * - `isSmartOrderingActive`: Runtime flag tracking smart ordering progress
+ *
+ * **Related preferences:**
+ * - `platformPrefs.smartOrdering`: User preference for smart ordering (default: true)
+ *
+ * @returns {boolean} True if smart ordering is BOTH enabled AND currently active, false otherwise
+ */
+function isSmartOrdering() {
+  return platformPrefs.smartOrdering && isSmartOrderingActive;
+}
+
+/**
+ * Queue a filter operation to be processed after smart ordering completes
+ * @param {Function} operation - The filter operation function to execute later
+ * @param {string} description - Description of the operation for debugging
+ */
+function queueFilterOperation(operation, description) {
+  if (DEBUG_SMART_ORDERING) {
+    console.log(`[queueFilterOperation] Queuing: ${description}`);
   }
-  savePlatformPrefs();
-  updateFavoritesList();
+  pendingFilterOperations.push({ operation, description });
+}
+
+/**
+ * Process pending filter operations after smart ordering completes
+ */
+function processPendingFilterOperations() {
+  if (pendingFilterOperations.length === 0) {
+    return;
+  }
+
+  if (DEBUG_SMART_ORDERING) {
+    console.log(`[processPendingFilterOperations] Processing ${pendingFilterOperations.length} pending operations`);
+  }
+
+  // Process each pending operation
+  const operations = pendingFilterOperations.slice(); // Copy array to avoid modification during iteration
+  pendingFilterOperations = []; // Clear queue
+
+  operations.forEach(({ operation, description }) => {
+    try {
+      if (DEBUG_SMART_ORDERING) {
+        console.log(`[processPendingFilterOperations] Executing: ${description}`);
+      }
+      operation();
+    } catch (error) {
+      console.error(`[processPendingFilterOperations] Error executing: ${description}`, error);
+    }
+  });
 }
 
 function toggleHidden(pid) {
-  if (platformPrefs.hidden.has(pid)) {
-    platformPrefs.hidden.delete(pid);
-  } else {
-    platformPrefs.hidden.add(pid);
-  }
-  savePlatformPrefs();
-  updateHiddenList();
-  renderPreviews(currentData); // Re-render to apply hiding
+  guardWrapperWithRender('toggleHidden', () => {
+    if (platformPrefs.hidden.has(pid)) {
+      platformPrefs.hidden.delete(pid);
+    } else {
+      platformPrefs.hidden.add(pid);
+    }
+    savePlatformPrefs();
+    updateHiddenList();
+    renderPreviews(currentData); // Re-render to apply hiding
+  });
 }
 
 function updateFavoritesList() {
@@ -7233,7 +8435,7 @@ function updateFavoritesList() {
     <div class="platform-item">
       <span class="platform-item-icon">${PLATFORM_ICONS[pid] || '🌐'}</span>
       <span class="platform-item-name">${escHtml(PLATFORM_NAMES[pid] || pid)}</span>
-      <button class="platform-item-remove" data-pid="${pid}">&times;</button>
+      <button class="platform-item-remove" data-pid="${pid}" aria-label="Remove ${escHtml(PLATFORM_NAMES[pid] || pid)}">&times;</button>
     </div>
   `).join('');
 
@@ -7255,7 +8457,7 @@ function updateHiddenList() {
     <div class="platform-item">
       <span class="platform-item-icon">${PLATFORM_ICONS[pid] || '🌐'}</span>
       <span class="platform-item-name">${escHtml(PLATFORM_NAMES[pid] || pid)}</span>
-      <button class="platform-item-remove" data-pid="${pid}">&times;</button>
+      <button class="platform-item-remove" data-pid="${pid}" aria-label="Remove ${escHtml(PLATFORM_NAMES[pid] || pid)}">&times;</button>
     </div>
   `).join('');
 
@@ -7306,7 +8508,36 @@ function importPreferences(e) {
       updateHiddenList();
 
       if (currentData) {
+        // Check if smart ordering is active - defer operation if so
+        if (isSmartOrdering()) {
+          // Create a wrapper function that doesn't depend on the event
+          const applyImportedPrefs = () => {
+            isFilterOperation = true;
+            renderPreviews(currentData);
+            setTimeout(() => { isFilterOperation = false; }, 0);
+            isSmartOrderingActive = false;
+            if (DEBUG_SMART_ORDERING) {
+              console.log('[importPreferences] Smart ordering active flag CLEARED (user manual override)');
+            }
+          };
+          queueFilterOperation(applyImportedPrefs, 'importPreferences');
+          if (DEBUG_SMART_ORDERING) {
+            console.log('[importPreferences] Smart ordering active - operation queued');
+          }
+          return;
+        }
+
+        // Set guard flag to prevent smart order resets during filter operation
+        isFilterOperation = true;
         renderPreviews(currentData);
+        // Clear flag after render (renderPreviews will handle timing)
+        setTimeout(() => { isFilterOperation = false; }, 0);
+
+        // Clear smart ordering active flag since user manually imported preferences
+        isSmartOrderingActive = false;
+        if (DEBUG_SMART_ORDERING) {
+          console.log('[importPreferences] Smart ordering active flag CLEARED (user manual override)');
+        }
       }
 
       showToast('Preferences imported', 2000);
@@ -7342,7 +8573,25 @@ function toggleWhatIfMode() {
       panel.remove();
     }
     if (currentData) {
+      // Check if smart ordering is active - defer operation if so
+      if (isSmartOrdering()) {
+        const applyWhatIfReset = () => {
+          isFilterOperation = true;
+          renderPreviews(currentData);
+          setTimeout(() => { isFilterOperation = false; }, 0);
+        };
+        queueFilterOperation(applyWhatIfReset, 'toggleWhatIfMode');
+        if (DEBUG_SMART_ORDERING) {
+          console.log('[toggleWhatIfMode] Smart ordering active - operation queued');
+        }
+        return;
+      }
+
+      // Set guard flag to prevent smart order resets during filter operation
+      isFilterOperation = true;
       renderPreviews(currentData);
+      // Clear flag after render (renderPreviews will handle timing)
+      setTimeout(() => { isFilterOperation = false; }, 0);
     }
   }
 }
@@ -7356,7 +8605,7 @@ function showWhatIfPanel() {
     <div class="what-if-header">
       <h4>What If Mode</h4>
       <p class="what-if-subtitle">Toggle tags off to see fallback behavior</p>
-      <button class="what-if-close" id="whatIfClose">&times;</button>
+      <button class="what-if-close" id="whatIfClose" aria-label="Close What If mode">&times;</button>
     </div>
     <div class="what-if-body">
       <div class="what-if-section">
@@ -7444,9 +8693,11 @@ function applyWhatIfChanges() {
     }
   });
 
-  // Re-render with modified data
+  // Re-render with modified data (use guard flag to preserve smart ordering)
   const modifiedData = { ...currentData, meta: modifiedMeta };
+  isFilterOperation = true;
   renderPreviews(modifiedData);
+  setTimeout(() => { isFilterOperation = false; }, 0);
 
   // Announce score change for screen readers
   const tagCount = disabledTags.size;
@@ -7613,6 +8864,50 @@ function initDiagnosticTracking() {
     actionsDiv.appendChild(fixBtn);
     item.appendChild(actionsDiv);
   });
+
+  // Fresh render → nothing fixed yet: hide the progress banner and sync the tab
+  // badge to the active diagnostic count. (bf-6aqf)
+  updateDiagnosticProgress();
+}
+
+/**
+ * Runs `mutate` (which changes flex `order` via the .fixed class) inside a
+ * FLIP animation so diagnostic items visibly slide to their new positions.
+ * The actual motion is driven by the CSS `transform` transition on .diag-item;
+ * this only measures positions and applies the inverse transform to animate.
+ */
+function flipReorderDiagnostics(mutate) {
+  const items = Array.from(document.querySelectorAll('.diag-item'));
+
+  // FLIP unsupported / reduced-motion: apply mutation without animating.
+  if (!items.length ||
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+    mutate();
+    return;
+  }
+
+  // First: record current positions.
+  const before = items.map(el => el.getBoundingClientRect());
+
+  // Mutate: flex order changes, items jump to new positions.
+  mutate();
+
+  // Invert: translate each item back to where it started, then release.
+  items.forEach((el, i) => {
+    const after = el.getBoundingClientRect();
+    const dx = before[i].left - after.left;
+    const dy = before[i].top - after.top;
+    if (dx === 0 && dy === 0) return;
+
+    el.style.transition = 'none';
+    el.style.transform = `translate(${dx}px, ${dy}px)`;
+
+    // Play: next frame, clear the inverse and let the CSS transition run.
+    requestAnimationFrame(() => {
+      el.style.transition = '';
+      el.style.transform = '';
+    });
+  });
 }
 
 function applyDiagnosticFix(index) {
@@ -7650,8 +8945,12 @@ function applyDiagnosticFix(index) {
     // Update UI
     const diagItem = document.querySelectorAll('.diag-item')[index];
     if (diagItem) {
-      diagItem.classList.add('fixed');
-      diagItem.dataset.fixed = 'true';
+      // Apply the fixed state inside a FLIP so flex reorder (order: 100)
+      // slides smoothly to the bottom via the CSS transform transition.
+      flipReorderDiagnostics(() => {
+        diagItem.classList.add('fixed');
+        diagItem.dataset.fixed = 'true';
+      });
       const fixBtn = diagItem.querySelector('.diag-fix-btn');
       if (fixBtn) fixBtn.remove();
     }
@@ -7661,6 +8960,11 @@ function applyDiagnosticFix(index) {
 
     // Update score
     recalculateScore();
+
+    // Refresh the tab badge (active count) and the "Fixed N/M — score improved
+    // X → Y" progress banner. Runs last so it wins over renderSummaryBar's
+    // full-count badge reset inside recalculateScore(). (bf-6aqf)
+    updateDiagnosticProgress();
 
     showToast('Fix applied to editor', 2000);
   }
@@ -7703,17 +9007,72 @@ function normalizeTagKey(tag) {
 function recalculateScore() {
   if (!currentData) return;
 
-  // Simple score recalculation - in a real app, this would call the backend
+  // Full 31-platform re-score: run scoring-simulator (scoreAll) over the edited
+  // content, store the fresh scores in state, and refresh the UI from that
+  // stored state, rather than merely counting fixed diagnostics.
+  const applied = applyRescore();
+  if (applied) {
+    renderPreviews(applied.data);
+    renderSummaryBar(applied.data);
+  }
+
   const totalDiagnostics = currentData.diagnostics?.length || 0;
   const fixedCount = fixedDiagnostics.size;
   const remaining = totalDiagnostics - fixedCount;
+  const newGrade = applied?.scoring?.overall?.grade;
+  const newScore = applied?.scoring?.overall?.score;
+  const gradeSuffix = newGrade ? ` Overall grade: ${newGrade} (${newScore}/100).` : '';
 
   if (remaining > 0) {
-    showToast(`${fixedCount} issue${fixedCount !== 1 ? 's' : ''} fixed. ${remaining} remaining.`, 2000);
+    showToast(`${fixedCount} issue${fixedCount !== 1 ? 's' : ''} fixed. ${remaining} remaining.${gradeSuffix}`, 2000);
   } else {
-    showToast('All diagnostics fixed! 🎉', 2000);
+    showToast(`All diagnostics fixed! 🎉${gradeSuffix}`, 2000);
     triggerConfetti();
   }
+}
+
+/**
+ * Recompute the Diagnostics tab badge and the "Fixed N/M issues — score improved
+ * X → Y" progress banner from the CURRENT rendered state. (bf-6aqf)
+ *
+ * Counts are read from the live .diag-item DOM (not stored indices) so they stay
+ * correct regardless of severity sort order, and the tab badge reflects only
+ * active (unfixed) error/warning diagnostics. The banner is hidden until at least
+ * one fix has been applied, and X → Y compares the original fetched score against
+ * the current (re-scored) score. Call after each fix application and whenever the
+ * diagnostics list is (re-)rendered.
+ */
+function updateDiagnosticProgress() {
+  const items = Array.from(document.querySelectorAll('#diagPanel .diag-item'));
+  const total = items.length || (currentData?.diagnostics?.length || 0);
+  const fixed = items.filter(el => el.dataset.fixed === 'true').length;
+
+  // Tab badge: active (unfixed) error/warning diagnostics only.
+  if (diagBadge) {
+    const activeErrWarn = items.filter(el =>
+      el.dataset.fixed !== 'true' &&
+      (el.classList.contains('error') || el.classList.contains('warning'))
+    ).length;
+    diagBadge.textContent = activeErrWarn > 0 ? String(activeErrWarn) : '';
+  }
+
+  // Progress banner: only shown once at least one fix has landed.
+  if (!diagProgress) return;
+  if (fixed <= 0 || total <= 0) {
+    diagProgress.classList.add('hidden');
+    diagProgress.innerHTML = '';
+    return;
+  }
+
+  const origScore = currentData?.scoring?.overall?.score ?? 0;
+  const curScore = getCurrentScoring()?.overall?.score ?? origScore;
+
+  diagProgress.classList.remove('hidden');
+  diagProgress.innerHTML =
+    `<span class="diag-progress-count">Fixed ${fixed}/${total} issue${total !== 1 ? 's' : ''}</span>` +
+    ` &mdash; <span class="diag-progress-score">score improved ` +
+    `<span class="diag-progress-from">${origScore}</span>` +
+    ` &rarr; <span class="diag-progress-to">${curScore}</span></span>`;
 }
 
 // ── Smart Platform Ordering ──
@@ -7754,6 +9113,67 @@ function getPlatformOrderForPageType(pageType) {
   };
 
   return orders[pageType] || orders.website;
+}
+
+/**
+ * Reorder existing DOM platform cards to match cardOrder without rebuilding
+ * This is called after applySmartOrdering() updates the cardOrder arrays
+ */
+function reorderPlatformCards() {
+  // Safeguard: Should only be called during smart ordering operation
+  if (!isApplyingSmartOrder && DEBUG_SMART_ORDERING) {
+    console.warn('[reorderPlatformCards] WARNING: Called outside smart ordering operation - this may indicate a race condition');
+  }
+
+  PLATFORM_GROUPS.forEach((group) => {
+    // Skip if no custom order for this group
+    if (!platformPrefs.cardOrder[group.id]) {
+      return;
+    }
+
+    // Find the cards-row for this group
+    const groupEl = document.getElementById('group-' + group.id);
+    if (!groupEl) {
+      return;
+    }
+
+    const row = groupEl.querySelector('.cards-row');
+    if (!row) {
+      return;
+    }
+
+    // Get the target order from cardOrder
+    const targetOrder = platformPrefs.cardOrder[group.id];
+
+    // Create a map of current cards by their data-pid
+    const cardsByPid = new Map();
+    row.querySelectorAll('.platform-card').forEach(card => {
+      const pid = card.dataset.pid;
+      if (pid && targetOrder.includes(pid)) {
+        cardsByPid.set(pid, card);
+      }
+    });
+
+    // Reorder cards by appending them in the target order
+    // appendChild on an existing element moves it, not clones it
+    targetOrder.forEach(pid => {
+      const card = cardsByPid.get(pid);
+      if (card) {
+        row.appendChild(card);
+      }
+    });
+
+    // Update animation delays to maintain smooth staggered appearance
+    const cards = row.querySelectorAll('.platform-card');
+    const reducedMotion = prefersReducedMotion();
+    cards.forEach((card, index) => {
+      if (!reducedMotion) {
+        card.style.setProperty('--stagger-delay', (index * 50) + 'ms');
+      } else {
+        card.style.setProperty('--stagger-delay', '0ms');
+      }
+    });
+  });
 }
 
 function applySmartOrdering() {
@@ -7797,6 +9217,42 @@ function applySmartOrdering() {
     console.log(`[applySmartOrdering] Page type detected: "${pageType}"`);
   }
 
+  // P1 - Stale CardOrder Race fix: Track page type changes to invalidate stale cardOrder
+  const previousPageType = currentPageType;
+  currentPageType = pageType;
+
+  if (previousPageType && previousPageType !== pageType) {
+    // P2 - Filter operation guard: Skip cardOrder clearing during filter changes or when smart ordering is active
+    // This prevents smart order resets when users hide/show platforms or when smart ordering is currently active
+    if (isFilterOperation || isSmartOrdering()) {
+      if (DEBUG_SMART_ORDERING) {
+        const reason = isFilterOperation ? 'filter operation in progress' : 'smart ordering is active';
+        console.log(`[applySmartOrdering] Page type changed but ${reason} - preserving cardOrder to prevent reset`);
+      }
+    } else {
+      if (DEBUG_SMART_ORDERING) {
+        console.log(`[applySmartOrdering] Page type changed from "${previousPageType}" to "${pageType}" - clearing stale cardOrder`);
+      }
+      // Clear cardOrder for groups that weren't manually modified by user
+      PLATFORM_GROUPS.forEach((group) => {
+        const metadata = platformPrefs.cardOrderMetadata?.[group.id];
+        if (!metadata || !metadata.userModified || metadata.modifiedBy !== 'user-drag') {
+          delete platformPrefs.cardOrder[group.id];
+          if (platformPrefs.cardOrderMetadata && platformPrefs.cardOrderMetadata[group.id]) {
+            delete platformPrefs.cardOrderMetadata[group.id];
+          }
+          if (DEBUG_SMART_ORDERING) {
+            console.log(`[applySmartOrdering] Cleared cardOrder for ${group.id} (not user-modified)`);
+          }
+        } else {
+          if (DEBUG_SMART_ORDERING) {
+            console.log(`[applySmartOrdering] Preserved cardOrder for ${group.id} (user-modified)`);
+          }
+        }
+      });
+    }
+  }
+
   const preferredOrder = getPlatformOrderForPageType(pageType);
   if (DEBUG_SMART_ORDERING) {
     console.log(`[applySmartOrdering] Preferred platform order for "${pageType}":`, preferredOrder);
@@ -7829,12 +9285,32 @@ function applySmartOrdering() {
 
   // Update platform groups to show relevance
   if (DEBUG_SMART_ORDERING) {
-    console.log('[applySmartOrdering] ===== REORDERING PLATFORMS =====');
+    console.log('[applySmartOrdering]] ===== REORDERING PLATFORMS =====');
+  }
+
+  // Initialize cardOrder and cardOrderMetadata if needed
+  if (!platformPrefs.cardOrder) {
+    platformPrefs.cardOrder = {};
+  }
+  if (!platformPrefs.cardOrderMetadata) {
+    platformPrefs.cardOrderMetadata = {};
   }
 
   PLATFORM_GROUPS.forEach((group, groupIndex) => {
     const originalOrder = [...group.platforms];
-    group.platforms.sort((a, b) => {
+
+    // P0 - Drag Override Race fix: Skip groups that were manually reordered by user
+    const metadata = platformPrefs.cardOrderMetadata[group.id];
+    if (metadata && metadata.userModified && metadata.modifiedBy === 'user-drag') {
+      if (DEBUG_SMART_ORDERING) {
+        console.log(`[applySmartOrdering] Group ${groupIndex} "${group.title}" - skipping (user-modified via drag)`);
+      }
+      return; // Skip smart ordering for this group
+    }
+
+    // Create a local copy for smart ordering - DO NOT mutate global PLATFORM_GROUPS
+    // This prevents race conditions where concurrent code reads the mutated order
+    const smartOrder = [...group.platforms].sort((a, b) => {
       const aIndex = preferredOrder.indexOf(a);
       const bIndex = preferredOrder.indexOf(b);
       if (aIndex === -1 && bIndex === -1) return 0;
@@ -7844,17 +9320,22 @@ function applySmartOrdering() {
     });
 
     // Update platformPrefs.cardOrder to persist the smart ordering
-    // This ensures renderPreviews() uses the new smart order instead of custom order
-    if (!platformPrefs.cardOrder) {
-      platformPrefs.cardOrder = {};
-    }
-    platformPrefs.cardOrder[group.id] = [...group.platforms];
+    // renderPreviews() will use this order instead of the default PLATFORM_GROUPS order
+    platformPrefs.cardOrder[group.id] = [...smartOrder];
+
+    // Mark this as smart-ordered (not user-modified)
+    platformPrefs.cardOrderMetadata[group.id] = {
+      userModified: false,
+      lastModified: Date.now(),
+      modifiedBy: 'smart-ordering',
+      pageType: pageType
+    };
 
     if (DEBUG_SMART_ORDERING) {
-      if (JSON.stringify(originalOrder) !== JSON.stringify(group.platforms)) {
+      if (JSON.stringify(originalOrder) !== JSON.stringify(smartOrder)) {
         console.log(`[applySmartOrdering] Group ${groupIndex} "${group.title}" REORDERED:`, {
           from: originalOrder,
-          to: group.platforms
+          to: smartOrder
         });
       } else {
         console.log(`[applySmartOrdering] Group ${groupIndex} "${group.title}": no change needed`);
@@ -7862,38 +9343,31 @@ function applySmartOrdering() {
     }
   });
 
-  // Log output array AFTER reordering
+  // Log output state AFTER computing smart order
   if (DEBUG_SMART_ORDERING) {
-    console.log('[applySmartOrdering] ===== OUTPUT STATE (after reordering) =====');
+    console.log('[applySmartOrdering] ===== OUTPUT STATE (after smart ordering) =====');
     PLATFORM_GROUPS.forEach((group, groupIndex) => {
       console.log(`[applySmartOrdering] Group ${groupIndex} "${group.title}" [${group.id}]:`);
-      console.log('[applySmartOrdering]   Platform order AFTER:', group.platforms);
+      console.log('[applySmartOrdering]   Default order (unchanged):', group.platforms);
 
-      // Show how order changed
+      // Show the computed smart order
       const storedOrder = platformPrefs.cardOrder?.[group.id];
       if (storedOrder) {
-        console.log('[applySmartOrdering]   Stored in cardOrder:', storedOrder);
+        console.log('[applySmartOrdering]   Smart order (in cardOrder):', storedOrder);
       }
     });
   }
 
   // Save the updated preferences to persist across page refreshes
+  // Use savePlatformPrefs() instead of direct localStorage.setItem to ensure
+  // atomic read-modify-write with version checking and concurrency protection
   try {
-    localStorage.setItem('vista-platform-prefs', JSON.stringify(platformPrefs));
+    savePlatformPrefs();
     if (DEBUG_SMART_ORDERING) {
-      console.log('[applySmartOrdering] Platform preferences saved to localStorage');
+      console.log('[applySmartOrdering] Platform preferences saved via savePlatformPrefs()');
     }
   } catch (e) {
     console.error('[applySmartOrdering] Failed to save preferences:', e);
-  }
-
-  // Re-render previews
-  if (DEBUG_SMART_ORDERING) {
-    console.log('[applySmartOrdering] Re-rendering previews with new platform order...');
-  }
-  renderPreviews(currentData);
-  if (DEBUG_SMART_ORDERING) {
-    console.log('[applySmartOrdering] Preview re-render complete');
   }
 
   showToast(`Page type detected: ${pageType}. Platforms reordered.`, 2000);
@@ -7917,16 +9391,94 @@ renderDiagnostics = function(diagnostics) {
 
 // ── Hook into handleResult for smart ordering ──
 const originalHandleResult2 = handleResult;
-handleResult = function(data) {
-  originalHandleResult2(data);
+handleResult = async function(data) {
+  // Store reference for use in hook
+  const originalData = data;
+
+  // P0 - Timing fix: Set currentData BEFORE applySmartOrderingSafe() call
+  // applySmartOrdering() requires currentData to be set (line 8577 early exit check)
+  // but originalHandleResult2 sets it at line 1025, which is too late
+  currentData = data;
+
   console.log('[handleResult hook] smartOrdering enabled:', platformPrefs.smartOrdering);
   if (platformPrefs.smartOrdering) {
-    console.log('[handleResult hook] about to call applySmartOrdering after 200ms delay');
-    setTimeout(applySmartOrdering, 200);
+    console.log('[handleResult hook] applying smart ordering BEFORE render (fixes race condition)');
+    // P0 - Race condition fix: Use applySmartOrderingSafe() instead of applySmartOrdering()
+    // This ensures guard flags (isApplyingSmartOrder) are properly set to prevent
+    // concurrent execution with renderPreviews, which was causing order resets
+    applySmartOrderingSafe();
   } else {
     console.log('[handleResult hook] smartOrdering disabled - skipping applySmartOrdering call');
   }
+
+  // Now render with cards already in correct order (no post-render reordering needed)
+  // Note: renderPreviews will check isApplyingSmartOrder and queue if needed
+  await originalHandleResult2(data);
 };
+
+/**
+ * Thread-safe version of applySmartOrdering that prevents concurrent execution.
+ * Uses guard flags to ensure only one smart ordering operation runs at a time.
+ */
+function applySmartOrderingSafe() {
+  // If already applying, queue a pending application
+  if (isApplyingSmartOrder) {
+    console.log('[applySmartOrderingSafe] Already applying - queueing pending operation');
+    pendingApplySmartOrder = true;
+    return;
+  }
+
+  // Set guard flag BEFORE try block - this ensures no render can execute during DOM reordering
+  isApplyingSmartOrder = true;
+  pendingApplySmartOrder = false;
+
+  if (DEBUG_SMART_ORDERING) {
+    console.log('[applySmartOrderingSafe] Guard flag SET (true) - starting smart ordering');
+  }
+
+  try {
+    // Step 1: Update platformPrefs.cardOrder with smart ordering
+    applySmartOrdering();
+
+    // Set smart ordering active flag after successful application
+    isSmartOrderingActive = true;
+    if (DEBUG_SMART_ORDERING) {
+      console.log('[applySmartOrderingSafe] Smart ordering active flag SET');
+    }
+
+    // Step 2: Reorder DOM elements to match the new smart order
+    // This happens INSIDE try block so isApplyingSmartOrder stays true during DOM manipulation
+    if (DEBUG_SMART_ORDERING) {
+      console.log('[applySmartOrderingSafe] Reordering DOM elements (flag still true)');
+    }
+    reorderPlatformCards();
+
+    // Step 3: If another operation was queued, process it
+    if (pendingApplySmartOrder) {
+      console.log('[applySmartOrderingSafe] Processing queued operation');
+      setTimeout(applySmartOrderingSafe, 0);
+    }
+  } finally {
+    // Always clear guard flag AFTER all operations complete, even if applySmartOrdering throws
+    isApplyingSmartOrder = false;
+
+    if (DEBUG_SMART_ORDERING) {
+      console.log('[applySmartOrderingSafe] Guard flag CLEARED (false) - all operations complete');
+    }
+
+    // Step 4: Process any queued render AFTER the flag is cleared
+    // This is critical: renderPreviews checks isApplyingSmartOrder and will re-queue if flag is still true
+    // By processing after finally, we ensure the flag is false and render proceeds normally
+    if (pendingRenderData) {
+      if (DEBUG_SMART_ORDERING) {
+        console.log('[applySmartOrderingSafe] Processing queued render with updated cardOrder (flag now false)');
+      }
+      const dataToRender = pendingRenderData;
+      pendingRenderData = null; // Clear before rendering to prevent re-queue
+      renderPreviews(dataToRender);
+    }
+  }
+}
 
 // ── Command Palette ──
 const COMMANDS = [
@@ -7952,9 +9504,13 @@ function initCommandPalette() {
   overlay.className = 'command-palette-overlay hidden';
   overlay.id = 'commandPalette';
   overlay.innerHTML = `
-    <div class="command-palette">
-      <input type="text" class="command-palette-input" id="commandInput" placeholder="Type a command or search..." autocomplete="off" />
-      <div class="command-palette-results" id="commandResults"></div>
+    <div class="command-palette" role="dialog" aria-modal="true" aria-label="Command palette">
+      <input type="text" class="command-palette-input" id="commandInput"
+        role="combobox" aria-expanded="true" aria-autocomplete="list"
+        aria-controls="commandResults" aria-activedescendant=""
+        aria-label="Search commands"
+        placeholder="Type a command or search..." autocomplete="off" />
+      <div class="command-palette-results" id="commandResults" role="listbox" aria-label="Commands"></div>
     </div>
   `;
   document.body.appendChild(overlay);
@@ -8020,9 +9576,12 @@ function renderCommands(commands) {
     html += `<div class="command-palette-category">${escHtml(category)}</div>`;
     cmds.forEach(cmd => {
       const isRecent = recentCommands.includes(cmd.id);
+      const selected = index === commandPaletteSelectedIndex;
       html += `
-        <div class="command-palette-item ${index === commandPaletteSelectedIndex ? 'selected' : ''} ${isRecent ? 'recent' : ''}" data-cmd="${cmd.id}">
-          <span class="command-palette-item-icon">${cmd.icon}</span>
+        <div class="command-palette-item ${selected ? 'selected' : ''} ${isRecent ? 'recent' : ''}"
+          role="option" id="cmd-opt-${index}" aria-selected="${selected ? 'true' : 'false'}"
+          data-cmd="${cmd.id}">
+          <span class="command-palette-item-icon" aria-hidden="true">${cmd.icon}</span>
           <span class="command-palette-item-label">${escHtml(cmd.label)}</span>
           ${cmd.shortcut ? `<span class="command-palette-item-shortcut">${cmd.shortcut}</span>` : ''}
         </div>
@@ -8037,6 +9596,17 @@ function renderCommands(commands) {
   results.querySelectorAll('.command-palette-item').forEach(item => {
     item.addEventListener('click', () => executeCommand(item.dataset.cmd));
   });
+
+  // Point the combobox's aria-activedescendant at the highlighted option so
+  // screen readers announce it as the user arrows through the list.
+  updateCommandActiveDescendant();
+}
+
+function updateCommandActiveDescendant() {
+  const input = document.getElementById('commandInput');
+  if (!input) return;
+  const opt = document.getElementById(`cmd-opt-${commandPaletteSelectedIndex}`);
+  input.setAttribute('aria-activedescendant', opt ? opt.id : '');
 }
 
 function filterCommands(e) {
@@ -8075,8 +9645,11 @@ function handleCommandKeydown(e) {
   }
 
   items.forEach((item, i) => {
-    item.classList.toggle('selected', i === commandPaletteSelectedIndex);
+    const isSel = i === commandPaletteSelectedIndex;
+    item.classList.toggle('selected', isSel);
+    item.setAttribute('aria-selected', isSel ? 'true' : 'false');
   });
+  updateCommandActiveDescendant();
 }
 
 function executeCommand(id) {
@@ -8207,6 +9780,33 @@ function initGlobalKeyboardShortcuts() {
         const direction = e.key === 'ArrowRight' ? 1 : -1;
         focusCard(focusedCardIndex + direction);
       }
+      return;
+    }
+
+    // Arrow keys ↑ ↓ navigate between grid rows when a card is focused.
+    // Columns are derived from the visible cards' offsetTop so the jump is
+    // correct regardless of the active column-count setting (2/3/4). Movement
+    // is clamped at the top/bottom row (no wrap-around) for natural feel.
+    if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && !cmdOrCtrl && !e.shiftKey && !e.altKey) {
+      const allCards = getFocusableCards();
+      if (allCards.length === 0 || !document.activeElement.classList.contains('platform-card')) return;
+      e.preventDefault();
+      const visible = allCards.filter(c => c.offsetParent !== null);
+      if (visible.length === 0) return;
+      // Columns = number of visible cards sharing the first row's offsetTop.
+      const firstTop = visible[0].offsetTop;
+      let cols = 0;
+      for (const c of visible) {
+        if (c.offsetTop === firstTop) cols++;
+        else break;
+      }
+      cols = Math.max(1, cols);
+      const curVisibleIdx = visible.indexOf(document.activeElement);
+      if (curVisibleIdx < 0) return;
+      const delta = e.key === 'ArrowDown' ? cols : -cols;
+      const next = curVisibleIdx + delta;
+      if (next < 0 || next >= visible.length) return; // at first/last row
+      focusCard(allCards.indexOf(visible[next]));
       return;
     }
 
@@ -8429,6 +10029,18 @@ function handleDrop(e) {
     e.stopPropagation();
   }
 
+  // RC-002 Race Condition Fix: Reject drag operations during smart ordering
+  if (isApplyingSmartOrder) {
+    if (DEBUG_SMART_ORDERING) {
+      console.warn('[handleDrop] Smart ordering in progress - rejecting drop to prevent race condition');
+    }
+    // Prevent the drop and return early
+    if (e.preventDefault) {
+      e.preventDefault();
+    }
+    return false;
+  }
+
   if (draggedCard !== this) {
     const toGroup = this.dataset.groupId;
     const fromGroup = draggedFromGroup;
@@ -8456,15 +10068,49 @@ function handleDrop(e) {
     const newToOrder = [...toOrder];
     newToOrder.splice(targetIndex, 0, draggedPid);
 
-    // Update platformPrefs
+    // P0 - Drag Override Race fix: Initialize cardOrderMetadata if needed
+    if (!platformPrefs.cardOrderMetadata) {
+      platformPrefs.cardOrderMetadata = {};
+    }
+
+    // Update platformPrefs with user modification timestamps
+    const now = Date.now();
     if (fromGroup === toGroup) {
       // Same group - just reorder
       platformPrefs.cardOrder[fromGroup] = newToOrder;
+      platformPrefs.cardOrderMetadata[fromGroup] = {
+        userModified: true,
+        lastModified: now,
+        modifiedBy: 'user-drag'
+      };
+      console.log(`[handleDrop] User reordered group ${fromGroup} via drag`, newToOrder);
+      // Clear smart ordering active flag since user manually reset the order
+      isSmartOrderingActive = false;
+      console.log(`[handleDrop] Smart ordering active flag CLEARED (user manual override)`);
     } else {
       // Different groups - move between groups
       platformPrefs.cardOrder[fromGroup] = newFromOrder;
+      platformPrefs.cardOrderMetadata[fromGroup] = {
+        userModified: true,
+        lastModified: now,
+        modifiedBy: 'user-drag'
+      };
       platformPrefs.cardOrder[toGroup] = newToOrder;
+      platformPrefs.cardOrderMetadata[toGroup] = {
+        userModified: true,
+        lastModified: now,
+        modifiedBy: 'user-drag'
+      };
+      console.log(`[handleDrop] User moved card from ${fromGroup} to ${toGroup}`, {
+        fromOrder: newFromOrder,
+        toOrder: newToOrder
+      });
     }
+
+    // Clear smart ordering active flag since user manually reset the order
+    isSmartOrderingActive = false;
+    console.log(`[handleDrop] Smart ordering active flag CLEARED (user manual override)`);
+
 
     savePlatformPrefs();
 
@@ -8486,26 +10132,28 @@ function initContextMenu() {
     contextMenu = document.createElement('div');
     contextMenu.id = 'cardContextMenu';
     contextMenu.className = 'card-context-menu hidden';
+    contextMenu.setAttribute('role', 'menu');
+    contextMenu.setAttribute('aria-label', 'Platform card actions');
     contextMenu.innerHTML = `
-      <div class="context-menu-item" data-action="copy-screenshot">
-        <span class="context-menu-icon">&#128190;</span>
+      <div class="context-menu-item" role="menuitem" tabindex="-1" data-action="copy-screenshot">
+        <span class="context-menu-icon" aria-hidden="true">&#128190;</span>
         <span>Copy screenshot</span>
       </div>
-      <div class="context-menu-item" data-action="open-editor">
-        <span class="context-menu-icon">&#9998;</span>
+      <div class="context-menu-item" role="menuitem" tabindex="-1" data-action="open-editor">
+        <span class="context-menu-icon" aria-hidden="true">&#9998;</span>
         <span>Open in editor</span>
       </div>
-      <div class="context-menu-item" data-action="view-raw">
-        <span class="context-menu-icon">&#128196;</span>
+      <div class="context-menu-item" role="menuitem" tabindex="-1" data-action="view-raw">
+        <span class="context-menu-icon" aria-hidden="true">&#128196;</span>
         <span>View raw tags</span>
       </div>
-      <div class="context-menu-divider"></div>
-      <div class="context-menu-item" data-action="toggle-hidden">
-        <span class="context-menu-icon">&#128065;</span>
+      <div class="context-menu-divider" role="separator"></div>
+      <div class="context-menu-item" role="menuitem" tabindex="-1" data-action="toggle-hidden">
+        <span class="context-menu-icon" aria-hidden="true">&#128065;</span>
         <span>Hide this platform</span>
       </div>
-      <div class="context-menu-item" data-action="toggle-favorite">
-        <span class="context-menu-icon">&#11088;</span>
+      <div class="context-menu-item" role="menuitem" tabindex="-1" data-action="toggle-favorite">
+        <span class="context-menu-icon" aria-hidden="true">&#11088;</span>
         <span>Star / unstar</span>
       </div>
     `;

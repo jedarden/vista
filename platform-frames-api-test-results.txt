@@ -1,0 +1,243 @@
+# Platform Context Frames API Verification Results
+# Date: Thu Jul 23 02:46:44 PM EDT 2026
+# Testing all 44 platforms
+
+## Google Search (google)
+✓ API endpoint: OK (HTTP 200)
+✓ Screenshot (dark mode): OK (HTTP 200)
+  └─ Downloaded: screenshots/api-verification/google-dark.svg
+✓ Screenshot (light mode): OK (HTTP 200)
+  └─ Downloaded: screenshots/api-verification/google-light.svg
+
+## Facebook (facebook)
+✓ API endpoint: OK (HTTP 200)
+✓ Screenshot (dark mode): OK (HTTP 200)
+  └─ Downloaded: screenshots/api-verification/facebook-dark.svg
+✓ Screenshot (light mode): OK (HTTP 200)
+  └─ Downloaded: screenshots/api-verification/facebook-light.svg
+
+## X (Twitter) (twitter)
+✓ API endpoint: OK (HTTP 200)
+✓ Screenshot (dark mode): OK (HTTP 200)
+  └─ Downloaded: screenshots/api-verification/twitter-dark.svg
+✓ Screenshot (light mode): OK (HTTP 200)
+  └─ Downloaded: screenshots/api-verification/twitter-light.svg
+
+## LinkedIn (linkedin)
+✓ API endpoint: OK (HTTP 200)
+✓ Screenshot (dark mode): OK (HTTP 200)
+  └─ Downloaded: screenshots/api-verification/linkedin-dark.svg
+✓ Screenshot (light mode): OK (HTTP 200)
+  └─ Downloaded: screenshots/api-verification/linkedin-light.svg
+
+## Instagram (instagram)
+✓ API endpoint: OK (HTTP 200)
+✓ Screenshot (dark mode): OK (HTTP 200)
+  └─ Downloaded: screenshots/api-verification/instagram-dark.svg
+✓ Screenshot (light mode): OK (HTTP 200)
+  └─ Downloaded: screenshots/api-verification/instagram-light.svg
+
+## YouTube (youtube)
+✓ API endpoint: OK (HTTP 200)
+✓ Screenshot (dark mode): OK (HTTP 200)
+  └─ Downloaded: screenshots/api-verification/youtube-dark.svg
+✓ Screenshot (light mode): OK (HTTP 200)
+  └─ Downloaded: screenshots/api-verification/youtube-light.svg
+
+## Slack (slack)
+✓ API endpoint: OK (HTTP 200)
+✓ Screenshot (dark mode): OK (HTTP 200)
+  └─ Downloaded: screenshots/api-verification/slack-dark.svg
+✓ Screenshot (light mode): OK (HTTP 200)
+  └─ Downloaded: screenshots/api-verification/slack-light.svg
+
+## Discord (discord)
+✓ API endpoint: OK (HTTP 200)
+✓ Screenshot (dark mode): OK (HTTP 200)
+  └─ Downloaded: screenshots/api-verification/discord-dark.svg
+✗ Screenshot (light mode): FAILED (HTTP 429)
+
+## iMessage (imessage)
+✓ API endpoint: OK (HTTP 200)
+✗ Screenshot (dark mode): FAILED (HTTP 429)
+✗ Screenshot (light mode): FAILED (HTTP 429)
+
+## WhatsApp (whatsapp)
+✓ API endpoint: OK (HTTP 200)
+✗ Screenshot (dark mode): FAILED (HTTP 429)
+✗ Screenshot (light mode): FAILED (HTTP 429)
+
+## Telegram (telegram)
+✓ API endpoint: OK (HTTP 200)
+✗ Screenshot (dark mode): FAILED (HTTP 429)
+✗ Screenshot (light mode): FAILED (HTTP 429)
+
+## Signal (signal)
+✓ API endpoint: OK (HTTP 200)
+✗ Screenshot (dark mode): FAILED (HTTP 429)
+✗ Screenshot (light mode): FAILED (HTTP 429)
+
+## Microsoft Teams (microsoft-teams)
+✓ API endpoint: OK (HTTP 200)
+✗ Screenshot (dark mode): FAILED (HTTP 429)
+✗ Screenshot (light mode): FAILED (HTTP 429)
+
+## Google Chat (google-chat)
+✓ API endpoint: OK (HTTP 200)
+✗ Screenshot (dark mode): FAILED (HTTP 429)
+✗ Screenshot (light mode): FAILED (HTTP 429)
+
+## Zoom Chat (zoom-chat)
+✓ API endpoint: OK (HTTP 200)
+✗ Screenshot (dark mode): FAILED (HTTP 429)
+✗ Screenshot (light mode): FAILED (HTTP 429)
+
+## Line (line)
+✓ API endpoint: OK (HTTP 200)
+✗ Screenshot (dark mode): FAILED (HTTP 429)
+✗ Screenshot (light mode): FAILED (HTTP 429)
+
+## KakaoTalk (kakao)
+✓ API endpoint: OK (HTTP 200)
+✗ Screenshot (dark mode): FAILED (HTTP 429)
+✗ Screenshot (light mode): FAILED (HTTP 429)
+
+## TikTok (tiktok)
+✓ API endpoint: OK (HTTP 200)
+✗ Screenshot (dark mode): FAILED (HTTP 429)
+✗ Screenshot (light mode): FAILED (HTTP 429)
+
+## Pinterest (pinterest)
+✓ API endpoint: OK (HTTP 200)
+✗ Screenshot (dark mode): FAILED (HTTP 429)
+✗ Screenshot (light mode): FAILED (HTTP 429)
+
+## Bluesky (bluesky)
+✓ API endpoint: OK (HTTP 200)
+✗ Screenshot (dark mode): FAILED (HTTP 429)
+✗ Screenshot (light mode): FAILED (HTTP 429)
+
+## Mastodon (mastodon)
+✓ API endpoint: OK (HTTP 200)
+✗ Screenshot (dark mode): FAILED (HTTP 429)
+✗ Screenshot (light mode): FAILED (HTTP 429)
+
+## Threads (threads)
+✓ API endpoint: OK (HTTP 200)
+✗ Screenshot (dark mode): FAILED (HTTP 429)
+✗ Screenshot (light mode): FAILED (HTTP 429)
+
+## Tumblr (tumblr)
+✓ API endpoint: OK (HTTP 200)
+✗ Screenshot (dark mode): FAILED (HTTP 429)
+✗ Screenshot (light mode): FAILED (HTTP 429)
+
+## Reddit (reddit)
+✓ API endpoint: OK (HTTP 200)
+✗ Screenshot (dark mode): FAILED (HTTP 429)
+✗ Screenshot (light mode): FAILED (HTTP 429)
+
+## GitHub (github)
+✓ API endpoint: OK (HTTP 200)
+✗ Screenshot (dark mode): FAILED (HTTP 429)
+✗ Screenshot (light mode): FAILED (HTTP 429)
+
+## GitLab (gitlab)
+✓ API endpoint: OK (HTTP 200)
+✗ Screenshot (dark mode): FAILED (HTTP 429)
+✗ Screenshot (light mode): FAILED (HTTP 429)
+
+## Stack Overflow (stackoverflow)
+✓ API endpoint: OK (HTTP 200)
+✗ Screenshot (dark mode): FAILED (HTTP 429)
+✗ Screenshot (light mode): FAILED (HTTP 429)
+
+## Hacker News (hackernews)
+✓ API endpoint: OK (HTTP 200)
+✗ Screenshot (dark mode): FAILED (HTTP 429)
+✗ Screenshot (light mode): FAILED (HTTP 429)
+
+## Product Hunt (producthunt)
+✓ API endpoint: OK (HTTP 200)
+✗ Screenshot (dark mode): FAILED (HTTP 429)
+✗ Screenshot (light mode): FAILED (HTTP 429)
+
+## Dev.to (devto)
+✓ API endpoint: OK (HTTP 200)
+✗ Screenshot (dark mode): FAILED (HTTP 429)
+✗ Screenshot (light mode): FAILED (HTTP 429)
+
+## Medium (medium)
+✓ API endpoint: OK (HTTP 200)
+✗ Screenshot (dark mode): FAILED (HTTP 429)
+✗ Screenshot (light mode): FAILED (HTTP 429)
+
+## Gmail (gmail)
+✓ API endpoint: OK (HTTP 200)
+✗ Screenshot (dark mode): FAILED (HTTP 429)
+✗ Screenshot (light mode): FAILED (HTTP 429)
+
+## Outlook (outlook)
+✓ API endpoint: OK (HTTP 200)
+✗ Screenshot (dark mode): FAILED (HTTP 429)
+✗ Screenshot (light mode): FAILED (HTTP 429)
+
+## Feedly (feedly)
+✓ API endpoint: OK (HTTP 200)
+✗ Screenshot (dark mode): FAILED (HTTP 429)
+✗ Screenshot (light mode): FAILED (HTTP 429)
+
+## Notion (notion)
+✓ API endpoint: OK (HTTP 200)
+✗ Screenshot (dark mode): FAILED (HTTP 429)
+✗ Screenshot (light mode): FAILED (HTTP 429)
+
+## Evernote (evernote)
+✓ API endpoint: OK (HTTP 200)
+✗ Screenshot (dark mode): FAILED (HTTP 429)
+✗ Screenshot (light mode): FAILED (HTTP 429)
+
+## VS Code (vscode)
+✓ API endpoint: OK (HTTP 200)
+✗ Screenshot (dark mode): FAILED (HTTP 429)
+✗ Screenshot (light mode): FAILED (HTTP 429)
+
+## JetBrains IDE (jetbrains-ide)
+✓ API endpoint: OK (HTTP 200)
+✗ Screenshot (dark mode): FAILED (HTTP 429)
+✗ Screenshot (light mode): FAILED (HTTP 429)
+
+## Jira (jira)
+✓ API endpoint: OK (HTTP 200)
+✗ Screenshot (dark mode): FAILED (HTTP 429)
+✗ Screenshot (light mode): FAILED (HTTP 429)
+
+## Trello (trello)
+✓ API endpoint: OK (HTTP 200)
+✗ Screenshot (dark mode): FAILED (HTTP 429)
+✗ Screenshot (light mode): FAILED (HTTP 429)
+
+## Asana (asana)
+✓ API endpoint: OK (HTTP 200)
+✗ Screenshot (dark mode): FAILED (HTTP 429)
+✗ Screenshot (light mode): FAILED (HTTP 429)
+
+## Figma (figma)
+✓ API endpoint: OK (HTTP 200)
+✗ Screenshot (dark mode): FAILED (HTTP 429)
+✗ Screenshot (light mode): FAILED (HTTP 429)
+
+## Substack (substack)
+✓ API endpoint: OK (HTTP 200)
+✗ Screenshot (dark mode): FAILED (HTTP 429)
+✗ Screenshot (light mode): FAILED (HTTP 429)
+
+## Generic Platform (generic)
+✓ API endpoint: OK (HTTP 200)
+✗ Screenshot (dark mode): FAILED (HTTP 429)
+✗ Screenshot (light mode): FAILED (HTTP 429)
+
+=== API VERIFICATION SUMMARY ===
+Total platforms: 44
+Working: 7
+Failed: 0

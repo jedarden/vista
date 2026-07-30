@@ -1,0 +1,489 @@
+/*
+ * Frame Layout System
+ *
+ * Defines 3 different platform layout types:
+ * 1. CARD: Standard link preview card (Facebook, LinkedIn, etc.)
+ * 2. MESSAGE: Messaging/chat interface (Slack, Discord)
+ * 3. SEARCH: Search results listing (Google)
+ *
+ * Each layout type has:
+ * - Responsive container structure
+ * - Platform-specific styling
+ * - Dark/light mode support
+ * - Consistent spacing and typography
+ */
+
+/* ============================================================================
+   SHARED FRAME LAYOUT UTILITIES
+   ============================================================================ */
+
+/* Frame size variants for different contexts */
+.frame-compact {
+  font-size: 12px;
+  max-width: 400px;
+}
+
+.frame-standard {
+  font-size: 14px;
+  max-width: 500px;
+}
+
+.frame-expanded {
+  font-size: 15px;
+  max-width: 600px;
+}
+
+/* Frame alignment utilities */
+.frame-align-left {
+  margin-right: auto;
+}
+
+.frame-align-center {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.frame-align-right {
+  margin-left: auto;
+}
+
+/* ============================================================================
+   CARD LAYOUT (Standard link preview cards)
+   Platforms: Facebook, Twitter, LinkedIn, etc.
+   ============================================================================ */
+
+.card-frame {
+  /* Card frames use standard vertical stacking */
+  display: flex;
+  flex-direction: column;
+}
+
+.card-frame .frame-link-preview {
+  /* Ensure cards have consistent aspect ratio */
+  width: 100%;
+}
+
+.card-frame .frame-link-preview-image {
+  /* Maintain 16:9 aspect ratio for images */
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+/* Responsive card container */
+@media (max-width: 600px) {
+  .card-frame {
+    font-size: 13px;
+    max-width: 100%;
+  }
+}
+
+@media (min-width: 1200px) {
+  .card-frame.frame-standard {
+    max-width: 550px;
+  }
+}
+
+/* ============================================================================
+   MESSAGE LAYOUT (Messaging/chat interfaces)
+   Platforms: Slack, Discord
+   ============================================================================ */
+
+.message-frame {
+  /* Message frames use chat-like layout */
+  display: flex;
+  flex-direction: column;
+  background: var(--frame-bg);
+}
+
+.message-frame .frame-header {
+  /* Message headers may include channel info */
+  padding: 10px 14px;
+  font-size: 12px;
+  border-bottom: 1px solid var(--frame-divider);
+}
+
+.message-frame .frame-body {
+  /* Message content area */
+  padding: 12px;
+}
+
+/* Message content styling */
+.frame-message-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.frame-message-site {
+  font-size: 11px;
+  color: var(--frame-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.frame-message-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--frame-text-primary);
+  line-height: 1.3;
+}
+
+.frame-message-desc {
+  font-size: 13px;
+  color: var(--frame-text-secondary);
+  line-height: 1.4;
+  max-width: 100%;
+}
+
+.frame-message-image {
+  margin-top: 8px;
+  border-radius: var(--frame-radius-sm-global);
+  overflow: hidden;
+}
+
+.frame-message-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Responsive message container */
+@media (max-width: 600px) {
+  .message-frame {
+    font-size: 13px;
+    max-width: 100%;
+  }
+
+  .frame-message-title {
+    font-size: 14px;
+  }
+
+  .frame-message-desc {
+    font-size: 12px;
+  }
+}
+
+/* ============================================================================
+   SEARCH LAYOUT (Search results listings)
+   Platforms: Google
+   ============================================================================ */
+
+.search-frame {
+  /* Search frames use results listing layout */
+  display: flex;
+  flex-direction: column;
+}
+
+.search-frame .frame-header {
+  /* Search headers may include search bar visualization */
+  padding: 8px 12px;
+  font-size: 12px;
+  background: var(--frame-surface);
+  border-bottom: 1px solid var(--frame-divider);
+}
+
+/* Search result item styling */
+.frame-search-result {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--frame-divider);
+}
+
+.frame-search-result:last-child {
+  border-bottom: none;
+}
+
+.frame-search-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--frame-text-secondary);
+  margin-bottom: 6px;
+}
+
+.frame-favicon {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.frame-search-domain {
+  color: var(--frame-text-secondary);
+}
+
+.frame-search-title {
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--frame-link-color);
+  line-height: 1.3;
+  margin-bottom: 4px;
+  cursor: pointer;
+}
+
+.frame-search-title:hover {
+  text-decoration: underline;
+}
+
+.frame-search-desc {
+  font-size: 13px;
+  color: var(--frame-text-secondary);
+  line-height: 1.4;
+  max-width: 600px;
+}
+
+/* Responsive search container */
+@media (max-width: 600px) {
+  .search-frame {
+    font-size: 13px;
+    max-width: 100%;
+  }
+
+  .frame-search-title {
+    font-size: 16px;
+  }
+
+  .frame-search-desc {
+    font-size: 12px;
+    max-width: 100%;
+  }
+}
+
+/* ============================================================================
+   PLATFORM-SPECIFIC LAYOUT OVERRIDES
+   ============================================================================ */
+
+/* Google-specific layout */
+.google-context.search-frame {
+  background: var(--frame-bg);
+  border-radius: 0;
+  box-shadow: none;
+  border: none;
+}
+
+.google-context[data-frame-theme='dark'] {
+  background: var(--frame-bg);
+}
+
+.google-context .frame-search-title {
+  color: var(--google-accent);
+}
+
+.google-context[data-frame-theme='light'] .frame-search-title {
+  color: var(--google-link-color);
+}
+
+/* Facebook-specific layout */
+.facebook-context.card-frame {
+  background: var(--frame-bg);
+}
+
+.facebook-context[data-frame-theme='dark'] {
+  background: var(--frame-bg);
+}
+
+/* Twitter/X-specific layout */
+.twitter-context.card-frame {
+  background: var(--frame-bg);
+}
+
+.twitter-context[data-frame-theme='dark'] {
+  background: var(--frame-bg);
+}
+
+/* LinkedIn-specific layout */
+.linkedin-context.card-frame {
+  background: var(--frame-bg);
+}
+
+.linkedin-context[data-frame-theme='dark'] {
+  background: var(--frame-bg);
+}
+
+/* Slack-specific layout */
+.slack-context.message-frame {
+  background: var(--frame-bg);
+  border-left: 3px solid var(--slack-accent);
+}
+
+.slack-context[data-frame-theme='dark'] {
+  background: var(--frame-bg);
+}
+
+/* Discord-specific layout */
+.discord-context.message-frame {
+  background: var(--frame-bg);
+  border-left: 3px solid var(--discord-accent);
+}
+
+.discord-context[data-frame-theme='light'] {
+  background: var(--frame-bg);
+}
+
+/* ============================================================================
+   RESPONSIVE CONTAINER STRUCTURE
+   ============================================================================ */
+
+/* Mobile: Full width, smaller fonts */
+@media (max-width: 600px) {
+  .frame-base {
+    font-size: 13px;
+    max-width: 100%;
+    border-radius: var(--frame-radius-sm-global);
+  }
+
+  .frame-header,
+  .frame-footer {
+    padding: 8px 12px;
+  }
+
+  .frame-body {
+    padding: 10px;
+  }
+}
+
+/* Tablet: Standard sizing */
+@media (min-width: 601px) and (max-width: 1199px) {
+  .frame-base {
+    font-size: 14px;
+  }
+
+  .card-frame {
+    max-width: 480px;
+  }
+
+  .message-frame {
+    max-width: 500px;
+  }
+
+  .search-frame {
+    max-width: 550px;
+  }
+}
+
+/* Desktop: Larger sizing options */
+@media (min-width: 1200px) {
+  .frame-base {
+    font-size: 14px;
+  }
+
+  .card-frame.frame-standard {
+    max-width: 550px;
+  }
+
+  .message-frame.frame-standard {
+    max-width: 550px;
+  }
+
+  .search-frame.frame-standard {
+    max-width: 600px;
+  }
+}
+
+/* ============================================================================
+   CONTAINER WRAPPERS FOR GRID LAYOUTS
+   ============================================================================ */
+
+/* Frame grid container for multiple frames */
+.frame-grid {
+  display: grid;
+  gap: 20px;
+  width: 100%;
+}
+
+/* Responsive grid columns */
+@media (max-width: 767px) {
+  .frame-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .frame-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .frame-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Frame row container for vertical stacking */
+.frame-row {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+/* Frame column container for horizontal layouts */
+.frame-column {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+@media (max-width: 767px) {
+  .frame-column {
+    flex-direction: column;
+  }
+}
+
+/* ============================================================================
+   ACCESSIBILITY ENHANCEMENTS
+   ============================================================================ */
+
+/* Focus visible for keyboard navigation */
+.frame-base:focus-within,
+.frame-base:focus {
+  outline: 2px solid var(--frame-accent);
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .frame-base {
+    border-width: 2px;
+  }
+
+  .frame-link-preview {
+    border-width: 2px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .frame-base,
+  .frame-link-preview,
+  .frame-search-title {
+    transition: none;
+  }
+}
+
+/* ============================================================================
+   THEME TRANSITION SUPPORT
+   ============================================================================ */
+
+/* Smooth theme transitions for all frame components */
+.frame-base,
+.frame-header,
+.frame-body,
+.frame-footer,
+.frame-link-preview,
+.frame-message-content,
+.frame-search-result {
+  transition-property: background, border-color, color, box-shadow;
+  transition-duration: 0.2s;
+  transition-timing-function: ease;
+}
+
+/* Disable transitions during theme switch to prevent flicker */
+.frame-base.theme-switching,
+.frame-base.theme-switching * {
+  transition: none !important;
+}

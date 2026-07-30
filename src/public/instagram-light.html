@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Instagram - Light Mode Frame</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+      background: #fafafa;
+      color: #000000;
+      padding: 20px;
+    }
+
+    .instagram-context.light-theme {
+      display: flex;
+      flex-direction: column;
+      min-height: 500px;
+      background: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .ig-post-header {
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      background: #ffffff;
+      border-bottom: 1px solid #dbdbdb;
+    }
+
+    .ig-avatar {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+      border-radius: 50%;
+      margin-right: 10px;
+    }
+
+    .ig-post-meta {
+      flex: 1;
+    }
+
+    .ig-username {
+      font-size: 14px;
+      font-weight: 600;
+      color: #000000;
+    }
+
+    .ig-post-time {
+      font-size: 12px;
+      color: #737373;
+      margin-top: 2px;
+    }
+
+    .ig-menu {
+      font-size: 20px;
+      color: #000000;
+      cursor: pointer;
+    }
+
+    .ig-post-content {
+      flex: 1;
+      padding: 12px;
+      background: #ffffff;
+    }
+
+    .ig-link-preview {
+      width: 100%;
+      height: 280px;
+      background: #fafafa;
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+
+    .ig-context-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .ig-context-placeholder {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #e5e5e5 0%, #d5d5d5 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #a8a8a8;
+      font-size: 14px;
+    }
+
+    .ig-caption {
+      font-size: 14px;
+      line-height: 1.4;
+      color: #000000;
+      margin-bottom: 8px;
+    }
+
+    .ig-hashtags {
+      font-size: 14px;
+      color: #737373;
+    }
+
+    .ig-post-actions {
+      display: flex;
+      padding: 12px;
+      background: #ffffff;
+      border-top: 1px solid #dbdbdb;
+      gap: 20px;
+    }
+
+    .ig-action {
+      font-size: 24px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="context-frame instagram-context light-theme">
+    <div class="ig-post-header">
+      <div class="ig-avatar"></div>
+      <div class="ig-post-meta">
+        <div class="ig-username">travel_photographer</div>
+        <div class="ig-post-time">2 hours ago</div>
+      </div>
+      <div class="ig-menu">•••</div>
+    </div>
+    <div class="ig-post-content">
+      <div class="ig-link-preview">
+        <div class="ig-context-placeholder">📸 Link Preview</div>
+      </div>
+      <div class="ig-caption">Check out this amazing view! 📸</div>
+      <div class="ig-hashtags">#travel #photography #adventure</div>
+    </div>
+    <div class="ig-post-actions">
+      <div class="ig-action">♡</div>
+      <div class="ig-action">💬</div>
+      <div class="ig-action">🔗</div>
+    </div>
+  </div>
+</body>
+</html>

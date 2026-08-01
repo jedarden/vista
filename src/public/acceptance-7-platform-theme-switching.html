@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<!--
+  ============================================================================
+  7-Platform Theme-Switching Acceptance Harness
+  ============================================================================
+  Bead: bf-3fihc  →  closes parent bf-2k0os
+  ("Implement theme switching for all platform frames")
+
+  This is the SINGLE AUTHORITATIVE end-to-end verification page for the entire
+  7-platform theme-switching chain. It renders all seven platform context frames,
+  drives the dark/light toggle through the SAME production code path the app uses
+  (set <html data-theme> → FrameTheme.updateAllPlatformFrames), and asserts every
+  acceptance criterion of the parent bead:
+
+    1. Dark/light toggle affects all platform frames
+    2. Theme state propagates to all rendered frames
+    3. Each platform frame correctly renders in BOTH light and dark modes
+    4. Theme switching is synchronized across all platforms
+    5. No frames are left in the wrong (stale) theme state
+
+  It supersedes the ad-hoc one-off scratch verification files
+  (verify-theme-switching-7-platforms-bf-2k0os.js, verify-theme-per-platform-bf-thvl6.js,
+   verify-theme-propagation-bf-2kkb1.js, test-7-platforms-theme-sweep-bf-662l.js,
+   test-7-platforms-*.js, verify-7-platforms-*.html, …).
+
+  RUN: serve src/public/ over HTTP (npm start) and open this page, then click
+       "Run Acceptance Tests". Tests also auto-run on load.
+  ============================================================================
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>7-Platform Theme-Switching Acceptance Harness (bf-3fihc)</title>
+
+  <!-- Frame styling for visual fidelity. The assertions below do NOT depend on
+       these stylesheets — they inspect inline theme variables and attributes that
+       updateAllPlatformFrames sets directly on each frame element. -->
+  <link rel="stylesheet" href="platform-frames-base.css" onerror="null;" />
+  <link rel="stylesheet" href="frames-theme.css" onerror="null;" />
+
+  <style>
+    :root {
+      --harness-pass: #16a34a;
+      --harness-fail: #dc2626;
+      --harness-skip: #d97706;
+      --harness-rule: #2a2a2e;
+    }
+    html[data-theme='light'] {
+      --harness-rule: #e2e8f0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: #0f0f12;
+      color: #e4e4e7;
+      line-height: 1.5;
+    }
+    html[data-theme='light'] body { background: #f8fafc; color: #1f2937; }
+
+    header.harness-header {
+      padding: 24px 32px;
+      border-bottom: 1px solid var(--harness-rule);
+    }
+    header.harness-header h1 { margin: 0 0 6px; font-size: 22px; }
+    header.harness-header .meta { font-size: 13px; opacity: 0.75; }
+
+    .criteria {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 8px;
+      margin: 16px 0 0;
+    }
+    .criterion {
+      padding: 10px 12px;
+      border: 1px solid var(--harness-rule);
+      border-radius: 8px;
+      font-size: 13px;
+    }
+    .criterion .cnum {
+      display: inline-block;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: #334155; color: #fff;
+      text-align: center; font-size: 12px; line-height: 20px;
+      margin-right: 8px;
+    }
+    .criterion.pass { border-color: var(--harness-pass); }
+    .criterion.pass .cnum { background: var(--harness-pass); }
+    .criterion.fail { border-color: var(--harness-fail); }
+    .criterion.fail .cnum { background: var(--harness-fail); }
+
+    .controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      padding: 16px 32px;
+      border-bottom: 1px solid var(--harness-rule);
+      position: sticky;
+      top: 0;
+      background: inherit;
+      z-index: 5;
+    }
+    .btn {
+      padding: 10px 18px;
+      border-radius: 8px;
+      border: 1px solid var(--harness-rule);
+      background: #1f2937;
+      color: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    html[data-theme='light'] .btn { background: #fff; }
+    .btn:hover { filter: brightness(1.15); }
+    .btn-primary { background: #4f46e5; border-color: #4f46e5; color: #fff; }
+
+    .theme-indicator {
+      font-size: 13px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--harness-rule);
+    }
+
+    #summary {
+      padding: 20px 32px;
+      border-bottom: 1px solid var(--harness-rule);
+    }
+    .summary-banner {
+      display: inline-block;
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 16px;
+    }
+    .summary-banner.pending { background: #334155; color: #fff; }
+    .summary-banner.pass { background: var(--harness-pass); color: #fff; }
+    .summary-banner.fail { background: var(--harness-fail); color: #fff; }
+    .summary-counts { margin-top: 8px; font-size: 13px; opacity: 0.85; }
+
+    #results { padding: 0 32px 24px; }
+    .group {
+      margin-top: 20px;
+      border: 1px solid var(--harness-rule);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .group-head {
+      padding: 10px 14px;
+      font-weight: 700;
+      background: rgba(127,127,127,0.12);
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .group.fail > .group-head { border-left: 4px solid var(--harness-fail); }
+    .group.pass > .group-head { border-left: 4px solid var(--harness-pass); }
+    .badge {
+      font-size: 12px;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-weight: 700;
+    }
+    .badge.pass { background: var(--harness-pass); color: #fff; }
+    .badge.fail { background: var(--harness-fail); color: #fff; }
+    .badge.skip { background: var(--harness-skip); color: #fff; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { text-align: left; padding: 8px 14px; border-top: 1px solid var(--harness-rule); vertical-align: top; }
+    th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.7; }
+    td.status { width: 70px; font-weight: 700; }
+    td.status.pass { color: var(--harness-pass); }
+    td.status.fail { color: var(--harness-fail); }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+
+    #frames-section { padding: 24px 32px 48px; border-top: 1px solid var(--harness-rule); }
+    #frames-section h2 { margin-top: 0; }
+    #frames-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 18px;
+    }
+    .frame-slot { min-height: 120px; }
+    .frame-slot .context-frame { max-width: 100%; }
+    .env-warn {
+      margin: 16px 32px;
+      padding: 12px 16px;
+      border: 1px solid var(--harness-skip);
+      border-radius: 8px;
+      background: rgba(217,119,8,0.1);
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <header class="harness-header">
+    <h1>7-Platform Theme-Switching Acceptance Harness</h1>
+    <div class="meta">
+      Bead <code>bf-3fihc</code> · locks acceptance for parent <code>bf-2k0os</code>
+      (Implement theme switching for all platform frames) · 7 platforms under test
+    </div>
+    <div class="criteria" id="criteria-list"></div>
+  </header>
+
+  <div class="controls">
+    <button class="btn btn-primary" id="run-btn">Run Acceptance Tests</button>
+    <button class="btn" id="toggle-btn">Toggle Theme (dark ⇄ light)</button>
+    <span class="theme-indicator" id="theme-indicator">theme: dark</span>
+    <span style="font-size:12px;opacity:0.6;">Toggle drives the production path: <code>&lt;html data-theme&gt;</code> → <code>FrameTheme.updateAllPlatformFrames()</code></span>
+  </div>
+
+  <div id="env-warn" class="env-warn" style="display:none;"></div>
+
+  <section id="summary">
+    <div class="summary-banner pending" id="banner">PENDING — click “Run Acceptance Tests”</div>
+    <div class="summary-counts" id="counts"></div>
+  </section>
+
+  <section id="results"></section>
+
+  <section id="frames-section">
+    <h2>Rendered platform frames <span style="font-weight:400;opacity:0.6;font-size:13px;">(toggle the theme above to watch them flip live)</span></h2>
+    <div id="frames-grid"></div>
+  </section>
+
+  <!-- The real production modules the app uses to build & re-theme platform frames -->
+  <script src="platform-frames.js"></script>
+  <script src="frames-theme.js"></script>
+  <script src="platform-frames-config.js"></script>
+  <script>
+  'use strict';
+  (function () {
+    // ---------------------------------------------------------------------------
+    // Resolve the canonical 7 platforms from the centralized config (source of
+    // truth), falling back to the known seven if the config module isn't loaded.
+    // ---------------------------------------------------------------------------
+    const FALLBACK_PLATFORMS = ['facebook','twitter','linkedin','reddit','youtube','instagram','tiktok'];
+    const PLATFORMS = (window.getAllPlatformIds && window.getAllPlatformIds()) || FALLBACK_PLATFORMS;
+    const THEMEABLE = (window.getThemeablePlatformIds && window.getThemeablePlatformIds()) || PLATFORMS;
+
+    const envWarn = document.getElementById('env-warn');
+    const banner = document.getElementById('banner');
+    const countsEl = document.getElementById('counts');
+    const resultsEl = document.getElementById('results');
+    const framesGrid = document.getElementById('frames-grid');
+    const themeIndicator = document.getElementById('theme-indicator');
+
+    // ---------------------------------------------------------------------------
+    // Capability checks. Every assertion depends on the production modules being
+    // present; if they aren't, we report the environment failure instead of
+    // pretending the criteria passed.
+    // ---------------------------------------------------------------------------
+    function checkEnv() {
+      const problems = [];
+      if (typeof window.buildContextFrame !== 'function') problems.push('platform-frames.js did not expose buildContextFrame()');
+      if (!window.FrameTheme || typeof window.FrameTheme.updateAllPlatformFrames !== 'function') problems.push('frames-theme.js did not expose FrameTheme.updateAllPlatformFrames()');
+      if (typeof window.getThemeVars !== 'function' && !(window.PlatformFrames && typeof window.PlatformFrames.getThemeVars === 'function')) problems.push('getThemeVars() unavailable (cannot read per-platform theme source of truth)');
+      if (PLATFORMS.length !== 7) problems.push('Expected 7 platforms from config, got ' + PLATFORMS.length + ' (' + PLATFORMS.join(', ') + ')');
+      if (problems.length) {
+        envWarn.style.display = 'block';
+        envWarn.innerHTML = '<strong>Environment problem — harness cannot run faithfully:</strong><br>• ' + problems.join('<br>• ');
+      } else {
+        envWarn.style.display = 'none';
+      }
+      return problems.length === 0;
+    }
+
+    function getThemeVars(platformId, theme) {
+      const f = window.PlatformFrames && window.PlatformFrames.getThemeVars ? window.PlatformFrames.getThemeVars : window.getThemeVars;
+      return f(platformId, theme);
+    }
+
+    // ---------------------------------------------------------------------------
+    // Sample content. One rich neutral object + per-platform frameType (sourced
+    // from the config) so buildContextFrame emits the same frame-type chrome the
+    // production renderer (renderPlatformWithContext) does.
+    // ---------------------------------------------------------------------------
+    function sampleFor(platformId) {
+      const base = {
+        title: 'Vista ships unified platform frame renderer',
+        description: 'All seven platforms now share a single theme-aware context-frame pipeline.',
+        domain: 'vista.example.com',
+        site: 'Vista',
+        image: '',
+        dominantColor: '#4f46e5',
+        authorName: 'Vista Team',
+        authorHandle: '@vista',
+        postTime: '2h',
+        verified: '✓',
+        stats: { likes: '1.2K', comments: '340', shares: '88' },
+      };
+      base.frameType = (window.getPlatformFrameType && window.getPlatformFrameType(platformId)) || '';
+      return base;
+    }
+
+    // ---------------------------------------------------------------------------
+    // Production-faithful theme application. This mirrors app.js's applyTheme()
+    // exactly for the theme-related steps: set <html data-theme>, persist it, and
+    // call the in-place re-themer updateAllPlatformFrames(). It deliberately does
+    // NOT call renderPreviews() — the point of the acceptance test is that the
+    // EXISTING frames flip in place, which is what "synchronized / no stale
+    // frames" requires.
+    // ---------------------------------------------------------------------------
+    function applyThemeLikeApp(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      try { localStorage.setItem('vista-theme', theme); } catch (_) { /* private mode */ }
+      return window.FrameTheme.updateAllPlatformFrames(theme);
+    }
+
+    // ---------------------------------------------------------------------------
+    // Render all 7 frames fresh (used to seed the DOM before driving the toggle).
+    // ---------------------------------------------------------------------------
+    function renderFrames(theme) {
+      framesGrid.innerHTML = PLATFORMS.map(function (pid) {
+        return '<div class="frame-slot">' + window.buildContextFrame(pid, sampleFor(pid), theme) + '</div>';
+      }).join('');
+    }
+
+    function syncThemeIndicator(theme) {
+      themeIndicator.textContent = 'theme: ' + theme;
+    }
+
+    // ----- tiny assertion framework -------------------------------------------
+    let RESULTS = []; // { group, id, status: pass|fail, detail }
+    function record(group, id, status, detail) {
+      RESULTS.push({ group: group, id: id, status: status, detail: detail || '' });
+    }
+    function expect(group, id, cond, detail) {
+      record(group, id, cond ? 'pass' : 'fail', detail);
+      return cond;
+    }
+    function norm(v) { return String(v == null ? '' : v).trim().toLowerCase(); }
+    function contextFrames() { return Array.prototype.slice.call(document.querySelectorAll('.context-frame[data-platform]')); }
+    function frameFor(pid) {
+      // each platform renders exactly one frame; find it by data-platform
+      return document.querySelector('.context-frame[data-platform="' + pid + '"]');
+    }
+    // pick a stable per-theme CSS variable to compare against the source of truth
+    function anchorVar(pid) {
+      const vars = getThemeVars(pid, 'dark') || {};
+      return vars['--frame-bg'] != null ? '--frame-bg' : (Object.keys(vars)[0] || null);
+    }
+
+    // ===========================================================================
+    // THE FIVE PARENT ACCEPTANCE CRITERIA (bf-2k0os)
+    // ===========================================================================
+
+    function crit1_toggleAffectsAllFrames() {
+      const G = '1 · Toggle affects all platform frames';
+      renderFrames('dark');
+      applyThemeLikeApp('light'); // drive the real toggle path dark → light
+      PLATFORMS.forEach(function (pid) {
+        const f = frameFor(pid);
+        if (!f) { record(G, pid, 'fail', 'frame not rendered'); return; }
+        const hasClass = f.classList.contains('light-theme');
+        const dataTheme = f.getAttribute('data-theme') === 'light';
+        const frameTheme = f.getAttribute('data-frame-theme') === 'light';
+        const ok = hasClass && dataTheme && frameTheme;
+        expect(G, pid, ok,
+          'class ' + (hasClass ? '✓' : '✗ light-theme') +
+          ' · data-theme ' + (dataTheme ? '✓' : '✗=light') +
+          ' · data-frame-theme ' + (frameTheme ? '✓' : '✗=light'));
+      });
+    }
+
+    function crit2_statePropagatesToAllFrames() {
+      const G = '2 · Theme state propagates to all rendered frames';
+      // global → frames: <html data-theme> must agree with every frame
+      const globalTheme = document.documentElement.getAttribute('data-theme');
+      expect(G, 'global attribute', globalTheme === 'light',
+        '<html data-theme> = "' + globalTheme + '" (expected "light")');
+
+      const frames = contextFrames();
+      const mismatches = frames.filter(function (f) {
+        return f.getAttribute('data-theme') !== globalTheme;
+      });
+      expect(G, 'all frames match global', mismatches.length === 0,
+        mismatches.length + ' / ' + frames.length + ' frames have data-theme ≠ global');
+
+      // propagation of the platform CSS variables: the inline value on each frame
+      // must equal the source-of-truth value for the current theme.
+      PLATFORMS.forEach(function (pid) {
+        const f = frameFor(pid);
+        if (!f) { record(G, pid, 'fail', 'frame not rendered'); return; }
+        const anchor = anchorVar(pid);
+        if (!anchor) { record(G, pid, 'skip', 'no theme vars for platform'); return; }
+        const expected = norm(getThemeVars(pid, globalTheme)[anchor]);
+        const actual = norm(f.style.getPropertyValue(anchor));
+        expect(G, pid, actual === expected,
+          anchor + ': applied="' + actual + '" expected="' + expected + '"');
+      });
+    }
+
+    function crit3_perPlatformCorrectnessBothModes() {
+      const G = '3 · Each platform renders correctly in BOTH light and dark';
+      ['dark', 'light'].forEach(function (theme) {
+        applyThemeLikeApp(theme);
+        PLATFORMS.forEach(function (pid) {
+          const f = frameFor(pid);
+          if (!f) { record(G, pid, 'fail', 'frame not rendered (' + theme + ')'); return; }
+          const anchor = anchorVar(pid);
+          if (!anchor) { record(G, pid + '/' + theme, 'skip', 'no theme vars'); return; }
+          const expected = norm(getThemeVars(pid, theme)[anchor]);
+          const actual = norm(f.style.getPropertyValue(anchor));
+          const themeClassOk = f.classList.contains(theme + '-theme');
+          const ok = actual === expected && themeClassOk;
+          expect(G, pid + '/' + theme, ok,
+            (themeClassOk ? '' : '✗ class ')
+            + anchor + ' ' + (actual === expected ? '✓' : '✗ applied="' + actual + '" exp="' + expected + '"'));
+        });
+      });
+    }
+
+    function crit4_synchronizedAcrossPlatforms() {
+      const G = '4 · Theme switching is synchronized across all platforms';
+      renderFrames('dark');
+      const before = contextFrames().filter(function (f) { return f.classList.contains('dark-theme'); }).length;
+      expect(G, 'seeded in dark', before === PLATFORMS.length, before + ' / ' + PLATFORMS.length + ' frames start dark');
+
+      const updated = applyThemeLikeApp('light'); // one toggle call flips all
+      const nowLight = contextFrames().filter(function (f) { return f.classList.contains('light-theme'); }).length;
+      const stillDark = contextFrames().filter(function (f) { return f.classList.contains('dark-theme'); }).length;
+
+      expect(G, 'updateAllPlatformFrames returns count', updated === PLATFORMS.length,
+        'returned ' + updated + ' (expected ' + PLATFORMS.length + ')');
+      expect(G, 'all flipped together', nowLight === PLATFORMS.length && stillDark === 0,
+        nowLight + ' light · ' + stillDark + ' still dark (expected ' + PLATFORMS.length + ' / 0)');
+    }
+
+    function crit5_noStaleFrames() {
+      const G = '5 · No frames left in the wrong (stale) theme state';
+
+      function assertNoneStale(target) {
+        applyThemeLikeApp(target);
+        const opposite = target === 'dark' ? 'light' : 'dark';
+        const frames = contextFrames();
+        const staleClass = frames.filter(function (f) { return f.classList.contains(opposite + '-theme'); }).length;
+        const staleAttrTheme = frames.filter(function (f) { return f.getAttribute('data-theme') === opposite; }).length;
+        const staleFrameTheme = frames.filter(function (f) { return f.getAttribute('data-frame-theme') === opposite; }).length;
+        const staleVar = frames.filter(function (f) {
+          const anchor = anchorVar(f.getAttribute('data-platform'));
+          if (!anchor) return false;
+          return norm(f.style.getPropertyValue(anchor)) !== norm(getThemeVars(f.getAttribute('data-platform'), target)[anchor]);
+        }).length;
+        const ok = staleClass === 0 && staleAttrTheme === 0 && staleFrameTheme === 0 && staleVar === 0;
+        expect(G, 'no stale ' + opposite + ' after →' + target, ok,
+          'stale class:' + staleClass + ' data-theme:' + staleAttrTheme +
+          ' data-frame-theme:' + staleFrameTheme + ' css-var:' + staleVar);
+      }
+
+      renderFrames('dark');        // start dark
+      assertNoneStale('light');    // toggle to light → zero dark remnants
+      assertNoneStale('dark');     // toggle back to dark → zero light remnants
+
+      // no frame skipped: every context frame present must have been updated
+      const total = contextFrames().length;
+      const updated = applyThemeLikeApp('light');
+      expect(G, 'no frame skipped on update', updated === total,
+        'updateAllPlatformFrames updated ' + updated + ' of ' + total + ' frames in DOM');
+    }
+
+    // ===========================================================================
+    // ORCHESTRATION + RENDERING OF RESULTS
+    // ===========================================================================
+    const CRITERIA = [
+      { n: 1, label: 'Toggle affects all platform frames', fn: crit1_toggleAffectsAllFrames },
+      { n: 2, label: 'State propagates to all rendered frames', fn: crit2_statePropagatesToAllFrames },
+      { n: 3, label: 'Each platform correct in light + dark', fn: crit3_perPlatformCorrectnessBothModes },
+      { n: 4, label: 'Synchronized across all platforms', fn: crit4_synchronizedAcrossPlatforms },
+      { n: 5, label: 'No frames left in stale theme state', fn: crit5_noStaleFrames },
+    ];
+
+    function renderCriteriaCards() {
+      document.getElementById('criteria-list').innerHTML = CRITERIA.map(function (c) {
+        return '<div class="criterion" id="crit-card-' + c.n + '"><span class="cnum">' + c.n +
+          '</span><strong>' + c.label + '</strong></div>';
+      }).join('');
+    }
+
+    function run() {
+      RESULTS = [];
+      const envOk = checkEnv();
+      if (envOk) {
+        // Seed initial theme + frames, then run every criterion.
+        document.documentElement.setAttribute('data-theme', 'dark');
+        renderFrames('dark');
+        CRITERIA.forEach(function (c) { c.fn(); });
+        // leave frames in dark + re-render once for the live grid
+        applyThemeLikeApp('dark');
+        syncThemeIndicator('dark');
+      }
+
+      // ----- aggregate -----
+      const pass = RESULTS.filter(function (r) { return r.status === 'pass'; }).length;
+      const fail = RESULTS.filter(function (r) { return r.status === 'fail'; }).length;
+      const skip = RESULTS.filter(function (r) { return r.status === 'skip'; }).length;
+      const total = RESULTS.length;
+
+      if (!envOk) {
+        banner.className = 'summary-banner fail';
+        banner.textContent = 'BLOCKED — production modules not available (see warning)';
+        countsEl.textContent = 'Fix the script loading / environment and re-run.';
+      } else if (fail === 0) {
+        banner.className = 'summary-banner pass';
+        banner.textContent = 'PASS — all ' + total + ' assertions satisfied across the 7-platform theme-switching chain';
+        countsEl.textContent = total + ' assertions: ' + pass + ' passed, ' + fail + ' failed, ' + skip + ' skipped';
+      } else {
+        banner.className = 'summary-banner fail';
+        banner.textContent = 'FAIL — ' + fail + ' assertion(s) failed';
+        countsEl.textContent = total + ' assertions: ' + pass + ' passed, ' + fail + ' failed, ' + skip + ' skipped';
+      }
+
+      // ----- per-criterion cards -----
+      CRITERIA.forEach(function (c) {
+        const rows = RESULTS.filter(function (r) { return r.group.indexOf(c.n + ' ·') === 0; });
+        const failed = rows.some(function (r) { return r.status === 'fail'; });
+        const card = document.getElementById('crit-card-' + c.n);
+        card.classList.remove('pass', 'fail');
+        card.classList.add(failed ? 'fail' : 'pass');
+      });
+
+      // ----- per-group detail tables -----
+      resultsEl.innerHTML = CRITERIA.map(function (c) {
+        const rows = RESULTS.filter(function (r) { return r.group.indexOf(c.n + ' ·') === 0; });
+        const failed = rows.some(function (r) { return r.status === 'fail'; });
+        const gstatus = failed ? 'fail' : (rows.every(function (r) { return r.status === 'skip'; }) ? 'skip' : 'pass');
+        const badge = '<span class="badge ' + gstatus + '">' + gstatus.toUpperCase() + '</span>';
+        const body = rows.map(function (r) {
+          return '<tr><td class="status ' + r.status + '">' + r.status.toUpperCase() + '</td>' +
+            '<td><code>' + escapeHtml(r.id) + '</code></td>' +
+            '<td>' + escapeHtml(r.detail) + '</td></tr>';
+        }).join('');
+        return '<div class="group ' + gstatus + '">' +
+          '<div class="group-head"><span>' + c.label + '</span>' + badge + '</div>' +
+          '<table><thead><tr><th>result</th><th>target</th><th>detail</th></tr></thead>' +
+          '<tbody>' + (body || '<tr><td colspan="3"><em>no assertions recorded</em></td></tr>') + '</tbody>' +
+          '</table></div>';
+      }).join('');
+    }
+
+    function escapeHtml(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // manual live toggle (independent of the test run)
+    function manualToggle() {
+      const cur = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+      const next = cur === 'dark' ? 'light' : 'dark';
+      applyThemeLikeApp(next);
+      syncThemeIndicator(next);
+    }
+
+    // ---------------------------------------------------------------------------
+    // Wire up + auto-run
+    // ---------------------------------------------------------------------------
+    renderCriteriaCards();
+    document.getElementById('run-btn').addEventListener('click', run);
+    document.getElementById('toggle-btn').addEventListener('click', manualToggle);
+
+    // Render frames immediately so a human can see & toggle them before running.
+    if (checkEnv()) {
+      renderFrames('dark');
+      syncThemeIndicator('dark');
+    }
+
+    // Auto-run the acceptance suite on load.
+    window.addEventListener('load', function () { run(); });
+  })();
+  </script>
+</body>
+</html>

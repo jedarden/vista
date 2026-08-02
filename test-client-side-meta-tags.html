@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Test Client-Side Meta Tags</title>
+  <!-- Intentionally NO meta tags in head - they will be injected by JavaScript below -->
+</head>
+<body>
+  <h1>Test Page: Client-Side Meta Tags</h1>
+  <p>This page intentionally injects all meta tags via JavaScript to test VISTA's client-side-only tag detection.</p>
+
+  <div id="info">
+    <h2>Expected Behavior:</h2>
+    <ul>
+      <li>VISTA should detect that og:image, og:title, og:description are injected via JavaScript</li>
+      <li>VISTA should show an error diagnostic with code 'js-injected-tags'</li>
+      <li>VISTA should show severity 'error'</li>
+      <li>The diagnostic message should be actionable (suggest SSR/prerendering)</li>
+    </ul>
+  </div>
+
+  <script>
+    // Simulate a client-side SPA that injects meta tags after page load
+    // This is exactly what social crawlers DON'T see
+
+    function injectMetaTags() {
+      const head = document.head;
+
+      // Inject Open Graph tags via JavaScript
+      const ogImage = document.createElement('meta');
+      ogImage.setAttribute('property', 'og:image');
+      ogImage.setAttribute('content', 'https://example.com/test-image.jpg');
+      head.appendChild(ogImage);
+
+      const ogTitle = document.createElement('meta');
+      ogTitle.setAttribute('property', 'og:title');
+      ogTitle.setAttribute('content', 'Test Page: Client-Side Meta Tags');
+      head.appendChild(ogTitle);
+
+      const ogDescription = document.createElement('meta');
+      ogDescription.setAttribute('property', 'og:description');
+      ogDescription.setAttribute('content', 'This page tests VISTA client-side-only tag detection.');
+      head.appendChild(ogDescription);
+
+      const ogType = document.createElement('meta');
+      ogType.setAttribute('property', 'og:type');
+      ogType.setAttribute('content', 'website');
+      head.appendChild(ogType);
+
+      const ogUrl = document.createElement('meta');
+      ogUrl.setAttribute('property', 'og:url');
+      ogUrl.setAttribute('content', window.location.href);
+      head.appendChild(ogUrl);
+
+      // Inject Twitter card tags
+      const twitterCard = document.createElement('meta');
+      twitterCard.setAttribute('name', 'twitter:card');
+      twitterCard.setAttribute('content', 'summary_large_image');
+      head.appendChild(twitterCard);
+
+      const twitterTitle = document.createElement('meta');
+      twitterTitle.setAttribute('name', 'twitter:title');
+      twitterTitle.setAttribute('content', 'Test Page: Client-Side Meta Tags');
+      head.appendChild(twitterTitle);
+
+      const twitterDescription = document.createElement('meta');
+      twitterDescription.setAttribute('name', 'twitter:description');
+      twitterDescription.setAttribute('content', 'This page tests VISTA client-side-only tag detection.');
+      head.appendChild(twitterDescription);
+
+      const twitterImage = document.createElement('meta');
+      twitterImage.setAttribute('name', 'twitter:image');
+      twitterImage.setAttribute('content', 'https://example.com/test-image.jpg');
+      head.appendChild(twitterImage);
+
+      console.log('Meta tags injected via JavaScript');
+    }
+
+    // Inject tags on page load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', injectMetaTags);
+    } else {
+      injectMetaTags();
+    }
+
+    // Also inject after a short delay to simulate async data fetching
+    setTimeout(() => {
+      const ogImageUpdated = document.createElement('meta');
+      ogImageUpdated.setAttribute('property', 'og:image');
+      ogImageUpdated.setAttribute('content', 'https://example.com/updated-image.jpg');
+      document.head.appendChild(ogImageUpdated);
+      console.log('Additional og:image tag injected after delay');
+    }, 100);
+  </script>
+</body>
+</html>

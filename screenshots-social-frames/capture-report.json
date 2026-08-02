@@ -1,0 +1,44 @@
+[
+  {
+    "platform": "facebook",
+    "name": "Facebook",
+    "screenshots": [
+      {
+        "mode": "dark",
+        "file": "/home/coding/vista/screenshots-social-frames/facebook-dark-theme.png"
+      },
+      {
+        "mode": "light",
+        "file": "/home/coding/vista/screenshots-social-frames/facebook-light-theme.png"
+      }
+    ]
+  },
+  {
+    "platform": "linkedin",
+    "name": "LinkedIn",
+    "screenshots": [
+      {
+        "mode": "dark",
+        "file": "/home/coding/vista/screenshots-social-frames/linkedin-dark-theme.png"
+      },
+      {
+        "mode": "light",
+        "file": "/home/coding/vista/screenshots-social-frames/linkedin-light-theme.png"
+      }
+    ]
+  },
+  {
+    "platform": "reddit",
+    "name": "Reddit",
+    "screenshots": [
+      {
+        "mode": "dark",
+        "file": "/home/coding/vista/screenshots-social-frames/reddit-dark-theme.png"
+      },
+      {
+        "mode": "light",
+        "file": "/home/coding/vista/screenshots-social-frames/reddit-light-theme.png"
+      }
+    ]
+  }
+]

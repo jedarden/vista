@@ -502,18 +502,10 @@ function savePlatformPrefs() {
 }
 
 /**
- * Get platform names from main app
+ * Get platform names from main app (loaded from window.PLATFORM_NAMES)
+ * This is set by app.js and should always be available when app-features.js runs
  */
-const PLATFORM_NAMES = window.PLATFORM_NAMES || {
-  google: 'Google Search', facebook: 'Facebook', twitter: 'X (Twitter)',
-  linkedin: 'LinkedIn', reddit: 'Reddit', mastodon: 'Mastodon',
-  bluesky: 'Bluesky', threads: 'Threads', tumblr: 'Tumblr', pinterest: 'Pinterest',
-  slack: 'Slack', discord: 'Discord', whatsapp: 'WhatsApp', imessage: 'iMessage',
-  telegram: 'Telegram', signal: 'Signal', teams: 'Microsoft Teams',
-  googlechat: 'Google Chat', zoom: 'Zoom Chat', line: 'Line', kakaotalk: 'KakaoTalk',
-  notion: 'Notion', jira: 'Jira / Confluence', github: 'GitHub', trello: 'Trello', figma: 'Figma',
-  medium: 'Medium', substack: 'Substack', outlook: 'Outlook', gmail: 'Gmail', feedly: 'Feedly / RSS',
-};
+// PLATFORM_NAMES is available as window.PLATFORM_NAMES (set by app.js)
 
 // =============================================================================
 // 5. URL-based Score Badge API Enhancement

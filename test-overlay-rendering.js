@@ -13,17 +13,68 @@
 const fs = require('fs');
 const path = require('path');
 
-// Load the geometry functions from safe-zone.js
-const safeZonePath = path.join(__dirname, 'src/public/safe-zone.js');
-const safeZoneCode = fs.readFileSync(safeZonePath, 'utf8');
+// Geometry functions (from safe-zone.js)
+function calculateCropRect(crop, imgW, imgH) {
+  if (!crop || !imgW || !imgH) return null;
 
-// Extract and evaluate the functions we need
-const calculateCropRect = eval(
-  safeZoneCode.match(/function calculateCropRect\([\s\S]*?\n}/)[0]
-);
-const calculateSafeZone = eval(
-  safeZoneCode.match(/function calculateSafeZone\([\s\S]*?\n}/)[0]
-);
+  const imgAR = imgW / imgH;
+  const cropAR = crop.aspect.max || crop.aspect.min;
+
+  if (crop.cropMode === 'contain') {
+    return { x: 0, y: 0, w: imgW, h: imgH };
+  }
+
+  if (crop.cropMode === 'cover') {
+    let cropW, cropH;
+
+    if (imgAR > cropAR) {
+      cropW = imgH * cropAR;
+      cropH = imgH;
+    } else {
+      cropW = imgW;
+      cropH = imgW / cropAR;
+    }
+
+    const x = (imgW - cropW) / 2;
+    const y = (imgH - cropH) / 2;
+
+    return { x, y, w: cropW, h: cropH };
+  }
+
+  return null;
+}
+
+function calculateSafeZone(crops, imgW, imgH) {
+  const base = { x: 0, y: 0, w: imgW, h: imgH };
+
+  const list = Array.isArray(crops) ? crops : Object.values(crops || {});
+  const rects = list
+    .map(c => calculateCropRect(c, imgW, imgH))
+    .filter(Boolean);
+
+  if (rects.length === 0) {
+    return { x: 0, y: 0, w: imgW, h: imgH, coverage: 1 };
+  }
+
+  let x0 = base.x;
+  let y0 = base.y;
+  let x1 = base.x + base.w;
+  let y1 = base.y + base.h;
+
+  for (const r of rects) {
+    x0 = Math.max(x0, r.x);
+    y0 = Math.max(y0, r.y);
+    x1 = Math.min(x1, r.x + r.w);
+    y1 = Math.min(y1, r.y + r.h);
+  }
+
+  const w = x1 - x0;
+  const h = y1 - y0;
+  const area = imgW && imgH ? imgW * imgH : 0;
+  const coverage = area > 0 ? Math.max(0, (w * h) / area) : 0;
+
+  return { x: x0, y: y0, w, h, coverage };
+}
 
 // Mock PLATFORM_CROPS data (subset for testing)
 const PLATFORM_CROPS = {

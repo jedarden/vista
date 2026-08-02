@@ -75,30 +75,54 @@ function compareMetaTags(rawMeta, renderedMeta) {
 
 /**
  * Detect client-side-only meta tags by comparing raw HTML with rendered DOM.
- * Returns a diagnostic finding if client-side-only tags are detected.
+ * Returns diagnostic findings if client-side-only tags are detected.
+ *
+ * This is a server-side heuristic that identifies meta tags in the <body>
+ * section, which are likely JavaScript-injected and won't be seen by most
+ * social crawlers. The function uses the rawTags data structure from
+ * parseMetaTags() to accurately track tag positions and attributes.
+ *
+ * For full client-side verification (including tags injected into <head>),
+ * the browser runs verifyClientSideTags() which uses an iframe to execute
+ * JavaScript and compare the resulting DOM against rawTags.
  */
 function detectClientSideOnlyTags(html, meta) {
-  // This is a synchronous check - we'll return a placeholder that can be
-  // enhanced later with async Playwright rendering
   const findings = [];
 
-  // Check for meta tags in <body> (heuristic for JS-injected tags)
-  const bodyMetaRegex = /<body[^>]*>[\s\S]*?<meta\s+(?:property|name)=["'](og:|twitter:)[^"']*["']/gi;
-  const bodyMatch = bodyMetaRegex.exec(html);
-  if (bodyMatch) {
-    const bodyMetas = [];
-    const metaInBodyRegex = /<meta\s+(property|name)=["'](og:[^"']*|twitter:[^"']*)["'][^>]*>/gi;
-    let match;
-    const afterBody = html.slice(html.indexOf('<body'));
-    while ((match = metaInBodyRegex.exec(afterBody)) !== null) {
-      bodyMetas.push(match[2]);
-    }
+  // Find the position of <body> tag (if it exists)
+  const bodyMatch = html.match(/<body[^>]*>/i);
+  if (!bodyMatch) {
+    // No body tag found - this might be a fragment or head-only HTML
+    return findings;
+  }
 
+  const bodyStartPos = html.indexOf(bodyMatch[0]);
+
+  // Use rawTags if available for accurate tag tracking
+  const rawTags = (meta && meta.rawTags) || [];
+  const bodyTags = [];
+
+  for (const tag of rawTags) {
+    // Check if this meta tag appears after the <body> start
+    // We can use the rawHtml field stored in rawTags, or search the HTML
+    const tagPos = tag.rawHtml ? html.indexOf(tag.rawHtml) : -1;
+
+    // Only consider og: and twitter: tags (tags crawlers care about)
+    const isCriticalTag = (tag.property && (tag.property.startsWith('og:') || tag.property.startsWith('twitter:'))) ||
+                          (tag.name && (tag.name.startsWith('og:') || tag.name.startsWith('twitter:')));
+
+    if (isCriticalTag && tagPos >= bodyStartPos) {
+      bodyTags.push(tag.property || tag.name);
+    }
+  }
+
+  // If we found critical meta tags in <body>, generate diagnostic findings
+  if (bodyTags.length > 0) {
     findings.push({
       severity: 'error',
       code: 'client-side-only-tags',
-      message: `Meta tags found in <body> (${bodyMetas.slice(0, 3).join(', ')}${bodyMetas.length > 3 ? '...' : ''}) — these are likely injected by JavaScript and won't be seen by most social crawlers`,
-      fix: 'Move all critical meta tags (og:*, twitter:*) to the <head> section of your HTML, or use Server-Side Rendering (SSR) to ensure they\'re present in the initial HTML',
+      message: `Meta tags found in <body> (${bodyTags.slice(0, 3).join(', ')}${bodyTags.length > 3 ? '...' : ''}) — these tags will not be seen by most social crawlers`,
+      fix: 'Move all critical meta tags (og:*, twitter:*) to the <head> section of your HTML. For JavaScript-heavy SPAs, use Server-Side Rendering (SSR) or static prerendering to ensure meta tags are present in the initial HTML.',
       platforms: 'Most social crawlers (Facebook, LinkedIn, Twitter, etc.)',
       requiresAsyncVerification: true,
     });

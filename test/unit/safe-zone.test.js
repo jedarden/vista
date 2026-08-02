@@ -469,6 +469,127 @@ test('calculateSafeZone does NOT reproduce the width-vs-edge under-report bug', 
 });
 
 // ---------------------------------------------------------------------------
+// Extreme OG image sizes (bf-3n2m - additional edge cases)
+// ---------------------------------------------------------------------------
+
+console.log('\nsafe-zone / extreme OG image sizes (bf-3n2m)\n');
+
+test('ultra-wide image (3000x500, AR 6) with facebook 1.91 crop', () => {
+  // Extreme wide: cropW = 500 * 1.91 = 955, centered
+  const r = calculateCropRect(cover(1.91), 3000, 500);
+  assertEqual(r.y, 0);
+  assertEqual(r.h, 500);
+  approxEqual(r.x, 1022.5);
+  approxEqual(r.w, 955);
+  assert(r.x >= 0 && r.x + r.w <= 3000, 'ultra-wide crop out of bounds');
+});
+
+test('ultra-tall image (500x3000, AR 0.167) with facebook 1.91 crop', () => {
+  // Extreme tall: cropH = 500 / 1.91 ≈ 261.78, centered
+  const r = calculateCropRect(cover(1.91), 500, 3000);
+  assertEqual(r.x, 0);
+  assertEqual(r.w, 500);
+  approxEqual(r.y, 1369.109947643979);
+  approxEqual(r.h, 261.7801047120419);
+  assert(r.y >= 0 && r.y + r.h <= 3000, 'ultra-tall crop out of bounds');
+});
+
+test('minimum viable OG size (200x200) with square crop', () => {
+  // Min recommended size: square image with square crop = full image
+  const r = calculateCropRect(cover(1.0), 200, 200);
+  assertEqual(r.x, 0);
+  assertEqual(r.y, 0);
+  assertEqual(r.w, 200);
+  assertEqual(r.h, 200);
+});
+
+test('minimum viable OG size (200x200) with landscape 1.91 crop', () => {
+  // Square min-size with landscape crop: cropH = 200 / 1.91 ≈ 104.71
+  const r = calculateCropRect(cover(1.91), 200, 200);
+  assertEqual(r.x, 0);
+  assertEqual(r.w, 200);
+  approxEqual(r.y, 47.64397905759518);
+  approxEqual(r.h, 104.71204188481675);
+  assert(r.y >= 0 && r.y + r.h <= 200, 'min-size crop out of bounds');
+});
+
+test('very large OG image (4000x4000) maintains safe zone integrity', () => {
+  // 4K square: safe zone with multiple crops should stay in bounds
+  const sz = calculateSafeZone([cover(1.91), cover(0.67), cover(1.0)], 4000, 4000);
+  assert(sz.x >= 0 && sz.y >= 0, '4K safe zone origin negative');
+  assert(sz.x + sz.w <= 4000, '4K safe zone overflows right');
+  assert(sz.y + sz.h <= 4000, '4K safe zone overflows bottom');
+  assert(sz.coverage >= 0 && sz.coverage <= 1, '4K coverage out of range');
+});
+
+test('safe zone on ultra-wide image with multiple crops', () => {
+  // 3000x500 with facebook + pinterest: intersection should be valid
+  const sz = calculateSafeZone([cover(1.91), cover(0.67)], 3000, 500);
+  assert(sz.x >= 0 && sz.y >= 0, 'ultra-wide safe zone origin negative');
+  assert(sz.x + sz.w <= 3000, 'ultra-wide safe zone overflows right');
+  assert(sz.y + sz.h <= 500, 'ultra-wide safe zone overflows bottom');
+  // Coverage should be very small (strict intersection)
+  assert(sz.coverage < 0.5, 'ultra-wide safe zone coverage too large');
+});
+
+test('safe zone on ultra-tall image with multiple crops', () => {
+  // 500x3000 with facebook + pinterest: intersection should be valid
+  const sz = calculateSafeZone([cover(1.91), cover(0.67)], 500, 3000);
+  assert(sz.x >= 0 && sz.y >= 0, 'ultra-tall safe zone origin negative');
+  assert(sz.x + sz.w <= 500, 'ultra-tall safe zone overflows right');
+  assert(sz.y + sz.h <= 3000, 'ultra-tall safe zone overflows bottom');
+  // Coverage should be very small (strict intersection)
+  assert(sz.coverage < 0.5, 'ultra-tall safe zone coverage too large');
+});
+
+test('coordinate ranges: standard 1200x630 with facebook crop', () => {
+  // Document expected coordinate range for standard OG size
+  const sz = calculateSafeZone([cover(1.91)], 1200, 630);
+  // facebook 1.91 on 1200x630: imgAR≈1.905 < 1.91 → image is TALLER than crop
+  // cropH = 1200 / 1.91 ≈ 628.27, centered vertically: y≈0.864
+  // Expected: y≈0.864, h≈628.27, x=0, w=1200, coverage≈0.997
+  approxEqual(sz.y, 0.863874345549732);
+  approxEqual(sz.h, 628.2722513089006);
+  assertEqual(sz.x, 0);
+  assertEqual(sz.w, 1200);
+  approxEqual(sz.coverage, 0.9972575417601598);
+});
+
+test('coordinate ranges: standard 1200x630 with vertical pinterest crop', () => {
+  // Document expected coordinate range for vertical crop on standard OG
+  const r = calculateCropRect(cover(0.67), 1200, 630);
+  // pinterest 0.67 on 1200x630: cropW = 630 * 0.67 = 422.1, centered
+  approxEqual(r.x, 388.95);
+  assertEqual(r.y, 0);
+  approxEqual(r.w, 422.1);
+  assertEqual(r.h, 630);
+});
+
+test('visible percentage on extreme sizes remains in [0,100]', () => {
+  // Even on extreme sizes, percentage should be well-behaved
+  const cases = [
+    [cover(1.91), 3000, 500],   // ultra-wide
+    [cover(1.91), 500, 3000],   // ultra-tall
+    [cover(0.67), 3000, 500],   // ultra-wide with vertical crop
+    [cover(0.67), 500, 3000],   // ultra-tall with vertical crop
+    [cover(1.91), 200, 200],    // minimum size
+    [cover(1.91), 4000, 4000],  // 4K size
+  ];
+  for (const [crop, w, h] of cases) {
+    const pct = calculateVisiblePercentage(crop, w, h);
+    assert(pct >= 0 && pct <= 100, `percentage out of range for ${w}x${h}: ${pct}`);
+    assert(Number.isInteger(pct), `percentage not integer for ${w}x${h}: ${pct}`);
+  }
+});
+
+test('safe zone coverage scales correctly with image size', () => {
+  // Same aspect ratio, different scales: coverage should be identical
+  const sz1 = calculateSafeZone([cover(1.91), cover(0.67)], 1200, 630);
+  const sz2 = calculateSafeZone([cover(1.91), cover(0.67)], 2400, 1260);
+  approxEqual(sz1.coverage, sz2.coverage, 'coverage should be scale-invariant');
+});
+
+// ---------------------------------------------------------------------------
 
 console.log(`\n${passed} passed, ${failed} failed\n`);
 process.exit(failed === 0 ? 0 : 1);

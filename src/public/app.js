@@ -1440,6 +1440,9 @@ const PLATFORM_NAMES = {
   medium: 'Medium', substack: 'Substack', outlook: 'Outlook', gmail: 'Gmail', feedly: 'Feedly / RSS',
 };
 
+// Export to window for app-features.js
+window.PLATFORM_NAMES = PLATFORM_NAMES;
+
 // ── Platform Skeleton Types ──
 // Fetched from /api/platforms endpoint
 // 'tall': Image on top (Facebook, Twitter, LinkedIn, Reddit, etc.)
@@ -5314,9 +5317,6 @@ function showFirstVisitToast() {
       toast.classList.add('hidden');
       localStorage.setItem(STORAGE_KEY, 'true');
     }, 8000);
-
-    // Mark as shown
-    localStorage.setItem(STORAGE_KEY, 'true');
   }
 }
 

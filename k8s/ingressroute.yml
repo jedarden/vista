@@ -1,3 +1,10 @@
+# ⚠️  WARNING: This file is NOT the source of truth for deployment.
+# The authoritative Kubernetes manifests are managed via GitOps in:
+#   jedarden/declarative-config → k8s/apexalgo-iad/vista/
+#
+# Editing this file will have NO effect on the live cluster.
+# These files are retained for reference only and are kept here for historical context.
+
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:

@@ -1,3 +1,15 @@
+# ⚠️  WARNING: This file is NOT the source of truth for deployment.
+# The authoritative Kubernetes manifests are managed via GitOps in:
+#   jedarden/declarative-config → k8s/apexalgo-iad/vista/
+#
+# Editing this file will have NO effect on the live cluster.
+# These files are retained for reference only and are kept here for historical context.
+#
+# Last known sync status (2024-08-02):
+#   - Image tag: this file shows :1.0.5, live cluster uses :1.0.22
+#   - Replicas: this file shows 3, live cluster uses 1
+#   - Health check: this file uses "/", live cluster uses "/health"
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:

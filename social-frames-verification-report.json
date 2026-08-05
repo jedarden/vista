@@ -1,0 +1,54 @@
+[
+  {
+    "platform": "facebook",
+    "url": "http://localhost:3000/test-facebook-frame.html",
+    "status": "success",
+    "tests": {
+      "structure_exists": true,
+      "fb-post-header": true,
+      "fb-avatar": true,
+      "fb-author-name": true,
+      "fb-post-time": true,
+      "fb-link-preview": true,
+      "theme_toggle": true,
+      "verification_script": true,
+      "acceptance_criteria": true,
+      "accent_color": true
+    }
+  },
+  {
+    "platform": "linkedin",
+    "url": "http://localhost:3000/test-linkedin-frame.html",
+    "status": "success",
+    "tests": {
+      "structure_exists": true,
+      "li-post-header": true,
+      "li-avatar": true,
+      "li-author-name": true,
+      "li-post-headline": true,
+      "li-post-time": true,
+      "li-link-preview": true,
+      "theme_toggle": true,
+      "verification_script": true,
+      "acceptance_criteria": true,
+      "accent_color": true
+    }
+  },
+  {
+    "platform": "reddit",
+    "url": "http://localhost:3000/test-reddit-frame.html",
+    "status": "success",
+    "tests": {
+      "structure_exists": true,
+      "rd-subreddit-header": true,
+      "rd-subreddit-icon": true,
+      "rd-subreddit-name": true,
+      "rd-post-item": true,
+      "rd-upvote-section": true,
+      "theme_toggle": true,
+      "verification_script": true,
+      "acceptance_criteria": true,
+      "accent_color": true
+    }
+  }
+]

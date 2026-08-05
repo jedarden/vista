@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Overlay Rendering Visual Test</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    h1 {
+      color: #333;
+      border-bottom: 2px solid #06b6d4;
+      padding-bottom: 10px;
+    }
+    .test-section {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 20px 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .test-info {
+      background: #f0f9ff;
+      border-left: 4px solid #3b82f6;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 4px;
+    }
+    .test-info h3 {
+      margin-top: 0;
+      color: #1e40af;
+    }
+    .image-container {
+      position: relative;
+      display: inline-block;
+      margin: 10px;
+      border: 2px solid #ddd;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .image-container img {
+      display: block;
+      max-width: 100%;
+      height: auto;
+    }
+    .overlay-svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+    .platform-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 15px 0;
+    }
+    .platform-toggle {
+      padding: 8px 16px;
+      border: 2px solid #ddd;
+      background: white;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .platform-toggle:hover {
+      border-color: #3b82f6;
+    }
+    .platform-toggle.active {
+      background: #3b82f6;
+      color: white;
+      border-color: #3b82f6;
+    }
+    .platform-toggle[data-category="professional"].active {
+      background: #8b5cf6;
+      border-color: #8b5cf6;
+    }
+    .platform-toggle[data-category="search"].active {
+      background: #10b981;
+      border-color: #10b981;
+    }
+    .info-panel {
+      background: #f8fafc;
+      padding: 15px;
+      border-radius: 4px;
+      margin-top: 10px;
+      font-family: monospace;
+      font-size: 14px;
+    }
+    .safe-zone-info {
+      color: #0891b2;
+      font-weight: bold;
+    }
+    .instructions {
+      background: #fef3c7;
+      border-left: 4px solid #f59e0b;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+    .instructions h2 {
+      margin-top: 0;
+      color: #92400e;
+    }
+    .test-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 20px;
+      margin-top: 15px;
+    }
+    .test-case {
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 15px;
+      background: #fafafa;
+    }
+    .test-case h4 {
+      margin: 0 0 10px 0;
+      color: #374151;
+    }
+    .export-btn {
+      background: #06b6d4;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    .export-btn:hover {
+      background: #0891b2;
+    }
+    .color-legend {
+      display: flex;
+      gap: 15px;
+      margin: 10px 0;
+      font-size: 14px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .color-box {
+      width: 20px;
+      height: 20px;
+      border-radius: 3px;
+      border: 1px solid #ddd;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎨 Overlay Rendering Visual Test</h1>
+
+  <div class="instructions">
+    <h2>Visual Verification Instructions</h2>
+    <ol>
+      <li>Each test case shows an OG image with overlay rendering</li>
+      <li>Toggle platforms on/off to see how the safe zone changes</li>
+      <li>Verify semi-transparent fills (25% opacity) are visible but not obscuring</li>
+      <li>Check cyan safe zone rectangle has dark halo for visibility on all backgrounds</li>
+      <li>Confirm overlay dimensions match the displayed safe zone info</li>
+      <li>Use "Export Overlay" to download PNG and verify transparency in image viewer</li>
+    </ol>
+  </div>
+
+  <div class="test-info">
+    <h3>Color Legend</h3>
+    <div class="color-legend">
+      <div class="legend-item">
+        <div class="color-box" style="background: #3b82f6;"></div>
+        <span>Social (Facebook, Twitter)</span>
+      </div>
+      <div class="legend-item">
+        <div class="color-box" style="background: #8b5cf6;"></div>
+        <span>Professional (LinkedIn)</span>
+      </div>
+      <div class="legend-item">
+        <div class="color-box" style="background: #10b981;"></div>
+        <span>Search (Google - contain mode)</span>
+      </div>
+      <div class="legend-item">
+        <div class="color-box" style="background: #06b6d4;"></div>
+        <span>Safe Zone (intersection)</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="test-container"></div>
+
+  <script>
+    // Platform crop configurations
+    const PLATFORM_CROPS = {
+      facebook: {
+        aspect: { min: 1.91, max: 1.91 },
+        cropMode: 'cover',
+        category: 'social',
+        color: '#3b82f6'
+      },
+      twitter: {
+        aspect: { min: 2, max: 2 },
+        cropMode: 'cover',
+        category: 'social',
+        color: '#3b82f6'
+      },
+      linkedin: {
+        aspect: { min: 1.91, max: 1.91 },
+        cropMode: 'cover',
+        category: 'professional',
+        color: '#8b5cf6'
+      },
+      google: {
+        aspect: { min: 1, max: 1000 },
+        cropMode: 'contain',
+        category: 'search',
+        color: '#10b981'
+      }
+    };
+
+    // Test images with real OG image dimensions
+    const TEST_IMAGES = [
+      {
+        name: 'Standard OG',
+        width: 1200,
+        height: 630,
+        description: 'Typical 1.91:1 aspect ratio used by most platforms',
+        // Create a gradient background for testing
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+      },
+      {
+        name: 'Twitter OG',
+        width: 1200,
+        height: 600,
+        description: 'Optimal for Twitter (2:1 aspect ratio)',
+        background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
+      },
+      {
+        name: 'Square OG',
+        width: 1200,
+        height: 1200,
+        description: 'Square format for Instagram, testing portrait handling',
+        background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
+      },
+      {
+        name: 'Portrait OG',
+        width: 630,
+        height: 1200,
+        description: 'Portrait format testing extreme aspect ratios',
+        background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)'
+      }
+    ];
+
+    // Safe zone color (cyan)
+    const SAFE_ZONE_COLOR = '#06b6d4';
+
+    // Geometry functions (from safe-zone.js)
+    function calculateCropRect(crop, imgW, imgH) {
+      if (!crop || !imgW || !imgH) return null;
+
+      const imgAR = imgW / imgH;
+      const cropAR = crop.aspect.max || crop.aspect.min;
+
+      if (crop.cropMode === 'contain') {
+        return { x: 0, y: 0, w: imgW, h: imgH };
+      }
+
+      if (crop.cropMode === 'cover') {
+        let cropW, cropH;
+
+        if (imgAR > cropAR) {
+          cropW = imgH * cropAR;
+          cropH = imgH;
+        } else {
+          cropW = imgW;
+          cropH = imgW / cropAR;
+        }
+
+        const x = (imgW - cropW) / 2;
+        const y = (imgH - cropH) / 2;
+
+        return { x, y, w: cropW, h: cropH };
+      }
+
+      return null;
+    }
+
+    function calculateSafeZone(crops, imgW, imgH) {
+      const base = { x: 0, y: 0, w: imgW, h: imgH };
+
+      const list = Array.isArray(crops) ? crops : Object.values(crops || {});
+      const rects = list
+        .map(c => calculateCropRect(c, imgW, imgH))
+        .filter(Boolean);
+
+      if (rects.length === 0) {
+        return { x: 0, y: 0, w: imgW, h: imgH, coverage: 1 };
+      }
+
+      let x0 = base.x;
+      let y0 = base.y;
+      let x1 = base.x + base.w;
+      let y1 = base.y + base.h;
+
+      for (const r of rects) {
+        x0 = Math.max(x0, r.x);
+        y0 = Math.max(y0, r.y);
+        x1 = Math.min(x1, r.x + r.w);
+        y1 = Math.min(y1, r.y + r.h);
+      }
+
+      const w = x1 - x0;
+      const h = y1 - y0;
+      const area = imgW && imgH ? imgW * imgH : 0;
+      const coverage = area > 0 ? Math.max(0, (w * h) / area) : 0;
+
+      return { x: x0, y: y0, w, h, coverage };
+    }
+
+    // Create test UI
+    function createTestUI() {
+      const container = document.getElementById('test-container');
+      const testGrid = document.createElement('div');
+      testGrid.className = 'test-grid';
+      container.appendChild(testGrid);
+
+      TEST_IMAGES.forEach((imageInfo, index) => {
+        const testCase = document.createElement('div');
+        testCase.className = 'test-case';
+        testCase.innerHTML = `
+          <h4>${imageInfo.name} (${imageInfo.width}×${imageInfo.height})</h4>
+          <p style="font-size: 13px; color: #666; margin-bottom: 10px;">${imageInfo.description}</p>
+          <div class="platform-controls" id="controls-${index}">
+            ${Object.keys(PLATFORM_CROPS).map(pid => `
+              <button class="platform-toggle" data-platform="${pid}" data-category="${PLATFORM_CROPS[pid].category}">
+                ${pid.charAt(0).toUpperCase() + pid.slice(1)}
+              </button>
+            `).join('')}
+          </div>
+          <div class="image-container" id="container-${index}" style="width: 100%; max-width: 400px;">
+            <canvas id="canvas-${index}" style="width: 100%; height: auto;"></canvas>
+            <svg class="overlay-svg" id="overlay-${index}" viewBox="0 0 ${imageInfo.width} ${imageInfo.height}"></svg>
+          </div>
+          <div class="info-panel" id="info-${index}"></div>
+          <button class="export-btn" data-index="${index}">Export Overlay</button>
+        `;
+        testGrid.appendChild(testCase);
+
+        // Create canvas with gradient background
+        const canvas = document.getElementById(`canvas-${index}`);
+        canvas.width = imageInfo.width;
+        canvas.height = imageInfo.height;
+        const ctx = canvas.getContext('2d');
+
+        // Draw gradient background
+        const gradient = ctx.createLinearGradient(0, 0, imageInfo.width, imageInfo.height);
+        if (index === 0) {
+          gradient.addColorStop(0, '#667eea');
+          gradient.addColorStop(1, '#764ba2');
+        } else if (index === 1) {
+          gradient.addColorStop(0, '#f093fb');
+          gradient.addColorStop(1, '#f5576c');
+        } else if (index === 2) {
+          gradient.addColorStop(0, '#4facfe');
+          gradient.addColorStop(1, '#00f2fe');
+        } else {
+          gradient.addColorStop(0, '#43e97b');
+          gradient.addColorStop(1, '#38f9d7');
+        }
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, imageInfo.width, imageInfo.height);
+
+        // Add text to show it's a test image
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        ctx.font = 'bold 48px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(imageInfo.name, imageInfo.width / 2, imageInfo.height / 2 - 30);
+        ctx.font = '24px Arial';
+        ctx.fillText(`${imageInfo.width} × ${imageInfo.height}`, imageInfo.width / 2, imageInfo.height / 2 + 30);
+
+        // Set up platform toggles
+        const enabledPlatforms = new Set();
+        const controls = document.getElementById(`controls-${index}`);
+        const overlay = document.getElementById(`overlay-${index}`);
+        const infoPanel = document.getElementById(`info-${index}`);
+
+        function updateOverlay() {
+          const enabledPids = Array.from(enabledPlatforms);
+
+          // Clear overlay
+          overlay.innerHTML = '';
+
+          // Calculate and draw crop rectangles
+          enabledPids.forEach(pid => {
+            const crop = PLATFORM_CROPS[pid];
+            const rect = calculateCropRect(crop, imageInfo.width, imageInfo.height);
+            if (rect) {
+              // Semi-transparent fill
+              const fillRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+              fillRect.setAttribute('x', rect.x);
+              fillRect.setAttribute('y', rect.y);
+              fillRect.setAttribute('width', rect.w);
+              fillRect.setAttribute('height', rect.h);
+              fillRect.setAttribute('fill', crop.color);
+              fillRect.setAttribute('fill-opacity', '0.15');
+              overlay.appendChild(fillRect);
+
+              // Stroke
+              const strokeRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+              strokeRect.setAttribute('x', rect.x);
+              strokeRect.setAttribute('y', rect.y);
+              strokeRect.setAttribute('width', rect.w);
+              strokeRect.setAttribute('height', rect.h);
+              strokeRect.setAttribute('fill', 'none');
+              strokeRect.setAttribute('stroke', crop.color);
+              strokeRect.setAttribute('stroke-width', '2');
+              strokeRect.setAttribute('stroke-dasharray', '8,4');
+              overlay.appendChild(strokeRect);
+            }
+          });
+
+          // Calculate and draw safe zone
+          const crops = enabledPids.map(pid => PLATFORM_CROPS[pid]).filter(Boolean);
+          const safeZone = calculateSafeZone(crops, imageInfo.width, imageInfo.height);
+
+          if (enabledPids.length > 0 && safeZone.w > 0 && safeZone.h > 0) {
+            // Dark halo
+            const haloRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            haloRect.setAttribute('x', safeZone.x);
+            haloRect.setAttribute('y', safeZone.y);
+            haloRect.setAttribute('width', safeZone.w);
+            haloRect.setAttribute('height', safeZone.h);
+            haloRect.setAttribute('fill', 'none');
+            haloRect.setAttribute('stroke', 'rgba(10,10,10,0.55)');
+            haloRect.setAttribute('stroke-width', '8');
+            overlay.appendChild(haloRect);
+
+            // Cyan safe zone
+            const safeRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            safeRect.setAttribute('x', safeZone.x);
+            safeRect.setAttribute('y', safeZone.y);
+            safeRect.setAttribute('width', safeZone.w);
+            safeRect.setAttribute('height', safeZone.h);
+            safeRect.setAttribute('fill', 'none');
+            safeRect.setAttribute('stroke', SAFE_ZONE_COLOR);
+            safeRect.setAttribute('stroke-width', '4');
+            safeRect.setAttribute('stroke-dasharray', '12,6');
+            overlay.appendChild(safeRect);
+
+            // Update info panel
+            const safePct = (safeZone.coverage * 100).toFixed(1);
+            infoPanel.innerHTML = `
+              <div class="safe-zone-info">Safe Zone: ${Math.round(safeZone.w)} × ${Math.round(safeZone.h)} px</div>
+              <div>Coverage: ${safePct}% of image</div>
+              <div>Platforms: ${enabledPids.length} selected</div>
+            `;
+          } else {
+            infoPanel.innerHTML = '<div style="color: #666;">Select platforms to see safe zone</div>';
+          }
+        }
+
+        // Add event listeners to toggles
+        controls.querySelectorAll('.platform-toggle').forEach(toggle => {
+          toggle.addEventListener('click', () => {
+            const platform = toggle.dataset.platform;
+            if (enabledPlatforms.has(platform)) {
+              enabledPlatforms.delete(platform);
+              toggle.classList.remove('active');
+            } else {
+              enabledPlatforms.add(platform);
+              toggle.classList.add('active');
+            }
+            updateOverlay();
+          });
+        });
+
+        // Export button
+        const exportBtn = testCase.querySelector('.export-btn');
+        exportBtn.addEventListener('click', () => {
+          const exportCanvas = document.createElement('canvas');
+          exportCanvas.width = imageInfo.width;
+          exportCanvas.height = imageInfo.height;
+          const exportCtx = exportCanvas.getContext('2d');
+
+          // Draw background
+          exportCtx.drawImage(canvas, 0, 0);
+
+          // Draw overlays
+          enabledPids.forEach(pid => {
+            const crop = PLATFORM_CROPS[pid];
+            const rect = calculateCropRect(crop, imageInfo.width, imageInfo.height);
+            if (rect) {
+              // Semi-transparent fill
+              exportCtx.fillStyle = crop.color + '40'; // hex + 25% alpha
+              exportCtx.fillRect(rect.x, rect.y, rect.w, rect.h);
+              // Stroke
+              exportCtx.strokeStyle = crop.color;
+              exportCtx.lineWidth = 4;
+              exportCtx.setLineDash([16, 8]);
+              exportCtx.strokeRect(rect.x, rect.y, rect.w, rect.h);
+            }
+          });
+
+          // Draw safe zone
+          const crops = enabledPids.map(pid => PLATFORM_CROPS[pid]).filter(Boolean);
+          const safeZone = calculateSafeZone(crops, imageInfo.width, imageInfo.height);
+
+          if (enabledPids.length > 0 && safeZone.w > 0 && safeZone.h > 0) {
+            // Dark halo
+            exportCtx.strokeStyle = 'rgba(10,10,10,0.55)';
+            exportCtx.lineWidth = 8;
+            exportCtx.setLineDash([]);
+            exportCtx.strokeRect(safeZone.x, safeZone.y, safeZone.w, safeZone.h);
+            // Cyan stroke
+            exportCtx.strokeStyle = SAFE_ZONE_COLOR;
+            exportCtx.lineWidth = 4;
+            exportCtx.setLineDash([24, 12]);
+            exportCtx.strokeRect(safeZone.x, safeZone.y, safeZone.w, safeZone.h);
+          }
+
+          // Export
+          exportCanvas.toBlob((blob) => {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `overlay-test-${imageInfo.name.toLowerCase().replace(/\s+/g, '-')}.png`;
+            a.click();
+            URL.revokeObjectURL(url);
+          }, 'image/png');
+        });
+
+        // Initial update
+        updateOverlay();
+      });
+    }
+
+    // Initialize
+    createTestUI();
+  </script>
+</body>
+</html>

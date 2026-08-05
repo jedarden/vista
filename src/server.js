@@ -146,6 +146,7 @@ app.get('/api/preview', async (req, res) => {
       sourceUrl: url,
     });
 
+    res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=600');
     res.json(result);
   } catch (err) {
     return handleFetchError(res, err, 'Failed to fetch URL');

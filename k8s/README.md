@@ -12,9 +12,9 @@ The files in this directory are **historical artifacts** and are retained for re
 
 ## Known Discrepancies
 
-As of 2024-08-02, these files differ significantly from the live deployment:
+As of 2026-08-05, these files differ significantly from the live deployment:
 
-- **Image tag**: This repo shows `:1.0.5`, live cluster uses `:1.0.22`
+- **Image tag**: This repo shows `:1.0.5`, live cluster uses `:latest`
 - **Replicas**: This repo shows `3`, live cluster uses `1`
 - **Health check**: This repo uses `/`, live cluster uses `/health`
 - **Service port**: This repo shows `8080→3000`, live cluster uses `3000→3000`

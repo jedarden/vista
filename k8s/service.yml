@@ -5,7 +5,7 @@
 # Editing this file will have NO effect on the live cluster.
 # These files are retained for reference only and are kept here for historical context.
 #
-# Last known sync status (2024-08-02):
+# Last known sync status (2026-08-05):
 #   - Port mapping: this file shows 8080→3000, live cluster uses 3000→3000
 
 apiVersion: v1

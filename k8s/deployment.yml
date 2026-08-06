@@ -5,8 +5,8 @@
 # Editing this file will have NO effect on the live cluster.
 # These files are retained for reference only and are kept here for historical context.
 #
-# Last known sync status (2024-08-02):
-#   - Image tag: this file shows :1.0.5, live cluster uses :1.0.22
+# Last known sync status (2026-08-05):
+#   - Image tag: this file shows :1.0.5, live cluster uses :latest
 #   - Replicas: this file shows 3, live cluster uses 1
 #   - Health check: this file uses "/", live cluster uses "/health"
 

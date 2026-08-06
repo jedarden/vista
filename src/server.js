@@ -704,6 +704,7 @@ app.get('/api/screenshot', async (req, res) => {
 
     // Set response headers
     res.setHeader('X-RateLimit-Remaining', rateLimit.remaining.toString());
+    res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=600');
 
     if (format === 'png') {
       res.setHeader('Content-Type', 'image/png');
@@ -1122,7 +1123,7 @@ app.get('/api/badge', async (req, res) => {
 
   // Set cache headers (1 hour)
   res.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');
-  res.setHeader('Cache-Control', 'public, max-age=3600, immutable');
+  res.setHeader('Cache-Control', 'public, max-age=3600, stale-while-revalidate=7200');
   res.setHeader('X-RateLimit-Remaining', '999');
 
   res.send(svg);
@@ -1204,6 +1205,7 @@ app.get('/api/compare', async (req, res) => {
     }
 
     // Return results (even if one failed)
+    res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=600');
     res.json({
       a: resultA.success ? resultA.data : { error: resultA.error, url: resultA.url },
       b: resultB.success ? resultB.data : { error: resultB.error, url: resultB.url },

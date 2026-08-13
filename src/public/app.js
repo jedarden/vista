@@ -494,7 +494,7 @@ function updateHash(options = {}) {
 
   // Tab state
   const tab = options.tab !== undefined ? options.tab : currentTab;
-  if (tab && tab !== 'previews') {
+  if (tab) {
     parts.push(`tab=${tab}`);
   }
 

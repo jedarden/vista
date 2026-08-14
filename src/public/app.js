@@ -4335,8 +4335,8 @@ function renderMetadataTable(filter = '') {
         <span class="filter-count">${filteredRows.length} of ${allMetadataRows.length} tags</span>
       </div>
       <div class="metadata-actions">
-        <button class="action-btn" onclick="exportMetadataAsJson()">&#128190; Export JSON</button>
-        <button class="action-btn" onclick="exportMetadataAsCsv()">&#128190; Export CSV</button>
+        <button class="action-btn" onclick="exportMetadataAsJson()" aria-label="Export metadata as JSON">&#128190; Export JSON</button>
+        <button class="action-btn" onclick="exportMetadataAsCsv()" aria-label="Export metadata as CSV">&#128190; Export CSV</button>
       </div>
     </div>
     <div class="metadata-table-wrapper">
@@ -4445,8 +4445,8 @@ function renderRedirects(chain, headers, headerAnalysis = null) {
 
   // Add JSON export buttons
   html += `<div class="redirect-actions">
-    ${chain && chain.length > 0 ? `<button class="action-btn" id="exportRedirectJson" onclick="exportRedirectChain()">&#128190; Export Chain as JSON</button>` : ''}
-    <button class="action-btn" id="exportHeadersJson" onclick="exportHeadersAsJson()">&#128190; Export Headers as JSON</button>
+    ${chain && chain.length > 0 ? `<button class="action-btn" id="exportRedirectJson" onclick="exportRedirectChain()" aria-label="Export redirect chain as JSON">&#128190; Export Chain as JSON</button>` : ''}
+    <button class="action-btn" id="exportHeadersJson" onclick="exportHeadersAsJson()" aria-label="Export response headers as JSON">&#128190; Export Headers as JSON</button>
   </div>`;
 
   if (chain && chain.length > 0) {

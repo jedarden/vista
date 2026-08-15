@@ -1,96 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Test Client-Side Meta Tags</title>
-  <!-- Intentionally NO meta tags in head - they will be injected by JavaScript below -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test: Client-Side Meta Tag Injection</title>
+    <!-- NO static meta tags for Open Graph or Twitter Card -->
 </head>
 <body>
-  <h1>Test Page: Client-Side Meta Tags</h1>
-  <p>This page intentionally injects all meta tags via JavaScript to test VISTA's client-side-only tag detection.</p>
+    <h1>Client-Side Meta Tag Injection Test</h1>
+    <p>This page tests JavaScript-based injection of Open Graph and Twitter Card meta tags.</p>
 
-  <div id="info">
-    <h2>Expected Behavior:</h2>
-    <ul>
-      <li>VISTA should detect that og:image, og:title, og:description are injected via JavaScript</li>
-      <li>VISTA should show an error diagnostic with code 'js-injected-tags'</li>
-      <li>VISTA should show severity 'error'</li>
-      <li>The diagnostic message should be actionable (suggest SSR/prerendering)</li>
-    </ul>
-  </div>
+    <div id="status">
+        <h2>Verification Steps:</h2>
+        <ol>
+            <li>Open browser DevTools (F12 or right-click → Inspect)</li>
+            <li>Go to Elements/Inspector panel</li>
+            <li>Check the &lt;head&gt; section</li>
+            <li>You should see meta tags with properties:
+                <ul>
+                    <li>og:image</li>
+                    <li>og:title</li>
+                    <li>og:description</li>
+                    <li>twitter:card</li>
+                    <li>twitter:title</li>
+                    <li>twitter:description</li>
+                    <li>twitter:image</li>
+                </ul>
+            </li>
+        </ol>
+    </div>
 
-  <script>
-    // Simulate a client-side SPA that injects meta tags after page load
-    // This is exactly what social crawlers DON'T see
+    <div id="injected-tags" style="margin-top: 20px; padding: 15px; background: #f0f0f0; border-radius: 5px;">
+        <h3>Injected Tags Status:</h3>
+        <p><strong>Before DOMContentLoaded:</strong> No meta tags in HTML source</p>
+        <p><strong>After DOMContentLoaded:</strong> Check browser Elements panel to verify tags appear in &lt;head&gt;</p>
+    </div>
 
-    function injectMetaTags() {
-      const head = document.head;
+    <script>
+        // Inject meta tags after DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Injecting meta tags...');
 
-      // Inject Open Graph tags via JavaScript
-      const ogImage = document.createElement('meta');
-      ogImage.setAttribute('property', 'og:image');
-      ogImage.setAttribute('content', 'https://example.com/test-image.jpg');
-      head.appendChild(ogImage);
+            // Open Graph meta tags
+            const ogTags = [
+                { property: 'og:image', content: 'https://example.com/image.jpg' },
+                { property: 'og:title', content: 'Test Page Title' },
+                { property: 'og:description', content: 'This is a test page for client-side meta tag injection' },
+                { property: 'og:type', content: 'website' },
+                { property: 'og:url', content: window.location.href }
+            ];
 
-      const ogTitle = document.createElement('meta');
-      ogTitle.setAttribute('property', 'og:title');
-      ogTitle.setAttribute('content', 'Test Page: Client-Side Meta Tags');
-      head.appendChild(ogTitle);
+            // Twitter Card meta tags
+            const twitterTags = [
+                { name: 'twitter:card', content: 'summary_large_image' },
+                { name: 'twitter:title', content: 'Test Page Title' },
+                { name: 'twitter:description', content: 'This is a test page for client-side meta tag injection' },
+                { name: 'twitter:image', content: 'https://example.com/image.jpg' }
+            ];
 
-      const ogDescription = document.createElement('meta');
-      ogDescription.setAttribute('property', 'og:description');
-      ogDescription.setAttribute('content', 'This page tests VISTA client-side-only tag detection.');
-      head.appendChild(ogDescription);
+            // Inject Open Graph tags
+            ogTags.forEach(tag => {
+                const meta = document.createElement('meta');
+                meta.setAttribute('property', tag.property);
+                meta.setAttribute('content', tag.content);
+                document.head.appendChild(meta);
+                console.log(`Injected: ${tag.property} = ${tag.content}`);
+            });
 
-      const ogType = document.createElement('meta');
-      ogType.setAttribute('property', 'og:type');
-      ogType.setAttribute('content', 'website');
-      head.appendChild(ogType);
+            // Inject Twitter Card tags
+            twitterTags.forEach(tag => {
+                const meta = document.createElement('meta');
+                meta.setAttribute('name', tag.name);
+                meta.setAttribute('content', tag.content);
+                document.head.appendChild(meta);
+                console.log(`Injected: ${tag.name} = ${tag.content}`);
+            });
 
-      const ogUrl = document.createElement('meta');
-      ogUrl.setAttribute('property', 'og:url');
-      ogUrl.setAttribute('content', window.location.href);
-      head.appendChild(ogUrl);
+            console.log('Meta tag injection complete!');
 
-      // Inject Twitter card tags
-      const twitterCard = document.createElement('meta');
-      twitterCard.setAttribute('name', 'twitter:card');
-      twitterCard.setAttribute('content', 'summary_large_image');
-      head.appendChild(twitterCard);
-
-      const twitterTitle = document.createElement('meta');
-      twitterTitle.setAttribute('name', 'twitter:title');
-      twitterTitle.setAttribute('content', 'Test Page: Client-Side Meta Tags');
-      head.appendChild(twitterTitle);
-
-      const twitterDescription = document.createElement('meta');
-      twitterDescription.setAttribute('name', 'twitter:description');
-      twitterDescription.setAttribute('content', 'This page tests VISTA client-side-only tag detection.');
-      head.appendChild(twitterDescription);
-
-      const twitterImage = document.createElement('meta');
-      twitterImage.setAttribute('name', 'twitter:image');
-      twitterImage.setAttribute('content', 'https://example.com/test-image.jpg');
-      head.appendChild(twitterImage);
-
-      console.log('Meta tags injected via JavaScript');
-    }
-
-    // Inject tags on page load
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', injectMetaTags);
-    } else {
-      injectMetaTags();
-    }
-
-    // Also inject after a short delay to simulate async data fetching
-    setTimeout(() => {
-      const ogImageUpdated = document.createElement('meta');
-      ogImageUpdated.setAttribute('property', 'og:image');
-      ogImageUpdated.setAttribute('content', 'https://example.com/updated-image.jpg');
-      document.head.appendChild(ogImageUpdated);
-      console.log('Additional og:image tag injected after delay');
-    }, 100);
-  </script>
+            // Update status in the page
+            const statusDiv = document.getElementById('injected-tags');
+            statusDiv.innerHTML += '<p><strong style="color: green;">✓ Meta tags injected via JavaScript!</strong></p>';
+            statusDiv.innerHTML += '<p>Check the Elements panel to see them in the DOM.</p>';
+        });
+    </script>
 </body>
 </html>

@@ -21,6 +21,10 @@ const PORT = process.env.PORT || 3000;
 const badgeCache = new Map();
 const BADGE_CACHE_TTL = 60 * 60 * 1000; // 1 hour in milliseconds
 
+// In-flight badge fetch map for de-duplicating concurrent requests
+// Maps URL -> Promise<{ score, platforms }>, cleared after fetch settles
+const inFlightBadgeFetches = new Map();
+
 /**
  * Check if an error is an SSRF-related error
  * SSRF errors should return 400, not 502
@@ -1071,40 +1075,61 @@ app.get('/api/badge', async (req, res) => {
       score = cached.score;
       platforms = cached.platforms;
     } else {
-      // Fetch and score the URL
-      try {
-        const { html, finalUrl } = await fetchUrl(url);
-        const meta = parseMetaTags(html, finalUrl);
+      // Check for in-flight request for this URL (de-duplication)
+      let fetchPromise = inFlightBadgeFetches.get(url);
 
-        // Probe image dimensions
-        let imageProbe = null;
-        const imageUrl = meta.og.image || meta.twitter.image;
-        if (imageUrl) {
-          try {
-            imageProbe = await probeImage(imageUrl);
-          } catch (_) {
-            // non-fatal
-          }
-        }
+      if (!fetchPromise) {
+        // No in-flight request, create a new one
+        fetchPromise = (async () => {
+          // Fetch and score the URL
+          const { html, finalUrl } = await fetchUrl(url);
+          const meta = parseMetaTags(html, finalUrl);
 
-        const scoring = scoreAll(meta, imageProbe);
-        score = scoring.overall.score;
-        platforms = Object.keys(scoring.scores).length;
-
-        // Cache the result
-        badgeCache.set(url, { score, platforms, timestamp: now });
-
-        // Clean up old cache entries periodically (simple LRU cleanup)
-        if (badgeCache.size > 1000) {
-          for (const [key, value] of badgeCache.entries()) {
-            if (now - value.timestamp >= BADGE_CACHE_TTL) {
-              badgeCache.delete(key);
+          // Probe image dimensions
+          let imageProbe = null;
+          const imageUrl = meta.og.image || meta.twitter.image;
+          if (imageUrl) {
+            try {
+              imageProbe = await probeImage(imageUrl);
+            } catch (_) {
+              // non-fatal
             }
           }
-        }
+
+          const scoring = scoreAll(meta, imageProbe);
+          const resultScore = scoring.overall.score;
+          const resultPlatforms = Object.keys(scoring.scores).length;
+
+          // Cache the result
+          badgeCache.set(url, { score: resultScore, platforms: resultPlatforms, timestamp: now });
+
+          // Clean up old cache entries periodically (simple LRU cleanup)
+          if (badgeCache.size > 1000) {
+            for (const [key, value] of badgeCache.entries()) {
+              if (now - value.timestamp >= BADGE_CACHE_TTL) {
+                badgeCache.delete(key);
+              }
+            }
+          }
+
+          return { score: resultScore, platforms: resultPlatforms };
+        })();
+
+        // Store the promise so concurrent requests can reuse it
+        inFlightBadgeFetches.set(url, fetchPromise);
+      }
+
+      // Wait for the fetch (whether we just created it or it was already in-flight)
+      try {
+        const result = await fetchPromise;
+        score = result.score;
+        platforms = result.platforms;
       } catch (err) {
         console.error('Badge fetch error:', err.message);
         return handleFetchError(res, err, 'Failed to fetch URL');
+      } finally {
+        // Clear the in-flight entry once the Promise settles (success or failure)
+        inFlightBadgeFetches.delete(url);
       }
     }
   } else {

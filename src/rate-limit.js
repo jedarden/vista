@@ -3,7 +3,7 @@
 /**
  * Generic per-IP rate limiting (in-memory token bucket).
  *
- * Per docs/plan.md "Security": "Rate limiting: basic in-memory token bucket
+ * Per docs/plan/plan.md "Security": "Rate limiting: basic in-memory token bucket
  * (stateless — resets on restart, which is fine)". The store lives in process
  * memory only — it imposes no shared state and clears on every restart, which
  * is an accepted trade-off for this service.

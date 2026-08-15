@@ -65,7 +65,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// --- Rate-limit policy (per docs/plan.md "Security": in-memory token bucket,
+// --- Rate-limit policy (per docs/plan/plan.md "Security": in-memory token bucket,
 // resets on restart). Each namespace below is an independent per-IP/hour bucket
 // (see src/rate-limit.js), so a tight limit on a costly endpoint does not
 // consume the budget of a cheaper one.
@@ -617,7 +617,7 @@ app.get('/api/sitemap', async (req, res) => {
  * Query params: url, platform, theme (light|dark), scale (1x|2x), format (svg|png)
  */
 app.get('/api/screenshot', async (req, res) => {
-  // PNG is the primary deliverable of this endpoint (per docs/plan.md "Card
+  // PNG is the primary deliverable of this endpoint (per docs/plan/plan.md "Card
   // Screenshot API" — response is image/png via SVG→sharp). format=svg remains
   // an explicit opt-in for callers who want raw SVG. (bf-25mc)
   const { url, platform, theme = 'dark', scale = '1x', format = 'png' } = req.query;

@@ -523,30 +523,37 @@
 
     function crit2_statePropagatesToAllFrames() {
       const G = '2 · Theme state propagates to all rendered frames';
-      // global → frames: <html data-theme> must agree with every frame
-      const globalTheme = document.documentElement.getAttribute('data-theme');
-      expect(G, 'global attribute', globalTheme === 'light',
-        '<html data-theme> = "' + globalTheme + '" (expected "light")');
+      function assertTogglePropagation(from, to) {
+        // Seed a complete set of existing frames, then use the same
+        // data-theme → FrameTheme.updateAllPlatformFrames path as the app.
+        document.documentElement.setAttribute('data-theme', from);
+        renderFrames(from);
 
-      const frames = contextFrames();
-      const mismatches = frames.filter(function (f) {
-        return f.getAttribute('data-theme') !== globalTheme;
-      });
-      expect(G, 'all frames match global', mismatches.length === 0,
-        mismatches.length + ' / ' + frames.length + ' frames have data-theme ≠ global');
+        const seeded = contextFrames();
+        expect(G, from + '→' + to + ' rendered frame count', seeded.length === 7,
+          'rendered ' + seeded.length + ' frames (expected 7)');
 
-      // propagation of the platform CSS variables: the inline value on each frame
-      // must equal the source-of-truth value for the current theme.
-      PLATFORMS.forEach(function (pid) {
-        const f = frameFor(pid);
-        if (!f) { record(G, pid, 'fail', 'frame not rendered'); return; }
-        const anchor = anchorVar(pid);
-        if (!anchor) { record(G, pid, 'skip', 'no theme vars for platform'); return; }
-        const expected = norm(getThemeVars(pid, globalTheme)[anchor]);
-        const actual = norm(f.style.getPropertyValue(anchor));
-        expect(G, pid, actual === expected,
-          anchor + ': applied="' + actual + '" expected="' + expected + '"');
-      });
+        const updated = applyThemeLikeApp(to);
+        expect(G, from + '→' + to + ' update count', updated === 7,
+          'updateAllPlatformFrames returned ' + updated + ' (expected 7)');
+        expect(G, from + '→' + to + ' global data-theme',
+          document.documentElement.getAttribute('data-theme') === to,
+          '<html data-theme> = "' + document.documentElement.getAttribute('data-theme') +
+          '" (expected "' + to + '")');
+
+        // Check each rendered frame independently so a stale platform is named
+        // directly in the failed assertion rather than hidden in an aggregate.
+        PLATFORMS.forEach(function (pid) {
+          const f = frameFor(pid);
+          const actual = f ? f.getAttribute('data-theme') : null;
+          expect(G, pid + ' ' + from + '→' + to, !!f && actual === to,
+            'platform ' + pid + ': data-theme="' + actual + '" (expected "' +
+            to + '", previous "' + from + '")');
+        });
+      }
+
+      assertTogglePropagation('light', 'dark');
+      assertTogglePropagation('dark', 'light');
     }
 
     function crit3_perPlatformCorrectnessBothModes() {

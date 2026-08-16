@@ -36,8 +36,8 @@
   <!-- Frame styling for visual fidelity. The assertions below do NOT depend on
        these stylesheets — they inspect inline theme variables and attributes that
        updateAllPlatformFrames sets directly on each frame element. -->
-  <link rel="stylesheet" href="platform-frames-base.css" onerror="null;" />
-  <link rel="stylesheet" href="frames-theme.css" onerror="null;" />
+  <link rel="stylesheet" href="platform-frames-base.css" />
+  <link rel="stylesheet" href="frames-theme.css" />
 
   <style>
     :root {
@@ -225,20 +225,22 @@
     <div id="frames-grid"></div>
   </section>
 
-  <!-- The real production modules the app uses to build & re-theme platform frames -->
+  <!-- The real production modules the app uses to build & re-theme platform frames. -->
+  <script src="platform-frames-config.js"></script>
   <script src="platform-frames.js"></script>
   <script src="frames-theme.js"></script>
-  <script src="platform-frames-config.js"></script>
   <script>
   'use strict';
   (function () {
     // ---------------------------------------------------------------------------
     // Resolve the canonical 7 platforms from the centralized config (source of
-    // truth), falling back to the known seven if the config module isn't loaded.
+    // truth). There is intentionally no fallback list: a missing or incomplete
+    // config must block the harness instead of allowing a false green result.
     // ---------------------------------------------------------------------------
-    const FALLBACK_PLATFORMS = ['facebook','twitter','linkedin','reddit','youtube','instagram','tiktok'];
-    const PLATFORMS = (window.getAllPlatformIds && window.getAllPlatformIds()) || FALLBACK_PLATFORMS;
-    const THEMEABLE = (window.getThemeablePlatformIds && window.getThemeablePlatformIds()) || PLATFORMS;
+    const EXPECTED_PLATFORMS = ['facebook', 'twitter', 'linkedin', 'reddit', 'youtube', 'instagram', 'tiktok'];
+    const PLATFORMS = typeof window.getAllPlatformIds === 'function'
+      ? window.getAllPlatformIds()
+      : [];
 
     const envWarn = document.getElementById('env-warn');
     const banner = document.getElementById('banner');
@@ -254,10 +256,15 @@
     // ---------------------------------------------------------------------------
     function checkEnv() {
       const problems = [];
+      const configIds = PLATFORMS.join(',');
+      const expectedIds = EXPECTED_PLATFORMS.join(',');
       if (typeof window.buildContextFrame !== 'function') problems.push('platform-frames.js did not expose buildContextFrame()');
       if (!window.FrameTheme || typeof window.FrameTheme.updateAllPlatformFrames !== 'function') problems.push('frames-theme.js did not expose FrameTheme.updateAllPlatformFrames()');
       if (typeof window.getThemeVars !== 'function' && !(window.PlatformFrames && typeof window.PlatformFrames.getThemeVars === 'function')) problems.push('getThemeVars() unavailable (cannot read per-platform theme source of truth)');
-      if (PLATFORMS.length !== 7) problems.push('Expected 7 platforms from config, got ' + PLATFORMS.length + ' (' + PLATFORMS.join(', ') + ')');
+      if (typeof window.getAllPlatformIds !== 'function' || !Array.isArray(window.PLATFORM_FRAMES_CONFIG)) problems.push('platform-frames-config.js did not expose its runtime configuration');
+      if (configIds !== expectedIds) problems.push('Expected config IDs [' + expectedIds + '], got [' + configIds + ']');
+      if (PLATFORMS.length !== 7) problems.push('Expected 7 platforms from config, got ' + PLATFORMS.length);
+      if (PLATFORMS.some(function (pid) { return !window.platformHasThemeSupport || !window.platformHasThemeSupport(pid); })) problems.push('Every configured acceptance platform must support themes');
       if (problems.length) {
         envWarn.style.display = 'block';
         envWarn.innerHTML = '<strong>Environment problem — harness cannot run faithfully:</strong><br>• ' + problems.join('<br>• ');
@@ -350,16 +357,28 @@
     function crit1_toggleAffectsAllFrames() {
       const G = '1 · Toggle affects all platform frames';
       renderFrames('dark');
-      applyThemeLikeApp('light'); // drive the real toggle path dark → light
+      const before = {};
+      PLATFORMS.forEach(function (pid) {
+        const f = frameFor(pid);
+        before[pid] = f ? {
+          dataTheme: f.getAttribute('data-theme'),
+          themeClass: f.classList.contains('dark-theme'),
+        } : null;
+      });
+      const updated = applyThemeLikeApp('light'); // drive the real toggle path dark → light
+      expect(G, 'all seven frames returned from update', updated === PLATFORMS.length,
+        'updateAllPlatformFrames returned ' + updated + ' (expected ' + PLATFORMS.length + ')');
       PLATFORMS.forEach(function (pid) {
         const f = frameFor(pid);
         if (!f) { record(G, pid, 'fail', 'frame not rendered'); return; }
+        const startedDark = before[pid] && before[pid].dataTheme === 'dark' && before[pid].themeClass;
         const hasClass = f.classList.contains('light-theme');
         const dataTheme = f.getAttribute('data-theme') === 'light';
         const frameTheme = f.getAttribute('data-frame-theme') === 'light';
-        const ok = hasClass && dataTheme && frameTheme;
+        const ok = startedDark && hasClass && dataTheme && frameTheme;
         expect(G, pid, ok,
-          'class ' + (hasClass ? '✓' : '✗ light-theme') +
+          'started dark ' + (startedDark ? '✓' : '✗') +
+          ' · class ' + (hasClass ? '✓' : '✗ light-theme') +
           ' · data-theme ' + (dataTheme ? '✓' : '✗=light') +
           ' · data-frame-theme ' + (frameTheme ? '✓' : '✗=light'));
       });
@@ -501,7 +520,7 @@
       if (!envOk) {
         banner.className = 'summary-banner fail';
         banner.textContent = 'BLOCKED — production modules not available (see warning)';
-        countsEl.textContent = 'Fix the script loading / environment and re-run.';
+        countsEl.textContent = total + ' assertions: ' + pass + ' passed, ' + fail + ' failed, ' + skip + ' skipped. Fix the script loading / environment and re-run.';
       } else if (fail === 0) {
         banner.className = 'summary-banner pass';
         banner.textContent = 'PASS — all ' + total + ' assertions satisfied across the 7-platform theme-switching chain';

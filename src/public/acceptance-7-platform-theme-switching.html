@@ -33,11 +33,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>7-Platform Theme-Switching Acceptance Harness (bf-3fihc)</title>
 
-  <!-- Frame styling for visual fidelity. The assertions below do NOT depend on
-       these stylesheets — they inspect inline theme variables and attributes that
-       updateAllPlatformFrames sets directly on each frame element. -->
+  <!-- Production frame styling used by the computed-style assertions below. -->
   <link rel="stylesheet" href="platform-frames-base.css" />
   <link rel="stylesheet" href="frames-theme.css" />
+  <link rel="stylesheet" href="social-platforms-frames.css" />
 
   <style>
     :root {
@@ -184,6 +183,13 @@
     }
     .frame-slot { min-height: 120px; }
     .frame-slot .context-frame { max-width: 100%; }
+    /* Theme assertions sample computed styles immediately after the production
+       update call. Disable only these preview transitions so an in-flight CSS
+       interpolation cannot make a correct token look stale. */
+    .frame-slot .context-frame,
+    .frame-slot .context-frame * {
+      transition: none !important;
+    }
     .env-warn {
       margin: 16px 32px;
       padding: 12px 16px;
@@ -262,6 +268,7 @@
       if (!window.FrameTheme || typeof window.FrameTheme.updateAllPlatformFrames !== 'function') problems.push('frames-theme.js did not expose FrameTheme.updateAllPlatformFrames()');
       if (typeof window.getThemeVars !== 'function' && !(window.PlatformFrames && typeof window.PlatformFrames.getThemeVars === 'function')) problems.push('getThemeVars() unavailable (cannot read per-platform theme source of truth)');
       if (typeof window.getAllPlatformIds !== 'function' || !Array.isArray(window.PLATFORM_FRAMES_CONFIG)) problems.push('platform-frames-config.js did not expose its runtime configuration');
+      if (!Array.prototype.some.call(document.styleSheets, function (sheet) { return /social-platforms-frames\.css(?:\?|$)/.test(sheet.href || ''); })) problems.push('social-platforms-frames.css is unavailable (cannot inspect platform card/chrome styling)');
       if (configIds !== expectedIds) problems.push('Expected config IDs [' + expectedIds + '], got [' + configIds + ']');
       if (PLATFORMS.length !== 7) problems.push('Expected 7 platforms from config, got ' + PLATFORMS.length);
       if (PLATFORMS.some(function (pid) { return !window.platformHasThemeSupport || !window.platformHasThemeSupport(pid); })) problems.push('Every configured acceptance platform must support themes');
@@ -350,6 +357,136 @@
       return vars['--frame-bg'] != null ? '--frame-bg' : (Object.keys(vars)[0] || null);
     }
 
+    // ---------------------------------------------------------------------------
+    // Per-platform style probes for criterion 3. These selectors describe the
+    // actual elements emitted by buildContextFrame: the link-preview is the
+    // card, while the first header/video container is the surrounding chrome.
+    // Expected values are resolved CSS custom properties, rather than literals,
+    // so a hard-coded style or a stale data-theme branch fails the row.
+    // ---------------------------------------------------------------------------
+    const THEME_STYLE_PROBES = {
+      facebook: {
+        card: { root: '.fb-link-preview', background: ['.fb-link-preview', '--color-facebook-{theme}-surface'], foreground: ['.fb-context-title', '--color-facebook-{theme}-text-primary'], border: ['.fb-link-preview', '--color-facebook-{theme}-border'] },
+        chrome: { root: '.fb-post-header', background: ['.fb-post-header', '--color-facebook-{theme}-surface'], foreground: ['.fb-author-name', '--color-facebook-{theme}-text-primary'], border: ['.fb-post-header', '--color-facebook-{theme}-border'] },
+        brand: { selector: '.fb-avatar', property: 'backgroundImage', token: '--color-facebook-accent' },
+      },
+      twitter: {
+        card: { root: '.tw-link-card', background: ['.tw-link-card', '--twitter-surface'], foreground: ['.tw-context-title', '--color-twitter-{theme}-text-primary'], border: ['.tw-link-card', '--twitter-border'] },
+        chrome: { root: '.tw-post-header', background: ['.tw-post-header', '--twitter-bg'], foreground: ['.tw-author-name', '--color-twitter-{theme}-text-primary'] },
+        brand: { selector: '.tw-verified', property: 'backgroundColor', token: '--color-twitter-blue' },
+      },
+      linkedin: {
+        card: { root: '.li-link-preview', background: ['.li-link-preview', '--color-linkedin-{theme}-surface'], foreground: ['.li-context-title', '--color-linkedin-{theme}-text-primary'], border: ['.li-link-preview', '--color-linkedin-{theme}-border'] },
+        chrome: { root: '.li-post-header', background: ['.li-post-header', '--color-linkedin-{theme}-surface'], foreground: ['.li-author-name', '--color-linkedin-{theme}-text-primary'], border: ['.li-post-header', '--color-linkedin-{theme}-border'] },
+        brand: { selector: '.li-avatar', property: 'backgroundImage', token: '--color-linkedin-accent' },
+      },
+      reddit: {
+        card: { root: '.rd-link-preview', background: ['.rd-link-preview', '--reddit-surface'], foreground: ['.rd-link-title', '--reddit-text-primary'], border: ['.rd-link-preview', '--reddit-border'] },
+        chrome: { root: '.rd-subreddit-header', background: ['.rd-subreddit-header', '--reddit-surface'], foreground: ['.rd-subreddit-name', '--reddit-text-primary'], border: ['.rd-subreddit-header', '--reddit-border'] },
+        brand: { selector: '.rd-subreddit-icon', property: 'backgroundColor', token: '--reddit-accent' },
+      },
+      youtube: {
+        card: { root: '.yt-link-card', background: ['.yt-link-card', '--youtube-surface'], foreground: ['.yt-link-card-title', '--youtube-text-primary'] },
+        chrome: { root: '.yt-video-player', background: ['.yt-video-player', '--youtube-bg'], foreground: ['.yt-video-title', '--youtube-text-primary'] },
+        brand: { selector: '.yt-channel-avatar', property: 'backgroundImage', token: '--youtube-accent' },
+      },
+      instagram: {
+        card: { root: '.ig-link-preview', background: ['.ig-link-preview', '--color-instagram-{theme}-surface'], foreground: ['.ig-caption', '--color-instagram-{theme}-text-primary'] },
+        chrome: { root: '.ig-post-header', background: ['.ig-post-header', '--color-instagram-{theme}-surface'], foreground: ['.ig-username', '--color-instagram-{theme}-text-primary'], border: ['.ig-post-header', '--color-instagram-{theme}-border'] },
+        brand: { selector: '.ig-avatar', property: 'backgroundImage', token: '--color-instagram-gradient-start' },
+      },
+      tiktok: {
+        card: { root: '.tt-link-card', background: ['.tt-link-card', '--frame-surface'], foreground: ['.tt-link-card-title', '--frame-text-primary'], border: ['.tt-link-card', '--frame-border'] },
+        chrome: { root: '.tt-video-container', background: ['.tt-video-container', '--frame-surface'], foreground: ['.tt-username', '--frame-text-primary'] },
+        // The current TikTok chrome has no rendered brand swatch; the frame's
+        // accent token is still checked below alongside the actual card/chrome.
+        brand: null,
+      },
+    };
+
+    function cssTokenName(token, theme) {
+      return token.replace('{theme}', theme);
+    }
+
+    function computedValue(element, property) {
+      return element ? String(getComputedStyle(element)[property] || '').trim() : '';
+    }
+
+    function colorParts(value) {
+      const input = norm(value).replace(/\s+/g, '');
+      let match = input.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+      if (match) {
+        const hex = match[1].length === 3 ? match[1].split('').map(function (c) { return c + c; }).join('') : match[1];
+        return [parseInt(hex.slice(0, 2), 16), parseInt(hex.slice(2, 4), 16), parseInt(hex.slice(4, 6), 16)];
+      }
+      match = input.match(/^rgba?\((\d+),(\d+),(\d+)(?:,(?:0|1|0?\.\d+))?\)$/);
+      return match ? [Number(match[1]), Number(match[2]), Number(match[3])] : null;
+    }
+
+    function styleColorMatches(actual, expected) {
+      const actualRgb = colorParts(actual);
+      const expectedRgb = colorParts(expected);
+      return !!actualRgb && !!expectedRgb && actualRgb.every(function (channel, index) {
+        return channel === expectedRgb[index];
+      });
+    }
+
+    function stylePropertyMatches(element, property, expected) {
+      const actual = computedValue(element, property);
+      if (property === 'backgroundImage') {
+        const expectedRgb = colorParts(expected);
+        const firstRgb = actual.match(/rgb\([^)]+\)/i);
+        return !!expectedRgb && !!firstRgb && firstRgb[0].toLowerCase() === 'rgb(' + expectedRgb.join(', ') + ')';
+      }
+      return styleColorMatches(actual, expected);
+    }
+
+    function probeStyle(frame, probe, theme) {
+      const failures = [];
+      const frameStyle = getComputedStyle(frame);
+
+      const cardRoot = frame.querySelector(probe.card.root);
+      const chromeRoot = frame.querySelector(probe.chrome.root);
+      if (!cardRoot) failures.push('card root ' + probe.card.root + ' missing');
+      else if (!cardRoot.children.length && !cardRoot.textContent.trim()) failures.push('card root ' + probe.card.root + ' is empty');
+      if (!chromeRoot) failures.push('chrome root ' + probe.chrome.root + ' missing');
+      else if (!chromeRoot.children.length && !chromeRoot.textContent.trim()) failures.push('chrome root ' + probe.chrome.root + ' is empty');
+
+      function checkPart(label, spec, property) {
+        if (!spec) return;
+        const selector = spec[0];
+        const token = cssTokenName(spec[1], theme);
+        const element = frame.querySelector(selector);
+        const expected = frameStyle.getPropertyValue(token).trim();
+        if (!element) {
+          failures.push(label + ' element ' + selector + ' missing');
+        } else if (!expected) {
+          failures.push(label + ' token ' + token + ' undefined');
+        } else if (!stylePropertyMatches(element, property, expected)) {
+          failures.push(label + ' ' + property + ' does not resolve to ' + token + ' (got "' + computedValue(element, property) + '", expected "' + expected + '")');
+        }
+      }
+
+      ['background', 'foreground', 'border'].forEach(function (part) {
+        const property = part === 'background' ? 'backgroundColor' : (part === 'foreground' ? 'color' : 'borderBottomColor');
+        checkPart(part, probe.card[part], property);
+        checkPart('chrome ' + part, probe.chrome[part], property);
+      });
+
+      if (probe.brand) {
+        const brandElement = frame.querySelector(probe.brand.selector);
+        const brandToken = cssTokenName(probe.brand.token, theme);
+        const brandExpected = frameStyle.getPropertyValue(brandToken).trim();
+        if (!brandElement) failures.push('brand element ' + probe.brand.selector + ' missing');
+        else if (!brandExpected) failures.push('brand token ' + brandToken + ' undefined');
+        else if (!stylePropertyMatches(brandElement, probe.brand.property, brandExpected)) {
+          failures.push('brand ' + probe.brand.property + ' does not resolve to ' + brandToken + ' (got "' + computedValue(brandElement, probe.brand.property) + '", expected "' + brandExpected + '")');
+        }
+      }
+
+      return failures;
+    }
+
     // ===========================================================================
     // THE FIVE PARENT ACCEPTANCE CRITERIA (bf-2k0os)
     // ===========================================================================
@@ -418,16 +555,25 @@
         applyThemeLikeApp(theme);
         PLATFORMS.forEach(function (pid) {
           const f = frameFor(pid);
-          if (!f) { record(G, pid, 'fail', 'frame not rendered (' + theme + ')'); return; }
-          const anchor = anchorVar(pid);
-          if (!anchor) { record(G, pid + '/' + theme, 'skip', 'no theme vars'); return; }
-          const expected = norm(getThemeVars(pid, theme)[anchor]);
-          const actual = norm(f.style.getPropertyValue(anchor));
-          const themeClassOk = f.classList.contains(theme + '-theme');
-          const ok = actual === expected && themeClassOk;
-          expect(G, pid + '/' + theme, ok,
-            (themeClassOk ? '' : '✗ class ')
-            + anchor + ' ' + (actual === expected ? '✓' : '✗ applied="' + actual + '" exp="' + expected + '"'));
+          const label = pid + '/' + theme;
+          if (!f) { expect(G, label, false, 'frame not rendered'); return; }
+
+          const expectedVars = getThemeVars(pid, theme) || {};
+          const themeClassOk = f.classList.contains(theme + '-theme') && !f.classList.contains((theme === 'dark' ? 'light' : 'dark') + '-theme');
+          const attrsOk = f.getAttribute('data-theme') === theme && f.getAttribute('data-frame-theme') === theme;
+          const varsOk = Object.keys(expectedVars).every(function (varName) {
+            return norm(f.style.getPropertyValue(varName)) === norm(expectedVars[varName]);
+          });
+          const styleFailures = probeStyle(f, THEME_STYLE_PROBES[pid], theme);
+          const ok = themeClassOk && attrsOk && varsOk && styleFailures.length === 0;
+          const detail = [
+            'class ' + (themeClassOk ? '✓' : '✗'),
+            'data-theme/frame-theme ' + (attrsOk ? '✓' : '✗'),
+            '12 frame tokens ' + (varsOk ? '✓' : '✗'),
+            'card + chrome + brand ' + (styleFailures.length === 0 ? '✓' : '✗'),
+          ];
+          if (styleFailures.length) detail.push(styleFailures.join('; '));
+          expect(G, label, ok, detail.join(' · '));
         });
       });
     }

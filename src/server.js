@@ -10,6 +10,7 @@ const { scoreAll, PLATFORMS } = require('./scorer');
 const { generateScreenshot, isValidPlatform } = require('./screenshot');
 const { checkRateLimit } = require('./rate-limit');
 const { analyzeResponseHeaders } = require('./header-analyzer');
+const { purgeCloudflareEdge } = require('./cloudflare-purge');
 const cheerio = require('cheerio');
 const { ZipArchive } = require('archiver');
 const { generateSnippet, getSupportedFormats } = require('./snippet-gen');
@@ -1245,7 +1246,10 @@ app.get('/api/compare', async (req, res) => {
  * POST /api/purge
  * Server-side cache invalidation for a URL
  * Body: { url: string, platforms?: string[] }
- * Clears server-side in-memory cache and optionally purges external platform caches
+ * Clears server-side in-memory cache, purges the Cloudflare edge cache for
+ * the vista API URLs derived from `url` (when CLOUDFLARE_API_TOKEN is
+ * configured — see src/cloudflare-purge.js), and optionally purges external
+ * platform caches
  */
 app.post('/api/purge', async (req, res) => {
   const { url, platforms } = req.body;
@@ -1277,6 +1281,24 @@ app.post('/api/purge', async (req, res) => {
     results.purged.push('server-badge-cache');
   } else {
     results.skipped.push('server-badge-cache');
+  }
+
+  // Purge the Cloudflare edge cache for the /api/* URLs derived from this
+  // target URL (plan.md ADR-001 — the edge cache is keyed on the full vista
+  // URL, not the inspected URL). Skips cleanly when the server has no
+  // Cloudflare credentials, mirroring the FACEBOOK_APP_TOKEN pattern below.
+  const cfResult = await purgeCloudflareEdge(url, {
+    apiToken: process.env.CLOUDFLARE_API_TOKEN,
+    zoneId: process.env.CLOUDFLARE_ZONE_ID,
+    zoneName: process.env.CLOUDFLARE_ZONE_NAME,
+    baseUrl: process.env.PUBLIC_BASE_URL,
+  });
+  if (cfResult.status === 'purged') {
+    results.purged.push('cloudflare-edge-cache');
+  } else if (cfResult.status === 'skipped') {
+    results.skipped.push(`cloudflare-edge-cache (${cfResult.detail})`);
+  } else {
+    results.failed.push({ platform: 'cloudflare-edge-cache', error: cfResult.detail });
   }
 
   // Platform-specific cache purging

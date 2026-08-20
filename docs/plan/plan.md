@@ -1173,6 +1173,7 @@ After fixing meta tags, every platform still shows the old preview because they 
   - Discord: note that cache expires after ~24h (no manual purge)
 - For platforms with purge APIs (Facebook Graph API `?scrape=true`), offer a direct "Purge" button that hits the API server-side
 - Endpoint: `POST /api/purge?url=https://...&platform=facebook`
+- The same endpoint also purges the Cloudflare edge cache for the vista API URLs derived from the inspected URL (see ADR-001 and `src/cloudflare-purge.js`) when `CLOUDFLARE_API_TOKEN` is configured — skipping cleanly (reported under `skipped`) when it isn't
 
 ---
 
@@ -2298,3 +2299,63 @@ Cache VISTA's read-heavy GET responses at the Cloudflare edge instead of in a pe
 - No new service to operate, monitor, or back up; the app's "stateless" claim in the Overview stays true of the process itself.
 - Cache invalidation now depends on Cloudflare purge rather than an in-process `Map.delete()`. The existing `POST /api/purge` handler already clears `badgeCache` on request — it will need a Cloudflare purge call added alongside that once the in-memory cache is retired, so "refresh my badge" continues to work as documented in the Cache Invalidation Hub feature.
 - This has no effect until `vista.jedarden.com` is reachable and Cloudflare-proxied — sequenced after the DNS-fix bead below.
+
+### Status: 2026-08-20 (verified against production, vista-3797812c)
+
+**Step 1 — CONFIRMED.** `vista.jedarden.com` is live and Cloudflare-proxied
+(orange-clouded). It resolves to Cloudflare anycast IPs and answers with
+`server: cloudflare` / `cf-ray`. The record is an external-dns CNAME to the
+apexalgo-iad Cloudflare tunnel
+(`external-dns.alpha.kubernetes.io/target: cef7d924-….cfargotunnel.com`,
+created with `--cloudflare-proxied` — see `declarative-config
+k8s/apexalgo-iad/vista/ingressroute.yml`). The 2026-07-20 NXDOMAIN finding is
+obsolete. A matching `cloudflare_record` is being codified in
+`declarative-config terraform/cloudflare/dns.tf` separately.
+
+**Step 2 — rule confirmed REQUIRED, creation blocked on credentials.**
+Repeated requests to `https://vista.jedarden.com/api/badge?url=…` (SVG,
+`max-age=3600`) and `/api/preview?url=…` (JSON, `max-age=300`) all return
+`cf-cache-status: DYNAMIC` — Cloudflare considers none of them cache-eligible.
+Origin `Cache-Control` alone is therefore **not** sufficient (the ADR's
+conditional is resolved), and a Cache Rule matching
+`(http.host eq "vista.jedarden.com" and starts_with(http.request.uri.path, "/api/"))`
+with *Eligible for cache* / *respect origin TTL* is required. Creating it needs
+a Cloudflare token with **Zone > Cache Rules > Edit** on the jedarden.com zone;
+no credential reachable from the fleet has it:
+
+- the apexalgo-iad external-dns token (sealed) is Zone:Read + DNS:Edit only;
+- cert-manager tokens are DNS-edit scoped to other zones;
+- the `terraform/cloudflare` GitOps pipeline in declarative-config is **not
+  live** — tofu-controller is not installed (no Terraform CRD on
+  ardenone-manager; its ArgoCD app reports Missing/OutOfSync), so committing a
+  `cloudflare_ruleset` there today would be unapplied config.
+
+Operator steps to unblock: mint the token (Cache Rules:Edit on jedarden.com),
+add the Cache Rule (dashboard or API), then verify `cf-cache-status`
+transitions MISS → HIT on repeated `/api/badge` requests.
+
+**Step 4 — LANDED (code).** `POST /api/purge` now also purges the Cloudflare
+edge cache for the vista API URLs derived from the target URL (bare + all four
+badge styles, plus `/api/preview` — see `src/cloudflare-purge.js`;
+`/api/screenshot` and `/api/compare` variants are not enumerated, both carry
+5-minute TTLs and self-heal). Configuration, all optional and skip-clean when
+unset (same pattern as `FACEBOOK_APP_TOKEN`):
+
+- `CLOUDFLARE_API_TOKEN` — Zone > Cache Purge > Purge (+ Zone > Zone > Read if
+  resolving by name) on jedarden.com
+- `CLOUDFLARE_ZONE_ID` or `CLOUDFLARE_ZONE_NAME` — zone to purge
+- `PUBLIC_BASE_URL` — e.g. `https://vista.jedarden.com`
+
+The k8s wiring is staged as
+`declarative-config k8s/apexalgo-iad/vista/cloudflare-purge-externalsecret.yml`
+(OpenBao path `rs-manager/apexalgo-iad/vista/cloudflare-purge`, key `api-token`).
+Deployment env must be wired only after that value exists — referencing a
+missing secret in the Deployment would leave the pod in
+CreateContainerConfigError.
+
+**Step 3 — STILL GATED, deliberately.** With the edge returning `DYNAMIC`,
+removing `badgeCache` now would leave *zero* caching anywhere: badges embedded
+in third-party READMEs would fetch-and-score the target URL on every view —
+exactly the "No caching at all" alternative this ADR rejects. The Map is
+retired only after the Cache Rule above is live and verified caching
+(`cf-cache-status: HIT` observed in production).

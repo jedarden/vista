@@ -1,35 +1,37 @@
-# Pluck Configuration Analysis
+# Pluck Configuration State
 
-**Date:** 2026-08-21
-**Bead:** vista-21da82b2
-**Task:** Read Pluck configuration files
+**Verified:** 2026-08-21
+
+**Documenting bead:** `vista-7a7dff17`
+
+**Scope:** NEEDLE's effective Pluck settings when this VISTA checkout is the
+target workspace.
 
 ## Summary
 
-Successfully located, read, and analyzed the Pluck configuration files for the NEEDLE system.
+Pluck has three configurable settings. All three are present in the global
+NEEDLE configuration and parse successfully. VISTA supplies no local Pluck
+overrides; its only NEEDLE setting selects the current `bead-rs` backend.
 
-## Configuration Files Located
+The configuration is syntactically valid, but it has operational trade-offs to
+monitor: a default `needle` invocation targets `claude-governor`, rather than
+VISTA; starvation events are not durably recorded; and the custom
+`starvation-alert` exclusion deliberately keeps alert-labelled work out of the
+normal queue.
 
-### 1. Global Configuration
-**Location:** `/home/coding/.config/needle/config.yaml`
-**Format:** YAML
-**Status:** ✅ Read and analyzed
+## Configuration sources and precedence
 
-### 2. Documentation
-**Location:** `/home/coding/claude-governor/docs/plan/pluck-configuration.md`
-**Format:** Markdown
-**Status:** ✅ Read and analyzed
+| Source | Relevant setting | Effective value |
+|---|---|---|
+| `/home/coding/.config/needle/config.yaml` | `strands.pluck` | All three Pluck settings below. |
+| `/home/coding/.config/needle/config.yaml` | `workspace.default` | `/home/coding/claude-governor` |
+| `/home/coding/vista/.needle.yaml` | `bead_cli.backend` | `bead-rs` |
 
-### 3. Workspace Configuration
-**Location:** `/home/coding/vista/.needle.yaml`
-**Format:** YAML
-**Status:** ✅ Read and analyzed
+The workspace file does not contain a `strands.pluck` block, so VISTA inherits
+the global Pluck values. CLI and environment overrides can take precedence at
+launch time; none were observed during this review.
 
-## Configuration Format
-
-All Pluck configurations use **YAML** format with the following structure:
-
-### Global Pluck Configuration
+## Effective Pluck settings
 
 ```yaml
 strands:
@@ -43,82 +45,73 @@ strands:
     persistent_starvation_records: false
 ```
 
-### Workspace Configuration
+| Key | Value | Effect |
+|---|---|---|
+| `strands.pluck.exclude_labels` | `deferred`, `human`, `blocked`, `starvation-alert` | A ready bead with any one of these exact, case-sensitive labels is excluded from Pluck selection. |
+| `strands.pluck.split_after_failures` | `3` | When the first candidate after filtering has a `failure-count:N` label of at least `3`, Pluck returns a split instruction instead of normal work. `0` disables this behavior. |
+| `strands.pluck.persistent_starvation_records` | `false` | Starvation telemetry is emitted, but no JSONL diagnostic is written to NEEDLE's state directory. |
 
-The vista workspace specifies only the backend binding:
+These are the complete fields in NEEDLE's `PluckConfig`; no status selector,
+required-label selector, ID exclusion, or metadata selector is configurable or
+set in the VISTA configuration.
 
-```yaml
-bead_cli:
-  backend: bead-rs
-```
+### Label inventory
 
-## Configuration Structure Analysis
+| Exact label | Meaning in the current configuration |
+|---|---|
+| `deferred` | Keeps postponed work out of the normal dispatch queue. |
+| `human` | Keeps work reserved for human handling out of automated dispatch. |
+| `blocked` | Excludes a bead carrying the `blocked` *label*. This is separate from bead-rs manual blocking or an unfinished blocking dependency. |
+| `starvation-alert` | Keeps starvation-alert-labelled beads out of normal automated selection. This is a deployment-specific addition, not a Pluck default. |
 
-### 1. exclude_labels (Array of strings)
-- **Purpose:** Labels that exclude beads from being plucked
-- **Current values:**
-  - `deferred`: Excludes postponed work
-  - `human`: Excludes work reserved for human handling
-  - `blocked`: Excludes beads carrying the blocked marker
-  - `starvation-alert`: Excludes starvation-alert beads from normal work selection
-- **Behavior:** Exact case-sensitive matching (no wildcards, prefixes, or regex)
-- **Fallback:** Built-in defaults are `["deferred", "human", "blocked"]`
+If `exclude_labels` were omitted or empty, Pluck would use its built-in fallback
+of `deferred`, `human`, and `blocked`. A non-empty configured list replaces
+that fallback rather than extending it. The active list correctly repeats all
+three default labels before adding `starvation-alert`.
 
-### 2. split_after_failures (Integer)
-- **Purpose:** Changes result when first candidate's failure count reaches threshold
-- **Current value:** `3`
-- **Behavior:** 
-  - If first sorted candidate has `failure-count:N >= 3`, returns `Split` result
-  - Setting to `0` disables splitting
-  - Prevents repeatedly failing beads from monopolizing first slot
+## Selection behavior relevant to this configuration
 
-### 3. persistent_starvation_records (Boolean)
-- **Purpose:** Controls starvation diagnostic output persistence
-- **Current value:** `false`
-- **Behavior:** When `false`, does not write persistent records to NEEDLE's starvation-record file
+Before Pluck applies the label list, bead-rs supplies its ready frontier:
+open, unassigned beads that are not manually blocked and do not have an
+unfinished `blocks` dependency. Pluck applies the configured labels, defensive
+status/assignee checks, and temporary worker-local race-loss exclusions, then
+orders remaining candidates as follows:
 
-## Candidate Filtering Pipeline
-
-Pluck applies multiple layers of filtering:
-
-1. **Workspace and Store Selection**: Uses resolved workspace's `.beads` store
-2. **Bead-rs `--ready` Frontier**: Base status, assignee, manual block, blocking dependencies
-3. **NEEDLE Filters**: Applies `exclude_labels` and `exclude_ids`
-4. **Status Guard**: Removes `in_progress` and stale assignee beads
-5. **Worker-local Exclusions**: Transient exclusion set for race-lost IDs
-
-## Ordering Behavior
-
-Candidates are sorted deterministically by:
-```
+```text
 priority ASC → failure count ASC → created_at ASC → id ASC
 ```
 
-Failure count is the maximum valid integer in any `failure-count:N` label.
+The failure count is the largest valid `failure-count:N` label on a bead;
+missing or malformed values count as zero. Reaching the configured threshold
+does not remove a bead from the ready frontier—it changes the dispatch result
+to `Split`. A repeated failure is therefore handled before the later
+`outcome.quarantine_after_failures: 5` global safeguard.
 
-## Key Findings
+When no candidates remain, `persistent_starvation_records: false` leaves
+telemetry as the only Pluck-generated starvation evidence. If enabled, records
+would go to `/home/coding/.needle/state/starvation-records.jsonl`, never to
+VISTA's `.beads` store.
 
-1. **Configuration is Active and Valid**: The global configuration is loaded and functional with `needle 0.4.2`
+## Assessment and cautions
 
-2. **Four Active Exclusion Labels**: The configuration uses four labels instead of the built-in three (added `starvation-alert`)
+| Finding | Assessment | Why it matters |
+|---|---|---|
+| YAML syntax and field types | Valid | `needle doctor` passed the configuration check. |
+| Backend selection | Correct | VISTA explicitly uses `bead-rs`, the configured current backend. |
+| `workspace.default` points to `/home/coding/claude-governor` | Operational caution | Running `needle` without an explicit VISTA workspace will select the `claude-governor` bead store, not this checkout. VISTA-specific launch commands should specify their workspace. |
+| `persistent_starvation_records: false` | Intentional trade-off | Starvation can still be observed through telemetry, but no local durable Pluck record is retained for later diagnosis. |
+| `starvation-alert` is excluded | Intentional policy requiring review | Alert-labelled beads will not be retried by ordinary Pluck dispatch. Ensure another workflow owns their follow-up. |
+| Pluck config introspection | Tooling limitation | The installed `needle 0.3.0` accepts the YAML and `needle doctor` validates it, but `needle config --get` reports these Pluck keys as unknown and `--dump` omits them. Direct YAML inspection is currently required for these values. |
 
-3. **Backend Binding**: Vista uses `bead-rs` backend (not deprecated `bf`/`br`)
+The unrelated `needle doctor` heartbeat check reported one stale heartbeat at
+review time. That warning does not indicate a Pluck configuration error.
 
-4. **Runtime Configuration**: The configuration is successfully loaded and validated by `needle doctor`
+## Verification evidence
 
-5. **Starvation Monitoring**: Disabled (no persistent records written)
-
-## Configuration Verification
-
-✅ Configuration format: YAML
-✅ All required fields present
-✅ Valid values for all settings
-✅ Backend binding correct
-✅ No deprecated or invalid settings
-
-## References
-
-- Full documentation: `/home/coding/claude-governor/docs/plan/pluck-configuration.md`
-- Root cause analysis: `/home/coding/claude-governor/docs/research/pluck-filter-root-cause.md`
-- Global config: `/home/coding/.config/needle/config.yaml`
-- Workspace config: `/home/coding/vista/.needle.yaml`
+- `needle --version` reported `needle 0.3.0`.
+- `needle doctor` reported the configuration **valid**, the bead-rs backend
+  verified, 14 passing checks, and one stale-heartbeat warning.
+- The global YAML was inspected directly and the installed NEEDLE source was
+  checked to confirm that `PluckConfig` contains exactly the three settings
+  documented above and their stated defaults.
+- VISTA's `.needle.yaml` contains only `bead_cli.backend: bead-rs`.

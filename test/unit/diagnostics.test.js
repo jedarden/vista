@@ -15,7 +15,10 @@
  * Plain-node style — no test framework, exits non-zero on any failure.
  */
 
-const { detectMistakes } = require('../../src/diagnostics');
+const {
+  detectMistakes,
+  detectRenderedClientSideOnlyTags,
+} = require('../../src/diagnostics');
 
 let passed = 0;
 let failed = 0;
@@ -149,6 +152,37 @@ test('clean page: well-formed head + metadata → zero findings', () => {
 
   const findings = detectMistakes(html, m, imageProbe);
   assert(findings.length === 0, `expected no findings, got: ${JSON.stringify(findings, null, 2)}`);
+});
+
+// ── rendered-only client-side tags ──
+
+test('rendered-only OG/Twitter tags produce a server-side injection error', () => {
+  const findings = detectRenderedClientSideOnlyTags(
+    { og: {}, twitter: {}, description: null },
+    {
+      og: { title: 'Rendered title' },
+      twitter: { card: 'summary' },
+      description: null,
+    },
+  );
+
+  assert(findings.length === 1, 'expected one rendered-only tag finding');
+  assert(findings[0].code === 'js-injected-tags', 'expected js-injected-tags code');
+  assert(findings[0].severity === 'error', 'expected error severity');
+  assert(/SSR|prerender/i.test(findings[0].fix), 'fix should mention SSR or prerendering');
+});
+
+test('static tags and description-only additions stay quiet', () => {
+  const findings = detectRenderedClientSideOnlyTags(
+    { og: { title: 'Static title' }, twitter: { card: 'summary' }, description: null },
+    {
+      og: { title: 'Static title' },
+      twitter: { card: 'summary' },
+      description: 'Added by JavaScript',
+    },
+  );
+
+  assert(findings.length === 0, 'static tags should not produce a client-side finding');
 });
 
 // ── Summary ──

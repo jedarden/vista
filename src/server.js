@@ -3,9 +3,17 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
-const { fetchUrl, parseMetaTags, probeImage } = require('./fetcher');
+const {
+  fetchUrl,
+  parseMetaTags,
+  probeImage,
+  fetchRenderedMetaTags,
+} = require('./fetcher');
 const { validateUrlOrThrow } = require('./ssrf-guard');
-const { detectMistakes } = require('./diagnostics');
+const {
+  detectMistakes,
+  detectRenderedClientSideOnlyTags,
+} = require('./diagnostics');
 const { scoreAll, PLATFORMS } = require('./scorer');
 const { generateScreenshot, isValidPlatform } = require('./screenshot');
 const { checkRateLimit } = require('./rate-limit');
@@ -149,6 +157,7 @@ app.get('/api/preview', async (req, res) => {
       responseHeaders,
       statusCode,
       sourceUrl: url,
+      renderedUrl: finalUrl,
     });
 
     res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=600');
@@ -1706,7 +1715,15 @@ app.get('/health', (req, res) => res.json({ ok: true }));
 
 // Core logic
 
-async function buildPreviewResult({ html, baseUrl, redirectChain, responseHeaders, statusCode, sourceUrl }) {
+async function buildPreviewResult({
+  html,
+  baseUrl,
+  redirectChain,
+  responseHeaders,
+  statusCode,
+  sourceUrl,
+  renderedUrl,
+}) {
   const meta = parseMetaTags(html, baseUrl);
 
   // Probe image dimensions
@@ -1718,6 +1735,18 @@ async function buildPreviewResult({ html, baseUrl, redirectChain, responseHeader
 
   // Diagnostics
   const diagnostics = detectMistakes(html, meta, imageProbe, responseHeaders, redirectChain);
+
+  // Compare the fetched HTML with the page after JavaScript executes. This is
+  // best-effort because Playwright's browser binary may not be installed or
+  // may fail to launch in a restricted environment.
+  if (renderedUrl) {
+    try {
+      const renderedMeta = await fetchRenderedMetaTags(renderedUrl);
+      diagnostics.push(...detectRenderedClientSideOnlyTags(meta, renderedMeta));
+    } catch (err) {
+      console.warn(`Skipping rendered meta diagnostics: ${err.message}`);
+    }
+  }
 
   // Scoring
   const scoring = scoreAll(meta, imageProbe);

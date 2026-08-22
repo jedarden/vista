@@ -74,6 +74,35 @@ function compareMetaTags(rawMeta, renderedMeta) {
 }
 
 /**
+ * Turn rendered-only Open Graph/Twitter tags into the diagnostic shape used
+ * by the browser-side detector. Description-only additions are intentionally
+ * ignored here: this server-side check closes the social-preview gap without
+ * broadening the detector beyond the crawler-critical tags it can verify.
+ */
+function detectRenderedClientSideOnlyTags(rawMeta, renderedMeta) {
+  if (!rawMeta || !renderedMeta) return [];
+
+  const comparison = compareMetaTags(rawMeta, renderedMeta);
+  const addedTags = comparison.addedTags.filter(({ tag }) =>
+    /^(og:|twitter:)/i.test(tag)
+  );
+
+  if (addedTags.length === 0) return [];
+
+  const tagList = addedTags.slice(0, 5).map(({ tag }) => tag).join(', ');
+  const more = addedTags.length > 5 ? ` (+${addedTags.length - 5} more)` : '';
+
+  return [{
+    severity: 'error',
+    code: 'js-injected-tags',
+    message: `Meta tags only appear after JavaScript executes: ${tagList}${more} — social crawlers that don't execute JS will not see these tags`,
+    fix: 'Move critical meta tags into the static HTML in <head>, or use Server-Side Rendering (SSR) / prerendering so the tags exist in the initial HTML response',
+    platforms: 'Facebook, LinkedIn, X, WhatsApp, and most other crawlers',
+    requiresAsyncVerification: true,
+  }];
+}
+
+/**
  * Detect client-side-only meta tags by comparing raw HTML with rendered DOM.
  * Returns diagnostic findings if client-side-only tags are detected.
  *
@@ -477,4 +506,9 @@ function getRawAttributeValue(html, property) {
   return m2 ? m2[1] : null;
 }
 
-module.exports = { detectMistakes, compareMetaTags, detectClientSideOnlyTags };
+module.exports = {
+  detectMistakes,
+  compareMetaTags,
+  detectClientSideOnlyTags,
+  detectRenderedClientSideOnlyTags,
+};

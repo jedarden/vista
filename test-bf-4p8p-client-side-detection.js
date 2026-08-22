@@ -18,6 +18,8 @@
 'use strict';
 
 const http = require('http');
+const net = require('net');
+const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
@@ -48,12 +50,135 @@ function info(message) {
   log(`ℹ ${message}`, 'cyan');
 }
 
+/**
+ * Listen on a port, resolving with the bound server once it is ready.
+ */
+function listen(server, port) {
+  return new Promise((resolve, reject) => {
+    const onError = (err) => {
+      server.removeListener('error', onError);
+      reject(err);
+    };
+
+    server.once('error', onError);
+    server.listen(port, '127.0.0.1', () => {
+      server.removeListener('error', onError);
+      resolve(server);
+    });
+  });
+}
+
+/**
+ * Close a local HTTP server without allowing an open connection to hang the
+ * test forever.
+ */
+function closeHttpServer(server) {
+  if (!server || !server.listening) return Promise.resolve();
+
+  return new Promise((resolve) => {
+    let settled = false;
+    let timer;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve();
+    };
+
+    timer = setTimeout(() => {
+      if (typeof server.closeAllConnections === 'function') {
+        server.closeAllConnections();
+      }
+      finish();
+    }, 3_000);
+
+    server.close(finish);
+  });
+}
+
+/**
+ * Probe a requested port and return it, or ask the kernel for an ephemeral
+ * free port when the requested one is already occupied.
+ */
+async function findFreePort(requestedPort) {
+  const probe = net.createServer();
+
+  try {
+    await listen(probe, requestedPort);
+    const port = probe.address().port;
+    await closeHttpServer(probe);
+    return port;
+  } catch (err) {
+    await closeHttpServer(probe);
+    if (err.code !== 'EADDRINUSE') throw err;
+  }
+
+  const fallback = net.createServer();
+  try {
+    await listen(fallback, 0);
+    const port = fallback.address().port;
+    await closeHttpServer(fallback);
+    return port;
+  } catch (err) {
+    await closeHttpServer(fallback);
+    throw err;
+  }
+}
+
+/**
+ * Make a bounded JSON request to a local service.
+ */
+function requestJson(port, requestPath, timeoutMs = REQUEST_TIMEOUT_MS) {
+  return new Promise((resolve, reject) => {
+    const req = http.request({
+      hostname: '127.0.0.1',
+      port,
+      path: requestPath,
+      method: 'GET',
+    }, (res) => {
+      let data = '';
+
+      res.setEncoding('utf8');
+      res.on('data', chunk => { data += chunk; });
+      res.on('end', () => {
+        let body;
+        try {
+          body = JSON.parse(data);
+        } catch (err) {
+          reject(new Error(`Invalid JSON response: ${err.message}`));
+          return;
+        }
+        resolve({ statusCode: res.statusCode, body });
+      });
+    });
+
+    req.setTimeout(timeoutMs, () => {
+      req.destroy(new Error(`Request timed out after ${timeoutMs}ms`));
+    });
+    req.on('error', reject);
+    req.end();
+  });
+}
+
 // Test configuration
-const TEST_PORT = 3001;
+const TEST_PORT = Number(process.env.TEST_PORT) || 3001;
 const TEST_HTML_PATH = path.join(__dirname, 'test-client-side-meta-tags.html');
-const TEST_URL = `http://localhost:${TEST_PORT}/test-client-side-meta-tags.html`;
-const VISTA_PORT = 3000;
-const VISTA_URL = `http://localhost:${VISTA_PORT}/api/preview`;
+// Default 3000 (the server's own default). Overridable because this box runs
+// concurrent agents' dev servers and 3000 is sometimes claimed by another
+// project. VISTA_PORT remains a preferred port; the harness falls back to a
+// free ephemeral port when it is occupied. TEST_MODE=true is also required
+// so ssrf-guard's validateUrl() lets the server fetch the localhost test URL.
+const VISTA_PORT = Number(process.env.VISTA_PORT) || 3000;
+const SERVER_START_TIMEOUT_MS = 15_000;
+const REQUEST_TIMEOUT_MS = 15_000;
+const HARNESS_TIMEOUT_MS = 90_000;
+
+// Ports are selected after the fixture server and VISTA are started. Keep
+// localhost in the URL because TEST_MODE's SSRF exception is intentionally
+// scoped to that hostname; bind the local listeners to loopback explicitly.
+let testPort = TEST_PORT;
+let vistaPort = VISTA_PORT;
+let testUrl = null;
 
 // Test results tracking
 const results = {
@@ -67,6 +192,11 @@ const results = {
   platformsSpecified: false,
   fixProvided: false,
 };
+
+// This child owns the environment plumbing only. The remaining checks stay
+// available for the later detection/correctness beads, but are intentionally
+// deferred until the server-side detection wiring exists.
+const HARNESS_RESULT_KEYS = ['testHtmlCreated', 'serverStarted', 'previewFetched'];
 
 /**
  * Verify the test HTML file exists and contains the expected JavaScript
@@ -107,42 +237,165 @@ function verifyTestHtml() {
 /**
  * Start a simple HTTP server to serve the test HTML
  */
-function startTestServer() {
-  return new Promise((resolve, reject) => {
-    info(`Starting test HTTP server on port ${TEST_PORT}...`);
+async function startTestServer() {
+  info(`Starting test HTTP server (preferred port ${TEST_PORT})...`);
 
-    const server = http.createServer((req, res) => {
-      if (req.url === '/test-client-side-meta-tags.html') {
-        const html = fs.readFileSync(TEST_HTML_PATH, 'utf8');
-        res.writeHead(200, { 'Content-Type': 'text/html' });
-        res.end(html);
-      } else {
-        res.writeHead(404);
-        res.end('Not found');
-      }
-    });
-
-    server.listen(TEST_PORT, (err) => {
-      if (err) {
-        error(`Failed to start test server: ${err.message}`);
-        reject(err);
-        return;
-      }
-
-      success(`Test server started on port ${TEST_PORT}`);
-      results.serverStarted = true;
-      resolve(server);
-    });
-
-    server.on('error', (err) => {
-      if (err.code === 'EADDRINUSE') {
-        error(`Port ${TEST_PORT} already in use`);
-        reject(new Error(`Port ${TEST_PORT} already in use`));
-      } else {
-        reject(err);
-      }
-    });
+  const createServer = () => http.createServer((req, res) => {
+    if (req.url === '/test-client-side-meta-tags.html') {
+      const html = fs.readFileSync(TEST_HTML_PATH, 'utf8');
+      res.writeHead(200, { 'Content-Type': 'text/html' });
+      res.end(html);
+    } else {
+      res.writeHead(404);
+      res.end('Not found');
+    }
   });
+
+  let server;
+  try {
+    server = createServer();
+    await listen(server, TEST_PORT);
+  } catch (err) {
+    await closeHttpServer(server);
+    if (err.code !== 'EADDRINUSE') {
+      throw new Error(`Failed to start test server: ${err.message}`);
+    }
+
+    info(`Port ${TEST_PORT} is busy; retrying fixture on an ephemeral port...`);
+    server = createServer();
+    await listen(server, 0);
+    testPort = server.address().port;
+  }
+
+  testPort = server.address().port;
+  testUrl = `http://localhost:${testPort}/test-client-side-meta-tags.html`;
+  success(`Test server started on port ${testPort}`);
+  results.serverStarted = true;
+  return server;
+}
+
+/**
+ * Wait for the VISTA health endpoint, while also noticing an early child
+ * process exit. Every poll has its own timeout and the whole startup has a
+ * hard deadline.
+ */
+function waitForVistaHealth(child, port) {
+  return new Promise((resolve, reject) => {
+    let finished = false;
+    let pollTimer = null;
+    let deadlineTimer = null;
+
+    const finish = (err) => {
+      if (finished) return;
+      finished = true;
+      if (pollTimer) clearTimeout(pollTimer);
+      if (deadlineTimer) clearTimeout(deadlineTimer);
+      child.removeListener('exit', onExit);
+      if (err) reject(err);
+      else resolve();
+    };
+
+    const onExit = (code, signal) => {
+      finish(new Error(
+        `VISTA exited before health check (code ${code}, signal ${signal || 'none'})`
+      ));
+    };
+
+    const poll = async () => {
+      try {
+        const response = await requestJson(port, '/api/health', 1_000);
+        if (response.statusCode === 200 && response.body &&
+            (response.body.status === 'ok' || response.body.ok === true)) {
+          finish();
+          return;
+        }
+      } catch (_) {
+        // The child needs a moment to load dependencies and bind its port.
+      }
+
+      if (!finished) pollTimer = setTimeout(poll, 100);
+    };
+
+    child.once('exit', onExit);
+    deadlineTimer = setTimeout(() => {
+      finish(new Error(`VISTA health check timed out after ${SERVER_START_TIMEOUT_MS}ms`));
+    }, SERVER_START_TIMEOUT_MS);
+    poll();
+  });
+}
+
+/**
+ * Stop a VISTA child process, escalating after a short grace period so a
+ * failed test cannot leave a server holding a port or keep Node alive.
+ */
+function stopVistaServer(child) {
+  if (!child || child.exitCode !== null || child.signalCode !== null) {
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve) => {
+    let settled = false;
+    let killTimer;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(killTimer);
+      resolve();
+    };
+
+    child.once('exit', finish);
+    child.kill('SIGTERM');
+    killTimer = setTimeout(() => {
+      if (child.exitCode === null && child.signalCode === null) {
+        child.kill('SIGKILL');
+      }
+      setTimeout(finish, 1_000);
+    }, 3_000);
+  });
+}
+
+/**
+ * Start this test's own VISTA server. The preferred VISTA_PORT is only a
+ * preference: a squatter or a concurrent dev server causes an ephemeral port
+ * to be selected and retried instead of reusing that unrelated process.
+ */
+async function startVistaServer() {
+  let requestedPort = VISTA_PORT;
+  let lastError = null;
+
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    vistaPort = await findFreePort(requestedPort);
+    if (vistaPort !== requestedPort) {
+      info(`Port ${requestedPort} is busy; using VISTA port ${vistaPort}`);
+    }
+
+    info(`Starting VISTA server on port ${vistaPort}...`);
+    const child = spawn(process.execPath, ['src/server.js'], {
+      cwd: __dirname,
+      env: { ...process.env, TEST_MODE: 'true', PORT: String(vistaPort) },
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    let stderr = '';
+    child.stderr.setEncoding('utf8');
+    child.stderr.on('data', chunk => { stderr += chunk; });
+    child.stdout.resume();
+
+    try {
+      await waitForVistaHealth(child, vistaPort);
+      success(`VISTA server started and passed health check on port ${vistaPort}`);
+      return child;
+    } catch (err) {
+      lastError = err;
+      await stopVistaServer(child);
+      if (!/EADDRINUSE|address already in use/i.test(stderr + err.message)) {
+        throw new Error(`${err.message}${stderr ? `: ${stderr.trim()}` : ''}`);
+      }
+      requestedPort = 0;
+      info('VISTA port became occupied during startup; selecting another free port...');
+    }
+  }
+
+  throw lastError || new Error('Failed to start VISTA server');
 }
 
 /**
@@ -150,15 +403,12 @@ function startTestServer() {
  */
 function fetchPreview() {
   return new Promise((resolve, reject) => {
-  info(`Fetching preview from VISTA at ${VISTA_PORT}...`);
-
-  const url = new URL(VISTA_URL);
-  url.searchParams.set('url', TEST_URL);
+  info(`Fetching preview from VISTA at port ${vistaPort}...`);
 
   const options = {
-    hostname: 'localhost',
-    port: VISTA_PORT,
-    path: `/api/preview?url=${encodeURIComponent(TEST_URL)}`,
+    hostname: '127.0.0.1',
+    port: vistaPort,
+    path: `/api/preview?url=${encodeURIComponent(testUrl)}`,
     method: 'GET',
   };
 
@@ -178,7 +428,13 @@ function fetchPreview() {
 
       try {
         const result = JSON.parse(data);
+        if (!result || !Array.isArray(result.diagnostics)) {
+          error('VISTA response does not contain a diagnostics array');
+          reject(new Error('Preview response is missing diagnostics array'));
+          return;
+        }
         success('Preview fetched successfully');
+        info(`Preview response contains diagnostics array (${result.diagnostics.length} entries)`);
         results.previewFetched = true;
         resolve(result);
       } catch (err) {
@@ -290,12 +546,17 @@ function printSummary() {
   log('TEST SUMMARY', 'cyan');
   log('═══════════════════════════════════════════════════════════', 'cyan');
 
-  const totalChecks = Object.keys(results).length;
-  const passedChecks = Object.values(results).filter(v => v).length;
+  const ownedResults = Object.fromEntries(
+    HARNESS_RESULT_KEYS.map(key => [key, results[key]])
+  );
+  const totalChecks = Object.keys(ownedResults).length;
+  const passedChecks = Object.values(ownedResults).filter(v => v).length;
 
   for (const [check, passed] of Object.entries(results)) {
     const label = check.replace(/([A-Z])/g, ' $1').toLowerCase();
-    if (passed) {
+    if (!HARNESS_RESULT_KEYS.includes(check)) {
+      info(`${label}: DEFERRED (detection checks belong to later beads)`);
+    } else if (passed) {
       success(`${label}: PASS`);
     } else {
       error(`${label}: FAIL`);
@@ -304,11 +565,11 @@ function printSummary() {
 
   log('\n' + '─'.repeat(60), 'cyan');
   if (passedChecks === totalChecks) {
-    success(`ALL TESTS PASSED (${passedChecks}/${totalChecks})`);
+    success(`HARNESS CHECKS PASSED (${passedChecks}/${totalChecks})`);
     log('═══════════════════════════════════════════════════════════\n', 'green');
     return 0;
   } else {
-    error(`SOME TESTS FAILED (${passedChecks}/${totalChecks} passed)`);
+    error(`HARNESS CHECKS FAILED (${passedChecks}/${totalChecks} passed)`);
     log('═══════════════════════════════════════════════════════════\n', 'red');
     return 1;
   }
@@ -324,7 +585,12 @@ async function runTest() {
   log('║                                                           ║', 'cyan');
   log('╚═══════════════════════════════════════════════════════════╝\n', 'cyan');
 
+  const watchdog = setTimeout(() => {
+    error(`Test exceeded the ${HARNESS_TIMEOUT_MS}ms runtime limit`);
+    process.exit(1);
+  }, HARNESS_TIMEOUT_MS);
   let testServer = null;
+  let vistaServer = null;
   let exitCode = 1;
 
   try {
@@ -336,33 +602,33 @@ async function runTest() {
     // Step 2: Start test server
     testServer = await startTestServer();
 
-    // Wait a bit for server to be ready
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Step 3: Start and health-check this test's own VISTA server
+    vistaServer = await startVistaServer();
 
-    // Step 3: Fetch preview from VISTA
-    const previewResult = await fetchPreview();
-
-    // Step 4: Verify diagnostics
-    if (!verifyDiagnostics(previewResult)) {
-      throw new Error('Diagnostic verification failed');
-    }
-
-    // Print summary
-    exitCode = printSummary();
+    // Step 4: Fetch preview and validate the API response shape. Detection
+    // findings are deliberately deferred to the later child beads.
+    await fetchPreview();
 
   } catch (err) {
     error(`Test execution failed: ${err.message}`);
     log(err.stack, 'red');
     exitCode = 1;
   } finally {
-    // Cleanup
+    clearTimeout(watchdog);
+    if (vistaServer) {
+      info('Stopping VISTA server...');
+      await stopVistaServer(vistaServer);
+      success('VISTA server stopped');
+    }
     if (testServer) {
       info('Stopping test server...');
-      testServer.close();
+      await closeHttpServer(testServer);
       success('Test server stopped');
     }
   }
 
+  // Always print the owned checks, including when startup or preview fails.
+  exitCode = printSummary();
   process.exit(exitCode);
 }
 

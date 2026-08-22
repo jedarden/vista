@@ -134,8 +134,19 @@ async function validateUrl(urlString) {
 
     const hostname = url.hostname;
 
-    // Reject literal "localhost"
-    if (hostname.toLowerCase() === 'localhost') {
+    // TEST MODE: Allow localhost URLs when testing is enabled
+    const testMode = process.env.TEST_MODE === 'true' || process.env.NODE_ENV === 'test';
+    const isLocalhost = hostname.toLowerCase() === 'localhost';
+    if (testMode && isLocalhost) {
+      // In test mode, allow the literal loopback hostname so local test
+      // fixtures (e.g. an HTTP server on :3001) can be fetched. Return here
+      // instead of falling through: localhost always resolves to 127.0.0.1,
+      // which the DNS-resolution check below would reject. Gated on an env
+      // var production never sets (Dockerfile pins NODE_ENV=production), and
+      // scoped to the literal hostname — direct loopback IPs stay blocked.
+      return { allowed: true, reason: 'OK (test mode: localhost allowed)' };
+    }
+    if (isLocalhost) {
       return {
         allowed: false,
         reason: 'URL hostname "localhost" is not allowed (resolves to loopback address)'

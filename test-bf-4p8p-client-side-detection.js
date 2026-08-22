@@ -193,10 +193,15 @@ const results = {
   fixProvided: false,
 };
 
-// This child owns the environment plumbing only. The remaining checks stay
-// available for the later detection/correctness beads, but are intentionally
-// deferred until the server-side detection wiring exists.
-const HARNESS_RESULT_KEYS = ['testHtmlCreated', 'serverStarted', 'previewFetched'];
+// This child owns the environment plumbing and diagnostic presence check.
+// Field-level correctness checks stay available for the later sibling bead,
+// but are intentionally deferred here.
+const HARNESS_RESULT_KEYS = [
+  'testHtmlCreated',
+  'serverStarted',
+  'previewFetched',
+  'diagnosticFound',
+];
 
 /**
  * Verify the test HTML file exists and contains the expected JavaScript
@@ -470,14 +475,17 @@ function verifyDiagnostics(previewResult) {
   }
 
   // Look for client-side-only tag diagnostics
-  const clientSideDiagnostics = previewResult.diagnostics.filter(d =>
-    d.code === 'js-injected-tags' ||
-    d.code === 'client-side-only-tags' ||
-    (d.message && d.message.toLowerCase().includes('javascript'))
-  );
+  const clientSideDiagnostics = previewResult.diagnostics.filter(d => {
+    const message = typeof d?.message === 'string' ? d.message.toLowerCase() : '';
+    return d?.code === 'js-injected-tags' ||
+      d?.code === 'client-side-only-tags' ||
+      message.includes('javascript') ||
+      message.includes('client-side') ||
+      message.includes('client side');
+  });
 
   if (clientSideDiagnostics.length === 0) {
-    error('No client-side-only tag diagnostic found');
+    error('Server-side rendered check did not run or did not report a client-side tag diagnostic');
     info(`Available diagnostics: ${previewResult.diagnostics.map(d => d.code).join(', ')}`);
     return false;
   }
@@ -605,9 +613,10 @@ async function runTest() {
     // Step 3: Start and health-check this test's own VISTA server
     vistaServer = await startVistaServer();
 
-    // Step 4: Fetch preview and validate the API response shape. Detection
-    // findings are deliberately deferred to the later child beads.
-    await fetchPreview();
+    // Step 4: Fetch preview and use the API response as the source of truth
+    // for the server-side client-side-tag diagnostic.
+    const previewResult = await fetchPreview();
+    verifyDiagnostics(previewResult);
 
   } catch (err) {
     error(`Test execution failed: ${err.message}`);

@@ -345,16 +345,24 @@
       record(group, id, cond ? 'pass' : 'fail', detail);
       return cond;
     }
+    // rows belonging to parent criterion n (groups are prefixed 'n · …')
+    function resultsForCriterion(n) {
+      return RESULTS.filter(function (r) { return r.group.indexOf(n + ' ·') === 0; });
+    }
     function norm(v) { return String(v == null ? '' : v).trim().toLowerCase(); }
     function contextFrames() { return Array.prototype.slice.call(document.querySelectorAll('.context-frame[data-platform]')); }
     function frameFor(pid) {
       // each platform renders exactly one frame; find it by data-platform
       return document.querySelector('.context-frame[data-platform="' + pid + '"]');
     }
-    // pick a stable per-theme CSS variable to compare against the source of truth
-    function anchorVar(pid) {
-      const vars = getThemeVars(pid, 'dark') || {};
-      return vars['--frame-bg'] != null ? '--frame-bg' : (Object.keys(vars)[0] || null);
+    // Effective theme of a frame, per signal. The class, data-theme and
+    // data-frame-theme are deliberately kept as separate signals: a frame
+    // whose signals disagree with each other is itself unsynchronized, so a
+    // mixed frame must not be able to hide behind one agreed-upon signal.
+    function frameThemeSignals(frame) {
+      const themeClass = frame.classList.contains('dark-theme') ? 'dark'
+        : frame.classList.contains('light-theme') ? 'light' : 'none';
+      return [themeClass, frame.getAttribute('data-theme') || 'none', frame.getAttribute('data-frame-theme') || 'none'];
     }
 
     // ---------------------------------------------------------------------------
@@ -587,44 +595,88 @@
 
     function crit4_synchronizedAcrossPlatforms() {
       const G = '4 · Theme switching is synchronized across all platforms';
-      renderFrames('dark');
-      const before = contextFrames().filter(function (f) { return f.classList.contains('dark-theme'); }).length;
-      expect(G, 'seeded in dark', before === PLATFORMS.length, before + ' / ' + PLATFORMS.length + ' frames start dark');
 
-      const updated = applyThemeLikeApp('light'); // one toggle call flips all
-      const nowLight = contextFrames().filter(function (f) { return f.classList.contains('light-theme'); }).length;
-      const stillDark = contextFrames().filter(function (f) { return f.classList.contains('dark-theme'); }).length;
+      // Drive one switch in EACH direction. After every switch, all frames
+      // must share the SAME theme simultaneously: sampled in the same tick as
+      // the production update call, the set of theme signals observed across
+      // all 7 frames must be exactly { target } — no stragglers, no frames in
+      // no theme at all, and no frame whose own signals disagree.
+      [['dark', 'light'], ['light', 'dark']].forEach(function (leg) {
+        const from = leg[0];
+        const to = leg[1];
+        document.documentElement.setAttribute('data-theme', from);
+        renderFrames(from);
+        const seeded = contextFrames().filter(function (f) { return f.classList.contains(from + '-theme'); }).length;
+        expect(G, from + '→' + to + ' seeded in ' + from, seeded === PLATFORMS.length,
+          seeded + ' / ' + PLATFORMS.length + ' frames start in ' + from);
 
-      expect(G, 'updateAllPlatformFrames returns count', updated === PLATFORMS.length,
-        'returned ' + updated + ' (expected ' + PLATFORMS.length + ')');
-      expect(G, 'all flipped together', nowLight === PLATFORMS.length && stillDark === 0,
-        nowLight + ' light · ' + stillDark + ' still dark (expected ' + PLATFORMS.length + ' / 0)');
+        const updated = applyThemeLikeApp(to); // ONE production call flips all
+
+        const distinct = [];
+        const misfits = [];
+        contextFrames().forEach(function (f) {
+          const pid = f.getAttribute('data-platform');
+          frameThemeSignals(f).forEach(function (signal) {
+            if (distinct.indexOf(signal) === -1) distinct.push(signal);
+            if (signal !== to) misfits.push(pid + ' → ' + signal);
+          });
+        });
+
+        expect(G, from + '→' + to + ' update count', updated === PLATFORMS.length,
+          'updateAllPlatformFrames returned ' + updated + ' (expected ' + PLATFORMS.length + ')');
+        expect(G, from + '→' + to + ' all ' + PLATFORMS.length + ' frames in one theme at once',
+          distinct.length === 1 && distinct[0] === to,
+          distinct.length + ' theme state(s) observed [' + distinct.join(', ') + '] — expected exactly [' + to + ']' +
+          (misfits.length ? '; out of sync: ' + misfits.join(', ') : ''));
+      });
     }
 
     function crit5_noStaleFrames() {
       const G = '5 · No frames left in the wrong (stale) theme state';
 
-      function assertNoneStale(target) {
-        applyThemeLikeApp(target);
+      // A frame is stale after a →target switch if ANY theme signal still
+      // reports the previous theme: its class, either attribute, or any one
+      // of the platform's own theme CSS variables still holding the old
+      // value. All configured vars are compared (not just an anchor) so a
+      // single half-updated token fails the row.
+      function staleSignals(frame, target) {
         const opposite = target === 'dark' ? 'light' : 'dark';
-        const frames = contextFrames();
-        const staleClass = frames.filter(function (f) { return f.classList.contains(opposite + '-theme'); }).length;
-        const staleAttrTheme = frames.filter(function (f) { return f.getAttribute('data-theme') === opposite; }).length;
-        const staleFrameTheme = frames.filter(function (f) { return f.getAttribute('data-frame-theme') === opposite; }).length;
-        const staleVar = frames.filter(function (f) {
-          const anchor = anchorVar(f.getAttribute('data-platform'));
-          if (!anchor) return false;
-          return norm(f.style.getPropertyValue(anchor)) !== norm(getThemeVars(f.getAttribute('data-platform'), target)[anchor]);
-        }).length;
-        const ok = staleClass === 0 && staleAttrTheme === 0 && staleFrameTheme === 0 && staleVar === 0;
-        expect(G, 'no stale ' + opposite + ' after →' + target, ok,
-          'stale class:' + staleClass + ' data-theme:' + staleAttrTheme +
-          ' data-frame-theme:' + staleFrameTheme + ' css-var:' + staleVar);
+        const pid = frame.getAttribute('data-platform');
+        const stale = [];
+        if (frame.classList.contains(opposite + '-theme')) stale.push('class ' + opposite + '-theme');
+        if (frame.getAttribute('data-theme') === opposite) stale.push('data-theme=' + opposite);
+        if (frame.getAttribute('data-frame-theme') === opposite) stale.push('data-frame-theme=' + opposite);
+        const expectedVars = getThemeVars(pid, target) || {};
+        Object.keys(expectedVars).forEach(function (varName) {
+          if (norm(frame.style.getPropertyValue(varName)) !== norm(expectedVars[varName])) {
+            stale.push('css-var ' + varName + ' ≠ ' + target + ' value');
+          }
+        });
+        return stale;
       }
 
-      renderFrames('dark');        // start dark
-      assertNoneStale('light');    // toggle to light → zero dark remnants
-      assertNoneStale('dark');     // toggle back to dark → zero light remnants
+      // After EACH switch, zero frames may remain in the previous theme.
+      // Checked per platform so a stale frame is named, not just counted.
+      [['dark', 'light'], ['light', 'dark']].forEach(function (leg) {
+        const from = leg[0];
+        const target = leg[1];
+        document.documentElement.setAttribute('data-theme', from);
+        renderFrames(from);
+        applyThemeLikeApp(target);
+
+        PLATFORMS.forEach(function (pid) {
+          const f = frameFor(pid);
+          const stale = f ? staleSignals(f, target) : ['frame not rendered'];
+          expect(G, pid + ' ' + from + '→' + target, stale.length === 0,
+            stale.length ? 'stale signals: ' + stale.join(', ')
+                         : 'class + attributes + ' + Object.keys(getThemeVars(pid, target) || {}).length + ' theme vars all report ' + target);
+        });
+
+        const frames = contextFrames();
+        const withStale = frames.filter(function (f) { return staleSignals(f, target).length > 0; }).length;
+        expect(G, 'zero stale frames after →' + target, withStale === 0,
+          withStale + ' of ' + frames.length + ' frames still carry a ' + (target === 'dark' ? 'light' : 'dark') + '-theme signal');
+      });
 
       // no frame skipped: every context frame present must have been updated
       const total = contextFrames().length;
@@ -665,28 +717,52 @@
       }
 
       // ----- aggregate -----
+      // The banner is the rollup for the WHOLE chain: every assertion recorded
+      // by criteria 1-5 (children 1-4 of the bf-3fihc split) lands in RESULTS
+      // and is counted here, with a per-criterion breakdown and the number of
+      // frames under test.
       const pass = RESULTS.filter(function (r) { return r.status === 'pass'; }).length;
       const fail = RESULTS.filter(function (r) { return r.status === 'fail'; }).length;
       const skip = RESULTS.filter(function (r) { return r.status === 'skip'; }).length;
       const total = RESULTS.length;
+      const framesUnderTest = PLATFORMS.length;
+      const countsLine = total + ' assertions: ' + pass + ' passed, ' + fail + ' failed, ' + skip + ' skipped' +
+        ' · ' + framesUnderTest + ' frames under test' +
+        (envOk ? ' · ' + CRITERIA.map(function (c) {
+          const rows = resultsForCriterion(c.n);
+          const failed = rows.filter(function (r) { return r.status === 'fail'; }).length;
+          return 'criterion ' + c.n + ': ' + (rows.length - failed) + '/' + rows.length;
+        }).join(' · ') : '');
+
+      // Machine-readable rollup for headless/CI runners.
+      window.VISTA_ACCEPTANCE = {
+        total: total, passed: pass, failed: fail, skipped: skip,
+        framesUnderTest: framesUnderTest,
+        criteria: CRITERIA.map(function (c) {
+          const rows = resultsForCriterion(c.n);
+          return { n: c.n, label: c.label, assertions: rows.length,
+            failed: rows.filter(function (r) { return r.status === 'fail'; }).length };
+        }),
+        envOk: envOk,
+      };
 
       if (!envOk) {
         banner.className = 'summary-banner fail';
         banner.textContent = 'BLOCKED — production modules not available (see warning)';
-        countsEl.textContent = total + ' assertions: ' + pass + ' passed, ' + fail + ' failed, ' + skip + ' skipped. Fix the script loading / environment and re-run.';
+        countsEl.textContent = countsLine + '. Fix the script loading / environment and re-run.';
       } else if (fail === 0) {
         banner.className = 'summary-banner pass';
-        banner.textContent = 'PASS — all ' + total + ' assertions satisfied across the 7-platform theme-switching chain';
-        countsEl.textContent = total + ' assertions: ' + pass + ' passed, ' + fail + ' failed, ' + skip + ' skipped';
+        banner.textContent = 'PASS — all ' + total + ' assertions satisfied across criteria 1-5 (' + framesUnderTest + ' frames under test)';
+        countsEl.textContent = countsLine;
       } else {
         banner.className = 'summary-banner fail';
-        banner.textContent = 'FAIL — ' + fail + ' assertion(s) failed';
-        countsEl.textContent = total + ' assertions: ' + pass + ' passed, ' + fail + ' failed, ' + skip + ' skipped';
+        banner.textContent = 'FAIL — ' + fail + ' of ' + total + ' assertion(s) failed (' + framesUnderTest + ' frames under test)';
+        countsEl.textContent = countsLine;
       }
 
       // ----- per-criterion cards -----
       CRITERIA.forEach(function (c) {
-        const rows = RESULTS.filter(function (r) { return r.group.indexOf(c.n + ' ·') === 0; });
+        const rows = resultsForCriterion(c.n);
         const failed = rows.some(function (r) { return r.status === 'fail'; });
         const card = document.getElementById('crit-card-' + c.n);
         card.classList.remove('pass', 'fail');
@@ -695,7 +771,7 @@
 
       // ----- per-group detail tables -----
       resultsEl.innerHTML = CRITERIA.map(function (c) {
-        const rows = RESULTS.filter(function (r) { return r.group.indexOf(c.n + ' ·') === 0; });
+        const rows = resultsForCriterion(c.n);
         const failed = rows.some(function (r) { return r.status === 'fail'; });
         const gstatus = failed ? 'fail' : (rows.every(function (r) { return r.status === 'skip'; }) ? 'skip' : 'pass');
         const badge = '<span class="badge ' + gstatus + '">' + gstatus.toUpperCase() + '</span>';

@@ -95,7 +95,7 @@ function detectRenderedClientSideOnlyTags(rawMeta, renderedMeta) {
   return [{
     severity: 'error',
     code: 'js-injected-tags',
-    message: `Meta tags only appear after JavaScript executes: ${tagList}${more} — social crawlers that don't execute JS will not see these tags`,
+    message: `Meta tags only appear after JavaScript executes: ${tagList}${more} — move these to static HTML in <head> or use Server-Side Rendering (SSR) so crawlers see them`,
     fix: 'Move critical meta tags into the static HTML in <head>, or use Server-Side Rendering (SSR) / prerendering so the tags exist in the initial HTML response',
     platforms: 'Facebook, LinkedIn, X, WhatsApp, and most other crawlers',
     requiresAsyncVerification: true,

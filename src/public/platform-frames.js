@@ -3528,7 +3528,7 @@ function buildContextFrame(platformId, content, theme = 'dark') {
   const frameTypeClass = frameType ? ` frame-type-${frameType}` : '';
   const frameTypeAttr = frameType ? ` data-frame-type="${frameType}"` : '';
 
-  return `<div id="${frameInstanceId}" class="context-frame ${platformId}-context${themeSuffix}${frameTypeClass}" data-platform="${platformId}" data-theme="${theme}"${frameTypeAttr} style="${getInlineThemeStyles(platformId, theme)}">${frameHTML}</div>`;
+  return `<div id="${frameInstanceId}" class="context-frame ${platformId}-context${themeSuffix}${frameTypeClass}" data-platform="${platformId}" data-theme="${theme}" data-frame-theme="${theme}"${frameTypeAttr} style="${getInlineThemeStyles(platformId, theme)}">${frameHTML}</div>`;
 }
 
 /**

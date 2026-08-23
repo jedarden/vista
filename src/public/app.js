@@ -1399,7 +1399,7 @@ const PLATFORM_GROUPS = [
     id: 'social',
     title: 'Social & Microblogging',
     collapsed: false,
-    platforms: ['google','facebook','twitter','linkedin','reddit','mastodon','bluesky','threads','tumblr','pinterest'],
+    platforms: ['google','facebook','twitter','linkedin','reddit','youtube','instagram','tiktok','mastodon','bluesky','threads','tumblr','pinterest'],
   },
   {
     id: 'messaging',
@@ -1423,6 +1423,7 @@ const PLATFORM_GROUPS = [
 
 const PLATFORM_ICONS = {
   google: '🔍', facebook: '📘', twitter: '🐦', linkedin: '💼', reddit: '🤖',
+  youtube: '▶️', instagram: '📸', tiktok: '🎵',
   mastodon: '🐘', bluesky: '🦋', threads: '🧵', tumblr: '📷', pinterest: '📌',
   slack: '💬', discord: '🎮', whatsapp: '📱', imessage: '💬', telegram: '✈️',
   signal: '🔐', teams: '👥', googlechat: '💬', zoom: '🎥', line: '📲', kakaotalk: '💛',
@@ -1432,7 +1433,9 @@ const PLATFORM_ICONS = {
 
 const PLATFORM_NAMES = {
   google: 'Google Search', facebook: 'Facebook', twitter: 'X (Twitter)',
-  linkedin: 'LinkedIn', reddit: 'Reddit', mastodon: 'Mastodon',
+  linkedin: 'LinkedIn', reddit: 'Reddit',
+  youtube: 'YouTube', instagram: 'Instagram', tiktok: 'TikTok',
+  mastodon: 'Mastodon',
   bluesky: 'Bluesky', threads: 'Threads', tumblr: 'Tumblr', pinterest: 'Pinterest',
   slack: 'Slack', discord: 'Discord', whatsapp: 'WhatsApp', imessage: 'iMessage',
   telegram: 'Telegram', signal: 'Signal', teams: 'Microsoft Teams',
@@ -1460,6 +1463,9 @@ const PLATFORM_CROPS = {
   twitter: { category: 'social', aspect: { min: 1.91, max: 1.91 }, cropMode: 'cover', displaySize: { w: 1200, h: 630 }, note: 'summary_large_image: 1200×630' },
   linkedin: { category: 'social', aspect: { min: 1.91, max: 1.91 }, cropMode: 'cover', displaySize: { w: 1200, h: 627 }, note: '1200×627 optimal' },
   reddit: { category: 'social', aspect: { min: 1, max: 1.91 }, cropMode: 'contain', displaySize: null, note: 'Flexible, max 1.91:1' },
+  youtube: { category: 'social', aspect: { min: 1.78, max: 1.78 }, cropMode: 'cover', displaySize: { w: 1280, h: 720 }, note: '1280×720 (16:9) optimal' },
+  instagram: { category: 'social', aspect: { min: 1, max: 1 }, cropMode: 'cover', displaySize: { w: 1080, h: 1080 }, note: '1:1 square 1080×1080' },
+  tiktok: { category: 'social', aspect: { min: 1, max: 1 }, cropMode: 'cover', displaySize: { w: 1080, h: 1080 }, note: '1:1 og:image' },
   mastodon: { category: 'social', aspect: { min: 1.91, max: 1.91 }, cropMode: 'cover', displaySize: { w: 1200, h: 630 }, note: '1200×630 optimal' },
   bluesky: { category: 'social', aspect: { min: 1.91, max: 1.91 }, cropMode: 'cover', displaySize: { w: 1200, h: 630 }, note: '1200×630 optimal' },
   threads: { category: 'social', aspect: { min: 1.91, max: 1.91 }, cropMode: 'cover', displaySize: { w: 1200, h: 630 }, note: '1200×630 optimal' },
@@ -1885,6 +1891,82 @@ function renderPreviews(data) {
 }
 
 /**
+ * Newest data snapshot that includes image-probe results, set by
+ * updatePreviewsWithImages. Text-only cards attach on staggered crossfade
+ * timers; if images resolve first (fast responses, paste mode), those cards
+ * miss the upgrade pass and consult this instead when they attach.
+ */
+let latestImagesfulData = null;
+
+/**
+ * Apply the image-ful upgrade to a single rendered platform card, in place:
+ * clear the loading state, refresh the grade badge, re-render the card body
+ * with real image data (preserving an open context frame), and enable the
+ * header controls exactly once. Shared by updatePreviewsWithImages (cards
+ * already attached when images arrive) and by the late-attach path in
+ * renderTextPreviewsOnly (images arrived before the crossfade timer fired).
+ */
+function applyImagesToCard(pid, data, groupId) {
+  const existingCard = document.querySelector(`.platform-card[data-pid="${pid}"]`);
+  if (!existingCard) return;
+
+  // Remove loading state
+  delete existingCard.dataset.loadingImages;
+
+  // Update score badge in case it changed
+  const scoreData = data.scoring && data.scoring.scores[pid];
+  if (scoreData) {
+    const gradeBadge = existingCard.querySelector('.card-grade');
+    if (gradeBadge) {
+      gradeBadge.className = 'card-grade ' + gradeClass(scoreData.grade);
+      gradeBadge.textContent = scoreData.grade;
+    }
+
+    // Update card grade class
+    existingCard.className = `platform-card ${gradeClass(scoreData.grade)}`;
+  }
+
+  // Swap the card body to real image data. An open context frame is
+  // re-rendered as a context frame (in its current theme) rather than being
+  // stomped back to card-only view.
+  const body = existingCard.querySelector(`#card-body-${pid}`);
+  if (body) {
+    if (cardContextState[pid] && cardContextState[pid].context) {
+      const ctxData = currentData || data;
+      body.innerHTML = renderPlatformWithContext(pid, ctxData.meta, ctxData.imageProbe, ctxData.finalUrl, cardContextState[pid].theme, ctxData.dominantColor);
+    } else {
+      body.innerHTML = renderPlatformCard(pid, data.meta, data.imageProbe, data.finalUrl, data.dominantColor);
+    }
+    const loadingOverlay = body.querySelector('.card-image-loading');
+    if (loadingOverlay) {
+      loadingOverlay.remove();
+    }
+  }
+
+  // Enable controls. Wiring is idempotent: buildTextOnlyCard already attaches
+  // these listeners, so only attach when a control has never been wired.
+  const wireOnce = (btn, handler) => {
+    if (!btn || btn.dataset.wired === '1') return;
+    btn.dataset.wired = '1';
+    btn.disabled = false;
+    btn.addEventListener('click', handler);
+  };
+  wireOnce(existingCard.querySelector('.card-screenshot-btn'), () => downloadScreenshot(pid, data));
+  const contextToggle = existingCard.querySelector('.card-context-toggle');
+  wireOnce(contextToggle, () => toggleCardContext(pid, data));
+  if (contextToggle) {
+    contextToggle.disabled = false;
+    contextToggle.querySelector('.context-label').textContent =
+      cardContextState[pid] && cardContextState[pid].context ? 'In context' : 'Card only';
+  }
+  const themeToggle = existingCard.querySelector('.card-theme-toggle');
+  wireOnce(themeToggle, () => toggleCardTheme(pid, data));
+  if (themeToggle) {
+    themeToggle.disabled = false;
+  }
+}
+
+/**
  * Render text-only previews immediately after metadata loads.
  * Shows score badge and card text content, with loading indicators for images.
  * This allows users to see text content within ~600ms while images load progressively.
@@ -1987,6 +2069,13 @@ function renderTextPreviewsOnly(data) {
           }
 
           existingSkeleton.replaceWith(textCard);
+
+          // Images may have finished loading while this card was still waiting
+          // on its crossfade timer — apply the upgrade immediately so the card
+          // doesn't strand in the loading state.
+          if (latestImagesfulData) {
+            applyImagesToCard(pid, latestImagesfulData, group.id);
+          }
         }, reducedMotion ? 0 : 150 + animDelay);
       } else {
         // No skeleton found, directly add text-only card
@@ -1997,6 +2086,10 @@ function renderTextPreviewsOnly(data) {
         }
 
         row.appendChild(textCard);
+
+        if (latestImagesfulData) {
+          applyImagesToCard(pid, latestImagesfulData, group.id);
+        }
       }
 
       globalIndex++;
@@ -2038,16 +2131,16 @@ function buildTextOnlyCard(pid, scoreData, data, animDelay, groupId) {
     <span class="card-platform-name">${escHtml(PLATFORM_NAMES[pid] || pid)}</span>
     <div class="card-header-controls">
       ${supportsTheme ? `
-        <button class="card-theme-toggle" data-pid="${pid}" title="Toggle theme" aria-label="Toggle light/dark theme" disabled>
+        <button class="card-theme-toggle" data-pid="${pid}" title="Toggle theme" aria-label="Toggle light/dark theme" data-wired="1">
           <span class="theme-icon">${cardContextState[pid].theme === 'dark' ? '🌙' : '☀️'}</span>
         </button>
       ` : ''}
-      <button class="card-screenshot-btn" data-pid="${pid}" title="Download screenshot" aria-label="Download screenshot" disabled>
+      <button class="card-screenshot-btn" data-pid="${pid}" title="Download screenshot" aria-label="Download screenshot" data-wired="1">
         <span>&#128190;</span>
       </button>
-      <button class="card-context-toggle" data-pid="${pid}" title="Toggle context view" aria-label="Toggle context view" disabled>
+      <button class="card-context-toggle" data-pid="${pid}" title="Toggle context view" aria-label="Toggle context view" data-wired="1">
         <span class="context-icon">🃏</span>
-        <span class="context-label">Loading...</span>
+        <span class="context-label">Card only</span>
       </button>
       <span class="card-grade ${gradeClass(scoreData.grade)}">${scoreData.grade}</span>
     </div>
@@ -2084,7 +2177,9 @@ function buildTextOnlyCard(pid, scoreData, data, animDelay, groupId) {
     card.appendChild(footer);
   }
 
-  // Event listeners for toggles
+  // Event listeners for toggles (controls are interactive immediately — the
+  // card body upgrades in place when image data arrives, see
+  // applyImagesToCard, which is why these no longer start disabled).
   const screenshotBtn = header.querySelector('.card-screenshot-btn');
   screenshotBtn.addEventListener('click', () => downloadScreenshot(pid, data));
 
@@ -2104,8 +2199,10 @@ function buildTextOnlyCard(pid, scoreData, data, animDelay, groupId) {
  * Replaces loading placeholders with actual images progressively.
  */
 function updatePreviewsWithImages(data) {
-  const reducedMotion = prefersReducedMotion();
-  const crossfadeDuration = reducedMotion ? 0 : 150; // 150ms crossfade
+  // Record the newest image-ful snapshot so text-only cards that attach later
+  // (staggered crossfade timers) can upgrade themselves on attach instead of
+  // stranding in the loading state when images won the race.
+  latestImagesfulData = data;
 
   // Update each existing card with image data
   PLATFORM_GROUPS.forEach((group) => {
@@ -2113,69 +2210,7 @@ function updatePreviewsWithImages(data) {
       const existingCard = document.querySelector(`.platform-card[data-pid="${pid}"]`);
       if (!existingCard) return;
 
-      // Remove loading state
-      delete existingCard.dataset.loadingImages;
-
-      // Update score badge in case it changed
-      const scoreData = data.scoring.scores[pid];
-      if (scoreData) {
-        const gradeBadge = existingCard.querySelector('.card-grade');
-        if (gradeBadge) {
-          gradeBadge.className = 'card-grade ' + gradeClass(scoreData.grade);
-          gradeBadge.textContent = scoreData.grade;
-        }
-
-        // Update card grade class
-        existingCard.className = `platform-card ${gradeClass(scoreData.grade)}`;
-      }
-
-      // Update card body with images using crossfade
-      const body = existingCard.querySelector(`#card-body-${pid}`);
-      if (body) {
-        // Crossfade: fade out old content, replace, fade in new content
-        if (!reducedMotion) {
-          body.style.opacity = '0';
-          body.style.transform = 'translateY(4px)';
-          body.style.transition = `opacity ${crossfadeDuration}ms ease, transform ${crossfadeDuration}ms`;
-        }
-
-        setTimeout(() => {
-          // Remove loading overlay
-          const loadingOverlay = body.querySelector('.card-image-loading');
-          if (loadingOverlay) {
-            loadingOverlay.remove();
-          }
-
-          // Re-render with actual images
-          body.innerHTML = renderPlatformCard(pid, data.meta, data.imageProbe, data.finalUrl, data.dominantColor);
-
-          // Fade in new content
-          if (!reducedMotion) {
-            body.style.opacity = '1';
-            body.style.transform = 'translateY(0)';
-          }
-        }, crossfadeDuration);
-      }
-
-      // Enable controls that were disabled during loading
-      const screenshotBtn = existingCard.querySelector('.card-screenshot-btn');
-      if (screenshotBtn) {
-        screenshotBtn.disabled = false;
-        screenshotBtn.addEventListener('click', () => downloadScreenshot(pid, data));
-      }
-
-      const contextToggle = existingCard.querySelector('.card-context-toggle');
-      if (contextToggle) {
-        contextToggle.disabled = false;
-        contextToggle.querySelector('.context-label').textContent = 'Card only';
-        contextToggle.addEventListener('click', () => toggleCardContext(pid, data));
-      }
-
-      const themeToggle = existingCard.querySelector('.card-theme-toggle');
-      if (themeToggle) {
-        themeToggle.disabled = false;
-        themeToggle.addEventListener('click', () => toggleCardTheme(pid, data));
-      }
+      applyImagesToCard(pid, data, group.id);
 
       // Add context menu listener
       existingCard.addEventListener('contextmenu', (e) => showCardContextMenu(e, pid, group.id, data));
@@ -2218,14 +2253,14 @@ function buildCard(pid, scoreData, data, animDelay, groupId) {
     <span class="card-platform-name">${escHtml(PLATFORM_NAMES[pid] || pid)}</span>
     <div class="card-header-controls">
       ${supportsTheme ? `
-        <button class="card-theme-toggle" data-pid="${pid}" title="Toggle theme" aria-label="Toggle light/dark theme">
+        <button class="card-theme-toggle" data-pid="${pid}" title="Toggle theme" aria-label="Toggle light/dark theme" data-wired="1">
           <span class="theme-icon">${cardContextState[pid].theme === 'dark' ? '🌙' : '☀️'}</span>
         </button>
       ` : ''}
-      <button class="card-screenshot-btn" data-pid="${pid}" title="Download screenshot" aria-label="Download screenshot">
+      <button class="card-screenshot-btn" data-pid="${pid}" title="Download screenshot" aria-label="Download screenshot" data-wired="1">
         <span>&#128190;</span>
       </button>
-      <button class="card-context-toggle" data-pid="${pid}" title="Toggle context view" aria-label="Toggle context view">
+      <button class="card-context-toggle" data-pid="${pid}" title="Toggle context view" aria-label="Toggle context view" data-wired="1">
         <span class="context-icon">${cardContextState[pid].context ? '🖼️' : '🃏'}</span>
         <span class="context-label">${cardContextState[pid].context ? 'In context' : 'Card only'}</span>
       </button>
@@ -2341,6 +2376,11 @@ const PLATFORMS_WITH_THEME = typeof getPlatformsWithThemeSupport === 'function'
   : ['discord', 'slack', 'twitter', 'telegram', 'github']; // fallback if module not loaded
 
 function toggleCardContext(pid, data) {
+  // Prefer the freshest merged data: the listener may close over a snapshot
+  // taken before image-probe results arrived (progressive loading).
+  if (typeof currentData !== 'undefined' && currentData && currentData.meta) {
+    data = currentData;
+  }
   cardContextState[pid].context = !cardContextState[pid].context;
   const body = document.getElementById(`card-body-${pid}`);
   if (body) {
@@ -2358,6 +2398,11 @@ function toggleCardContext(pid, data) {
 }
 
 function toggleCardTheme(pid, data) {
+  // Prefer the freshest merged data (see toggleCardContext).
+  if (typeof currentData !== 'undefined' && currentData && currentData.meta) {
+    data = currentData;
+  }
+
   // Ensure state is initialized (edge case protection)
   if (!cardContextState[pid]) {
     console.warn(`[toggleCardTheme] State not initialized for pid=${pid}, initializing with defaults`);
@@ -2575,7 +2620,7 @@ function renderImageHtml(imageUrl, dominantColor, imgClass) {
   if (!imageUrl) {
     return '<span class="img-placeholder">No image</span>';
   }
-  return `<div class="img-loading-container" style="background:${dominantColor || '#e0e0e0'}"><img src="${escHtml(imageUrl)}" alt="" onerror="this.parentElement.style.display='none';this.nextElementSibling?.style.display='flex'" loading="lazy" onload="this.classList.add('loaded')" /><span class="img-placeholder" style="display:none">No image</span></div>`;
+  return `<div class="img-loading-container" style="background:${dominantColor || '#e0e0e0'}"><img src="${escHtml(imageUrl)}" alt="" onerror="this.parentElement.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='flex'" loading="lazy" onload="this.classList.add('loaded')" /><span class="img-placeholder" style="display:none">No image</span></div>`;
 }
 
 /**

@@ -83,14 +83,21 @@ function initializeThemeDetection() {
 /**
  * Subscribe to theme changes
  * @param {ThemeChangeCallback} callback - Function to call when theme changes
+ * @param {Object} [options]
+ * @param {boolean} [options.immediate=true] - Invoke the callback once with
+ *   the current theme at subscribe time. Subscribers whose caller just
+ *   rendered with a specific (possibly per-card) theme must pass false, or
+ *   the immediate apply clobbers that render with the global theme.
  * @returns {string} Subscriber ID (use this ID to unsubscribe)
  */
-function subscribeToTheme(callback) {
+function subscribeToTheme(callback, { immediate = true } = {}) {
   const subscriberId = `subscriber-${nextSubscriberId++}`;
   themeSubscribers.set(subscriberId, callback);
 
-  // Immediately call with current theme
-  callback(currentTheme);
+  // Immediately call with current theme (opt-out — see options.immediate)
+  if (immediate) {
+    callback(currentTheme);
+  }
 
   return subscriberId;
 }
@@ -181,7 +188,12 @@ function subscribePlatformFrame(platform, frameId) {
     }
   };
 
-  const subscriberId = subscribeToTheme(callback);
+  // No immediate apply: the caller (see subscribeFrameToTheme in app.js)
+  // renders the frame with its intended theme — global or per-card — right
+  // before subscribing, and an immediate callback(currentTheme) would
+  // overwrite a per-card theme with the global one in the same tick. This
+  // subscription is for FUTURE global theme changes only.
+  const subscriberId = subscribeToTheme(callback, { immediate: false });
 
   // Return unsubscribe function
   return () => unsubscribeFromTheme(subscriberId);

@@ -4,17 +4,22 @@
  * Cloudflare edge-cache purge support for POST /api/purge (plan.md ADR-001).
  *
  * VISTA's /api/* responses are cached at the Cloudflare edge keyed on the
- * full request URL — e.g. https://vista.jedarden.com/api/badge?url=<target>&style=flat
+ * full request URL — e.g. https://vista.jedarden.com/api/badge.svg?url=<target>&style=flat
  * — so "purge this target URL" means enumerating the vista API URLs built
  * from that target and asking Cloudflare to drop exactly those
  * (purge_cache `files`, exact-URL match).
  *
- * Purged variants: /api/badge in every style plus the bare (style-less)
+ * Purged variants: /api/badge.svg in every style plus the bare (style-less)
  * form — the README badge embed is the feature "refresh my badge" exists
- * for and carries the longest TTL (1h) — and /api/preview (5min).
- * /api/screenshot (platform × theme × scale × format combinations) and
- * /api/compare (two-URL cache key) are deliberately not enumerated: both
- * carry 5-minute TTLs and self-heal faster than a purge round-trip.
+ * for and carries the longest TTL (1h), and the .svg path is the one
+ * Cloudflare's default extension-based cache actually holds (the
+ * extension-less /api/badge alias reports cf-cache-status: DYNAMIC unless a
+ * zone Cache Rule is added — see plan.md ADR-001). The legacy /api/badge
+ * forms are purged too, so they are covered if that rule ever lands.
+ * /api/preview (5min) is included; /api/screenshot (platform × theme ×
+ * scale × format combinations) and /api/compare (two-URL cache key) are
+ * deliberately not enumerated: both carry 5-minute TTLs and self-heal
+ * faster than a purge round-trip.
  *
  * Configuration, all optional — when anything is unset the caller reports a
  * skip, mirroring the FACEBOOK_APP_TOKEN pattern in the purge handler:
@@ -44,6 +49,8 @@ function buildPurgeUrls(targetUrl, baseUrl) {
   const base = String(baseUrl).replace(/\/+$/, '');
   const target = encodeURIComponent(targetUrl);
   const urls = [
+    `${base}/api/badge.svg?url=${target}`,
+    ...BADGE_STYLES.map((style) => `${base}/api/badge.svg?url=${target}&style=${style}`),
     `${base}/api/badge?url=${target}`,
     ...BADGE_STYLES.map((style) => `${base}/api/badge?url=${target}&style=${style}`),
     `${base}/api/preview?url=${target}`,

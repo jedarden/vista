@@ -22,8 +22,17 @@ VISTA provides an embeddable SVG badge API for displaying platform scores on you
 ### Endpoint
 
 ```
-GET /api/badge
+GET /api/badge.svg    (recommended for embeds)
+GET /api/badge        (alias, kept for embeds already in the wild)
 ```
+
+Both paths serve the identical SVG from the same handler. Prefer `/api/badge.svg`
+everywhere you embed a badge: because the URL path ends in `.svg`, Cloudflare's
+default extension-based edge caching stores the response (respecting the
+`Cache-Control: max-age=3600` the endpoint sends), so repeated views of an
+embedded badge are served from the edge instead of re-fetching and re-scoring
+the target site. The extension-less `/api/badge` path is not edge-cached by
+default (`cf-cache-status: DYNAMIC`).
 
 ### Parameters
 
@@ -44,17 +53,17 @@ GET /api/badge
 ```html
 <!-- Shows numeric score -->
 <a href="https://vista.jedarden.com/?url=https://example.com">
-  <img src="https://vista.jedarden.com/api/badge?url=https://example.com" alt="VISTA Platform Score" />
+  <img src="https://vista.jedarden.com/api/badge.svg?url=https://example.com" alt="VISTA Platform Score" />
 </a>
 
 <!-- Shows letter grade -->
 <a href="https://vista.jedarden.com/?url=https://example.com">
-  <img src="https://vista.jedarden.com/api/badge?url=https://example.com&label=grade" alt="VISTA Platform Grade" />
+  <img src="https://vista.jedarden.com/api/badge.svg?url=https://example.com&label=grade" alt="VISTA Platform Grade" />
 </a>
 
 <!-- With specific style -->
 <a href="https://vista.jedarden.com/?url=https://example.com">
-  <img src="https://vista.jedarden.com/api/badge?url=https://example.com&style=flat-square&label=grade" alt="VISTA Platform Grade" />
+  <img src="https://vista.jedarden.com/api/badge.svg?url=https://example.com&style=flat-square&label=grade" alt="VISTA Platform Grade" />
 </a>
 ```
 
@@ -62,10 +71,10 @@ GET /api/badge
 
 ```html
 <!-- Direct score and platform values -->
-<img src="https://vista.jedarden.com/api/badge?score=85&platforms=25" alt="Platform Score: 85/100" />
+<img src="https://vista.jedarden.com/api/badge.svg?score=85&platforms=25" alt="Platform Score: 85/100" />
 
 <!-- With letter grade display -->
-<img src="https://vista.jedarden.com/api/badge?score=85&platforms=25&label=grade" alt="Platform Grade: B" />
+<img src="https://vista.jedarden.com/api/badge.svg?score=85&platforms=25&label=grade" alt="Platform Grade: B" />
 ```
 
 ### Badge Styles
@@ -75,30 +84,30 @@ VISTA supports 4 badge styles compatible with Shields.io:
 #### 1. Flat (default)
 
 ```html
-<img src="https://vista.jedarden.com/api/badge?url=https://example.com&style=flat" alt="Platform Score" />
+<img src="https://vista.jedarden.com/api/badge.svg?url=https://example.com&style=flat" alt="Platform Score" />
 ```
-![Flat style](https://vista.jedarden.com/api/badge?score=85&platforms=25&style=flat)
+![Flat style](https://vista.jedarden.com/api/badge.svg?score=85&platforms=25&style=flat)
 
 #### 2. Flat Square
 
 ```html
-<img src="https://vista.jedarden.com/api/badge?url=https://example.com&style=flat-square" alt="Platform Score" />
+<img src="https://vista.jedarden.com/api/badge.svg?url=https://example.com&style=flat-square" alt="Platform Score" />
 ```
-![Flat Square style](https://vista.jedarden.com/api/badge?score=85&platforms=25&style=flat-square)
+![Flat Square style](https://vista.jedarden.com/api/badge.svg?score=85&platforms=25&style=flat-square)
 
 #### 3. Plastic
 
 ```html
-<img src="https://vista.jedarden.com/api/badge?url=https://example.com&style=plastic" alt="Platform Score" />
+<img src="https://vista.jedarden.com/api/badge.svg?url=https://example.com&style=plastic" alt="Platform Score" />
 ```
-![Plastic style](https://vista.jedarden.com/api/badge?score=85&platforms=25&style=plastic)
+![Plastic style](https://vista.jedarden.com/api/badge.svg?score=85&platforms=25&style=plastic)
 
 #### 4. For The Badge
 
 ```html
-<img src="https://vista.jedarden.com/api/badge?url=https://example.com&style=for-the-badge" alt="Platform Score" />
+<img src="https://vista.jedarden.com/api/badge.svg?url=https://example.com&style=for-the-badge" alt="Platform Score" />
 ```
-![For The Badge style](https://vista.jedarden.com/api/badge?score=85&platforms=25&style=for-the-badge)
+![For The Badge style](https://vista.jedarden.com/api/badge.svg?score=85&platforms=25&style=for-the-badge)
 
 ### Grade Colors
 
@@ -140,7 +149,7 @@ Make badges clickable by wrapping them in an anchor tag:
 
 ```html
 <a href="https://vista.jedarden.com/?url=https://example.com">
-  <img src="https://vista.jedarden.com/api/badge?url=https://example.com" alt="VISTA Platform Score" />
+  <img src="https://vista.jedarden.com/api/badge.svg?url=https://example.com" alt="VISTA Platform Score" />
 </a>
 ```
 
@@ -149,7 +158,7 @@ This allows users to click the badge to view the full VISTA analysis for your UR
 ### Badge in Markdown
 
 ```markdown
-[![VISTA Score](https://vista.jedarden.com/api/badge?url=https://example.com)](https://vista.jedarden.com/?url=https://example.com)
+[![VISTA Score](https://vista.jedarden.com/api/badge.svg?url=https://example.com)](https://vista.jedarden.com/?url=https://example.com)
 ```
 
 ### Developer Platform Context Frames

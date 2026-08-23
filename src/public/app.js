@@ -584,6 +584,7 @@ function restoreHashState() {
 // Auto-load from URL param on page load
 window.addEventListener('DOMContentLoaded', () => {
   initTheme();
+  fetchPlatformConfig(); // Initialize platform skeleton types
   loadRecents();
   initOgGenerator();
   const params = new URLSearchParams(window.location.search);
@@ -5152,13 +5153,14 @@ function updateBadgePreview() {
   const style = badgeStyleSelect?.value || 'flat';
 
   const baseUrl = `${window.location.protocol}//${window.location.host}`;
-  const badgeUrl = `${baseUrl}/api/badge?score=${score}&platforms=${platforms}&style=${style}`;
+  // .svg path so embedded badges land in Cloudflare's default extension cache
+  const badgeUrl = `${baseUrl}/api/badge.svg?score=${score}&platforms=${platforms}&style=${style}`;
 
   // Update preview
   badgePreview.innerHTML = `<img src="${badgeUrl}" alt="Platform Score Badge" />`;
 
   // Update embed code
-  const embedCode = `<a href="${baseUrl}/api/badge?score=${score}&platforms=${platforms}&style=${style}">
+  const embedCode = `<a href="${baseUrl}/api/badge.svg?score=${score}&platforms=${platforms}&style=${style}">
   <img src="${badgeUrl}" alt="Platform Score Badge" />
 </a>`;
   badgeEmbedCode.value = embedCode;

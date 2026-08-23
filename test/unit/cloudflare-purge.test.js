@@ -7,7 +7,8 @@
  *
  * Covers the behaviours the purge handler relies on:
  *   - buildPurgeUrls enumerates the exact edge-cache keys for a target URL
- *     (bare badge + all four styles + preview), with the target encoded
+ *     (bare badge + all four styles on both the .svg and legacy paths, plus
+ *     preview), with the target encoded
  *   - purgeCloudflareEdge skips (never errors) when unconfigured — no token,
  *     no PUBLIC_BASE_URL, or no resolvable zone
  *   - explicit CLOUDFLARE_ZONE_ID is used as-is (no lookup call)
@@ -58,11 +59,13 @@ const jsonResponse = (status, body) => ({
 // 1. buildPurgeUrls: the exact URL set the edge cache keys on.
 (function buildPurgeUrlsTest() {
   const urls = buildPurgeUrls('https://example.com/page?a=1&b=2', 'https://vista.jedarden.com/');
-  check('returns 6 URLs (bare badge + 4 styles + preview)', urls.length === 6);
+  check('returns 11 URLs (.svg bare + 4 styles, legacy bare + 4 styles, preview)', urls.length === 11);
   const target = encodeURIComponent('https://example.com/page?a=1&b=2');
-  check('bare badge URL has encoded target', urls[0] === `https://vista.jedarden.com/api/badge?url=${target}`);
+  check('bare .svg badge URL first (the edge-cached form)', urls[0] === `https://vista.jedarden.com/api/badge.svg?url=${target}`);
   check('trailing slash stripped from base URL', urls[0].startsWith('https://vista.jedarden.com/api/'));
-  check('all four badge styles present', BADGE_STYLES.every((style) => urls.includes(`https://vista.jedarden.com/api/badge?url=${target}&style=${style}`)));
+  check('all four .svg badge styles present', BADGE_STYLES.every((style) => urls.includes(`https://vista.jedarden.com/api/badge.svg?url=${target}&style=${style}`)));
+  check('legacy bare badge URL included', urls.includes(`https://vista.jedarden.com/api/badge?url=${target}`));
+  check('all four legacy badge styles present', BADGE_STYLES.every((style) => urls.includes(`https://vista.jedarden.com/api/badge?url=${target}&style=${style}`)));
   check('preview URL included', urls.includes(`https://vista.jedarden.com/api/preview?url=${target}`));
   check('empty base URL yields no URLs', buildPurgeUrls('https://example.com', '').length === 0);
   check('empty target yields no URLs', buildPurgeUrls('', 'https://vista.jedarden.com').length === 0);
@@ -118,7 +121,7 @@ const jsonResponse = (status, body) => ({
   check('purge call is POST', calls[0].options.method === 'POST');
   check('purge call carries Bearer token', calls[0].options.headers.Authorization === 'Bearer tok');
   const body = JSON.parse(calls[0].options.body);
-  check('purge payload lists the 6 derived URLs', Array.isArray(body.files) && body.files.length === 6);
+  check('purge payload lists the 11 derived URLs', Array.isArray(body.files) && body.files.length === 11);
   check('purge payload matches derived URLs', body.files[0] === result.urls[0]);
 })();
 

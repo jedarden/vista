@@ -80,7 +80,7 @@ app.use((req, res, next) => {
 // consume the budget of a cheaper one.
 //
 //   preview    30/hr  GET/POST /api/preview{,/meta,/headers,/images},
-//                     GET /api/compare, GET /api/badge (url mode).
+//                     GET /api/compare, GET /api/badge{,.svg} (url mode).
 //                     One request triggers 1-2 downstream page fetches — the
 //                     same cost class as a screenshot, so it reuses the 30/hr
 //                     budget the screenshot endpoints already had.
@@ -1050,8 +1050,16 @@ app.post('/api/screenshot', async (req, res) => {
  * GET /api/badge?url=https://example.com&style=flat
  * Generate SVG badge showing platform score
  * If ?url= is provided, fetch and score the URL (with 1-hour cache)
+ *
+ * Also served at /api/badge.svg — same handler, same query params. That path
+ * is the recommended embed URL: its final path segment ends in .svg, which
+ * puts it in Cloudflare's default extension-based edge cache (origin
+ * Cache-Control respected), so badge embeds are cached at the edge without a
+ * zone Cache Rule. /api/badge (no extension) stays as an alias for embeds
+ * already in the wild, but Cloudflare reports those cf-cache-status: DYNAMIC
+ * — see docs/plan/plan.md ADR-001.
  */
-app.get('/api/badge', async (req, res) => {
+app.get(['/api/badge', '/api/badge.svg'], async (req, res) => {
   const url = req.query.url;
   const style = req.query.style || 'flat';
 
@@ -1699,15 +1707,17 @@ function generateForTheBadge(label, message, color) {
 }
 
 function generateEmbedCode(url, score, platforms, baseUrl) {
-  // Prefer ?url= parameter for dynamic badges
+  // Prefer ?url= parameter for dynamic badges. Both embed forms use the
+  // .svg path so Cloudflare's default extension cache holds them at the edge
+  // (see the /api/badge handler comment and plan.md ADR-001).
   if (url) {
     return `<a href="${baseUrl}/?url=${encodeURIComponent(url)}">
-  <img src="${baseUrl}/api/badge?url=${encodeURIComponent(url)}" alt="VISTA Platform Score" />
+  <img src="${baseUrl}/api/badge.svg?url=${encodeURIComponent(url)}" alt="VISTA Platform Score" />
 </a>`;
   }
   // Fallback to legacy ?score=&platforms= parameters
-  return `<a href="${baseUrl}/api/badge?score=${score}&platforms=${platforms}">
-  <img src="${baseUrl}/api/badge?score=${score}&platforms=${platforms}" alt="Platform Score Badge" />
+  return `<a href="${baseUrl}/api/badge.svg?score=${score}&platforms=${platforms}">
+  <img src="${baseUrl}/api/badge.svg?score=${score}&platforms=${platforms}" alt="Platform Score Badge" />
 </a>`;
 }
 

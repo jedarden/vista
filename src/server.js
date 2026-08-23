@@ -26,12 +26,15 @@ const { generateSnippet, getSupportedFormats } = require('./snippet-gen');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// In-memory cache for badge URL results (1 hour TTL)
-const badgeCache = new Map();
-const BADGE_CACHE_TTL = 60 * 60 * 1000; // 1 hour in milliseconds
-
 // In-flight badge fetch map for de-duplicating concurrent requests
 // Maps URL -> Promise<{ score, platforms }>, cleared after fetch settles
+//
+// Deliberately NOT a cache: entries live only as long as an in-flight
+// request, so this is not persistent shared state in the ADR-001 sense.
+// Response caching moved to the Cloudflare edge (docs/plan/plan.md
+// ADR-001 — the in-process badgeCache Map was retired 2026-08-23); this
+// map only collapses concurrent identical badge fetches into one upstream
+// fetch+score while an edge MISS is being filled.
 const inFlightBadgeFetches = new Map();
 
 /**
@@ -1049,7 +1052,9 @@ app.post('/api/screenshot', async (req, res) => {
  * GET /api/badge?score=25&platforms=31&style=flat
  * GET /api/badge?url=https://example.com&style=flat
  * Generate SVG badge showing platform score
- * If ?url= is provided, fetch and score the URL (with 1-hour cache)
+ * If ?url= is provided, fetch and score the URL live (concurrent identical
+ * requests are single-flight de-duplicated; responses are cached at the
+ * Cloudflare edge, not in-process — see docs/plan/plan.md ADR-001)
  *
  * Also served at /api/badge.svg — same handler, same query params. That path
  * is the recommended embed URL: its final path segment ends in .svg, which
@@ -1085,70 +1090,53 @@ app.get(['/api/badge', '/api/badge.svg'], async (req, res) => {
       return res.status(400).json({ error: 'Invalid URL' });
     }
 
-    // Check cache
-    const cached = badgeCache.get(url);
-    const now = Date.now();
+    // No in-process result cache — responses are cached at the Cloudflare
+    // edge (plan.md ADR-001; the badgeCache Map was retired 2026-08-23
+    // after cf-cache-status MISS → HIT was verified in production on the
+    // recommended /api/badge.svg embed path). Concurrent identical requests
+    // are still collapsed into one upstream fetch via the in-flight map.
+    let fetchPromise = inFlightBadgeFetches.get(url);
 
-    if (cached && (now - cached.timestamp < BADGE_CACHE_TTL)) {
-      score = cached.score;
-      platforms = cached.platforms;
-    } else {
-      // Check for in-flight request for this URL (de-duplication)
-      let fetchPromise = inFlightBadgeFetches.get(url);
+    if (!fetchPromise) {
+      // No in-flight request, create a new one
+      fetchPromise = (async () => {
+        // Fetch and score the URL
+        const { html, finalUrl } = await fetchUrl(url);
+        const meta = parseMetaTags(html, finalUrl);
 
-      if (!fetchPromise) {
-        // No in-flight request, create a new one
-        fetchPromise = (async () => {
-          // Fetch and score the URL
-          const { html, finalUrl } = await fetchUrl(url);
-          const meta = parseMetaTags(html, finalUrl);
-
-          // Probe image dimensions
-          let imageProbe = null;
-          const imageUrl = meta.og.image || meta.twitter.image;
-          if (imageUrl) {
-            try {
-              imageProbe = await probeImage(imageUrl);
-            } catch (_) {
-              // non-fatal
-            }
+        // Probe image dimensions
+        let imageProbe = null;
+        const imageUrl = meta.og.image || meta.twitter.image;
+        if (imageUrl) {
+          try {
+            imageProbe = await probeImage(imageUrl);
+          } catch (_) {
+            // non-fatal
           }
+        }
 
-          const scoring = scoreAll(meta, imageProbe);
-          const resultScore = scoring.overall.score;
-          const resultPlatforms = Object.keys(scoring.scores).length;
+        const scoring = scoreAll(meta, imageProbe);
+        return {
+          score: scoring.overall.score,
+          platforms: Object.keys(scoring.scores).length,
+        };
+      })();
 
-          // Cache the result
-          badgeCache.set(url, { score: resultScore, platforms: resultPlatforms, timestamp: now });
+      // Store the promise so concurrent requests can reuse it
+      inFlightBadgeFetches.set(url, fetchPromise);
+    }
 
-          // Clean up old cache entries periodically (simple LRU cleanup)
-          if (badgeCache.size > 1000) {
-            for (const [key, value] of badgeCache.entries()) {
-              if (now - value.timestamp >= BADGE_CACHE_TTL) {
-                badgeCache.delete(key);
-              }
-            }
-          }
-
-          return { score: resultScore, platforms: resultPlatforms };
-        })();
-
-        // Store the promise so concurrent requests can reuse it
-        inFlightBadgeFetches.set(url, fetchPromise);
-      }
-
-      // Wait for the fetch (whether we just created it or it was already in-flight)
-      try {
-        const result = await fetchPromise;
-        score = result.score;
-        platforms = result.platforms;
-      } catch (err) {
-        console.error('Badge fetch error:', err.message);
-        return handleFetchError(res, err, 'Failed to fetch URL');
-      } finally {
-        // Clear the in-flight entry once the Promise settles (success or failure)
-        inFlightBadgeFetches.delete(url);
-      }
+    // Wait for the fetch (whether we just created it or it was already in-flight)
+    try {
+      const result = await fetchPromise;
+      score = result.score;
+      platforms = result.platforms;
+    } catch (err) {
+      console.error('Badge fetch error:', err.message);
+      return handleFetchError(res, err, 'Failed to fetch URL');
+    } finally {
+      // Clear the in-flight entry once the Promise settles (success or failure)
+      inFlightBadgeFetches.delete(url);
     }
   } else {
     // Legacy mode: use score and platforms from query params
@@ -1263,10 +1251,13 @@ app.get('/api/compare', async (req, res) => {
  * POST /api/purge
  * Server-side cache invalidation for a URL
  * Body: { url: string, platforms?: string[] }
- * Clears server-side in-memory cache, purges the Cloudflare edge cache for
- * the vista API URLs derived from `url` (when CLOUDFLARE_API_TOKEN is
- * configured — see src/cloudflare-purge.js), and optionally purges external
- * platform caches
+ * Purges the Cloudflare edge cache for the vista API URLs derived from `url`
+ * (when CLOUDFLARE_API_TOKEN is configured — see src/cloudflare-purge.js),
+ * and optionally purges external platform caches
+ *
+ * The in-memory badge cache this endpoint also used to clear was retired
+ * with the edge-cache migration (plan.md ADR-001) — there is no in-process
+ * cache left to clear.
  */
 app.post('/api/purge', async (req, res) => {
   const { url, platforms } = req.body;
@@ -1291,14 +1282,6 @@ app.post('/api/purge', async (req, res) => {
     failed: [],
     skipped: [],
   };
-
-  // Clear server-side in-memory badge cache
-  const hadCachedBadge = badgeCache.delete(url);
-  if (hadCachedBadge) {
-    results.purged.push('server-badge-cache');
-  } else {
-    results.skipped.push('server-badge-cache');
-  }
 
   // Purge the Cloudflare edge cache for the /api/* URLs derived from this
   // target URL (plan.md ADR-001 — the edge cache is keyed on the full vista

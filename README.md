@@ -38,7 +38,7 @@ default (`cf-cache-status: DYNAMIC`).
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `url` | string | No* | URL to score (fetches and scores dynamically with 1-hour cache) |
+| `url` | string | No* | URL to score (fetched and scored live; responses cached at the Cloudflare edge) |
 | `score` | integer | No* | Manual score (0-100) - required if `url` not provided |
 | `platforms` | integer | No* | Manual platform count - required if `url` not provided |
 | `style` | string | No | Badge style: `flat`, `flat-square`, `plastic`, or `for-the-badge` (default: `flat`) |
@@ -131,11 +131,12 @@ Badges use semantic colors based on score/grade:
 
 ### Caching
 
-URL-based badges are cached for 1 hour on the server. Subsequent requests for the same URL will return cached results, improving performance and reducing load on target servers.
+There is no in-process cache — the server is a stateless function of (fetch the URL, score it, return the SVG). URL-based badge responses are cached at the Cloudflare edge instead (see `docs/plan/plan.md` ADR-001):
 
-- **Cache TTL**: 1 hour (3600 seconds)
-- **Cache headers**: `Cache-Control: public, max-age=3600, immutable`
-- **Cache size**: Up to 1000 URLs (LRU eviction)
+- **Edge cache**: `/api/badge.svg` responses are stored by Cloudflare's default extension-based caching, respecting the endpoint's `Cache-Control: public, max-age=3600, stale-while-revalidate=7200` header. Verify live via the `cf-cache-status` response header: `MISS` on the first request, `HIT` afterwards.
+- **Not edge-cached**: the extension-less `/api/badge` alias (`cf-cache-status: DYNAMIC`) and the JSON `/api/*` endpoints — these are fetched live per request.
+- **Concurrent de-duplication**: simultaneous badge requests for the same URL are collapsed server-side into a single fetch of the target site.
+- **Invalidation**: `POST /api/purge` asks Cloudflare to drop the edge-cache entries for a URL's badge (requires the server's `CLOUDFLARE_API_TOKEN` to be configured; reported under `skipped` otherwise).
 
 ### Response Format
 

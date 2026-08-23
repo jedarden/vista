@@ -2300,7 +2300,7 @@ Cache VISTA's read-heavy GET responses at the Cloudflare edge instead of in a pe
 - Cache invalidation now depends on Cloudflare purge rather than an in-process `Map.delete()`. The existing `POST /api/purge` handler already clears `badgeCache` on request — it will need a Cloudflare purge call added alongside that once the in-memory cache is retired, so "refresh my badge" continues to work as documented in the Cache Invalidation Hub feature.
 - This has no effect until `vista.jedarden.com` is reachable and Cloudflare-proxied — sequenced after the DNS-fix bead below.
 
-### Status: 2026-08-20 (verified against production, vista-3797812c)
+### Status: 2026-08-20, updated 2026-08-23 — edge cache verified live, migration COMPLETE (vista-3797812c)
 
 **Step 1 — CONFIRMED.** `vista.jedarden.com` is live and Cloudflare-proxied
 (orange-clouded). It resolves to Cloudflare anycast IPs and answers with
@@ -2353,9 +2353,54 @@ Deployment env must be wired only after that value exists — referencing a
 missing secret in the Deployment would leave the pod in
 CreateContainerConfigError.
 
-**Step 3 — STILL GATED, deliberately.** With the edge returning `DYNAMIC`,
-removing `badgeCache` now would leave *zero* caching anywhere: badges embedded
-in third-party READMEs would fetch-and-score the target URL on every view —
-exactly the "No caching at all" alternative this ADR rejects. The Map is
-retired only after the Cache Rule above is live and verified caching
-(`cf-cache-status: HIT` observed in production).
+**Step 3 — STILL GATED, deliberately (as of 2026-08-20).** With the edge
+returning `DYNAMIC`, removing `badgeCache` then would have left *zero* caching
+anywhere: badges embedded in third-party READMEs would fetch-and-score the
+target URL on every view — exactly the "No caching at all" alternative this
+ADR rejects. The Map was to be retired only after the edge cache was verified
+caching (`cf-cache-status: HIT` observed in production).
+
+### 2026-08-23 update — gate satisfied, `badgeCache` retired, migration complete
+
+**Step 2 — resolved WITHOUT the Cache Rule; rule remains optional.** The
+credential blocker above still stands (no reachable token has
+Zone > Cache Rules > Edit; the `terraform/cloudflare` GitOps pipeline is still
+not live), so no `/api/*` Cache Rule exists. Instead the badge — the only
+endpoint the in-process cache ever served — moved to `/api/badge.svg`
+(commit `0c4c582`): the final path segment ends in `.svg`, which puts it in
+Cloudflare's *default extension-based* edge cache with no zone configuration
+at all. Verified in production 2026-08-23: repeated
+`GET /api/badge.svg?url=…` requests return `cf-cache-status: MISS` then `HIT`
+with a growing `age` header — the exact transition the gate asked for.
+
+The extension-less `/api/badge` alias, `/api/preview`, `/api/screenshot` and
+`/api/compare` all still report `cf-cache-status: DYNAMIC`. That no longer
+blocks anything: none of them were ever served from `badgeCache`, the alias
+is documented as legacy, and the JSON endpoints are interactive and
+browser-cached via their step-1 headers. The Cache Rule quoted above remains
+an optional latency optimization for those paths if a Cache Rules:Edit token
+is ever minted — it is not required for this ADR.
+
+**Step 3 — DONE (2026-08-23).** `badgeCache` (with `BADGE_CACHE_TTL` and the
+1000-entry LRU sweep) is removed from `src/server.js`, and `/api/purge` no
+longer reports a `server-badge-cache` entry. The gate was satisfied on the
+recommended embed path before the Map was removed.
+`inFlightBadgeFetches` single-flight de-dup is deliberately kept: it holds
+Promises only for the lifetime of in-flight requests (no results, no TTL),
+so it is not a cache — it collapses concurrent identical badge fetches into
+one upstream fetch+score while an edge MISS is being filled.
+
+**Remaining operator steps (production wiring only, no code):**
+
+1. Mint the purge token (Zone > Cache Purge > Purge on jedarden.com) and
+   store it at OpenBao `secret/rs-manager/apexalgo-iad/vista/cloudflare-purge`
+   (key `api-token`). Checked 2026-08-23: fleet credentials get 403 on that
+   path, so the value's existence is not confirmable from the fleet.
+2. Rename `declarative-config
+   k8s/apexalgo-iad/vista/cloudflare-purge-externalsecret.yml.disabled` to
+   drop the suffix, and add the env wiring (`CLOUDFLARE_API_TOKEN`,
+   `CLOUDFLARE_ZONE_NAME=jedarden.com`,
+   `PUBLIC_BASE_URL=https://vista.jedarden.com`) to the Deployment — only
+   after step 1, since referencing a missing secret leaves the pod in
+   CreateContainerConfigError.
+3. Optional: the Cache Rule above, if those paths' edge hit rate ever matters.

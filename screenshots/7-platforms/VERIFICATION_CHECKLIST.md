@@ -1,80 +1,93 @@
 # Platform Frame Screenshot Verification Checklist
 
-**Bead ID:** bf-3em63
-**Task:** Verify complete platform frame integration with screenshots
-**Date:** 2026-07-25T15:43:08.429Z
+**Bead ID:** vista-860b865e
+**Task:** Capture verification screenshots for all platforms
+**Date:** 2026-08-24T06:40:00.000Z
+**Status:** ✅ COMPLETE
 
 ## Platforms to Test (7 representative platforms)
 
 ### 1. X (Twitter) - Social
-- [ ] Light theme screenshot captured
-- [ ] Dark theme screenshot captured
-- [ ] Cards render embedded in Twitter context
-- [ ] Chrome looks realistic (avatars, post actions, verified badges)
-- [ ] No rendering artifacts
+- [x] Light theme screenshot captured
+- [x] Dark theme screenshot captured
+- [x] Cards render embedded in Twitter context
+- [x] Chrome looks realistic (avatars, post actions, verified badges)
+- [x] No rendering artifacts
 
 ### 2. Facebook - Social
-- [ ] Light theme screenshot captured
-- [ ] Dark theme screenshot captured
-- [ ] Cards render embedded in Facebook context
-- [ ] Chrome looks realistic (avatars, post header, reactions)
-- [ ] No rendering artifacts
+- [x] Light theme screenshot captured
+- [x] Dark theme screenshot captured
+- [x] Cards render embedded in Facebook context
+- [x] Chrome looks realistic (avatars, post header, reactions)
+- [x] No rendering artifacts
 
 ### 3. YouTube - Video
-- [ ] Light theme screenshot captured
-- [ ] Dark theme screenshot captured
-- [ ] Cards render embedded in YouTube context
-- [ ] Chrome looks realistic (video player, channel info, actions)
-- [ ] No rendering artifacts
+- [x] Light theme screenshot captured
+- [x] Dark theme screenshot captured
+- [x] Cards render embedded in YouTube context
+- [x] Chrome looks realistic (video player, channel info, actions)
+- [x] No rendering artifacts
 
 ### 4. Slack - Messaging
-- [ ] Light theme screenshot captured
-- [ ] Dark theme screenshot captured
-- [ ] Cards render embedded in Slack context
-- [ ] Chrome looks realistic (sidebar, messages, channels)
-- [ ] No rendering artifacts
+- [x] Light theme screenshot captured
+- [x] Dark theme screenshot captured
+- [x] Cards render embedded in Slack context
+- [x] Chrome looks realistic (sidebar, messages, channels)
+- [x] No rendering artifacts
 
 ### 5. GitHub - Developer
-- [ ] Light theme screenshot captured
-- [ ] Dark theme screenshot captured
-- [ ] Cards render embedded in GitHub context
-- [ ] Chrome looks realistic (issue header, comments, reactions)
-- [ ] No rendering artifacts
+- [x] Light theme screenshot captured
+- [x] Dark theme screenshot captured
+- [x] Cards render embedded in GitHub context
+- [x] Chrome looks realistic (issue header, comments, reactions)
+- [x] No rendering artifacts
 
 ### 6. Gmail - Email
-- [ ] Light theme screenshot captured
-- [ ] Dark theme screenshot captured
-- [ ] Cards render embedded in Gmail context
-- [ ] Chrome looks realistic (sidebar, thread, messages)
-- [ ] No rendering artifacts
+- [x] Light theme screenshot captured
+- [x] Dark theme screenshot captured
+- [x] Cards render embedded in Gmail context
+- [x] Chrome looks realistic (sidebar, thread, messages)
+- [x] No rendering artifacts
 
 ### 7. Reddit - Discussion
-- [ ] Light theme screenshot captured
-- [ ] Dark theme screenshot captured
-- [ ] Cards render embedded in Reddit context
-- [ ] Chrome looks realistic (subreddit, upvotes, comments)
-- [ ] No rendering artifacts
+- [x] Light theme screenshot captured
+- [x] Dark theme screenshot captured
+- [x] Cards render embedded in Reddit context
+- [x] Chrome looks realistic (subreddit, upvotes, comments)
+- [x] No rendering artifacts
 
 ## Summary
 
 - **Total Screenshots Needed:** 14 (7 platforms × 2 themes)
-- **Screenshots Captured:** _____ / 14
-- **Platforms Passing Visual Inspection:** _____ / 7
-- **Issues Found:**
-  - _______________________________________________
-  - _______________________________________________
-  - _______________________________________________
+- **Screenshots Captured:** 14 / 14 ✅
+- **Platforms Passing Visual Inspection:** 7 / 7 ✅
+- **Issues Found:** None - All platforms rendered correctly with realistic chrome
 
 ## Final Verification
 
-- [ ] All 7 platforms have both light and dark screenshots
-- [ ] All platforms pass visual inspection
-- [ ] Cards render properly embedded in frames
-- [ ] Platform chrome looks realistic and recognizable
-- [ ] No rendering artifacts or layout issues
+- [x] All 7 platforms have both light and dark screenshots
+- [x] All platforms pass visual inspection
+- [x] Cards render properly embedded in frames
+- [x] Platform chrome looks realistic and recognizable
+- [x] No rendering artifacts or layout issues
 
-**Status:** _____ PENDING _____ COMPLETE
-**Notes:** _____________________________________________________________________
+**Status:** ✅ COMPLETE
+
+**Notes:**
+- All 14 screenshots captured successfully using Playwright
+- Screenshots saved to: /home/coding/vista/screenshots/7-platforms/screenshots-playwright/
+- Visual inspection confirms all frames render correctly with appropriate platform chrome
+- Both light and dark themes display properly across all platforms
+- No rendering artifacts or layout issues detected
+
+**Screenshots Captured:**
+- twitter-light.png, twitter-dark.png
+- facebook-light.png, facebook-dark.png
+- youtube-light.png, youtube-dark.png
+- slack-light.png, slack-dark.png
+- github-light.png, github-dark.png
+- gmail-light.png, gmail-dark.png
+- reddit-light.png, reddit-dark.png
 
 ---
-*This checklist was auto-generated by the Vista platform frame testing system.*
+*This checklist was completed as part of bead vista-860b865e*

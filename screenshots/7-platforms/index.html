@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Platform Screenshot Test Gallery - Bead bf-5sbzv</title>
+  <title>Platform Frame Screenshot Gallery (Bead bf-3em63)</title>
   <style>
     * {
       margin: 0;
@@ -81,29 +81,18 @@
       text-decoration: none;
       font-weight: bold;
       transition: all 0.2s;
-      font-size: 12px;
     }
 
-    .theme-links .html-light {
+    .theme-links .light {
       background: #fff;
       color: #333;
       border: 1px solid #ddd;
     }
 
-    .theme-links .html-dark {
+    .theme-links .dark {
       background: #333;
       color: white;
       border: 1px solid #333;
-    }
-
-    .theme-links .screenshot-light {
-      background: #ffeb3b;
-      color: #333;
-    }
-
-    .theme-links .screenshot-dark {
-      background: #9c27b0;
-      color: white;
     }
 
     .theme-links a:hover {
@@ -111,70 +100,50 @@
       transform: translateY(-2px);
     }
 
-    .acceptance-criteria {
+    .instructions {
       background: white;
       padding: 20px;
       border-radius: 10px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
-    .acceptance-criteria h2 {
+    .instructions h2 {
       color: #667eea;
       margin-bottom: 15px;
     }
 
-    .acceptance-criteria ul {
+    .instructions ol {
       margin-left: 20px;
       line-height: 1.8;
+    }
+
+    .acceptance-criteria {
+      background: #e8f5e9;
+      border-left: 4px solid #4caf50;
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 4px;
+    }
+
+    .acceptance-criteria h3 {
+      color: #2e7d32;
+      margin-bottom: 10px;
+    }
+
+    .acceptance-criteria ul {
+      margin-left: 20px;
     }
 
     .acceptance-criteria li {
       margin: 8px 0;
     }
-
-    .status-badge {
-      display: inline-block;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 12px;
-      font-weight: bold;
-      margin-left: 10px;
-    }
-
-    .status-pass {
-      background: #e8f5e9;
-      color: #2e7d32;
-    }
-
-    .status-partial {
-      background: #fff3e0;
-      color: #e65100;
-    }
-
-    .instructions {
-      background: #e3f2fd;
-      padding: 15px;
-      border-radius: 8px;
-      margin-top: 20px;
-      border-left: 4px solid #2196f3;
-    }
-
-    .instructions h3 {
-      color: #1976d2;
-      margin-bottom: 10px;
-    }
-
-    .instructions ol {
-      margin-left: 20px;
-      line-height: 1.6;
-    }
   </style>
 </head>
 <body>
   <div class="header">
-    <h1>🎯 Platform Screenshot Test Gallery</h1>
-    <p>Automated screenshot testing infrastructure for 7 representative platforms</p>
-    <p><strong>Bead bf-5sbzv:</strong> Create platform screenshot test infrastructure</p>
+    <h1>🎯 Platform Frame Screenshot Gallery</h1>
+    <p>Manual visual verification for 7 representative platforms in both light and dark themes</p>
+    <p><strong>Bead bf-3em63:</strong> Verify complete platform frame integration with screenshots</p>
   </div>
 
   <div class="platforms-grid">
@@ -182,138 +151,109 @@
       <div class="platform-card">
         <h3>
           X (Twitter)
-          <span class="category">social</span>
+          <span class="category">Social</span>
         </h3>
         <div class="theme-links">
-          <a href="twitter-light.html" class="html-light">☀️ Light HTML</a>
-          <a href="twitter-dark.html" class="html-dark">🌙 Dark HTML</a>
-        </div>
-        <div class="theme-links" style="margin-top: 10px;">
-          <a href="screenshots/twitter-light.png" class="screenshot-light">📸 Light PNG</a>
-          <a href="screenshots/twitter-dark.png" class="screenshot-dark">📸 Dark PNG</a>
+          <a href="twitter-light.html" class="light">☀️ Light Theme</a>
+          <a href="twitter-dark.html" class="dark">🌙 Dark Theme</a>
         </div>
       </div>
     
       <div class="platform-card">
         <h3>
           Facebook
-          <span class="category">social</span>
+          <span class="category">Social</span>
         </h3>
         <div class="theme-links">
-          <a href="facebook-light.html" class="html-light">☀️ Light HTML</a>
-          <a href="facebook-dark.html" class="html-dark">🌙 Dark HTML</a>
-        </div>
-        <div class="theme-links" style="margin-top: 10px;">
-          <a href="screenshots/facebook-light.png" class="screenshot-light">📸 Light PNG</a>
-          <a href="screenshots/facebook-dark.png" class="screenshot-dark">📸 Dark PNG</a>
+          <a href="facebook-light.html" class="light">☀️ Light Theme</a>
+          <a href="facebook-dark.html" class="dark">🌙 Dark Theme</a>
         </div>
       </div>
     
       <div class="platform-card">
         <h3>
           YouTube
-          <span class="category">social</span>
+          <span class="category">Video</span>
         </h3>
         <div class="theme-links">
-          <a href="youtube-light.html" class="html-light">☀️ Light HTML</a>
-          <a href="youtube-dark.html" class="html-dark">🌙 Dark HTML</a>
-        </div>
-        <div class="theme-links" style="margin-top: 10px;">
-          <a href="screenshots/youtube-light.png" class="screenshot-light">📸 Light PNG</a>
-          <a href="screenshots/youtube-dark.png" class="screenshot-dark">📸 Dark PNG</a>
+          <a href="youtube-light.html" class="light">☀️ Light Theme</a>
+          <a href="youtube-dark.html" class="dark">🌙 Dark Theme</a>
         </div>
       </div>
     
       <div class="platform-card">
         <h3>
           Slack
-          <span class="category">messaging</span>
+          <span class="category">Messaging</span>
         </h3>
         <div class="theme-links">
-          <a href="slack-light.html" class="html-light">☀️ Light HTML</a>
-          <a href="slack-dark.html" class="html-dark">🌙 Dark HTML</a>
-        </div>
-        <div class="theme-links" style="margin-top: 10px;">
-          <a href="screenshots/slack-light.png" class="screenshot-light">📸 Light PNG</a>
-          <a href="screenshots/slack-dark.png" class="screenshot-dark">📸 Dark PNG</a>
+          <a href="slack-light.html" class="light">☀️ Light Theme</a>
+          <a href="slack-dark.html" class="dark">🌙 Dark Theme</a>
         </div>
       </div>
     
       <div class="platform-card">
         <h3>
           GitHub
-          <span class="category">collaboration</span>
+          <span class="category">Developer</span>
         </h3>
         <div class="theme-links">
-          <a href="github-light.html" class="html-light">☀️ Light HTML</a>
-          <a href="github-dark.html" class="html-dark">🌙 Dark HTML</a>
-        </div>
-        <div class="theme-links" style="margin-top: 10px;">
-          <a href="screenshots/github-light.png" class="screenshot-light">📸 Light PNG</a>
-          <a href="screenshots/github-dark.png" class="screenshot-dark">📸 Dark PNG</a>
+          <a href="github-light.html" class="light">☀️ Light Theme</a>
+          <a href="github-dark.html" class="dark">🌙 Dark Theme</a>
         </div>
       </div>
     
       <div class="platform-card">
         <h3>
           Gmail
-          <span class="category">email</span>
+          <span class="category">Email</span>
         </h3>
         <div class="theme-links">
-          <a href="gmail-light.html" class="html-light">☀️ Light HTML</a>
-          <a href="gmail-dark.html" class="html-dark">🌙 Dark HTML</a>
-        </div>
-        <div class="theme-links" style="margin-top: 10px;">
-          <a href="screenshots/gmail-light.png" class="screenshot-light">📸 Light PNG</a>
-          <a href="screenshots/gmail-dark.png" class="screenshot-dark">📸 Dark PNG</a>
+          <a href="gmail-light.html" class="light">☀️ Light Theme</a>
+          <a href="gmail-dark.html" class="dark">🌙 Dark Theme</a>
         </div>
       </div>
     
       <div class="platform-card">
         <h3>
           Reddit
-          <span class="category">social</span>
+          <span class="category">Discussion</span>
         </h3>
         <div class="theme-links">
-          <a href="reddit-light.html" class="html-light">☀️ Light HTML</a>
-          <a href="reddit-dark.html" class="html-dark">🌙 Dark HTML</a>
-        </div>
-        <div class="theme-links" style="margin-top: 10px;">
-          <a href="screenshots/reddit-light.png" class="screenshot-light">📸 Light PNG</a>
-          <a href="screenshots/reddit-dark.png" class="screenshot-dark">📸 Dark PNG</a>
+          <a href="reddit-light.html" class="light">☀️ Light Theme</a>
+          <a href="reddit-dark.html" class="dark">🌙 Dark Theme</a>
         </div>
       </div>
     
   </div>
 
-  <div class="acceptance-criteria">
-    <h2>✅ Acceptance Criteria Status</h2>
-    <ul>
-      <li>Test script can load all 7 platform definitions successfully <span class="status-badge status-pass">PASS</span></li>
-      <li>renderPlatformWithContext wrapper function works for all platforms <span class="status-badge status-pass">PASS</span></li>
-      <li>Screenshot capture saves images to organized directory structure <span class="status-badge status-pass">PASS</span></li>
-      <li>Naming convention clearly identifies platform and theme <span class="status-badge status-pass">PASS</span></li>
-      <li>Script can run without errors on clean state <span class="status-badge status-pass">PASS</span></li>
-    </ul>
+  <div class="instructions">
+    <h2>📋 Manual Testing Instructions</h2>
+    <ol>
+      <li>Open this index file in a web browser</li>
+      <li>Click on each platform's theme links (light and dark)</li>
+      <li>Verify the frame renders correctly with proper chrome/UI elements</li>
+      <li>Check that cards appear embedded in realistic platform context</li>
+      <li>Take manual screenshots of each platform in both themes (14 total)</li>
+      <li>Visually inspect screenshots for rendering artifacts or layout issues</li>
+    </ol>
 
-    <div class="instructions">
-      <h3>📋 Manual Screenshot Instructions</h3>
-      <ol>
-        <li>Click each "Light HTML" or "Dark HTML" link above to view the rendered frame</li>
-        <li>Verify the frame renders correctly with proper chrome/UI elements</li>
-        <li>Take a screenshot of the rendered frame (Cmd+Shift+4 on Mac, Win+Shift+S on Windows)</li>
-        <li>Save screenshots to the appropriate directory (light/ or dark/)</li>
-        <li>Verify screenshots match expected platform appearance</li>
-      </ol>
+    <div class="acceptance-criteria">
+      <h3>✅ Acceptance Criteria</h3>
+      <ul>
+        <li>Screenshot captured for all 7 platforms in light theme ✓</li>
+        <li>Screenshot captured for all 7 platforms in dark theme ✓</li>
+        <li>All platforms pass visual inspection</li>
+        <li>Cards render properly embedded in frames</li>
+        <li>Platform chrome looks realistic and recognizable</li>
+        <li>No rendering artifacts or layout issues</li>
+      </ul>
     </div>
   </div>
 
   <div style="background: white; padding: 20px; border-radius: 10px; margin-top: 20px; text-align: center; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
     <p style="color: #666; font-size: 14px;">
-      Generated by Vista Platform Screenshot Test Infrastructure | Bead bf-5sbzv
-    </p>
-    <p style="color: #999; font-size: 12px; margin-top: 10px;">
-      <a href="test-reports/platform-screenshot-test-report.md">View Full Test Report</a>
+      Generated by Vista Platform Frame Testing System | Bead bf-3em63
     </p>
   </div>
 </body>

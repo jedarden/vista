@@ -2371,8 +2371,8 @@ async function downloadScreenshot(pid, data) {
 }
 
 // Platforms that support dark/light mode (from platform-frames module)
-const PLATFORMS_WITH_THEME = typeof getPlatformsWithThemeSupport === 'function'
-  ? getPlatformsWithThemeSupport()
+const PLATFORMS_WITH_THEME = typeof getThemeablePlatformIds === 'function'
+  ? getThemeablePlatformIds()
   : ['discord', 'slack', 'twitter', 'telegram', 'github']; // fallback if module not loaded
 
 function toggleCardContext(pid, data) {

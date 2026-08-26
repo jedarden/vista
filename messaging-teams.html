@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Microsoft Teams Context Frame</title>
+  <link rel="stylesheet" href="src/public/messaging-base.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      background: #1f1f1f;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .teams-context {
+      width: 100%;
+      max-width: 1200px;
+      height: 700px;
+      background: #1f1f1f;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      display: flex;
+    }
+
+    /* App Bar (left sidebar) */
+    .tm-app-bar {
+      width: 68px;
+      background: #464775;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 0;
+      gap: 4px;
+    }
+
+    .tm-app-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .tm-app-icon:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+    }
+
+    .tm-app-icon.active {
+      background: rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+    }
+
+    .tm-app-divider {
+      width: 40px;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.1);
+      margin: 8px 0;
+    }
+
+    /* Rail Sidebar (teams/channels) */
+    .tm-rail-sidebar {
+      width: 280px;
+      background: #2b2b2b;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tm-rail-header {
+      height: 52px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .tm-rail-search {
+      padding: 12px 16px;
+    }
+
+    .tm-search-box {
+      display: flex;
+      align-items: center;
+      background: #3a3a3a;
+      border-radius: 4px;
+      padding: 8px 12px;
+    }
+
+    .tm-search-icon {
+      color: rgba(255, 255, 255, 0.5);
+      margin-right: 8px;
+    }
+
+    .tm-search-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #ffffff;
+      font-size: 13px;
+      outline: none;
+    }
+
+    .tm-search-input::placeholder {
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    .tm-rail-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+    }
+
+    .tm-section {
+      margin-bottom: 16px;
+    }
+
+    .tm-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.6);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+    }
+
+    .tm-section-header:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .tm-team-item {
+      display: flex;
+      align-items: center;
+      padding: 10px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .tm-team-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .tm-team-item.active {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .tm-team-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      background: #6264A7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: #ffffff;
+      margin-right: 12px;
+    }
+
+    .tm-team-name {
+      flex: 1;
+      font-size: 13px;
+    }
+
+    .tm-team-chevron {
+      color: rgba(255, 255, 255, 0.4);
+      font-size: 12px;
+    }
+
+    .tm-channel-list {
+      padding-left: 52px;
+    }
+
+    .tm-channel-item {
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 13px;
+    }
+
+    .tm-channel-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .tm-channel-item.active {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .tm-channel-icon {
+      margin-right: 8px;
+      font-size: 14px;
+    }
+
+    /* Main Content Area */
+    .tm-main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #1f1f1f;
+    }
+
+    .tm-content-header {
+      height: 52px;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      background: #2b2b2b;
+    }
+
+    .tm-header-left {
+      display: flex;
+      align-items: center;
+    }
+
+    .tm-channel-title {
+      color: #ffffff;
+      font-weight: 600;
+      font-size: 15px;
+    }
+
+    .tm-channel-desc {
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 12px;
+      margin-left: 8px;
+    }
+
+    .tm-header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .tm-header-icon {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .tm-header-icon:hover {
+      color: #ffffff;
+    }
+
+    .tm-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #6264A7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    /* Message Area */
+    .tm-message-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .tm-messages-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 20px;
+    }
+
+    .tm-message {
+      display: flex;
+      margin-bottom: 20px;
+    }
+
+    .tm-message-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #6264A7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+      color: #ffffff;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+
+    .tm-message-content {
+      flex: 1;
+    }
+
+    .tm-message-header {
+      display: flex;
+      align-items: baseline;
+      margin-bottom: 4px;
+    }
+
+    .tm-message-sender {
+      font-weight: 600;
+      font-size: 13px;
+      color: #ffffff;
+    }
+
+    .tm-message-time {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.4);
+      margin-left: 8px;
+    }
+
+    .tm-message-text {
+      font-size: 13px;
+      color: #e0e0e0;
+      line-height: 1.5;
+    }
+
+    /* Link Card in Teams */
+    .tm-link-card {
+      margin-top: 8px;
+      background: #2d2d2d;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      overflow: hidden;
+      max-width: 420px;
+    }
+
+    .tm-link-card-image {
+      width: 100%;
+      height: 200px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tm-link-card-content {
+      padding: 12px;
+    }
+
+    .tm-link-card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #ffffff;
+      margin-bottom: 4px;
+    }
+
+    .tm-link-card-desc {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.6);
+      line-height: 1.4;
+      margin-bottom: 8px;
+    }
+
+    .tm-link-card-domain {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    /* Reactions */
+    .tm-reactions {
+      display: flex;
+      gap: 4px;
+      margin-top: 8px;
+    }
+
+    .tm-reaction {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .tm-reaction:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .tm-reaction-emoji {
+      font-size: 14px;
+    }
+
+    .tm-reaction-count {
+      color: rgba(255, 255, 255, 0.8);
+      font-weight: 600;
+      font-size: 11px;
+    }
+
+    /* Reply Thread */
+    .tm-reply-thread {
+      display: flex;
+      margin-left: 52px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 8px;
+      margin-top: 8px;
+    }
+
+    .tm-reply-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #6264A7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: #ffffff;
+      margin-right: 8px;
+    }
+
+    .tm-reply-content {
+      flex: 1;
+    }
+
+    .tm-reply-sender {
+      font-weight: 600;
+      font-size: 12px;
+      color: #ffffff;
+    }
+
+    .tm-reply-text {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.7);
+      margin-top: 2px;
+    }
+
+    /* Input Area */
+    .tm-input-area {
+      padding: 12px 20px 16px 20px;
+      background: #2b2b2b;
+    }
+
+    .tm-input-container {
+      display: flex;
+      align-items: center;
+      background: #3a3a3a;
+      border-radius: 8px;
+      padding: 8px 12px;
+    }
+
+    .tm-input-format-btn {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 18px;
+      cursor: pointer;
+      margin-right: 12px;
+    }
+
+    .tm-input-format-btn:hover {
+      color: #ffffff;
+    }
+
+    .tm-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #ffffff;
+      font-size: 13px;
+      outline: none;
+      resize: none;
+      font-family: inherit;
+    }
+
+    .tm-input::placeholder {
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    .tm-input-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-left: 12px;
+    }
+
+    .tm-input-action-btn {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .tm-input-action-btn:hover {
+      color: #ffffff;
+    }
+
+    .tm-send-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      background: #6264A7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #ffffff;
+      font-size: 16px;
+    }
+
+    .tm-send-btn:hover {
+      background: #7b7ac8;
+    }
+
+    /* Light Theme */
+    [data-theme="light"] body {
+      background: #f3f2f1;
+    }
+
+    [data-theme="light"] .teams-context {
+      background: #ffffff;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    }
+
+    [data-theme="light"] .tm-app-bar {
+      background: #464775;
+    }
+
+    [data-theme="light"] .tm-rail-sidebar {
+      background: #f5f5f5;
+    }
+
+    [data-theme="light"] .tm-rail-header {
+      background: #ffffff;
+      border-bottom-color: #e1e1e1;
+      color: #323130;
+    }
+
+    [data-theme="light"] .tm-search-box {
+      background: #ffffff;
+    }
+
+    [data-theme="light"] .tm-search-input {
+      color: #323130;
+    }
+
+    [data-theme="light"] .tm-search-input::placeholder {
+      color: #a19f9d;
+    }
+
+    [data-theme="light"] .tm-search-icon {
+      color: #a19f9d;
+    }
+
+    [data-theme="light"] .tm-section-header {
+      color: #605e5c;
+    }
+
+    [data-theme="light"] .tm-team-item {
+      color: #323130;
+    }
+
+    [data-theme="light"] .tm-team-item:hover {
+      background: #f3f2f1;
+    }
+
+    [data-theme="light"] .tm-team-item.active {
+      background: #e1e1e1;
+    }
+
+    [data-theme="light"] .tm-channel-item {
+      color: #323130;
+    }
+
+    [data-theme="light"] .tm-channel-item:hover {
+      background: #f3f2f1;
+    }
+
+    [data-theme="light"] .tm-channel-item.active {
+      background: #e1e1e1;
+    }
+
+    [data-theme="light"] .tm-main-content {
+      background: #ffffff;
+    }
+
+    [data-theme="light"] .tm-content-header {
+      background: #ffffff;
+      border-bottom-color: #e1e1e1;
+    }
+
+    [data-theme="light"] .tm-channel-title {
+      color: #323130;
+    }
+
+    [data-theme="light"] .tm-channel-desc {
+      color: #605e5c;
+    }
+
+    [data-theme="light"] .tm-header-icon {
+      color: #605e5c;
+    }
+
+    [data-theme="light"] .tm-header-icon:hover {
+      color: #323130;
+    }
+
+    [data-theme="light"] .tm-message-sender {
+      color: #323130;
+    }
+
+    [data-theme="light"] .tm-message-time {
+      color: #a19f9d;
+    }
+
+    [data-theme="light"] .tm-message-text {
+      color: #323130;
+    }
+
+    [data-theme="light"] .tm-link-card {
+      background: #f5f5f5;
+      border-color: #e1e1e1;
+    }
+
+    [data-theme="light"] .tm-link-card-title {
+      color: #323130;
+    }
+
+    [data-theme="light"] .tm-link-card-desc {
+      color: #605e5c;
+    }
+
+    [data-theme="light"] .tm-link-card-domain {
+      color: #a19f9d;
+    }
+
+    [data-theme="light"] .tm-reaction {
+      background: #f3f2f1;
+    }
+
+    [data-theme="light"] .tm-reaction:hover {
+      background: #e1e1e1;
+    }
+
+    [data-theme="light"] .tm-reply-thread {
+      background: #f5f5f5;
+    }
+
+    [data-theme="light"] .tm-reply-sender {
+      color: #323130;
+    }
+
+    [data-theme="light"] .tm-reply-text {
+      color: #605e5c;
+    }
+
+    [data-theme="light"] .tm-input-area {
+      background: #f5f5f5;
+    }
+
+    [data-theme="light"] .tm-input-container {
+      background: #ffffff;
+    }
+
+    [data-theme="light"] .tm-input {
+      color: #323130;
+    }
+
+    [data-theme="light"] .tm-input::placeholder {
+      color: #a19f9d;
+    }
+
+    [data-theme="light"] .tm-input-format-btn {
+      color: #605e5c;
+    }
+
+    [data-theme="light"] .tm-input-format-btn:hover {
+      color: #323130;
+    }
+
+    [data-theme="light"] .tm-input-action-btn {
+      color: #605e5c;
+    }
+
+    [data-theme="light"] .tm-input-action-btn:hover {
+      color: #323130;
+    }
+  </style>
+</head>
+<body>
+  <div class="teams-context">
+    <!-- App Bar -->
+    <div class="tm-app-bar">
+      <div class="tm-app-icon active" title="Activity">📊</div>
+      <div class="tm-app-icon" title="Chat">💬</div>
+      <div class="tm-app-icon" title="Teams">👥</div>
+      <div class="tm-app-icon" title="Calendar">📅</div>
+      <div class="tm-app-icon" title="Files">📁</div>
+      <div class="tm-app-divider"></div>
+      <div class="tm-app-icon" title="Apps">➕</div>
+    </div>
+
+    <!-- Rail Sidebar -->
+    <div class="tm-rail-sidebar">
+      <div class="tm-rail-header">
+        <span>Microsoft Teams</span>
+      </div>
+      <div class="tm-rail-search">
+        <div class="tm-search-box">
+          <span class="tm-search-icon">🔍</span>
+          <input type="text" class="tm-search-input" placeholder="Search">
+        </div>
+      </div>
+      <div class="tm-rail-content">
+        <div class="tm-section">
+          <div class="tm-section-header">
+            <span>Your Teams</span>
+            <span>▼</span>
+          </div>
+          <div class="tm-team-item active">
+            <div class="tm-team-icon">DV</div>
+            <span class="tm-team-name">Development Team</span>
+            <span class="tm-team-chevron">▼</span>
+          </div>
+          <div class="tm-channel-list">
+            <div class="tm-channel-item active">
+              <span class="tm-channel-icon">#</span>
+              <span>general</span>
+            </div>
+            <div class="tm-channel-item">
+              <span class="tm-channel-icon">#</span>
+              <span>engineering</span>
+            </div>
+            <div class="tm-channel-item">
+              <span class="tm-channel-icon">#</span>
+              <span>design-review</span>
+            </div>
+          </div>
+          <div class="tm-team-item">
+            <div class="tm-team-icon" style="background: #0078D4;">PM</div>
+            <span class="tm-team-name">Product Team</span>
+            <span class="tm-team-chevron">▶</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="tm-main-content">
+      <div class="tm-content-header">
+        <div class="tm-header-left">
+          <span class="tm-channel-title"># general</span>
+          <span class="tm-channel-desc">Development Team</span>
+        </div>
+        <div class="tm-header-right">
+          <span class="tm-header-icon">📌</span>
+          <span class="tm-header-icon">🔔</span>
+          <span class="tm-header-icon">⚙️</span>
+          <div class="tm-avatar">JD</div>
+        </div>
+      </div>
+
+      <div class="tm-message-area">
+        <div class="tm-messages-container">
+          <!-- Placeholder message -->
+          <div class="tm-message">
+            <div class="tm-message-avatar">SM</div>
+            <div class="tm-message-content">
+              <div class="tm-message-header">
+                <span class="tm-message-sender">Sarah Mitchell</span>
+                <span class="tm-message-time">10:23 AM</span>
+              </div>
+              <div class="tm-message-text">
+                Hey team! Just finished the design mockups for the new dashboard. They're looking great! 🎨
+              </div>
+            </div>
+          </div>
+
+          <!-- Another placeholder -->
+          <div class="tm-message">
+            <div class="tm-message-avatar" style="background: #0078D4;">MK</div>
+            <div class="tm-message-content">
+              <div class="tm-message-header">
+                <span class="tm-message-sender">Mike Kim</span>
+                <span class="tm-message-time">10:28 AM</span>
+              </div>
+              <div class="tm-message-text">
+                Awesome! Can't wait to see them. When can we review?
+              </div>
+            </div>
+          </div>
+
+          <!-- Card Message (the VISTA preview) -->
+          <div class="tm-message">
+            <div class="tm-message-avatar" style="background: #00B294;">JW</div>
+            <div class="tm-message-content">
+              <div class="tm-message-header">
+                <span class="tm-message-sender">Jessica Wang</span>
+                <span class="tm-message-time">10:35 AM</span>
+              </div>
+              <div class="tm-message-text">
+                Check out this link I found for the project:
+              </div>
+              <div class="tm-link-card">
+                <div class="tm-link-card-image">
+                  <span style="font-size: 48px; color: rgba(255,255,255,0.8);">🔗</span>
+                </div>
+                <div class="tm-link-card-content">
+                  <div class="tm-link-card-title">Example Page Title</div>
+                  <div class="tm-link-card-desc">
+                    This is a sample description that would appear when sharing a link in Microsoft Teams...
+                  </div>
+                  <div class="tm-link-card-domain">https://example.com</div>
+                </div>
+              </div>
+              <div class="tm-reactions">
+                <div class="tm-reaction">
+                  <span class="tm-reaction-emoji">👍</span>
+                  <span class="tm-reaction-count">3</span>
+                </div>
+                <div class="tm-reaction">
+                  <span class="tm-reaction-emoji">❤️</span>
+                  <span class="tm-reaction-count">2</span>
+                </div>
+              </div>
+              <div class="tm-reply-thread">
+                <div class="tm-reply-avatar">SM</div>
+                <div class="tm-reply-content">
+                  <div class="tm-reply-sender">Sarah Mitchell</div>
+                  <div class="tm-reply-text">Perfect, thanks for sharing!</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="tm-input-area">
+          <div class="tm-input-container">
+            <span class="tm-input-format-btn">A</span>
+            <textarea class="tm-input" placeholder="Type a new message" rows="1"></textarea>
+            <div class="tm-input-actions">
+              <span class="tm-input-action-btn">😊</span>
+              <span class="tm-input-action-btn">📎</span>
+              <div class="tm-send-btn">➤</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

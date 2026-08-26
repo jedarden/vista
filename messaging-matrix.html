@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matrix Context Frame</title>
+  <link rel="stylesheet" href="src/public/messaging-base.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: #101213;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .matrix-context {
+      width: 100%;
+      max-width: 1100px;
+      height: 650px;
+      background: #101213;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      display: flex;
+    }
+
+    /* Room Sidebar */
+    .mx-room-sidebar {
+      width: 280px;
+      background: #0dbd8b;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .mx-sidebar-header {
+      height: 56px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .mx-logo {
+      font-size: 18px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .mx-header-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .mx-header-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #ffffff;
+      font-size: 18px;
+    }
+
+    .mx-header-btn:hover {
+      background: rgba(0, 0, 0, 0.1);
+    }
+
+    .mx-search-box {
+      padding: 12px 16px;
+    }
+
+    .mx-search-input {
+      width: 100%;
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.15);
+      border: none;
+      border-radius: 4px;
+      color: #ffffff;
+      font-size: 13px;
+      outline: none;
+    }
+
+    .mx-search-input::placeholder {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .mx-room-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+    }
+
+    .mx-room-section {
+      margin-bottom: 16px;
+    }
+
+    .mx-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.8);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+    }
+
+    .mx-section-header:hover {
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    .mx-room-item {
+      display: flex;
+      align-items: center;
+      padding: 10px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      color: #ffffff;
+    }
+
+    .mx-room-item:hover {
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    .mx-room-item.active {
+      background: rgba(0, 0, 0, 0.1);
+    }
+
+    .mx-room-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      margin-right: 12px;
+    }
+
+    .mx-room-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .mx-room-name {
+      font-size: 13px;
+      font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .mx-room-preview {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.7);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .mx-room-badge {
+      width: 20px;
+      height: 20px;
+      border-radius: 10px;
+      background: #ffffff;
+      color: #0dbd8b;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .mx-room-sidebar-footer {
+      padding: 12px 16px;
+      border-top: 1px solid rgba(0, 0, 0, 0.1);
+      display: flex;
+      gap: 8px;
+    }
+
+    .mx-footer-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #ffffff;
+      font-size: 18px;
+    }
+
+    .mx-footer-btn:hover {
+      background: rgba(0, 0, 0, 0.1);
+    }
+
+    /* Main Content Area */
+    .mx-main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #101213;
+    }
+
+    .mx-content-header {
+      height: 56px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      background: #1a1a1b;
+    }
+
+    .mx-header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .mx-back-btn {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .mx-room-title-area {
+      flex: 1;
+    }
+
+    .mx-room-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    .mx-room-topic {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .mx-header-right {
+      display: flex;
+      gap: 16px;
+    }
+
+    .mx-header-icon {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .mx-header-icon:hover {
+      color: #ffffff;
+    }
+
+    /* Member List Sidebar */
+    .mx-member-sidebar {
+      width: 200px;
+      background: #1a1a1b;
+      display: flex;
+      flex-direction: column;
+      border-left: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .mx-member-header {
+      height: 56px;
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.6);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .mx-member-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+    }
+
+    .mx-member-section {
+      margin-bottom: 16px;
+    }
+
+    .mx-member-section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.5);
+      text-transform: uppercase;
+      padding: 8px 4px;
+    }
+
+    .mx-member-item {
+      display: flex;
+      align-items: center;
+      padding: 6px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .mx-member-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .mx-member-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #0dbd8b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: #ffffff;
+      margin-right: 8px;
+      position: relative;
+    }
+
+    .mx-member-avatar.online::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #0dbd8b;
+      border: 2px solid #1a1a1b;
+    }
+
+    .mx-member-name {
+      font-size: 13px;
+      color: #ffffff;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Message Area */
+    .mx-message-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .mx-messages-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+    }
+
+    .mx-date-separator {
+      display: flex;
+      align-items: center;
+      margin: 16px 0;
+    }
+
+    .mx-date-line {
+      flex: 1;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .mx-date-text {
+      padding: 0 12px;
+      font-size: 11px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.6);
+      text-transform: uppercase;
+    }
+
+    .mx-message {
+      display: flex;
+      margin-bottom: 12px;
+    }
+
+    .mx-message-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #0dbd8b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: #ffffff;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+
+    .mx-message-content {
+      flex: 1;
+    }
+
+    .mx-message-header {
+      display: flex;
+      align-items: baseline;
+      margin-bottom: 2px;
+    }
+
+    .mx-message-sender {
+      font-weight: 600;
+      font-size: 13px;
+      color: #ffffff;
+    }
+
+    .mx-message-time {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.4);
+      margin-left: 8px;
+    }
+
+    .mx-message-text {
+      font-size: 13px;
+      color: #e0e0e0;
+      line-height: 1.5;
+    }
+
+    /* Link Card in Matrix */
+    .mx-link-card {
+      margin-top: 8px;
+      background: #1a1a1b;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      overflow: hidden;
+      max-width: 400px;
+    }
+
+    .mx-link-card-image {
+      width: 100%;
+      height: 180px;
+      background: linear-gradient(135deg, #0dbd8b 0%, #089675 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .mx-link-card-content {
+      padding: 12px;
+    }
+
+    .mx-link-card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #ffffff;
+      margin-bottom: 4px;
+    }
+
+    .mx-link-card-desc {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.6);
+      line-height: 1.4;
+      margin-bottom: 8px;
+    }
+
+    .mx-link-card-domain {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    /* Reactions */
+    .mx-reactions {
+      display: flex;
+      gap: 4px;
+      margin-top: 8px;
+    }
+
+    .mx-reaction {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .mx-reaction:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .mx-reaction-emoji {
+      font-size: 14px;
+    }
+
+    .mx-reaction-count {
+      color: rgba(255, 255, 255, 0.8);
+      font-weight: 600;
+      font-size: 11px;
+    }
+
+    /* Reply Thread */
+    .mx-reply-thread {
+      display: flex;
+      margin-left: 48px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 8px;
+      margin-top: 8px;
+    }
+
+    .mx-reply-avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #0dbd8b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 600;
+      color: #ffffff;
+      margin-right: 8px;
+    }
+
+    .mx-reply-content {
+      flex: 1;
+    }
+
+    .mx-reply-sender {
+      font-weight: 600;
+      font-size: 12px;
+      color: #ffffff;
+    }
+
+    .mx-reply-text {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.7);
+      margin-top: 2px;
+    }
+
+    /* Input Area */
+    .mx-input-area {
+      padding: 12px 16px 16px 16px;
+      background: #1a1a1b;
+    }
+
+    .mx-input-wrapper {
+      background: #2d2d2d;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .mx-input-toolbar {
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      gap: 8px;
+    }
+
+    .mx-toolbar-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 16px;
+    }
+
+    .mx-toolbar-btn:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: #ffffff;
+    }
+
+    .mx-reply-preview {
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      background: rgba(0, 189, 139, 0.1);
+      border-left: 2px solid #0dbd8b;
+    }
+
+    .mx-reply-preview-avatar {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #0dbd8b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      font-weight: 600;
+      color: #ffffff;
+      margin-right: 8px;
+    }
+
+    .mx-reply-preview-text {
+      flex: 1;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .mx-reply-preview-close {
+      color: rgba(255, 255, 255, 0.5);
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .mx-input {
+      width: 100%;
+      min-height: 40px;
+      max-height: 120px;
+      padding: 10px 12px;
+      background: transparent;
+      border: none;
+      color: #ffffff;
+      font-size: 13px;
+      outline: none;
+      resize: none;
+      font-family: inherit;
+      line-height: 1.5;
+    }
+
+    .mx-input::placeholder {
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    .mx-input-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .mx-input-left {
+      display: flex;
+      gap: 8px;
+    }
+
+    .mx-input-right {
+      display: flex;
+      gap: 8px;
+    }
+
+    .mx-send-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 4px;
+      background: #0dbd8b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #ffffff;
+      font-size: 16px;
+    }
+
+    .mx-send-btn:hover {
+      background: #089675;
+    }
+
+    /* Light Theme */
+    [data-theme="light"] body {
+      background: #ffffff;
+    }
+
+    [data-theme="light"] .matrix-context {
+      background: #ffffff;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    }
+
+    [data-theme="light"] .mx-room-sidebar {
+      background: #0dbd8b;
+    }
+
+    [data-theme="light"] .mx-main-content {
+      background: #ffffff;
+    }
+
+    [data-theme="light"] .mx-content-header {
+      background: #f6f6f6;
+      border-bottom-color: #e0e0e0;
+    }
+
+    [data-theme="light"] .mx-room-title {
+      color: #2e2f31;
+    }
+
+    [data-theme="light"] .mx-room-topic {
+      color: #8e9199;
+    }
+
+    [data-theme="light"] .mx-header-icon {
+      color: #8e9199;
+    }
+
+    [data-theme="light"] .mx-header-icon:hover {
+      color: #2e2f31;
+    }
+
+    [data-theme="light"] .mx-member-sidebar {
+      background: #f6f6f6;
+      border-left-color: #e0e0e0;
+    }
+
+    [data-theme="light"] .mx-member-section-title {
+      color: #8e9199;
+    }
+
+    [data-theme="light"] .mx-member-name {
+      color: #2e2f31;
+    }
+
+    [data-theme="light"] .mx-member-avatar.online::after {
+      border-color: #f6f6f6;
+    }
+
+    [data-theme="light"] .mx-date-separator {
+      background: transparent;
+    }
+
+    [data-theme="light"] .mx-date-line {
+      background: #e0e0e0;
+    }
+
+    [data-theme="light"] .mx-date-text {
+      color: #8e9199;
+    }
+
+    [data-theme="light"] .mx-message-sender {
+      color: #2e2f31;
+    }
+
+    [data-theme="light"] .mx-message-time {
+      color: #8e9199;
+    }
+
+    [data-theme="light"] .mx-message-text {
+      color: #2e2f31;
+    }
+
+    [data-theme="light"] .mx-link-card {
+      background: #f6f6f6;
+      border-color: #e0e0e0;
+    }
+
+    [data-theme="light"] .mx-link-card-title {
+      color: #2e2f31;
+    }
+
+    [data-theme="light"] .mx-link-card-desc {
+      color: #8e9199;
+    }
+
+    [data-theme="light"] .mx-link-card-domain {
+      color: #a9a9a9;
+    }
+
+    [data-theme="light"] .mx-reaction {
+      background: #ffffff;
+      border: 1px solid #e0e0e0;
+    }
+
+    [data-theme="light"] .mx-reaction:hover {
+      background: #f6f6f6;
+    }
+
+    [data-theme="light"] .mx-reply-thread {
+      background: #f6f6f6;
+    }
+
+    [data-theme="light"] .mx-reply-sender {
+      color: #2e2f31;
+    }
+
+    [data-theme="light"] .mx-reply-text {
+      color: #8e9199;
+    }
+
+    [data-theme="light"] .mx-input-area {
+      background: #f6f6f6;
+    }
+
+    [data-theme="light"] .mx-input-wrapper {
+      background: #ffffff;
+      border: 1px solid #e0e0e0;
+    }
+
+    [data-theme="light"] .mx-input-toolbar {
+      background: #f6f6f6;
+      border-bottom-color: #e0e0e0;
+    }
+
+    [data-theme="light"] .mx-toolbar-btn {
+      color: #8e9199;
+    }
+
+    [data-theme="light"] .mx-toolbar-btn:hover {
+      background: #e0e0e0;
+      color: #2e2f31;
+    }
+
+    [data-theme="light"] .mx-input {
+      color: #2e2f31;
+    }
+
+    [data-theme="light"] .mx-input::placeholder {
+      color: #a9a9a9;
+    }
+
+    [data-theme="light"] .mx-input-footer {
+      background: #f6f6f6;
+    }
+
+    [data-theme="light"] .mx-reply-preview {
+      background: rgba(13, 189, 139, 0.08);
+    }
+
+    [data-theme="light"] .mx-reply-preview-text {
+      color: #8e9199;
+    }
+
+    [data-theme="light"] .mx-reply-preview-close {
+      color: #8e9199;
+    }
+  </style>
+</head>
+<body>
+  <div class="matrix-context">
+    <!-- Room Sidebar -->
+    <div class="mx-room-sidebar">
+      <div class="mx-sidebar-header">
+        <div class="mx-logo">⌘</div>
+        <div class="mx-header-actions">
+          <div class="mx-header-btn">🔍</div>
+          <div class="mx-header-btn">➕</div>
+        </div>
+      </div>
+      <div class="mx-search-box">
+        <input type="text" class="mx-search-input" placeholder="Search rooms">
+      </div>
+      <div class="mx-room-list">
+        <div class="mx-room-section">
+          <div class="mx-section-header">
+            <span>Favorites</span>
+            <span>▼</span>
+          </div>
+          <div class="mx-room-item active">
+            <div class="mx-room-avatar">#</div>
+            <div class="mx-room-info">
+              <div class="mx-room-name">development</div>
+              <div class="mx-room-preview">Jessica: Check out this link...</div>
+            </div>
+          </div>
+          <div class="mx-room-item">
+            <div class="mx-room-avatar">#</div>
+            <div class="mx-room-info">
+              <div class="mx-room-name">design-team</div>
+              <div class="mx-room-preview">Sarah: New mockups ready...</div>
+            </div>
+            <div class="mx-room-badge">3</div>
+          </div>
+        </div>
+        <div class="mx-room-section">
+          <div class="mx-section-header">
+            <span>Rooms</span>
+            <span>▼</span>
+          </div>
+          <div class="mx-room-item">
+            <div class="mx-room-avatar">#</div>
+            <div class="mx-room-info">
+              <div class="mx-room-name">random</div>
+              <div class="mx-room-preview">Mike: Anyone up for lunch?...</div>
+            </div>
+          </div>
+          <div class="mx-room-item">
+            <div class="mx-room-avatar">#</div>
+            <div class="mx-room-info">
+              <div class="mx-room-name">announcements</div>
+              <div class="mx-room-preview">Admin: Server maintenance...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mx-room-sidebar-footer">
+        <div class="mx-footer-btn">⚙️</div>
+        <div class="mx-footer-btn">📁</div>
+        <div class="mx-footer-btn">👤</div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="mx-main-content">
+      <div class="mx-content-header">
+        <div class="mx-header-left">
+          <span class="mx-back-btn">◀</span>
+          <div class="mx-room-title-area">
+            <div class="mx-room-title">development</div>
+            <div class="mx-room-topic">Project development discussions</div>
+          </div>
+        </div>
+        <div class="mx-header-right">
+          <span class="mx-header-icon">🔍</span>
+          <span class="mx-header-icon">📌</span>
+          <span class="mx-header-icon">👥</span>
+          <span class="mx-header-icon">⚙️</span>
+        </div>
+      </div>
+
+      <div class="mx-message-area">
+        <div class="mx-messages-container">
+          <!-- Date separator -->
+          <div class="mx-date-separator">
+            <div class="mx-date-line"></div>
+            <div class="mx-date-text">Today</div>
+            <div class="mx-date-line"></div>
+          </div>
+
+          <!-- Placeholder message -->
+          <div class="mx-message">
+            <div class="mx-message-avatar">SM</div>
+            <div class="mx-message-content">
+              <div class="mx-message-header">
+                <span class="mx-message-sender">Sarah Mitchell</span>
+                <span class="mx-message-time">10:23 AM</span>
+              </div>
+              <div class="mx-message-text">
+                Hey team! Just finished the design mockups for the new dashboard. They're looking great! 🎨
+              </div>
+            </div>
+          </div>
+
+          <!-- Another placeholder -->
+          <div class="mx-message">
+            <div class="mx-message-avatar" style="background: #FF6B6B;">MK</div>
+            <div class="mx-message-content">
+              <div class="mx-message-header">
+                <span class="mx-message-sender">Mike Kim</span>
+                <span class="mx-message-time">10:28 AM</span>
+              </div>
+              <div class="mx-message-text">
+                Awesome! Can't wait to see them. When can we review?
+              </div>
+            </div>
+          </div>
+
+          <!-- Card Message (the VISTA preview) -->
+          <div class="mx-message">
+            <div class="mx-message-avatar" style="background: #4ECDC4;">JW</div>
+            <div class="mx-message-content">
+              <div class="mx-message-header">
+                <span class="mx-message-sender">Jessica Wang</span>
+                <span class="mx-message-time">10:35 AM</span>
+              </div>
+              <div class="mx-message-text">
+                Check out this link I found for the project:
+              </div>
+              <div class="mx-link-card">
+                <div class="mx-link-card-image">
+                  <span style="font-size: 48px; color: rgba(255,255,255,0.8);">🔗</span>
+                </div>
+                <div class="mx-link-card-content">
+                  <div class="mx-link-card-title">Example Page Title</div>
+                  <div class="mx-link-card-desc">
+                    This is a sample description that would appear when sharing a link in Matrix...
+                  </div>
+                  <div class="mx-link-card-domain">https://example.com</div>
+                </div>
+              </div>
+              <div class="mx-reactions">
+                <div class="mx-reaction">
+                  <span class="mx-reaction-emoji">👍</span>
+                  <span class="mx-reaction-count">3</span>
+                </div>
+                <div class="mx-reaction">
+                  <span class="mx-reaction-emoji">❤️</span>
+                  <span class="mx-reaction-count">2</span>
+                </div>
+              </div>
+              <div class="mx-reply-thread">
+                <div class="mx-reply-avatar">SM</div>
+                <div class="mx-reply-content">
+                  <div class="mx-reply-sender">Sarah Mitchell</div>
+                  <div class="mx-reply-text">Perfect, thanks for sharing!</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="mx-input-area">
+          <div class="mx-input-wrapper">
+            <div class="mx-input-toolbar">
+              <span class="mx-toolbar-btn">📎</span>
+              <span class="mx-toolbar-btn">😊</span>
+              <span class="mx-toolbar-btn">📝</span>
+              <span class="mx-toolbar-btn">⚡</span>
+            </div>
+            <textarea class="mx-input" placeholder="Write a message..." rows="1"></textarea>
+            <div class="mx-input-footer">
+              <div class="mx-input-left">
+                <span class="mx-toolbar-btn">🔤</span>
+              </div>
+              <div class="mx-input-right">
+                <span class="mx-toolbar-btn">😊</span>
+                <div class="mx-send-btn">➤</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Member List Sidebar -->
+    <div class="mx-member-sidebar">
+      <div class="mx-member-header">Online — 4</div>
+      <div class="mx-member-list">
+        <div class="mx-member-section">
+          <div class="mx-member-item">
+            <div class="mx-member-avatar online">SM</div>
+            <div class="mx-member-name">Sarah Mitchell</div>
+          </div>
+          <div class="mx-member-item">
+            <div class="mx-member-avatar online" style="background: #FF6B6B;">MK</div>
+            <div class="mx-member-name">Mike Kim</div>
+          </div>
+          <div class="mx-member-item">
+            <div class="mx-member-avatar online" style="background: #4ECDC4;">JW</div>
+            <div class="mx-member-name">Jessica Wang</div>
+          </div>
+          <div class="mx-member-item">
+            <div class="mx-member-avatar online" style="background: #95E1D3;">JD</div>
+            <div class="mx-member-name">John Doe</div>
+          </div>
+        </div>
+        <div class="mx-member-section">
+          <div class="mx-member-section-title">Offline — 2</div>
+          <div class="mx-member-item">
+            <div class="mx-member-avatar">AL</div>
+            <div class="mx-member-name">Alice Lee</div>
+          </div>
+          <div class="mx-member-item">
+            <div class="mx-member-avatar" style="background: #F38181;">BJ</div>
+            <div class="mx-member-name">Bob Johnson</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

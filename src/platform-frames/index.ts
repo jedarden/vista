@@ -20,7 +20,7 @@ export {
   createPlatformFrameStub,
 } from './base-frame';
 
-// Export individual platform frame components
+// Export individual platform frame components - Social
 export { FacebookFrame, facebookFrame, createFacebookFrame } from './facebook-frame';
 export { TwitterFrame, twitterFrame, createTwitterFrame } from './twitter-frame';
 export { LinkedInFrame, linkedinFrame, createLinkedInFrame } from './linkedin-frame';
@@ -28,6 +28,38 @@ export { RedditFrame, redditFrame, createRedditFrame } from './reddit-frame';
 export { YouTubeFrame, youtubeFrame, createYouTubeFrame } from './youtube-frame';
 export { InstagramFrame, instagramFrame, createInstagramFrame } from './instagram-frame';
 export { TikTokFrame, tiktokFrame, createTikTokFrame } from './tiktok-frame';
+
+// Export individual platform frame components - Messaging
+export { DiscordFrame, discordFrame } from './discord-frame';
+export { SlackFrame, slackFrame } from './slack-frame';
+export {
+  IMessageFrame,
+  WhatsAppFrame,
+  TelegramFrame,
+  SignalFrame,
+  TeamsFrame,
+  MatrixFrame,
+} from './messaging-frames';
+
+// Import messaging platform frames
+import { DiscordFrame, discordFrame } from './discord-frame';
+import { SlackFrame, slackFrame } from './slack-frame';
+import {
+  IMessageFrame,
+  WhatsAppFrame,
+  TelegramFrame,
+  SignalFrame,
+  TeamsFrame,
+  MatrixFrame,
+} from './messaging-frames';
+
+// Create singleton instances for messaging frames
+const imessageFrame = new IMessageFrame();
+const whatsappFrame = new WhatsAppFrame();
+const telegramFrame = new TelegramFrame();
+const signalFrame = new SignalFrame();
+const teamsFrame = new TeamsFrame();
+const matrixFrame = new MatrixFrame();
 
 // Import type definitions
 import type { BasePlatformFrame } from './base-frame';
@@ -37,6 +69,7 @@ import type { FrameContentData, ThemeMode } from '../types/platform-frames';
  * Registry of all available platform frame components
  */
 const PLATFORM_FRAME_REGISTRY: Record<string, BasePlatformFrame> = {
+  // Social platforms
   facebook: facebookFrame,
   twitter: twitterFrame,
   linkedin: linkedinFrame,
@@ -44,6 +77,15 @@ const PLATFORM_FRAME_REGISTRY: Record<string, BasePlatformFrame> = {
   youtube: youtubeFrame,
   instagram: instagramFrame,
   tiktok: tiktokFrame,
+  // Messaging platforms
+  discord: discordFrame,
+  slack: slackFrame,
+  imessage: imessageFrame,
+  whatsapp: whatsappFrame,
+  telegram: telegramFrame,
+  signal: signalFrame,
+  teams: teamsFrame,
+  matrix: matrixFrame,
 };
 
 /**

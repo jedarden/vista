@@ -35,10 +35,11 @@ export interface PlatformFrameConfig {
 /**
  * Platform frames configuration array
  *
- * Contains metadata for all 7 implemented platform frame components.
+ * Contains metadata for all implemented platform frame components.
  * This is the core configuration used by the platform frame rendering system.
  */
 export const PLATFORM_FRAMES_CONFIG: PlatformFrameConfig[] = [
+  // Social feed platforms
   {
     id: 'facebook',
     name: 'Facebook',
@@ -87,6 +88,63 @@ export const PLATFORM_FRAMES_CONFIG: PlatformFrameConfig[] = [
     frameType: 'video-platform',
     hasThemeSupport: true,
     aspectRatio: '9:16',
+  },
+  // Messaging platforms
+  {
+    id: 'discord',
+    name: 'Discord',
+    frameType: 'messaging',
+    hasThemeSupport: true,
+    aspectRatio: 'variable',
+  },
+  {
+    id: 'slack',
+    name: 'Slack',
+    frameType: 'messaging',
+    hasThemeSupport: true,
+    aspectRatio: 'variable',
+  },
+  {
+    id: 'imessage',
+    name: 'iMessage',
+    frameType: 'messaging',
+    hasThemeSupport: true,
+    aspectRatio: 'variable',
+  },
+  {
+    id: 'whatsapp',
+    name: 'WhatsApp',
+    frameType: 'messaging',
+    hasThemeSupport: true,
+    aspectRatio: 'variable',
+  },
+  {
+    id: 'telegram',
+    name: 'Telegram',
+    frameType: 'messaging',
+    hasThemeSupport: true,
+    aspectRatio: 'variable',
+  },
+  {
+    id: 'signal',
+    name: 'Signal',
+    frameType: 'messaging',
+    hasThemeSupport: true,
+    aspectRatio: 'variable',
+  },
+  {
+    id: 'teams',
+    name: 'Microsoft Teams',
+    frameType: 'messaging',
+    hasThemeSupport: true,
+    aspectRatio: 'variable',
+  },
+  {
+    id: 'matrix',
+    name: 'Matrix',
+    frameType: 'messaging',
+    hasThemeSupport: true,
+    aspectRatio: 'variable',
   },
 ];
 

@@ -8820,25 +8820,9 @@ function toggleWhatIfMode() {
       panel.remove();
     }
     if (currentData) {
-      // Check if smart ordering is active - defer operation if so
-      if (isSmartOrdering()) {
-        const applyWhatIfReset = () => {
-          isFilterOperation = true;
-          renderPreviews(currentData);
-          setTimeout(() => { isFilterOperation = false; }, 0);
-        };
-        queueFilterOperation(applyWhatIfReset, 'toggleWhatIfMode');
-        if (DEBUG_SMART_ORDERING) {
-          console.log('[toggleWhatIfMode] Smart ordering active - operation queued');
-        }
-        return;
-      }
-
-      // Set guard flag to prevent smart order resets during filter operation
-      isFilterOperation = true;
-      renderPreviews(currentData);
-      // Clear flag after render (renderPreviews will handle timing)
-      setTimeout(() => { isFilterOperation = false; }, 0);
+      guardWrapperWithRender('toggleWhatIfMode', () => {
+        renderPreviews(currentData);
+      });
     }
   }
 }

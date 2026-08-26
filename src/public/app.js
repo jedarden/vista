@@ -2,6 +2,207 @@
 /* VISTA frontend application */
 
 /**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * FILTER CHANGE HANDLERS CATALOG
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * This section catalogs all filter change handlers in app.js for easy
+ * reference and maintenance. Filter handlers modify what content is displayed
+ * or how it's organized based on user input.
+ *
+ * ────────────────────────────────────────────────────────────────────────────
+ * PRIMARY FILTER HANDLERS
+ * ────────────────────────────────────────────────────────────────────────────
+ *
+ * 1. metadataFilterInput handler (line ~4418)
+ *    Location: renderMetadataTable() function
+ *    Event: 'input' event on #metadataFilterInput
+ *    Purpose: Filters metadata tags by tag name or value in the metadata viewer
+ *    Action: Re-renders metadata table with filtered rows
+ *
+ * 2. filterCommands (line ~9658)
+ *    Location: Command palette module
+ *    Event: 'input' event on command palette search
+ *    Purpose: Filters command palette commands by label or category
+ *    Action: Re-renders command list with filtered commands
+ *
+ * 3. toggleFavorite (line ~8348)
+ *    Location: Platform preferences module
+ *    Event: Click on favorite toggle for a platform
+ *    Purpose: Adds/removes platform from favorites set
+ *    Action: Updates platformPrefs.favorites, saves prefs, updates favorites list
+ *    Guard: Uses guardWrapper() to protect against smart ordering conflicts
+ *
+ * 4. toggleHidden (line ~8458)
+ *    Location: Platform preferences module
+ *    Event: Click on hidden toggle for a platform
+ *    Purpose: Adds/removes platform from hidden set
+ *    Action: Updates platformPrefs.hidden, saves prefs, re-renders previews
+ *    Guard: Uses guardWrapperWithRender() to protect against smart ordering conflicts
+ *
+ * 5. toggleWhatIfMode (line ~8602)
+ *    Location: What If analysis module
+ *    Event: Click on What If toggle button
+ *    Purpose: Toggles What If analysis mode on/off
+ *    Action: Shows/hides What If panel, resets previews when disabled
+ *    Guard: Checks isSmartOrdering() and queues operation if needed
+ *
+ * 6. applyWhatIfChanges (line ~8722)
+ *    Location: What If analysis module
+ *    Event: Click on "Update Previews" button in What If panel
+ *    Purpose: Applies tag disabling changes to preview cards
+ *    Action: Creates modified meta object, re-renders with filtered tags
+ *    Guard: Sets isFilterOperation flag during render
+ *
+ * 7. resetWhatIfToggles (line ~8714)
+ *    Location: What If analysis module
+ *    Event: Click on "Reset All" button in What If panel
+ *    Purpose: Resets all What If tag toggles to checked (enabled) state
+ *    Action: Clears disabledTags set, updates hash
+ *
+ * 8. closeWhatIfPanel (line ~8704)
+ *    Location: What If analysis module
+ *    Event: Click on What If panel close button
+ *    Purpose: Closes What If panel (preserves state)
+ *    Action: Removes panel from DOM
+ *
+ * 9. applyPendingWhatIfTags (line ~8767)
+ *    Location: What If analysis module
+ *    Event: Called automatically after data loads with pending hash state
+ *    Purpose: Restores What If state from URL hash
+ *    Action: Enables What If mode, applies disabled tags from hash
+ *
+ * 10. importPreferences (line ~8538)
+ *     Location: Platform preferences module
+ *     Event: 'change' event on #importPrefsInput file input
+ *     Purpose: Imports platform preferences from JSON file
+ *     Action: Loads favorites, hidden, columnCount, smartOrdering; re-renders
+ *     Guard: Checks isSmartOrdering() and queues operation if needed
+ *
+ * 11. setColumnLayout (line ~8329)
+ *     Location: Platform preferences module
+ *     Event: Click on column layout button (1-4 columns)
+ *     Purpose: Changes preview grid column count
+ *     Action: Updates platformPrefs.columnCount, saves, updates grid style
+ *
+ * ────────────────────────────────────────────────────────────────────────────
+ * PLATFORM SELECTION HANDLERS (Cropper UI)
+ * ────────────────────────────────────────────────────────────────────────────
+ *
+ * 12. Group checkbox change handler (line ~3908)
+ *     Location: renderCropperControls() function
+ *     Event: 'change' event on .cropper-group-toggle checkbox
+ *     Purpose: Selects/deselects all platforms in a group
+ *     Action: Updates child platform checkboxes, refreshes overlay
+ *
+ * 13. Individual platform toggle handler (line ~3924)
+ *     Location: renderCropperControls() function
+ *     Event: 'change' event on .cropper-platform-toggle input
+ *     Purpose: Toggles individual platform visibility
+ *     Action: Calls updateEnabledPlatforms(), updates overlay, syncs groups
+ *
+ * 14. selectAllPlatforms handler (line ~3931)
+ *     Location: renderCropperControls() function
+ *     Event: Click on "Select All" button
+ *     Purpose: Selects all platform checkboxes
+ *     Action: Checks all platform toggles, syncs groups, updates overlay
+ *
+ * 15. clearAllPlatforms handler (line ~3938)
+ *     Location: renderCropperControls() function
+ *     Event: Click on "Clear All" button
+ *     Purpose: Deselects all platform checkboxes
+ *     Action: Unchecks all platform toggles, syncs groups, updates overlay
+ *
+ * ────────────────────────────────────────────────────────────────────────────
+ * SUPPORTING FUNCTIONS
+ * ────────────────────────────────────────────────────────────────────────────
+ *
+ * 16. updateEnabledPlatforms (line ~3978)
+ *     Purpose: Rebuilds cropperState.enabledPlatforms from checked inputs
+ *     Called by: All platform selection handlers
+ *     Action: Clears and rebuilds enabled platforms set, refreshes legend
+ *
+ * 17. syncGroupToggles (line ~3957)
+ *     Purpose: Syncs group header checkbox state with its children
+ *     Called by: Platform selection handlers
+ *     Action: Sets group checkbox to checked/unchecked/indeterminate
+ *
+ * 18. updateColumnLayoutUI (line ~8340)
+ *     Purpose: Updates column layout button active states
+ *     Called by: setColumnLayout(), importPreferences()
+ *     Action: Toggles active class on layout buttons
+ *
+ * 19. updateFavoritesList (line ~8471)
+ *     Purpose: Renders favorites list UI
+ *     Called by: toggleFavorite(), importPreferences()
+ *     Action: Builds favorites list HTML, attaches remove handlers
+ *
+ * 20. updateHiddenList (line ~8493)
+ *     Purpose: Renders hidden platforms list UI
+ *     Called by: toggleHidden(), importPreferences()
+ *     Action: Builds hidden list HTML, attaches remove handlers
+ *
+ * ────────────────────────────────────────────────────────────────────────────
+ * SMART ORDERING GUARD FUNCTIONS
+ * ────────────────────────────────────────────────────────────────────────────
+ *
+ * These centralized guard functions prevent filter operations from conflicting
+ * with smart ordering operations. See lines 8366-8456 for full documentation.
+ *
+ * 21. isSmartOrdering() (line ~8414)
+ *     Purpose: Checks if smart ordering is both enabled and active
+ *     Returns: boolean
+ *     Used by: Filter handlers to decide if operation should be deferred
+ *
+ * 22. shouldDeferFilterOperation() (line ~8372)
+ *     Purpose: Checks if filter operation should be deferred
+ *     Returns: boolean
+ *     Used by: Filter handlers to queue operations during smart ordering
+ *
+ * 23. queueFilterOperation() (line ~8423)
+ *     Purpose: Queues a filter operation for later execution
+ *     Parameters: operation function, description string
+ *     Used by: Filter handlers when smart ordering is active
+ *
+ * 24. processPendingFilterOperations() (line ~8433)
+ *     Purpose: Executes queued filter operations after smart ordering completes
+ *     Called by: Smart ordering completion handlers
+ *     Action: Processes each pending operation in order
+ *
+ * ────────────────────────────────────────────────────────────────────────────
+ * GUARD FLAGS
+ * ────────────────────────────────────────────────────────────────────────────
+ *
+ * 25. isFilterOperation (line ~6760)
+ *     Type: Global boolean flag
+ *     Purpose: Prevents smart order resets during filter operations
+ *     Set by: Filter handlers before rendering
+ *     Cleared by: setTimeout after render completes
+ *
+ * 26. isSmartOrderingActive (line ~8413 referenced)
+ *     Type: Global boolean flag
+ *     Purpose: Tracks when smart ordering is in progress
+ *     Set by: Smart ordering operations
+ *     Cleared by: User manual overrides (import, toggle favorite)
+ *
+ * ────────────────────────────────────────────────────────────────────────────
+ * EVENT LISTENER ATTACHMENTS
+ * ────────────────────────────────────────────────────────────────────────────
+ *
+ * Filter change handlers are attached in various init/render functions:
+ *
+ * - metadataFilterInput: Attached in renderMetadataTable() at line ~4418
+ * - Command palette filter: Attached in command palette initialization
+ * - whatIfToggleBtn: Attached at line ~8815
+ * - whatIfClose/Reset/Apply: Attached in showWhatIfPanel() at lines ~8699-8701
+ * - importPrefsInput: Attached at line ~7312
+ * - Column layout buttons: Attached in renderCropperControls() at line ~7301
+ * - Platform/group toggles: Attached in renderCropperControls() at lines ~3908-3929
+ *
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+
+/**
  * Platform Context Frames Configuration
  *
  * @import { PlatformFramesConfig } from '../platform-frames.config.ts'
@@ -2276,9 +2477,8 @@ function buildCard(pid, scoreData, data, animDelay, groupId) {
 
   if (cardContextState[pid].context) {
     body.innerHTML = renderPlatformWithContext(pid, data.meta, data.imageProbe, data.finalUrl, cardContextState[pid].theme, data.dominantColor);
-    // Subscribe frame to theme changes for all 7 platform frames
-    // All platforms: twitter, facebook, linkedin, reddit, youtube, instagram, tiktok
-    if (['twitter', 'facebook', 'linkedin', 'reddit', 'youtube', 'instagram', 'tiktok'].includes(pid)) {
+    // Subscribe every themeable frame (config-driven) to theme changes
+    if (PLATFORMS_WITH_THEME.includes(pid)) {
       subscribeFrameToTheme(pid);
     }
   } else {
@@ -2386,8 +2586,8 @@ function toggleCardContext(pid, data) {
   if (body) {
     if (cardContextState[pid].context) {
       body.innerHTML = renderPlatformWithContext(pid, data.meta, data.imageProbe, data.finalUrl, cardContextState[pid].theme, data.dominantColor);
-      // Subscribe frame to theme changes for all 7 platform frames
-      if (['twitter', 'facebook', 'linkedin', 'reddit', 'youtube', 'instagram', 'tiktok'].includes(pid)) {
+      // Subscribe every themeable frame (config-driven) to theme changes
+      if (PLATFORMS_WITH_THEME.includes(pid)) {
         subscribeFrameToTheme(pid);
       }
     } else {
@@ -2425,8 +2625,8 @@ function toggleCardTheme(pid, data) {
     const body = document.getElementById(`card-body-${pid}`);
     if (body) {
       body.innerHTML = renderPlatformWithContext(pid, data.meta, data.imageProbe, data.finalUrl, cardContextState[pid].theme, data.dominantColor);
-      // Subscribe frame to theme changes for all 7 platform frames
-      if (['twitter', 'facebook', 'linkedin', 'reddit', 'youtube', 'instagram', 'tiktok'].includes(pid)) {
+      // Subscribe every themeable frame (config-driven) to theme changes
+      if (PLATFORMS_WITH_THEME.includes(pid)) {
         subscribeFrameToTheme(pid);
       }
     } else {

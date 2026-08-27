@@ -128,7 +128,15 @@ async function testPersistenceScenario() {
 
   try {
     // Check that applySmartOrdering saves to localStorage
-    const savesToLocalStorage = /localStorage\.setItem\('vista-platform-prefs',\s*JSON\.stringify\(platformPrefs\)\)/.test(appJs);
+    // The implementation uses savePlatformPrefs() which internally saves to localStorage
+    const callsSavePlatformPrefs = /savePlatformPrefs\(\)/.test(appJs);
+    logTest('applySmartOrdering calls savePlatformPrefs', callsSavePlatformPrefs);
+
+    // Also verify that savePlatformPrefs actually saves to localStorage
+    const hasLocalStorageSetItem = /localStorage\.setItem\('vista-platform-prefs',\s*JSON\.stringify\(prefs\)\)/.test(appJs);
+    logTest('savePlatformPrefs saves to localStorage', hasLocalStorageSetItem);
+
+    const savesToLocalStorage = callsSavePlatformPrefs && hasLocalStorageSetItem;
     logTest('applySmartOrdering saves to localStorage', savesToLocalStorage);
 
     // Check that loadPlatformPrefs reads cardOrder

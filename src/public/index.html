@@ -267,6 +267,13 @@
 
         <!-- Previews tab -->
         <div class="tab-pane" role="tabpanel" id="tabPreviews" aria-labelledby="tabnav-previews">
+          <!-- Smart ordering banner -->
+          <div class="smart-ordering-banner hidden" id="smartOrderingBanner">
+            <div class="smart-ordering-banner-inner">
+              <span class="smart-ordering-label">Ordered for: <strong id="smartOrderingPageType"></strong></span>
+              <button class="smart-ordering-dismiss" id="smartOrderingDismiss" aria-label="Dismiss smart ordering" title="Dismiss smart ordering for current session">×</button>
+            </div>
+          </div>
           <div class="preview-grid" id="previewGrid"></div>
         </div>
 

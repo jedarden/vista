@@ -422,6 +422,9 @@ const summaryCounts = $('#summaryCounts');
 const summaryUrl = $('#summaryUrl');
 const diagBadge = $('#diagBadge');
 const previewGrid = $('#previewGrid');
+const smartOrderingBanner = $('#smartOrderingBanner');
+const smartOrderingPageType = $('#smartOrderingPageType');
+const smartOrderingDismiss = $('#smartOrderingDismiss');
 const diagPanel = $('#diagPanel');
 const diagProgress = $('#diagProgress');
 const rawTagsPanel = $('#rawTagsPanel');
@@ -1275,6 +1278,12 @@ async function inspectUrl(url) {
     url = 'https://' + url;
     urlInput.value = url;
   }
+
+  // Hide smart ordering banner when starting new inspection
+  if (smartOrderingBanner) {
+    smartOrderingBanner.classList.add('hidden');
+  }
+
   isFreshFetch = true; // Mark as fresh fetch for celebration
   renderSkeletons(); // Show skeletons immediately at 0ms - skeleton cards serve as loading indicator
   try {
@@ -1289,6 +1298,12 @@ async function inspectUrl(url) {
 
 async function inspectHtml(html, base) {
   if (!html) { showToast('Please paste some HTML first.', 2000); return; }
+
+  // Hide smart ordering banner when starting new inspection
+  if (smartOrderingBanner) {
+    smartOrderingBanner.classList.add('hidden');
+  }
+
   isFreshFetch = true; // Mark as fresh fetch for celebration
   renderSkeletons(); // Show skeletons immediately at 0ms - skeleton cards serve as loading indicator
   try {
@@ -9658,10 +9673,56 @@ function applySmartOrdering() {
 
   showToast(`Page type detected: ${pageType}. Platforms reordered.`, 2000);
 
+  // Show smart ordering banner
+  showSmartOrderingBanner(pageType);
+
   if (DEBUG_SMART_ORDERING) {
     console.log('[applySmartOrdering] ===== FUNCTION COMPLETE ✅ =====');
   }
 }
+
+// ── Smart Ordering Banner ──
+let smartOrderingDismissed = false;
+
+function showSmartOrderingBanner(pageType) {
+  if (!smartOrderingBanner || !smartOrderingPageType) return;
+
+  // Don't show if user has dismissed it for this session
+  if (smartOrderingDismissed) {
+    if (DEBUG_SMART_ORDERING) {
+      console.log('[showSmartOrderingBanner] Skipped - banner dismissed for session');
+    }
+    return;
+  }
+
+  // Update the page type label
+  smartOrderingPageType.textContent = pageType;
+
+  // Show the banner
+  smartOrderingBanner.classList.remove('hidden');
+
+  if (DEBUG_SMART_ORDERING) {
+    console.log(`[showSmartOrderingBanner] Showing banner for page type: ${pageType}`);
+  }
+}
+
+function hideSmartOrderingBanner() {
+  if (!smartOrderingBanner) return;
+
+  smartOrderingBanner.classList.add('hidden');
+  smartOrderingDismissed = true;
+
+  if (DEBUG_SMART_ORDERING) {
+    console.log('[hideSmartOrderingBanner] Banner dismissed for session');
+  }
+}
+
+// Initialize smart ordering banner event listeners
+document.addEventListener('DOMContentLoaded', () => {
+  if (smartOrderingDismiss) {
+    smartOrderingDismiss.addEventListener('click', hideSmartOrderingBanner);
+  }
+});
 
 // ── Initialize inline editing on DOM ready ──
 document.addEventListener('DOMContentLoaded', () => {

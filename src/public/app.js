@@ -8926,6 +8926,37 @@ function applyWhatIfChanges() {
 
   // Re-render with modified data (use guard flag to preserve smart ordering)
   const modifiedData = { ...currentData, meta: modifiedMeta };
+
+  // Check if smart ordering is active - defer operation if so
+  if (isSmartOrdering()) {
+    // Create a wrapper function that contains the render and subsequent operations
+    const applyWhatIfRender = () => {
+      isFilterOperation = true;
+      renderPreviews(modifiedData);
+      setTimeout(() => { isFilterOperation = false; }, 0);
+
+      // Announce score change for screen readers
+      const tagCount = disabledTags.size;
+      announce(`What If mode applied. ${tagCount} tag${tagCount > 1 ? 's' : ''} disabled. Preview cards updated to show fallback behavior.`);
+
+      // Show warnings for missing tags
+      showMissingTagWarnings(modifiedMeta);
+
+      closeWhatIfPanel();
+
+      // Update hash with current disabled tags before clearing them
+      updateHash();
+
+      showToast('Previews updated with What If changes', 2000);
+    };
+    queueFilterOperation(applyWhatIfRender, 'applyWhatIfChanges');
+    if (DEBUG_SMART_ORDERING) {
+      console.log('[applyWhatIfChanges] Smart ordering active - operation queued');
+    }
+    return;
+  }
+
+  // Set guard flag to prevent smart order resets during filter operation
   isFilterOperation = true;
   renderPreviews(modifiedData);
   setTimeout(() => { isFilterOperation = false; }, 0);

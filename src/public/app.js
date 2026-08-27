@@ -9726,6 +9726,10 @@ function applySmartOrderingSafe() {
     // Step 5: Process any queued card updates (context toggles, theme changes, image updates)
     // These operations modify individual card DOM and must happen after smart ordering completes
     processPendingCardUpdates();
+
+    // Step 6: Process any queued filter operations (toggleHidden, toggleFavorite, etc.)
+    // These operations were queued during smart ordering and must be processed after completion
+    processPendingFilterOperations();
   }
 }
 
@@ -10488,7 +10492,10 @@ function handleDrop(e) {
     savePlatformPrefs();
 
     // Re-render to show new order
-    renderPreviews(currentData);
+    // Use guardWrapper to prevent race condition if smart ordering starts during the drop operation
+    guardWrapper('handleDrop', () => {
+      renderPreviews(currentData);
+    });
   }
 
   return false;

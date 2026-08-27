@@ -28,6 +28,9 @@ export { RedditFrame, redditFrame, createRedditFrame } from './reddit-frame';
 export { YouTubeFrame, youtubeFrame, createYouTubeFrame } from './youtube-frame';
 export { InstagramFrame, instagramFrame, createInstagramFrame } from './instagram-frame';
 export { TikTokFrame, tiktokFrame, createTikTokFrame } from './tiktok-frame';
+export { PinterestFrame, pinterestFrame, createPinterestFrame } from './pinterest-frame';
+export { MastodonFrame, mastodonFrame, createMastodonFrame } from './mastodon-frame';
+export { ThreadsFrame, threadsFrame, createThreadsFrame } from './threads-frame';
 
 // Export individual platform frame components - Messaging
 export { DiscordFrame, discordFrame } from './discord-frame';
@@ -53,6 +56,20 @@ import {
   MatrixFrame,
 } from './messaging-frames';
 
+// Import email platform frames
+import { GmailFrame, gmailFrame } from './gmail-frame';
+import { OutlookFrame, outlookFrame } from './outlook-frame';
+
+// Import developer platform frames
+import { GitHubFrame, githubFrame } from './github-frame';
+import { GitLabFrame, gitlabFrame } from './gitlab-frame';
+import { StackOverflowFrame, stackoverflowFrame } from './stackoverflow-frame';
+
+// Import additional social platform frames
+import { PinterestFrame, pinterestFrame } from './pinterest-frame';
+import { MastodonFrame, mastodonFrame } from './mastodon-frame';
+import { ThreadsFrame, threadsFrame } from './threads-frame';
+
 // Create singleton instances for messaging frames
 const imessageFrame = new IMessageFrame();
 const whatsappFrame = new WhatsAppFrame();
@@ -77,6 +94,9 @@ const PLATFORM_FRAME_REGISTRY: Record<string, BasePlatformFrame> = {
   youtube: youtubeFrame,
   instagram: instagramFrame,
   tiktok: tiktokFrame,
+  pinterest: pinterestFrame,
+  mastodon: mastodonFrame,
+  threads: threadsFrame,
   // Messaging platforms
   discord: discordFrame,
   slack: slackFrame,
@@ -86,6 +106,13 @@ const PLATFORM_FRAME_REGISTRY: Record<string, BasePlatformFrame> = {
   signal: signalFrame,
   teams: teamsFrame,
   matrix: matrixFrame,
+  // Email platforms
+  gmail: gmailFrame,
+  outlook: outlookFrame,
+  // Developer platforms
+  github: githubFrame,
+  gitlab: gitlabFrame,
+  stackoverflow: stackoverflowFrame,
 };
 
 /**

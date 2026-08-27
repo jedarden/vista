@@ -89,6 +89,27 @@ export const PLATFORM_FRAMES_CONFIG: PlatformFrameConfig[] = [
     hasThemeSupport: true,
     aspectRatio: '9:16',
   },
+  {
+    id: 'pinterest',
+    name: 'Pinterest',
+    frameType: 'image-focused',
+    hasThemeSupport: true,
+    aspectRatio: '2:3',
+  },
+  {
+    id: 'mastodon',
+    name: 'Mastodon',
+    frameType: 'social-feed',
+    hasThemeSupport: true,
+    aspectRatio: 'variable',
+  },
+  {
+    id: 'threads',
+    name: 'Threads',
+    frameType: 'social-feed',
+    hasThemeSupport: true,
+    aspectRatio: 'variable',
+  },
   // Messaging platforms
   {
     id: 'discord',
@@ -143,6 +164,43 @@ export const PLATFORM_FRAMES_CONFIG: PlatformFrameConfig[] = [
     id: 'matrix',
     name: 'Matrix',
     frameType: 'messaging',
+    hasThemeSupport: true,
+    aspectRatio: 'variable',
+  },
+  // Email platforms
+  {
+    id: 'gmail',
+    name: 'Gmail',
+    frameType: 'email',
+    hasThemeSupport: true,
+    aspectRatio: 'variable',
+  },
+  {
+    id: 'outlook',
+    name: 'Outlook',
+    frameType: 'email',
+    hasThemeSupport: true,
+    aspectRatio: 'variable',
+  },
+  // Developer platforms
+  {
+    id: 'github',
+    name: 'GitHub',
+    frameType: 'collaboration',
+    hasThemeSupport: true,
+    aspectRatio: 'variable',
+  },
+  {
+    id: 'gitlab',
+    name: 'GitLab',
+    frameType: 'collaboration',
+    hasThemeSupport: true,
+    aspectRatio: 'variable',
+  },
+  {
+    id: 'stackoverflow',
+    name: 'Stack Overflow',
+    frameType: 'qa-forum',
     hasThemeSupport: true,
     aspectRatio: 'variable',
   },

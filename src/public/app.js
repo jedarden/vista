@@ -9647,18 +9647,25 @@ handleResult = async function(data) {
 
   console.log('[handleResult hook] smartOrdering enabled:', platformPrefs.smartOrdering);
   if (platformPrefs.smartOrdering) {
-    console.log('[handleResult hook] applying smart ordering BEFORE render (fixes race condition)');
-    // P0 - Race condition fix: Use applySmartOrderingSafe() instead of applySmartOrdering()
-    // This ensures guard flags (isApplyingSmartOrder) are properly set to prevent
-    // concurrent execution with renderPreviews, which was causing order resets
-    applySmartOrderingSafe();
+    console.log('[handleResult hook] applying smart ordering (updates cardOrder, reorders after render)');
+    // P0 - Bug fix: Only update cardOrder now, reorder AFTER renderPreviews creates DOM
+    // Previously we called applySmartOrderingSafe() which tried to reorder before render,
+    // but DOM elements don't exist yet, so reordering silently failed
+    applySmartOrdering();
   } else {
     console.log('[handleResult hook] smartOrdering disabled - skipping applySmartOrdering call');
   }
 
-  // Now render with cards already in correct order (no post-render reordering needed)
-  // Note: renderPreviews will check isApplyingSmartOrder and queue if needed
+  // Render with cards - renderPreviews will use the updated cardOrder
   await originalHandleResult2(data);
+
+  // P0 - Bug fix: Reorder DOM elements AFTER they are created by renderPreviews
+  // This is the critical fix - reorderPlatformCards() must be called after renderPreviews
+  // because it needs to manipulate actual DOM elements that don't exist before render
+  if (platformPrefs.smartOrdering) {
+    console.log('[handleResult hook] reordering DOM cards after render');
+    reorderPlatformCards();
+  }
 };
 
 /**

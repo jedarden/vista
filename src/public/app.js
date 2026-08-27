@@ -353,7 +353,9 @@ function applyTheme(theme, { persist = true } = {}) {
 
   // Re-render cards that support theme to update their appearance
   if (currentData) {
-    renderPreviews(currentData);
+    guardWrapper('applyTheme', () => {
+      renderPreviews(currentData);
+    });
   }
 }
 
@@ -825,7 +827,9 @@ const themeObserver = new MutationObserver((mutations) => {
         }
         // Re-render cards that support theme to update their appearance
         if (currentData) {
-          renderPreviews(currentData);
+          guardWrapper('mutationObserver-themeChange', () => {
+            renderPreviews(currentData);
+          });
         }
       }
     }
@@ -7435,9 +7439,11 @@ function updatePreviewsWithEdits() {
   // border colors transition smoothly (300ms CSS) from the old grade to the new
   // one. Only fall back to a destructive full render when the grid is empty
   // (nothing to animate yet).
-  if (!updateEditedCardsInPlace(modifiedData)) {
-    renderPreviews(modifiedData);
-  }
+  guardWrapper('updatePreviewsWithEdits', () => {
+    if (!updateEditedCardsInPlace(modifiedData)) {
+      renderPreviews(modifiedData);
+    }
+  });
 
   // Update the summary bar (overall grade + passing/warning/failing counts)
   if (newScoring) {
@@ -7463,8 +7469,10 @@ function resetEditor() {
 
   // Reset previews and summary bar back to the original scores
   if (currentData) {
-    renderPreviews(currentData);
-    renderSummaryBar(currentData);
+    guardWrapper('resetEditor', () => {
+      renderPreviews(currentData);
+      renderSummaryBar(currentData);
+    });
   }
 
   // Announce reset
@@ -9217,8 +9225,10 @@ function recalculateScore() {
   // stored state, rather than merely counting fixed diagnostics.
   const applied = applyRescore();
   if (applied) {
-    renderPreviews(applied.data);
-    renderSummaryBar(applied.data);
+    guardWrapper('recalculateScore', () => {
+      renderPreviews(applied.data);
+      renderSummaryBar(applied.data);
+    });
   }
 
   const totalDiagnostics = currentData.diagnostics?.length || 0;

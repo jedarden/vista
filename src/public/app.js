@@ -40,19 +40,19 @@
  *    Action: Updates platformPrefs.hidden, saves prefs, re-renders previews
  *    Guard: Uses guardWrapperWithRender() to protect against smart ordering conflicts
  *
- * 5. toggleWhatIfMode (line ~8602)
+ * 5. toggleWhatIfMode (line ~8776)
  *    Location: What If analysis module
  *    Event: Click on What If toggle button
  *    Purpose: Toggles What If analysis mode on/off
  *    Action: Shows/hides What If panel, resets previews when disabled
- *    Guard: Checks isSmartOrdering() and queues operation if needed
+ *    Guard: Uses guardWrapperWithRender() to protect against smart ordering conflicts
  *
- * 6. applyWhatIfChanges (line ~8722)
+ * 6. applyWhatIfChanges (line ~8880)
  *    Location: What If analysis module
  *    Event: Click on "Update Previews" button in What If panel
  *    Purpose: Applies tag disabling changes to preview cards
  *    Action: Creates modified meta object, re-renders with filtered tags
- *    Guard: Sets isFilterOperation flag during render
+ *    Guard: Uses guardWrapperWithRender() to protect against smart ordering conflicts
  *
  * 7. resetWhatIfToggles (line ~8714)
  *    Location: What If analysis module
@@ -72,12 +72,12 @@
  *    Purpose: Restores What If state from URL hash
  *    Action: Enables What If mode, applies disabled tags from hash
  *
- * 10. importPreferences (line ~8538)
+ * 10. importPreferences (line ~8739)
  *     Location: Platform preferences module
  *     Event: 'change' event on #importPrefsInput file input
  *     Purpose: Imports platform preferences from JSON file
  *     Action: Loads favorites, hidden, columnCount, smartOrdering; re-renders
- *     Guard: Checks isSmartOrdering() and queues operation if needed
+ *     Guard: Uses guardWrapperWithRender() to protect against smart ordering conflicts
  *
  * 11. setColumnLayout (line ~8329)
  *     Location: Platform preferences module
@@ -8755,36 +8755,9 @@ function importPreferences(e) {
       updateHiddenList();
 
       if (currentData) {
-        // Check if smart ordering is active - defer operation if so
-        if (isSmartOrdering()) {
-          // Create a wrapper function that doesn't depend on the event
-          const applyImportedPrefs = () => {
-            isFilterOperation = true;
-            renderPreviews(currentData);
-            setTimeout(() => { isFilterOperation = false; }, 0);
-            isSmartOrderingActive = false;
-            if (DEBUG_SMART_ORDERING) {
-              console.log('[importPreferences] Smart ordering active flag CLEARED (user manual override)');
-            }
-          };
-          queueFilterOperation(applyImportedPrefs, 'importPreferences');
-          if (DEBUG_SMART_ORDERING) {
-            console.log('[importPreferences] Smart ordering active - operation queued');
-          }
-          return;
-        }
-
-        // Set guard flag to prevent smart order resets during filter operation
-        isFilterOperation = true;
-        renderPreviews(currentData);
-        // Clear flag after render (renderPreviews will handle timing)
-        setTimeout(() => { isFilterOperation = false; }, 0);
-
-        // Clear smart ordering active flag since user manually imported preferences
-        isSmartOrderingActive = false;
-        if (DEBUG_SMART_ORDERING) {
-          console.log('[importPreferences] Smart ordering active flag CLEARED (user manual override)');
-        }
+        guardWrapperWithRender('importPreferences', () => {
+          renderPreviews(currentData);
+        });
       }
 
       showToast('Preferences imported', 2000);
@@ -8927,53 +8900,23 @@ function applyWhatIfChanges() {
   // Re-render with modified data (use guard flag to preserve smart ordering)
   const modifiedData = { ...currentData, meta: modifiedMeta };
 
-  // Check if smart ordering is active - defer operation if so
-  if (isSmartOrdering()) {
-    // Create a wrapper function that contains the render and subsequent operations
-    const applyWhatIfRender = () => {
-      isFilterOperation = true;
-      renderPreviews(modifiedData);
-      setTimeout(() => { isFilterOperation = false; }, 0);
+  guardWrapperWithRender('applyWhatIfChanges', () => {
+    renderPreviews(modifiedData);
 
-      // Announce score change for screen readers
-      const tagCount = disabledTags.size;
-      announce(`What If mode applied. ${tagCount} tag${tagCount > 1 ? 's' : ''} disabled. Preview cards updated to show fallback behavior.`);
+    // Announce score change for screen readers
+    const tagCount = disabledTags.size;
+    announce(`What If mode applied. ${tagCount} tag${tagCount > 1 ? 's' : ''} disabled. Preview cards updated to show fallback behavior.`);
 
-      // Show warnings for missing tags
-      showMissingTagWarnings(modifiedMeta);
+    // Show warnings for missing tags
+    showMissingTagWarnings(modifiedMeta);
 
-      closeWhatIfPanel();
+    closeWhatIfPanel();
 
-      // Update hash with current disabled tags before clearing them
-      updateHash();
+    // Update hash with current disabled tags before clearing them
+    updateHash();
 
-      showToast('Previews updated with What If changes', 2000);
-    };
-    queueFilterOperation(applyWhatIfRender, 'applyWhatIfChanges');
-    if (DEBUG_SMART_ORDERING) {
-      console.log('[applyWhatIfChanges] Smart ordering active - operation queued');
-    }
-    return;
-  }
-
-  // Set guard flag to prevent smart order resets during filter operation
-  isFilterOperation = true;
-  renderPreviews(modifiedData);
-  setTimeout(() => { isFilterOperation = false; }, 0);
-
-  // Announce score change for screen readers
-  const tagCount = disabledTags.size;
-  announce(`What If mode applied. ${tagCount} tag${tagCount > 1 ? 's' : ''} disabled. Preview cards updated to show fallback behavior.`);
-
-  // Show warnings for missing tags
-  showMissingTagWarnings(modifiedMeta);
-
-  closeWhatIfPanel();
-
-  // Update hash with current disabled tags before clearing them
-  updateHash();
-
-  showToast('Previews updated with What If changes', 2000);
+    showToast('Previews updated with What If changes', 2000);
+  });
 }
 
 /**

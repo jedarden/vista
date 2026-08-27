@@ -9359,6 +9359,29 @@ function detectPageType(meta) {
     if (schema.includes('recipe')) return 'recipe';
   }
 
+  // Check content keywords in title and description
+  const title = (meta.og?.title || meta.title || '').toLowerCase();
+  const description = (meta.og?.description || meta.description || '').toLowerCase();
+  const content = title + ' ' + description;
+
+  // Recipe keywords
+  if (content.includes('recipe') || content.includes('ingredient') || content.includes('cook') ||
+      content.includes('bake') || content.includes('meal') || content.includes('cuisine')) {
+    return 'recipe';
+  }
+
+  // Blog/Article keywords
+  if (content.includes('blog') || content.includes('article') || content.includes('post') ||
+      content.includes('story') || content.includes('guide') || content.includes('tutorial')) {
+    return 'article';
+  }
+
+  // Portfolio/CV keywords
+  if (content.includes('portfolio') || content.includes('resume') || content.includes('cv') ||
+      content.includes('curriculum') || content.includes('work history') || content.includes('projects')) {
+    return 'portfolio';
+  }
+
   // Check URL patterns for specific types
   // Recipe patterns
   if (url.includes('/recipe') || url.includes('/recipes/') || url.includes('/cook/')) return 'recipe';

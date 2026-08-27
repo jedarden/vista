@@ -2112,6 +2112,15 @@ let latestImagesfulData = null;
  * renderTextPreviewsOnly (images arrived before the crossfade timer fired).
  */
 function applyImagesToCard(pid, data, groupId) {
+  // P0 - Defensive check: Queue card update if smart ordering is in progress
+  if (isApplyingSmartOrder) {
+    if (DEBUG_SMART_ORDERING) {
+      console.log(`[applyImagesToCard] Smart ordering in progress - queuing image update for ${pid}`);
+    }
+    pendingCardUpdates.push({ type: 'images', pid, data, groupId });
+    return;
+  }
+
   const existingCard = document.querySelector(`.platform-card[data-pid="${pid}"]`);
   if (!existingCard) return;
 
@@ -2580,6 +2589,15 @@ const PLATFORMS_WITH_THEME = typeof getThemeablePlatformIds === 'function'
   : ['discord', 'slack', 'twitter', 'telegram', 'github']; // fallback if module not loaded
 
 function toggleCardContext(pid, data) {
+  // P0 - Defensive check: Queue card update if smart ordering is in progress
+  if (isApplyingSmartOrder) {
+    if (DEBUG_SMART_ORDERING) {
+      console.log(`[toggleCardContext] Smart ordering in progress - queuing context toggle for ${pid}`);
+    }
+    pendingCardUpdates.push({ type: 'context', pid, data });
+    return;
+  }
+
   // Prefer the freshest merged data: the listener may close over a snapshot
   // taken before image-probe results arrived (progressive loading).
   if (typeof currentData !== 'undefined' && currentData && currentData.meta) {
@@ -2602,6 +2620,15 @@ function toggleCardContext(pid, data) {
 }
 
 function toggleCardTheme(pid, data) {
+  // P0 - Defensive check: Queue card update if smart ordering is in progress
+  if (isApplyingSmartOrder) {
+    if (DEBUG_SMART_ORDERING) {
+      console.log(`[toggleCardTheme] Smart ordering in progress - queuing theme toggle for ${pid}`);
+    }
+    pendingCardUpdates.push({ type: 'theme', pid, data });
+    return;
+  }
+
   // Prefer the freshest merged data (see toggleCardContext).
   if (typeof currentData !== 'undefined' && currentData && currentData.meta) {
     data = currentData;
@@ -6966,6 +6993,9 @@ let isFilterOperation = false; // Guard flag to prevent smart order resets durin
 let isSmartOrderingActive = false; // Track when smart ordering is currently active
 let pendingFilterOperations = []; // Queue filter operations during smart ordering
 
+// Queue individual card updates during smart ordering to prevent race conditions
+let pendingCardUpdates = []; // Queue for toggleCardContext, toggleCardTheme, applyImagesToCard
+
 // Command palette state
 let commandPaletteOpen = false;
 let commandPaletteSelectedIndex = 0;
@@ -9692,6 +9722,134 @@ function applySmartOrderingSafe() {
       pendingRenderData = null; // Clear before rendering to prevent re-queue
       renderPreviews(dataToRender);
     }
+
+    // Step 5: Process any queued card updates (context toggles, theme changes, image updates)
+    // These operations modify individual card DOM and must happen after smart ordering completes
+    processPendingCardUpdates();
+  }
+}
+
+/**
+ * Process pending card updates that were queued during smart ordering.
+ * Called after applySmartOrderingSafe() completes to ensure all queued
+ * card updates (context toggles, theme changes, image updates) are applied.
+ */
+function processPendingCardUpdates() {
+  if (pendingCardUpdates.length === 0) return;
+
+  if (DEBUG_SMART_ORDERING) {
+    console.log(`[processPendingCardUpdates] Processing ${pendingCardUpdates.length} queued card updates`);
+  }
+
+  // Process all queued updates in order
+  const updates = pendingCardUpdates.splice(0); // Clear queue and get all updates
+
+  updates.forEach(update => {
+    switch (update.type) {
+      case 'context':
+        // Directly execute the context toggle logic without queuing
+        if (typeof currentData !== 'undefined' && currentData && currentData.meta) {
+          update.data = currentData;
+        }
+        cardContextState[update.pid].context = !cardContextState[update.pid].context;
+        const body = document.getElementById(`card-body-${update.pid}`);
+        if (body) {
+          if (cardContextState[update.pid].context) {
+            body.innerHTML = renderPlatformWithContext(update.pid, update.data.meta, update.data.imageProbe, update.data.finalUrl, cardContextState[update.pid].theme, update.data.dominantColor);
+            if (PLATFORMS_WITH_THEME.includes(update.pid)) {
+              subscribeFrameToTheme(update.pid);
+            }
+          } else {
+            body.innerHTML = renderPlatformCard(update.pid, update.data.meta, update.data.imageProbe, update.data.finalUrl, update.data.dominantColor);
+          }
+        }
+        updateCardHeader(update.pid);
+        break;
+
+      case 'theme':
+        // Directly execute the theme toggle logic without queuing
+        if (typeof currentData !== 'undefined' && currentData && currentData.meta) {
+          update.data = currentData;
+        }
+        if (!cardContextState[update.pid]) {
+          cardContextState[update.pid] = { context: false, theme: 'dark' };
+        }
+        if (update.data && update.data.meta) {
+          const oldTheme = cardContextState[update.pid].theme;
+          cardContextState[update.pid].theme = cardContextState[update.pid].theme === 'dark' ? 'light' : 'dark';
+          if (cardContextState[update.pid].context) {
+            const body = document.getElementById(`card-body-${update.pid}`);
+            if (body) {
+              body.innerHTML = renderPlatformWithContext(update.pid, update.data.meta, update.data.imageProbe, update.data.finalUrl, cardContextState[update.pid].theme, update.data.dominantColor);
+              if (PLATFORMS_WITH_THEME.includes(update.pid)) {
+                subscribeFrameToTheme(update.pid);
+              }
+            }
+          }
+          updateCardHeader(update.pid);
+        }
+        break;
+
+      case 'images':
+        // Directly execute the image update logic without queuing (skip defensive check)
+        const existingCard = document.querySelector(`.platform-card[data-pid="${update.pid}"]`);
+        if (existingCard) {
+          delete existingCard.dataset.loadingImages;
+
+          const scoreData = update.data.scoring && update.data.scoring.scores[update.pid];
+          if (scoreData) {
+            const gradeBadge = existingCard.querySelector('.card-grade');
+            if (gradeBadge) {
+              gradeBadge.className = 'card-grade ' + gradeClass(scoreData.grade);
+              gradeBadge.textContent = scoreData.grade;
+            }
+            existingCard.className = `platform-card ${gradeClass(scoreData.grade)}`;
+          }
+
+          const body = existingCard.querySelector(`#card-body-${update.pid}`);
+          if (body) {
+            if (cardContextState[update.pid] && cardContextState[update.pid].context) {
+              const ctxData = currentData || update.data;
+              body.innerHTML = renderPlatformWithContext(update.pid, ctxData.meta, ctxData.imageProbe, ctxData.finalUrl, cardContextState[update.pid].theme, ctxData.dominantColor);
+            } else {
+              body.innerHTML = renderPlatformCard(update.pid, update.data.meta, update.data.imageProbe, update.data.finalUrl, update.data.dominantColor);
+            }
+            const loadingOverlay = body.querySelector('.card-image-loading');
+            if (loadingOverlay) {
+              loadingOverlay.remove();
+            }
+          }
+
+          // Enable controls
+          const wireOnce = (btn, handler) => {
+            if (!btn || btn.dataset.wired === '1') return;
+            btn.dataset.wired = '1';
+            btn.disabled = false;
+            btn.addEventListener('click', handler);
+          };
+          wireOnce(existingCard.querySelector('.card-screenshot-btn'), () => downloadScreenshot(update.pid, update.data));
+          const contextToggle = existingCard.querySelector('.card-context-toggle');
+          wireOnce(contextToggle, () => toggleCardContext(update.pid, update.data));
+          if (contextToggle) {
+            contextToggle.disabled = false;
+            contextToggle.querySelector('.context-label').textContent =
+              cardContextState[update.pid] && cardContextState[update.pid].context ? 'In context' : 'Card only';
+          }
+          const themeToggle = existingCard.querySelector('.card-theme-toggle');
+          wireOnce(themeToggle, () => toggleCardTheme(update.pid, update.data));
+          if (themeToggle) {
+            themeToggle.disabled = false;
+          }
+        }
+        break;
+
+      default:
+        console.warn(`[processPendingCardUpdates] Unknown update type: ${update.type}`);
+    }
+  });
+
+  if (DEBUG_SMART_ORDERING) {
+    console.log('[processPendingCardUpdates] All queued card updates processed');
   }
 }
 

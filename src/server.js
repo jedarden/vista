@@ -1067,11 +1067,18 @@ app.post('/api/screenshot', async (req, res) => {
 app.get(['/api/badge', '/api/badge.svg'], async (req, res) => {
   const url = req.query.url;
   const style = req.query.style || 'flat';
+  const labelMode = req.query.label || 'score'; // 'score' (default) or 'grade'
 
   // Validate style
   const validStyles = ['flat', 'flat-square', 'plastic', 'for-the-badge'];
   if (!validStyles.includes(style)) {
     return res.status(400).json({ error: `Invalid style. Must be one of: ${validStyles.join(', ')}` });
+  }
+
+  // Validate label mode
+  const validLabelModes = ['score', 'grade'];
+  if (!validLabelModes.includes(labelMode)) {
+    return res.status(400).json({ error: `Invalid label. Must be one of: ${validLabelModes.join(', ')}` });
   }
 
   let score, platforms;
@@ -1140,6 +1147,10 @@ app.get(['/api/badge', '/api/badge.svg'], async (req, res) => {
     }
   } else {
     // Legacy mode: use score and platforms from query params
+    // Require both score and platforms when not using url mode
+    if (req.query.score === undefined && req.query.platforms === undefined) {
+      return res.status(400).json({ error: 'Missing required parameters. Provide ?url= OR both ?score= and ?platforms=' });
+    }
     score = parseInt(req.query.score || '0', 10);
     platforms = parseInt(req.query.platforms || '0', 10);
   }
@@ -1150,7 +1161,7 @@ app.get(['/api/badge', '/api/badge.svg'], async (req, res) => {
   const color = getGradeColor(grade);
 
   // Generate SVG
-  const svg = generateBadgeSvg(clampedScore, platforms, style, color);
+  const svg = generateBadgeSvg(clampedScore, platforms, style, color, labelMode, grade);
 
   // Set cache headers (1 hour)
   res.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');
@@ -1573,9 +1584,10 @@ function getGradeColor(grade) {
   return colors[grade] || '#9f9f9f';
 }
 
-function generateBadgeSvg(score, platforms, style, color) {
+function generateBadgeSvg(score, platforms, style, color, labelMode = 'score', grade = null) {
   const label = 'platform score';
-  const message = `${score}/100`;
+  // Display grade letter when labelMode is 'grade', otherwise show score/100
+  const message = labelMode === 'grade' ? (grade || getGradeForScore(score)) : `${score}/100`;
   const width = calculateBadgeWidth(label, message, style);
 
   if (style === 'for-the-badge') {

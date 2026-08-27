@@ -1,0 +1,127 @@
+{
+  "tests": [
+    {
+      "test": "Guard wrapper functions loaded",
+      "passed": true,
+      "details": "guardWrapper and guardWrapperWithRender available",
+      "timestamp": "2026-08-27T02:16:00.712Z"
+    },
+    {
+      "test": "toggleFavorite queues when smart ordering active",
+      "passed": true,
+      "details": "Operation queued, favorites not modified",
+      "timestamp": "2026-08-27T02:16:00.713Z"
+    },
+    {
+      "test": "toggleFavorite executes when smart ordering inactive",
+      "passed": true,
+      "details": "Platform added to favorites, no queue",
+      "timestamp": "2026-08-27T02:16:00.713Z"
+    },
+    {
+      "test": "toggleFavorite clears isSmartOrderingActive after execution",
+      "passed": true,
+      "details": "Smart ordering active flag cleared",
+      "timestamp": "2026-08-27T02:16:00.713Z"
+    },
+    {
+      "test": "toggleHidden queues when smart ordering active",
+      "passed": true,
+      "details": "Operation queued, hidden not modified",
+      "timestamp": "2026-08-27T02:16:00.713Z"
+    },
+    {
+      "test": "toggleHidden executes when smart ordering inactive",
+      "passed": true,
+      "details": "Platform added to hidden, render called",
+      "timestamp": "2026-08-27T02:16:00.713Z"
+    },
+    {
+      "test": "toggleWhatIfMode queues when smart ordering active",
+      "passed": true,
+      "details": "Operation queued, mode not toggled",
+      "timestamp": "2026-08-27T02:16:00.713Z"
+    },
+    {
+      "test": "toggleWhatIfMode executes when smart ordering inactive",
+      "passed": true,
+      "details": "Mode toggled to enabled",
+      "timestamp": "2026-08-27T02:16:00.713Z"
+    },
+    {
+      "test": "applyWhatIfChanges queues when smart ordering active",
+      "passed": true,
+      "details": "Operation queued, no render call",
+      "timestamp": "2026-08-27T02:16:00.713Z"
+    },
+    {
+      "test": "applyWhatIfChanges executes when smart ordering inactive",
+      "passed": true,
+      "details": "Render called with modified data",
+      "timestamp": "2026-08-27T02:16:00.713Z"
+    },
+    {
+      "test": "importPreferences queues when smart ordering active",
+      "passed": true,
+      "details": "Operation queued, preferences not modified",
+      "timestamp": "2026-08-27T02:16:00.714Z"
+    },
+    {
+      "test": "importPreferences executes when smart ordering inactive",
+      "passed": true,
+      "details": "Preferences imported, render called",
+      "timestamp": "2026-08-27T02:16:00.714Z"
+    }
+  ],
+  "handlers": [
+    {
+      "handler": "toggleFavorite",
+      "passed": true,
+      "details": "All toggleFavorite tests passed",
+      "timestamp": "2026-08-27T02:16:00.713Z"
+    },
+    {
+      "handler": "toggleHidden",
+      "passed": true,
+      "details": "All toggleHidden tests passed",
+      "timestamp": "2026-08-27T02:16:00.713Z"
+    },
+    {
+      "handler": "toggleWhatIfMode",
+      "passed": true,
+      "details": "All toggleWhatIfMode tests passed",
+      "timestamp": "2026-08-27T02:16:00.713Z"
+    },
+    {
+      "handler": "applyWhatIfChanges",
+      "passed": true,
+      "details": "All applyWhatIfChanges tests passed",
+      "timestamp": "2026-08-27T02:16:00.714Z"
+    },
+    {
+      "handler": "importPreferences",
+      "passed": true,
+      "details": "All importPreferences tests passed",
+      "timestamp": "2026-08-27T02:16:00.714Z"
+    }
+  ],
+  "errors": [],
+  "startTime": "2026-08-27T02:16:00.707Z",
+  "endTime": "2026-08-27T02:16:00.714Z",
+  "overallSuccess": true,
+  "summary": {
+    "totalTests": 12,
+    "passedTests": 12,
+    "failedTests": 0,
+    "totalHandlers": 5,
+    "passedHandlers": 5,
+    "failedHandlers": 0,
+    "errors": 0
+  },
+  "acceptanceCriteria": {
+    "resetSkippedWhenActive": true,
+    "resetOccursWhenInactive": true,
+    "allFilterPathsCovered": true,
+    "automatedAndRepeatable": true
+  }
+}

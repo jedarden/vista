@@ -9324,6 +9324,8 @@ function updateDiagnosticProgress() {
 function detectPageType(meta) {
   if (!meta) return 'website';
 
+  const url = (meta.og?.url || meta.canonical || '').toLowerCase();
+
   // Check og:type first
   const ogType = meta.og?.type?.toLowerCase();
   if (ogType) {
@@ -9339,10 +9341,30 @@ function detectPageType(meta) {
     if (schema.includes('article') || schema.includes('blogposting')) return 'article';
     if (schema.includes('product')) return 'product';
     if (schema.includes('video')) return 'video';
+    if (schema.includes('recipe')) return 'recipe';
   }
 
-  // Check URL patterns
-  const url = (meta.og?.url || meta.canonical || '').toLowerCase();
+  // Check URL patterns for specific types
+  // Recipe patterns
+  if (url.includes('/recipe') || url.includes('/recipes/') || url.includes('/cook/')) return 'recipe';
+
+  // Open Source patterns
+  if (url.includes('github.com') || url.includes('gitlab.com') || url.includes('bitbucket.org') ||
+      url.includes('/open-source/') || url.includes('/opensource/')) return 'open-source';
+
+  // Portfolio patterns
+  if (url.includes('/portfolio/') || url.includes('/work/') || url.includes('/projects/') ||
+      url.includes('portfolio') || url.includes('behance.net') || url.includes('dribbble.com')) return 'portfolio';
+
+  // E-commerce patterns
+  if (url.includes('/shop/') || url.includes('/product/') || url.includes('/item/') ||
+      url.includes('/store/') || url.includes('/buy/') || url.includes('/cart/')) return 'e-commerce';
+
+  // SaaS patterns
+  if (url.includes('/app/') || url.includes('/dashboard/') || url.includes('/account/') ||
+      url.includes('saas') || url.includes('/pricing/')) return 'saas';
+
+  // Legacy patterns
   if (url.includes('/blog/') || url.includes('/article/') || url.includes('/post/')) return 'article';
   if (url.includes('/product/') || url.includes('/shop/') || url.includes('/item/')) return 'product';
 
@@ -9351,8 +9373,27 @@ function detectPageType(meta) {
 
 function getPlatformOrderForPageType(pageType) {
   const orders = {
-    article: ['twitter', 'facebook', 'linkedin', 'reddit', 'bluesky', 'threads', 'mastodon'],
-    product: ['pinterest', 'facebook', 'instagram', 'twitter', 'linkedin'],
+    // Blog/Article: Google, Facebook, X, LinkedIn, Reddit, Slack, Mastodon
+    article: ['google', 'facebook', 'twitter', 'linkedin', 'reddit', 'slack', 'mastodon'],
+
+    // SaaS/Product: Google, LinkedIn, X, Facebook, Slack
+    saas: ['google', 'linkedin', 'twitter', 'facebook', 'slack'],
+    product: ['google', 'linkedin', 'twitter', 'facebook', 'slack'],
+
+    // Recipe: Pinterest, Google, Facebook, WhatsApp, iMessage
+    recipe: ['pinterest', 'google', 'facebook', 'whatsapp', 'imessage'],
+
+    // Open Source: GitHub, X, Slack, Discord, Reddit, Mastodon
+    'open-source': ['github', 'twitter', 'slack', 'discord', 'reddit', 'mastodon'],
+
+    // Portfolio: LinkedIn, Google, X, Facebook, GitHub
+    portfolio: ['linkedin', 'google', 'twitter', 'facebook', 'github'],
+
+    // E-commerce: Google, Facebook, Pinterest, WhatsApp
+    ecommerce: ['google', 'facebook', 'pinterest', 'whatsapp'],
+    'e-commerce': ['google', 'facebook', 'pinterest', 'whatsapp'],
+
+    // Legacy types
     video: ['twitter', 'facebook', 'youtube', 'tiktok', 'instagram'],
     website: ['google', 'facebook', 'twitter', 'linkedin', 'slack', 'discord']
   };

@@ -96,12 +96,13 @@ function guardWrapperWithRender(handlerName, handlerFunction) {
       setTimeout(() => { isFilterOperation = false; }, 0);
     }
 
-    // Clear smart ordering active flag
-    if ('isSmartOrderingActive' in globalThis || typeof isSmartOrderingActive !== 'undefined') {
-      isSmartOrderingActive = false;
-      if ('DEBUG_SMART_ORDERING' in globalThis && DEBUG_SMART_ORDERING) {
-        console.log(`[${handlerName}] Smart ordering active flag CLEARED (user manual override)`);
-      }
+    // DO NOT clear isSmartOrderingActive during filter operations
+    // Smart order state should persist across filter changes
+    // Only user-initiated drag-and-drop should clear this flag
+    // This ensures that cardOrder (which contains the smart order) is preserved
+    // and used by renderPreviews() even after filters are applied/changed
+    if ('DEBUG_SMART_ORDERING' in globalThis && DEBUG_SMART_ORDERING) {
+      console.log(`[${handlerName}] Filter operation - preserving smart order state (isSmartOrderingActive left unchanged)`);
     }
   });
 }

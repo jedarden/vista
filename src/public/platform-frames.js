@@ -1058,6 +1058,84 @@ const PLATFORM_FRAMES = {
     },
   },
 
+  matrix: {
+    name: 'Matrix',
+    category: 'messaging',
+    hasThemeSupport: true,
+    aspectRatio: 'variable',
+    chrome: `
+      <div class="mx-chat-header">
+        <span class="mx-room-name">#general</span>
+        <span class="mx-room-topic">Team Discussion</span>
+        <span class="mx-participants">12</span>
+      </div>
+      <div class="mx-messages">
+        <div class="mx-message mx-message-incoming">
+          <div class="mx-msg-avatar">JD</div>
+          <div class="mx-msg-content">
+            <span class="mx-msg-author">John Doe</span>
+            <span class="mx-msg-time">10:30 AM</span>
+            <p>Has anyone seen this interesting article?</p>
+          </div>
+        </div>
+        <div class="mx-message mx-message-incoming">
+          <div class="mx-msg-avatar">AS</div>
+          <div class="mx-msg-content">
+            <span class="mx-msg-author">Alice Smith</span>
+            <span class="mx-msg-time">10:32 AM</span>
+            <p>Great find!</p>
+          </div>
+        </div>
+        {{userMessage}}
+      </div>
+    `,
+    neutralContent: `
+      <div class="mx-message">
+        <div class="mx-msg-avatar">Y</div>
+        <div class="mx-msg-content">
+          <span class="mx-msg-author">You</span>
+          <span class="mx-msg-time">10:33 AM</span>
+          <div class="mx-link-preview">
+            {{imageSection}}
+            <div class="mx-title">{{title}}</div>
+            <div class="mx-desc">{{description}}</div>
+            <div class="mx-domain">{{domain}}</div>
+          </div>
+        </div>
+      </div>
+    `,
+    themeVars: {
+      dark: {
+        '--frame-bg': '#101213',
+        '--frame-surface': '#1A1A1B',
+        '--frame-border': '#2D2D2D',
+        '--frame-text-primary': '#FFFFFF',
+        '--frame-text-secondary': '#B0B0B0',
+        '--frame-text-muted': '#666666',
+        '--frame-accent': '#0DBD8B',
+        '--frame-accent-bg': '#0DBD8B',
+        '--frame-link-color': '#0DBD8B',
+        '--frame-divider': '#2D2D2D',
+        '--frame-input-bg': '#1A1A1B',
+        '--frame-overlay': 'rgba(0, 0, 0, 0.7)',
+      },
+      light: {
+        '--frame-bg': '#FFFFFF',
+        '--frame-surface': '#F5F5F5',
+        '--frame-border': '#E0E0E0',
+        '--frame-text-primary': '#101213',
+        '--frame-text-secondary': '#666666',
+        '--frame-text-muted': '#999999',
+        '--frame-accent': '#0DBD8B',
+        '--frame-accent-bg': '#E0F7F3',
+        '--frame-link-color': '#0DBD8B',
+        '--frame-divider': '#E0E0E0',
+        '--frame-input-bg': '#FFFFFF',
+        '--frame-overlay': 'rgba(0, 0, 0, 0.1)',
+      },
+    },
+  },
+
   googlechat: {
     name: 'Google Chat',
     category: 'messaging',
@@ -3827,6 +3905,19 @@ function buildLinkPreviewHTML(platformId, content, theme = 'dark') {
           <div class="discord-title">${esc(trunc(title, 60))}</div>
           ${description ? `<div class="discord-desc">${esc(trunc(description, 120))}</div>` : ''}
           ${discordImage}
+        </div>
+      `;
+
+    case 'matrix':
+      const matrixImage = image ? `<div class="matrix-link-image img-loading-container"><img src="${esc(image)}" alt="" onerror="this.parentElement.style.display='none'" loading="lazy" /></div>` : '<div class="matrix-link-placeholder"></div>';
+      return `
+        <div class="matrix-link-preview">
+          ${matrixImage}
+          <div class="matrix-link-meta">
+            <div class="matrix-title">${esc(trunc(title, 60))}</div>
+            ${description ? `<div class="matrix-desc">${esc(trunc(description, 120))}</div>` : ''}
+            <div class="matrix-domain">${esc(domain || site)}</div>
+          </div>
         </div>
       `;
 

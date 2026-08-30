@@ -4,6 +4,8 @@
 
 A lightweight web tool that previews how any URL will appear when shared across platforms — Google Search, Facebook, X (Twitter), Slack, WhatsApp, LinkedIn, and Discord.
 
+**Live:** [vista.jedarden.com](https://vista.jedarden.com)
+
 ## How it works
 
 1. Enter a URL

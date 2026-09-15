@@ -5835,3 +5835,11 @@
 {"bead":"vista-57e90667","duration_ms":1277333,"event":"fail","exit_code":0,"outcome":"failure","strand":"explore","ts":"2026-09-14T10:30:48.752319400+00:00","worker":"glm-roam-22"}
 {"bead":"vista-0d7a1311","duration_ms":2271384,"event":"fail","exit_code":0,"outcome":"failure","strand":"explore","ts":"2026-09-14T10:52:40.607493302+00:00","worker":"glm-roam-21"}
 {"bead":"vista-5b3b4051","duration_ms":3601729,"event":"timeout","exit_code":124,"outcome":"timeout","strand":"explore","ts":"2026-09-14T11:13:31.028639324+00:00","worker":"glm-cgraph"}
+{"bead":"vista-68e9cef4","event":"claim","strand":"explore","ts":"2026-09-15T02:24:38.414370068+00:00","worker":"alpha"}
+{"bead":"vista-68e9cef4","event":"claim","strand":"explore","ts":"2026-09-15T02:24:38.920184430+00:00","worker":"hotel"}
+{"bead":"vista-68e9cef4","event":"claim","strand":"explore","ts":"2026-09-15T02:24:39.218038849+00:00","worker":"delta"}
+{"bead":"vista-68e9cef4","event":"claim","strand":"explore","ts":"2026-09-15T02:24:40.033748268+00:00","worker":"alpha"}
+{"bead":"vista-68e9cef4","event":"claim","strand":"explore","ts":"2026-09-15T02:24:41.070552307+00:00","worker":"bravo"}
+{"bead":"vista-5136b233","event":"claim","strand":"explore","ts":"2026-09-15T02:24:43.416543228+00:00","worker":"foxtrot"}
+{"bead":"vista-5136b233","event":"claim","strand":"explore","ts":"2026-09-15T02:24:43.982797235+00:00","worker":"bravo"}
+{"bead":"vista-5136b233","event":"claim","strand":"explore","ts":"2026-09-15T02:24:46.905132619+00:00","worker":"golf"}

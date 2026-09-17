@@ -3593,6 +3593,11 @@ function buildContextFrame(platformId, content, theme = 'dark') {
     linkCard: linkPreview,
     cardContent: content.cardHTML || '',
     linkCards, // For YouTube description section
+    // The generic fallback chrome titles its header with {{platformName}};
+    // supply it so unknown platforms render a named header, matching
+    // app.js's renderGenericContextFrame. For an unknown platformId,
+    // getPlatformFrame() already overrides the fallback's name with the id.
+    platformName: frame.name,
     ...content,
   });
 

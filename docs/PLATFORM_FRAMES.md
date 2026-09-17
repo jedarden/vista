@@ -324,6 +324,27 @@ Replaces `{{placeholders}}` in template with values.
 
 6. **Test Both Modes:** For platforms with `hasThemeSupport: true`, visually inspect both dark and light themes.
 
+## Contract Tests
+
+The registry's schema and template contract is enforced by
+`test/unit/platform-frames-schema.test.js` (runs via `npm test`, and gated in
+the Docker image build so a broken registry fails CI):
+
+1. **Schema** — every `PLATFORM_FRAMES` entry carries `name`, `category`,
+   `hasThemeSupport`, `aspectRatio`, `chrome`, `neutralContent`, and
+   `themeVars.dark`/`themeVars.light` with the required types.
+2. **Supported platform IDs** — IDs are unique, and every platform wired in
+   `PLATFORM_FRAMES_CONFIG` has complete runtime frame data.
+3. **Placeholder resolution** — templates only use `{{word}}` placeholders,
+   and every content-bearing placeholder resolves through
+   `buildContextFrame`; no `{{...}}` survives into rendered HTML.
+4. **Theme variables** — every platform defines all `THEME_VAR_NAMES` for
+   both dark and light, and `getThemeVars` degrades to dark.
+5. **Helper output** — pinned shapes for every exported helper.
+6. **Legacy fallback** — unknown platforms resolve to the generic frame
+   (named after the requested id), never a crash; `app.js` routes config
+   misses to the legacy renderer and unexpected errors to the safe fallback.
+
 ## Examples
 
 See the existing implementations for reference:

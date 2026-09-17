@@ -17,6 +17,28 @@ A lightweight web tool that previews how any URL will appear when shared across 
 - **Frontend**: Static HTML/CSS/JS — renders platform-accurate preview cards
 - **Backend**: Node.js/Express — proxies URL fetches (bypasses CORS) and extracts meta tags
 
+## HTTP API
+
+VISTA exposes a JSON API for preview metadata, header/image analysis, URL
+comparison, sitemap audits, screenshots, score badges, and meta-tag utilities.
+The canonical reference — every endpoint with parameters, response shapes,
+errors, content types, caching, rate limits, and URL-safety constraints — is
+[docs/api.md](docs/api.md), enforced by `test/unit/http-api.test.js`.
+
+Endpoint map:
+
+| Group | Endpoints |
+|-------|-----------|
+| Preview | `GET`/`POST /api/preview`, `/api/preview/meta`, `/api/preview/headers`, `/api/preview/images`, `GET /api/compare` |
+| Sitemap audit | `GET /api/sitemap` (robots.txt fallback, 100-URL crawl) |
+| Screenshots | `GET`/`POST /api/screenshot`, `GET /api/screenshots` (ZIP) |
+| Badge | `GET /api/badge[.svg]` (below), `GET /api/badge/preview` |
+| Utilities | `GET /api/snippet`, `/api/platforms`, `/api/templates[/:name]`, `POST /api/purge`, `GET /api/health`, `/health` |
+
+All endpoints share the same URL-safety rules (http/https only, SSRF guard on
+every fetched URL including images) and the same per-IP rate-limit buckets —
+see [docs/api.md](docs/api.md) for the details.
+
 ## Score Badge API
 
 VISTA provides an embeddable SVG badge API for displaying platform scores on your website, README, or documentation.

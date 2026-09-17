@@ -3018,8 +3018,11 @@ function assessPerformanceHeaders(headers) {
 // preview result (e.g. that rawTags is included for client-side diagnostics)
 // without binding a port. The sitemap helpers are exported so the robots.txt
 // auto-detection fallback can be unit-tested with a mock fetch (no network).
-// The server only listens when run directly.
+// The express `app` is exported so the HTTP contract tests
+// (test/unit/http-api.test.js) can listen on an ephemeral port in-process and
+// exercise every route; the server only listens when run directly.
 module.exports = {
+  app,
   buildPreviewResult,
   parseRobotsSitemaps,
   looksLikeSitemapXml,

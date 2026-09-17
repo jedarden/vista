@@ -2,7 +2,7 @@
 
 **V**isual **I**nspector of **S**ocial **T**ags & **A**ttributes
 
-A lightweight web tool that previews how any URL will appear when shared across platforms — Google Search, Facebook, X (Twitter), Slack, WhatsApp, LinkedIn, and Discord.
+A lightweight web tool that previews how any URL will appear when shared across VISTA's 43 supported platform IDs, including Google Search, Facebook, X (Twitter), Slack, WhatsApp, LinkedIn, and Discord. See the [canonical platform inventory](docs/PLATFORM_INVENTORY.md) for the complete list.
 
 **Live:** [vista.jedarden.com](https://vista.jedarden.com)
 
@@ -188,7 +188,7 @@ This allows users to click the badge to view the full VISTA analysis for your UR
 
 ### Developer Platform Context Frames
 
-VISTA provides authentic developer platform context frames that simulate how content appears when shared on GitHub, GitLab, Stack Overflow, Hacker News, and Dev.to. These frames support both dark and light themes with platform-accurate styling.
+VISTA provides featured developer platform context frames that simulate how content appears when shared on GitHub, GitLab, Stack Overflow, Hacker News, and Dev.to. These five examples support both dark and light themes with platform-accurate styling; they are a subset of the 43-platform product inventory.
 
 #### Available Developer Platforms
 
@@ -311,7 +311,7 @@ Comprehensive testing framework includes:
 - **Accessibility testing**: Contrast ratio verification
 - **Cross-browser testing**: Chrome, Firefox, Safari compatibility
 
-**Test Coverage**: ✅ All 5 developer platforms verified with comprehensive theme switching tests
+**Test Coverage**: ✅ All 5 featured developer frame examples verified with comprehensive theme switching tests
 
 See `theme-switching-verification-report.md` for detailed test results and verification data.
 

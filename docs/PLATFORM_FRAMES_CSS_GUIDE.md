@@ -2,9 +2,13 @@
 
 ## Overview
 
-The Platform Frames CSS Infrastructure (`src/public/platform-frames-base.css`) provides a comprehensive foundation for creating consistent, themeable, and responsive platform context frames across Vista.
+The Platform Frames CSS Infrastructure (`src/public/platform-frames-base.css`)
+provides a comprehensive foundation for creating consistent, themeable, and
+responsive platform context frames across Vista. The canonical product
+platform IDs are documented in [`PLATFORM_INVENTORY.md`](PLATFORM_INVENTORY.md);
+this guide describes CSS primitives, not a separate platform inventory.
 
-**File Location:** `/home/coding/vista/src/public/platform-frames-base.css`
+**File Location:** `src/public/platform-frames-base.css`
 **File Size:** ~21KB (1,100+ lines)
 **Dependencies:** None (standalone base CSS)
 
@@ -52,6 +56,11 @@ All essential frame components are included:
 <link rel="stylesheet" href="src/public/platform-frames-base.css">
 ```
 
+When the HTML file itself lives in `src/public/`, use the sibling path
+`platform-frames-base.css`. Load `frames-theme.css` for platform aliases and
+`social-platforms-frames.css` for platform chrome/link-card rules when those
+layers are needed.
+
 ### 2. Create a Basic Frame
 
 ```html
@@ -85,6 +94,12 @@ All essential frame components are included:
 ```
 
 ## CSS Variable System
+
+The base stylesheet documents generic frame tokens such as `--frame-bg` and
+`--frame-text-primary`. Platform aliases such as `--youtube-bg` and
+`--github-text-primary` are defined in `src/public/frames-theme.css`; they are
+stylesheet-level aliases and should not be confused with the generic
+`--frame-*` tokens passed by `platform-frames.js`.
 
 ### Root Variables (Dark Mode - Default)
 

@@ -4,12 +4,31 @@
 
 The platform context frames architecture provides a standardized data structure for generating UI chrome and neutral placeholder content around link previews in VISTA. This module centralizes all platform-specific rendering logic, making it easier to maintain, extend, and support dark/light theme switching.
 
+## Inventory scope
+
+The canonical product inventory is the 43 platform IDs documented in
+[`PLATFORM_INVENTORY.md`](PLATFORM_INVENTORY.md) and defined in
+`src/scorer.js`. Do not use a frame-template count as the product platform
+count.
+
+The runtime frame registry in `src/public/platform-frames.js` currently has 46
+concrete templates: the 43 canonical IDs plus the frame-only IDs `matrix`,
+`sms`, and `twitch`. Its `generic` entry is a fallback template, not a
+platform. The centralized routing metadata in
+`src/platform-frames.config.ts` (mirrored by
+`src/public/platform-frames-config.js`) currently covers 23 migrated routes;
+other canonical platforms use the legacy renderer until migrated.
+
 ## Architecture
 
 ### Module Location
 
-- **Frontend:** `src/public/platform-frames.js`
-- **CSS Theme Variables:** `src/public/style.css` (see "Platform Context Frame Theme Variables" section)
+- **Frame templates and runtime tokens:** `src/public/platform-frames.js`
+- **Routing metadata:** `src/platform-frames.config.ts` and its browser mirror
+  `src/public/platform-frames-config.js`
+- **Global and platform theme aliases:** `src/public/frames-theme.css`
+- **Platform chrome/link-card rules:** `src/public/social-platforms-frames.css`
+- **Application and legacy frame rules:** `src/public/style.css`
 
 ### Core Components
 
@@ -103,8 +122,8 @@ if (hasThemeSupport('twitter')) {
   // Platform has dark/light mode
 }
 
-// Get all platforms with theme support
-const themedPlatforms = getPlatformsWithThemeSupport(); // ['discord', 'slack', 'twitter', ...]
+// Get the themed frame IDs from the runtime registry
+const themedPlatforms = getPlatformsWithThemeSupport();
 ```
 
 ### Applying Theme Variables
@@ -167,9 +186,12 @@ const PLATFORM_FRAMES = {
 };
 ```
 
-### Step 2: Add CSS Classes to style.css
+### Step 2: Add CSS Classes to the appropriate stylesheet
 
-Add the platform-specific CSS and theme variables:
+Add platform-specific chrome rules to `src/public/social-platforms-frames.css`
+and platform theme aliases to `src/public/frames-theme.css`. Use
+`src/public/style.css` only when the rule is part of the application's legacy
+card renderer:
 
 ```css
 /* News Platform Context */
@@ -199,9 +221,12 @@ switch (pid) {
 }
 ```
 
-### Step 4: Add to PLATFORMS_WITH_THEME (if applicable)
+### Step 4: Add to the frame configuration (if the route is migrated)
 
-If your platform supports theme switching, it will automatically be included via `getPlatformsWithThemeSupport()`.
+Add the platform to `src/platform-frames.config.ts` and keep
+`src/public/platform-frames-config.js` synchronized. Theme support is then
+read from the configuration; do not maintain a second hand-written platform
+list in `PLATFORMS_WITH_THEME`.
 
 ### Step 5: Test
 
@@ -292,7 +317,10 @@ Replaces `{{placeholders}}` in template with values.
 
 4. **Neutral Content:** Use generic, non-specific placeholder content (e.g., "Jane Smith", "2h ago") rather than real user data.
 
-5. **CSS Variables:** Always use CSS custom properties (`var(--frame-bg)`) instead of hardcoded colors for themeable elements.
+5. **CSS Variables:** Frame templates use the generic `--frame-*` runtime
+   tokens. Stylesheet chrome may use a platform alias such as
+   `--youtube-bg`, with a `--frame-*-global` fallback where appropriate. Keep
+   those token layers distinct.
 
 6. **Test Both Modes:** For platforms with `hasThemeSupport: true`, visually inspect both dark and light themes.
 
@@ -312,7 +340,8 @@ See the existing implementations for reference:
 
 ### Theme Not Applying
 1. Verify `hasThemeSupport` is `true` for the platform
-2. Check that theme CSS variables are defined in `style.css`
+2. Check that frame tokens are defined in `platform-frames.js` and stylesheet
+   aliases are defined in `frames-theme.css`
 3. Ensure the correct theme class (`dark-theme` or `light-theme`) is applied to the context frame element
 
 ### Images Not Loading

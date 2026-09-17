@@ -2,7 +2,7 @@
 
 ## Overview
 
-Vista uses a comprehensive CSS variable system for platform-agnostic dark/light theme support. The naming convention follows a hierarchical structure that ensures consistency across all platforms and makes the theme system maintainable and extensible.
+Vista uses a CSS variable system for platform-agnostic dark/light theme support. The naming convention follows a hierarchical structure that keeps theme tokens maintainable and extensible. The complete product platform list is maintained separately in [`PLATFORM_INVENTORY.md`](PLATFORM_INVENTORY.md); a token namespace or frame template is not a second platform inventory.
 
 ## Naming Convention Structure
 
@@ -45,14 +45,21 @@ Vista uses a comprehensive CSS variable system for platform-agnostic dark/light 
 
 ## Platform Identifiers
 
-The 7 main platforms use these identifiers:
+Use the canonical IDs in [`PLATFORM_INVENTORY.md`](PLATFORM_INVENTORY.md) for
+platform data and frame lookups. The seven original platform-token namespaces
+covered by this convention are:
+
 - `youtube`: YouTube video platform
-- `twitch`: Twitch streaming platform
-- `twitter` / `x`: Twitter/X social platform
+- `twitch`: Twitch streaming frame
+- `twitter`: X/Twitter social platform
 - `reddit`: Reddit social platform
 - `tiktok`: TikTok video platform
 - `github`: GitHub development platform
 - `gitlab`: GitLab development platform
+
+`x` is a display-name alias for the canonical `twitter` ID. Do not create a
+second `x` platform entry. The seven namespaces above are the original theme
+verification subset, not the complete 43-platform product inventory.
 
 ## Global Variables
 
@@ -194,9 +201,32 @@ document.documentElement.setAttribute('data-theme', 'light');
 
 ## File Organization
 
-- **frames-theme.css**: Global theme variables and platform-specific theme variables
-- **platform-chrome-styles.css**: Platform-specific chrome component variables
-- **Component CSS**: Use existing variables, don't define new ones unless necessary
+- **`src/public/frames-theme.css`**: Global `--frame-*-global` tokens and
+  platform-specific `--{platform}-*` aliases
+- **`src/public/social-platforms-frames.css`**: Platform chrome and link-card
+  rules that consume the theme aliases
+- **`src/public/platform-frames-base.css`**: Shared frame primitives and
+  generic `--frame-*` values
+- **`src/public/style.css`**: Application integration and legacy frame rules
+- **Component CSS**: Use existing variables; do not define new ones unless
+  necessary
+
+### Frame tokens versus platform tokens
+
+The runtime frame definitions in `src/public/platform-frames.js` use the
+generic `--frame-*` names (`--frame-bg`, `--frame-surface`,
+`--frame-text-primary`, and so on). The stylesheet layer uses
+`--{platform}-*` names such as `--youtube-bg` and `--github-text-primary`.
+Those are platform aliases for CSS chrome, not alternate IDs or replacements
+for the runtime frame-token contract. Keep the two layers distinct:
+
+```css
+/* Frame template contract */
+.platform-frame { background: var(--frame-bg); }
+
+/* Platform stylesheet alias */
+.youtube-context { background: var(--youtube-bg, var(--frame-bg-global)); }
+```
 
 ## Migration Guide
 

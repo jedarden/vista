@@ -212,9 +212,11 @@
  * Type definitions: ../types/platform-frames.d.ts
  * Runtime implementation: platform-frames.js (loaded as global script)
  *
- * The platform-frames.config.ts provides the authoritative mapping of all 43 platforms
- * to their frame types, chrome HTML templates, and theming configuration.
- * This JavaScript runtime accesses that configuration through the global PLATFORM_FRAMES object.
+ * The 43-platform product inventory lives in scorer.js. The platform-frames.config.ts
+ * metadata (mirrored at runtime by platform-frames-config.js) currently describes
+ * the centrally routed subset of frame templates; platforms outside that subset
+ * use the legacy renderer until migrated. The richer platform-frames.js runtime
+ * provides the concrete frame templates and generic fallback.
  *
  * The following are loaded from platform-frames.js and available in global scope:
  * - PLATFORM_FRAMES: Platform frame configuration object

@@ -30,8 +30,10 @@ The platform frames system consists of:
 
 1. **platform-frames.js** - Core data definitions and helper functions
 2. **platform-frames-renderer.js** - Enhanced rendering engine with caching, validation, and responsive design
-3. **platform-frames-enhanced.css** - Complete CSS variable system and responsive styles
-4. **types/platform-frames.d.ts** - TypeScript type definitions
+3. **platform-frames-enhanced.css** - Complete generic frame-token system and responsive styles
+4. **frames-theme.css** - Platform theme aliases such as `--youtube-bg`
+5. **social-platforms-frames.css** - Platform chrome and link-card styles
+6. **types/platform-frames.d.ts** - TypeScript type definitions
 
 ## Usage
 
@@ -223,7 +225,9 @@ function buildLinkPreviewHTML(platformId, content, theme = 'dark') {
 
 ### Step 3: Add CSS Styles
 
-Add platform-specific CSS to `style.css` or create a new stylesheet:
+Add platform-specific chrome CSS to `social-platforms-frames.css` or create a
+new stylesheet. Keep platform theme aliases in `frames-theme.css`; use
+`style.css` only for application integration or legacy renderer rules:
 
 ```css
 /* New Site context frame */
@@ -447,6 +451,8 @@ console.log('Render time:', result.duration, 'ms');
   
   <!-- Load enhanced CSS -->
   <link rel="stylesheet" href="platform-frames-enhanced.css">
+  <link rel="stylesheet" href="frames-theme.css">
+  <link rel="stylesheet" href="social-platforms-frames.css">
   
   <!-- Load platform frames modules -->
   <script src="platform-frames.js"></script>
@@ -509,6 +515,8 @@ console.log('Render time:', result.duration, 'ms');
 - **Core Module**: `src/public/platform-frames.js`
 - **Renderer**: `src/public/platform-frames-renderer.js`
 - **Enhanced CSS**: `src/public/platform-frames-enhanced.css`
+- **Theme aliases**: `src/public/frames-theme.css`
+- **Platform chrome CSS**: `src/public/social-platforms-frames.css`
 - **Example Frames**: `test-*-frame.html` files
 
 ## Contributing

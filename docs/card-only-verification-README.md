@@ -2,6 +2,11 @@
 
 This directory contains automated verification scripts for testing card-only rendering across all platforms.
 
+The product inventory is the 43 IDs in [`PLATFORM_INVENTORY.md`](PLATFORM_INVENTORY.md).
+This older harness still exercises a 44-entry fixture because it includes a
+generic fallback entry and legacy display IDs; that fixture count must not be
+read as the supported-platform count.
+
 ## Files
 
 - `test-verify-card-only-rendering.js` - Node.js script using Puppeteer
@@ -23,7 +28,7 @@ node test-verify-card-only-rendering.js
 
 The script will:
 - Load the test harness at `http://127.0.0.1:8080/src/public/test-card-only-rendering.html`
-- Verify all 44 platforms
+- Verify the harness's 44-entry legacy fixture
 - Check layout breaks, rendering completion, platform name display
 - Capture console errors and warnings
 - Save screenshots of failed platforms

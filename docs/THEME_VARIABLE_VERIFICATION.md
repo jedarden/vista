@@ -2,7 +2,10 @@
 
 ## ✅ COMPLIANCE STATUS: ALL REQUIREMENTS MET
 
-This document verifies that the Vista theme variable system meets all acceptance criteria and works correctly across all 7 platforms.
+This document verifies that the Vista theme variable system meets its
+acceptance criteria for the seven original platform-token namespaces. Those
+namespaces are a focused theme verification scope; the complete product
+inventory is the 43 IDs listed in [`docs/PLATFORM_INVENTORY.md`](PLATFORM_INVENTORY.md).
 
 ## 📋 Acceptance Criteria Verification
 
@@ -10,7 +13,8 @@ This document verifies that the Vista theme variable system meets all acceptance
 
 **Status: COMPLETE**
 
-All CSS custom properties are defined in `/src/public/frames-theme.css` with proper naming convention:
+The platform CSS custom properties are defined in `src/public/frames-theme.css`
+with the proper naming convention:
 
 - Background colors: `--{platform}-bg`
 - Surface colors: `--{platform}-surface`
@@ -36,14 +40,14 @@ All CSS custom properties are defined in `/src/public/frames-theme.css` with pro
 
 **Status: COMPLETE**
 
-All 7 platforms have complete variable definitions for both themes:
+All 7 verified token namespaces have complete variable definitions for both themes:
 
 **Dark Mode Variables (defined in `:root`):**
 - YouTube, Twitch, Twitter/X, Reddit, TikTok, GitHub, GitLab
 - Each with bg, surface, text-primary, text-secondary, accent, border variables
 
 **Light Mode Variables (defined in `[data-theme='light']`):**
-- All 7 platforms with corresponding light theme overrides
+- All 7 verified namespaces with corresponding light theme overrides
 - Proper fallback to lighter color palettes
 
 **Evidence:**
@@ -67,16 +71,16 @@ All 7 platforms have complete variable definitions for both themes:
 
 **Status: COMPLETE**
 
-All platforms meet WCAG AA standards (≥4.5:1 for normal text):
+All verified namespaces meet WCAG AA standards (≥4.5:1 for normal text):
 
 **Contrast Ratio Analysis:**
 - YouTube dark mode text-primary on bg: ~16.5:1 (AAA compliant)
 - GitHub dark mode text-primary on bg: ~12.4:1 (AAA compliant)
 - Reddit dark mode text-primary on bg: ~11.8:1 (AAA compliant)
-- All platforms maintain ≥4.5:1 in both themes
+- All verified namespaces maintain ≥4.5:1 in both themes
 
 **Verification Tool:**
-- `/src/public/contrast-utility.js` provides real-time contrast checking
+- `src/public/contrast-utility.js` provides real-time contrast checking
 - Test page includes contrast badges showing compliance status
 
 **Manual Verification:**
@@ -108,11 +112,11 @@ Comprehensive documentation created at `/docs/THEME_VARIABLE_NAMING_CONVENTION.m
 
 **Status: COMPLETE**
 
-Interactive test page created at `/src/public/test-theme-variables-all-platforms.html`:
+Interactive test page created at `src/public/test-theme-variables-all-platforms.html`:
 
 **Test Features:**
 - Dark/light mode toggle buttons
-- Real-time variable display for all 7 platforms
+- Real-time variable display for all 7 verified namespaces
 - Live color swatches showing computed values
 - Console logging of theme changes
 - JavaScript observer pattern for theme switching
@@ -122,15 +126,15 @@ Interactive test page created at `/src/public/test-theme-variables-all-platforms
 2. Click theme toggle buttons
 3. Observe real-time variable updates
 4. Check browser console for variable logs
-5. All platforms update simultaneously
+5. All verified namespaces update simultaneously
 
 **Evidence:** Test page with functional theme switching and variable monitoring.
 
-### ✅ 6. Variables work across all 7 platforms when applied
+### ✅ 6. Variables work across all 7 verified namespaces when applied
 
 **Status: COMPLETE**
 
-All 7 platforms verified with complete variable systems:
+All 7 verified namespaces have complete variable systems:
 
 **Platform Coverage:**
 1. **YouTube** - ✅ Complete dark/light variables
@@ -143,7 +147,7 @@ All 7 platforms verified with complete variable systems:
 
 **Cross-Platform Compatibility:**
 - All platforms use consistent variable structure
-- Chrome styling in `/src/public/platform-chrome-styles.css` works with all platforms
+- Chrome styling in `src/public/social-platforms-frames.css` works with the themed platform frames
 - Platform-agnostic fallback system: `var(--platform-bg, var(--frame-bg-global))`
 
 ## 🎯 Platform-Specific Verification
@@ -194,7 +198,7 @@ All 7 platforms verified with complete variable systems:
 ## 🧪 Testing Instructions
 
 ### Manual Testing
-1. **Open test page:** `/src/public/test-theme-variables-all-platforms.html`
+1. **Open test page:** `src/public/test-theme-variables-all-platforms.html`
 2. **Toggle themes:** Click dark/light mode buttons
 3. **Verify variables:** Check each platform card shows correct colors
 4. **Check console:** Verify variable logging works
@@ -243,7 +247,7 @@ contrastReport('light');
 vista/
 ├── src/public/
 │   ├── frames-theme.css                    # Main theme variable definitions
-│   ├── platform-chrome-styles.css          # Platform-specific chrome styling
+│   ├── social-platforms-frames.css         # Platform-specific chrome styling
 │   ├── test-theme-variables-all-platforms.html  # Interactive test page
 │   └── contrast-utility.js                  # Contrast checking utility
 ├── docs/
@@ -307,15 +311,19 @@ document.documentElement.setAttribute('data-theme', 'light');
 | Requirement | Status | Evidence |
 |-------------|---------|----------|
 | CSS custom properties defined | ✅ COMPLETE | frames-theme.css lines 285-545 |
-| Variables for both themes | ✅ COMPLETE | All platforms in :root and [data-theme='light'] |
-| Proper contrast ratios | ✅ COMPLETE | All platforms ≥4.5:1, many ≥7:1 |
+| Variables for both themes | ✅ COMPLETE | All verified namespaces in :root and [data-theme='light'] |
+| Proper contrast ratios | ✅ COMPLETE | All verified namespaces ≥4.5:1, many ≥7:1 |
 | Naming convention documented | ✅ COMPLETE | THEME_VARIABLE_NAMING_CONVENTION.md |
 | Theme switching tested | ✅ COMPLETE | test-theme-variables-all-platforms.html |
-| Cross-platform compatibility | ✅ COMPLETE | All 7 platforms working |
+| Cross-platform compatibility | ✅ COMPLETE | All 7 verified namespaces working |
 
 **OVERALL STATUS: ✅ ALL ACCEPTANCE CRITERIA MET**
 
-The Vista theme variable system is complete, well-documented, and tested across all platforms. The system provides a robust, platform-agnostic foundation for dark/light theme support with proper accessibility compliance.
+The Vista theme variable system is complete, well-documented, and tested
+across the seven verified token namespaces. The system provides a robust,
+platform-agnostic foundation for dark/light theme support with proper
+accessibility compliance; it does not redefine the complete 43-platform
+product inventory.
 
 ---
 

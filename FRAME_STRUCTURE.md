@@ -11,6 +11,11 @@ Each platform in Vista has a **frame configuration** that determines how link pr
 - **Theme Variables**: CSS custom properties for dark/light mode theming
 - **Frame Type**: Category that determines the rendering approach
 
+The canonical product inventory is the 43 IDs in
+[`docs/PLATFORM_INVENTORY.md`](docs/PLATFORM_INVENTORY.md). The runtime frame
+registry has 46 concrete templates plus a `generic` fallback, so a frame
+template count must not be presented as the product platform count.
+
 ## Frame Type Categories
 
 Platforms are categorized into 11 frame types based on their UI patterns:
@@ -164,6 +169,13 @@ Each frame defines CSS custom properties for both dark and light themes:
   }
 }
 ```
+
+These `--frame-*` names are the runtime frame-token contract. The stylesheet
+layer may also expose platform aliases such as `--youtube-bg` in
+`src/public/frames-theme.css`; those aliases are for platform chrome and are
+not alternate platform IDs. See
+[`docs/THEME_VARIABLE_NAMING_CONVENTION.md`](docs/THEME_VARIABLE_NAMING_CONVENTION.md)
+for the naming rules.
 
 ## Implementation Workflow
 

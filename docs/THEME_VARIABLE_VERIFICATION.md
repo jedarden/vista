@@ -83,6 +83,22 @@ All verified namespaces meet WCAG AA standards (≥4.5:1 for normal text):
 - `src/public/contrast-utility.js` provides real-time contrast checking
 - Test page includes contrast badges showing compliance status
 
+**Automated regression (2026-09-17):**
+The manual console procedure below is now automated in
+`test/unit/wcag-contrast.test.js` (runs via `npm test`). It audits both theme
+surfaces — the `frames-theme.css` namespaces and the `PLATFORM_FRAMES`
+`themeVars` in `src/public/platform-frames.js` — for the documented
+combinations (text-primary on bg, text-secondary on bg, text-primary on
+surface) at the WCAG AA normal-text threshold (≥4.5:1), using
+`ContrastChecker` itself for the math. Four current violations are pinned in
+an explicit ratchet allowlist inside the test rather than hidden; they cannot
+regress further, and fixing one is forced to remove its allowlist entry:
+`hackernews:light` and `jetbrains:dark` text-secondary (3.84:1 / 3.58:1),
+`notion:light` text-secondary (4.47:1), and `reddit:light` text-secondary
+(4.17:1 — within the seven namespaces this report originally verified, whose
+"≥4.5:1 in both themes" claim above was true for text-primary but not for
+text-secondary).
+
 **Manual Verification:**
 ```javascript
 // Run in browser console on test page
@@ -312,7 +328,7 @@ document.documentElement.setAttribute('data-theme', 'light');
 |-------------|---------|----------|
 | CSS custom properties defined | ✅ COMPLETE | frames-theme.css lines 285-545 |
 | Variables for both themes | ✅ COMPLETE | All verified namespaces in :root and [data-theme='light'] |
-| Proper contrast ratios | ✅ COMPLETE | All verified namespaces ≥4.5:1, many ≥7:1 |
+| Proper contrast ratios | ✅ ENFORCED | Automated test (`test/unit/wcag-contrast.test.js`); text-primary ≥4.5:1 in all namespaces, 4 ratcheted text-secondary violations listed there |
 | Naming convention documented | ✅ COMPLETE | THEME_VARIABLE_NAMING_CONVENTION.md |
 | Theme switching tested | ✅ COMPLETE | test-theme-variables-all-platforms.html |
 | Cross-platform compatibility | ✅ COMPLETE | All 7 verified namespaces working |

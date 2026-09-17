@@ -1148,7 +1148,9 @@ app.get(['/api/badge', '/api/badge.svg'], async (req, res) => {
   } else {
     // Legacy mode: use score and platforms from query params
     // Require both score and platforms when not using url mode
-    if (req.query.score === undefined && req.query.platforms === undefined) {
+    const hasScore = req.query.score !== undefined;
+    const hasPlatforms = req.query.platforms !== undefined;
+    if (hasScore !== hasPlatforms || (!hasScore && !hasPlatforms)) {
       return res.status(400).json({ error: 'Missing required parameters. Provide ?url= OR both ?score= and ?platforms=' });
     }
     score = parseInt(req.query.score || '0', 10);

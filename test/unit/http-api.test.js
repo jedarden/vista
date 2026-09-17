@@ -623,6 +623,69 @@ async function main() {
     assert(res.text.includes('85/100'), 'score text');
   });
 
+  await test('GET /api/badge supports every documented style in manual mode', async () => {
+    const styles = ['flat', 'flat-square', 'plastic', 'for-the-badge'];
+    const svgs = [];
+
+    for (const style of styles) {
+      const res = await req(`/api/badge.svg?score=85&platforms=25&style=${style}`);
+      assertEq(res.status, 200, `${style} status`);
+      assertEq(res.headers.get('content-type'), 'image/svg+xml; charset=utf-8', `${style} content type`);
+      assertEq(res.headers.get('cache-control'), 'public, max-age=3600, stale-while-revalidate=7200', `${style} cache header`);
+      assertEq(res.headers.get('x-ratelimit-remaining'), '999', `${style} rate-limit header`);
+      assert(res.text.startsWith('<svg'), `${style} SVG payload`);
+      assert(res.text.endsWith('</svg>'), `${style} closes the SVG root`);
+      assert(res.text.includes('85/100'), `${style} score text`);
+      svgs.push(res.text);
+    }
+
+    assertEq(new Set(svgs).size, styles.length, 'each style has distinct SVG output');
+  });
+
+  await test('GET /api/badge supports score and grade labels', async () => {
+    const score = await req('/api/badge.svg?score=85&platforms=25&label=score');
+    assertEq(score.status, 200, 'score label status');
+    assert(score.text.includes('85/100'), 'score label text');
+
+    const grade = await req('/api/badge?score=85&platforms=25&label=grade');
+    assertEq(grade.status, 200, 'grade label status');
+    assert(grade.text.includes('>B<'), `grade letter, got: ${grade.text}`);
+    assert(!grade.text.includes('85/100'), 'grade label omits numeric score');
+  });
+
+  await test('GET /api/badge and /api/badge.svg return identical alias responses', async () => {
+    const query = 'score=85&platforms=25&style=plastic&label=grade';
+    const alias = await req(`/api/badge?${query}`);
+    const svg = await req(`/api/badge.svg?${query}`);
+    assertEq(alias.status, 200, 'alias status');
+    assertEq(svg.status, 200, '.svg status');
+    assertEq(alias.text, svg.text, 'alias SVG body');
+    assertEq(alias.headers.get('content-type'), 'image/svg+xml; charset=utf-8', 'alias content type');
+    assertEq(svg.headers.get('content-type'), 'image/svg+xml; charset=utf-8', '.svg content type');
+    assertEq(alias.headers.get('cache-control'), 'public, max-age=3600, stale-while-revalidate=7200', 'alias cache header');
+    assertEq(svg.headers.get('cache-control'), 'public, max-age=3600, stale-while-revalidate=7200', '.svg cache header');
+  });
+
+  await test('GET /api/badge rejects incomplete manual inputs', async () => {
+    for (const query of ['score=85', 'platforms=25']) {
+      const res = await req(`/api/badge.svg?${query}`);
+      assertEq(res.status, 400, `status for ${query}`);
+      assert(/Provide \?url= OR both \?score= and \?platforms=/.test(res.json.error), `usage error for ${query}`);
+    }
+  });
+
+  await test('GET /api/badge keeps hostile manual values inside a valid escaped SVG', async () => {
+    const payload = '85"><script>alert(1)</script>';
+    const res = await req(
+      `/api/badge.svg?score=${encodeURIComponent(payload)}&platforms=${encodeURIComponent(payload)}`
+    );
+    assertEq(res.status, 200, 'status');
+    assert(res.text.startsWith('<svg') && res.text.endsWith('</svg>'), 'single SVG root');
+    assert(res.text.includes('85/100'), 'numeric prefix is rendered as the score');
+    assert(!res.text.includes('<script>'), 'script markup is not injected into SVG');
+    assert(!res.text.includes('</svg><'), 'payload cannot escape the SVG root');
+  });
+
   await test('GET /api/badge grade label mode shows the letter grade', async () => {
     const res = await req('/api/badge.svg?score=95&platforms=25&label=grade');
     assertEq(res.status, 200, 'status');
@@ -641,12 +704,22 @@ async function main() {
     const missing = await req('/api/badge');
     assertEq(missing.status, 400, 'missing params status');
     assert(/Provide \?url= OR both \?score= and \?platforms=/.test(missing.json.error), 'missing params error');
+
+    const badUrl = await req('/api/badge?url=not-a-url');
+    assertEq(badUrl.status, 400, 'invalid URL status');
+    assertEq(badUrl.json.error, 'Invalid URL', 'invalid URL error');
+
+    const badScheme = await req(`/api/badge?url=${encodeURIComponent('ftp://example.test/file')}`);
+    assertEq(badScheme.status, 400, 'invalid scheme status');
+    assertEq(badScheme.json.error, 'Only http and https URLs are supported', 'invalid scheme error');
   });
 
   await test('GET /api/badge.svg url mode fetches, scores and returns the SVG', async () => {
     const res = await req(`/api/badge.svg?url=${encodeURIComponent(OK_URL)}`);
     assertEq(res.status, 200, 'status');
     assertEq(res.headers.get('content-type'), 'image/svg+xml; charset=utf-8', 'content type');
+    assertEq(res.headers.get('cache-control'), 'public, max-age=3600, stale-while-revalidate=7200', 'cache header');
+    assertEq(res.headers.get('x-ratelimit-remaining'), '999', 'rate-limit header');
     assert(res.text.startsWith('<svg'), 'SVG payload');
     assert(res.text.includes('/100'), 'score text');
     assert(fetchCalls.includes(OK_URL), 'downstream fetch happened for the url');

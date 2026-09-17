@@ -345,6 +345,14 @@ the Docker image build so a broken registry fails CI):
    (named after the requested id), never a crash; `app.js` routes config
    misses to the legacy renderer and unexpected errors to the safe fallback.
 
+The documented accessibility primitives — keyboard `:focus-visible` states in
+all three frame stylesheets, `prefers-contrast: high` border strengthening,
+`prefers-reduced-motion: reduce` guards, semantic structure (documented
+markup primitives, native interactive elements only), and screen-reader
+labeling (`.sr-only` pattern, `alt` on every image, an accessible name on
+every button including icon-only chrome controls) — are enforced by
+`test/unit/platform-frame-accessibility.test.js` (same runner).
+
 ## Examples
 
 See the existing implementations for reference:

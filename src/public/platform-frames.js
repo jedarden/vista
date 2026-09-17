@@ -341,18 +341,18 @@ const PLATFORM_FRAMES = {
             <div class="yt-progress-filled" style="width: 35%;"></div>
           </div>
           <div class="yt-player-controls">
-            <button class="yt-control-btn">⏮</button>
-            <button class="yt-control-btn">▶️</button>
-            <button class="yt-control-btn">⏭</button>
+            <button class="yt-control-btn" aria-label="Previous">⏮</button>
+            <button class="yt-control-btn" aria-label="Play">▶️</button>
+            <button class="yt-control-btn" aria-label="Next">⏭</button>
             <div class="yt-volume-control">
-              <button class="yt-control-btn">🔊</button>
+              <button class="yt-control-btn" aria-label="Volume">🔊</button>
               <div class="yt-volume-slider">
                 <div class="yt-volume-level" style="width: 70%;"></div>
               </div>
             </div>
             <div class="yt-time-display">3:45 / 10:23</div>
-            <button class="yt-control-btn">⚙️</button>
-            <button class="yt-control-btn yt-fullscreen-btn">⛶</button>
+            <button class="yt-control-btn" aria-label="Settings">⚙️</button>
+            <button class="yt-control-btn yt-fullscreen-btn" aria-label="Fullscreen">⛶</button>
           </div>
         </div>
       </div>

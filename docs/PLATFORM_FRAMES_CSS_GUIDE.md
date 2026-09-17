@@ -531,6 +531,16 @@ python -m http.server 8000
 - [x] Theme switching is smooth (no flicker)
 - [x] Accessibility features work (keyboard, screen readers)
 
+### Automated Tests
+
+The accessibility primitives documented above — focus-visible states, the
+`(prefers-contrast: high)` and `(prefers-reduced-motion: reduce)` guards,
+the semantic markup primitives, and screen-reader labeling (`.sr-only`,
+`alt` on images, accessible names on buttons) — are enforced by
+`test/unit/platform-frame-accessibility.test.js`, which runs via `npm test`
+across `platform-frames-base.css`, `frames-theme.css`,
+`social-platforms-frames.css`, and the runtime frame registry.
+
 ## Browser Support
 
 - **Modern Browsers**: Chrome, Firefox, Safari, Edge (last 2 versions)

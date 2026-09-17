@@ -237,43 +237,41 @@ list in `PLATFORMS_WITH_THEME`.
 
 ## Platform Migration Status
 
-### ✅ Fully Migrated (Using New Architecture)
-- Twitter/X
-- Slack
-- Discord
+Routing is decided by `PLATFORM_FRAMES_CONFIG`: a platform whose ID appears
+in the configuration renders through the new architecture
+(`renderPlatformWithContext` → `buildContextFrame`); every other ID falls
+back to the legacy renderer (`renderPlatformWithContextLegacy`). The lists
+below are exactly that split — regenerate them from
+`src/platform-frames.config.ts` when the configuration changes.
 
-### 🔄 Partially Migrated (Legacy Renderer with Theme Variables)
-- Google
-- Facebook
-- LinkedIn
-- Reddit
-- WhatsApp
-- iMessage
-- Telegram
-- Signal
-- Teams
-- Google Chat
-- Mastodon
-- Bluesky
-- Threads
-- Tumblr
-- Pinterest
-- Notion
-- Jira
-- GitHub
-- Trello
-- Figma
-- Medium
-- Substack
-- Outlook
-- Gmail
-- Feedly
-- Zoom
-- Line
-- KakaoTalk
+### ✅ Centrally routed (new architecture) — 23 IDs
 
-### ❌ Not Started
-- (All platforms have at least basic context rendering)
+Twitter/X (`twitter`), Slack (`slack`), and Discord (`discord`) were the
+first three migrations; the configuration has since grown to 23 routes —
+22 canonical IDs plus the frame-only `matrix`:
+
+- **Social:** facebook, twitter, linkedin, reddit, youtube, instagram,
+  tiktok, pinterest, mastodon, threads
+- **Messaging:** slack, discord, whatsapp, imessage, telegram, signal,
+  teams, matrix *(frame-only ID)*
+- **Email:** gmail, outlook
+- **Developer:** github, gitlab, stackoverflow
+
+### 🔄 Legacy renderer (theme variables only) — 21 canonical IDs
+
+google, producthunt, bluesky, hackernews, tumblr, googlechat, zoom, line,
+kakaotalk, notion, jira, asana, evernote, trello, figma, medium, devto,
+substack, feedly, vscode, jetbrains
+
+Several of these (for example hackernews, medium, vscode) already have
+stylesheet aliases in `frames-theme.css`; an alias does not imply a migrated
+route. The remaining frame-only IDs `sms` and `twitch` are not product
+platforms and are not routed through the configuration.
+
+### ❌ Not started
+
+None — every canonical ID renders through either the centralized or the
+legacy renderer, and unknown IDs resolve to the generic fallback frame.
 
 ## Helper Functions Reference
 

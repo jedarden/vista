@@ -46,8 +46,14 @@ Vista uses a CSS variable system for platform-agnostic dark/light theme support.
 ## Platform Identifiers
 
 Use the canonical IDs in [`PLATFORM_INVENTORY.md`](PLATFORM_INVENTORY.md) for
-platform data and frame lookups. The seven original platform-token namespaces
-covered by this convention are:
+platform data and frame lookups. `src/public/frames-theme.css` currently
+defines 20 platform alias namespaces — `asana`, `devto`, `evernote`,
+`feedly`, `github`, `gitlab`, `hackernews`, `jetbrains`, `jira`, `medium`,
+`notion`, `pinterest`, `producthunt`, `reddit`, `tiktok`, `twitch`,
+`twitter`, `vscode`, `trello`, `youtube` — each with dark (`:root`) and
+light (`[data-theme='light']`) definitions. Platforms without a dedicated
+alias use the generic `--frame-*` runtime tokens. The seven original
+namespaces, from the first theme verification pass, are:
 
 - `youtube`: YouTube video platform
 - `twitch`: Twitch streaming frame
@@ -58,8 +64,9 @@ covered by this convention are:
 - `gitlab`: GitLab development platform
 
 `x` is a display-name alias for the canonical `twitter` ID. Do not create a
-second `x` platform entry. The seven namespaces above are the original theme
-verification subset, not the complete 43-platform product inventory.
+second `x` platform entry. Namespace count is not a platform count: the 20
+stylesheet aliases, and the seven original namespaces above, are theming
+scopes — not the complete 43-platform product inventory.
 
 ## Global Variables
 

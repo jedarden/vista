@@ -4,8 +4,10 @@
 
 This document verifies that the Vista theme variable system meets its
 acceptance criteria for the seven original platform-token namespaces. Those
-namespaces are a focused theme verification scope; the complete product
-inventory is the 43 IDs listed in [`docs/PLATFORM_INVENTORY.md`](PLATFORM_INVENTORY.md).
+namespaces are a focused theme verification scope, not the full set:
+`frames-theme.css` has since grown to 20 platform alias namespaces, and the
+complete product inventory is the 43 IDs listed in
+[`docs/PLATFORM_INVENTORY.md`](PLATFORM_INVENTORY.md).
 
 ## 📋 Acceptance Criteria Verification
 
@@ -266,9 +268,10 @@ vista/
 │   ├── social-platforms-frames.css         # Platform-specific chrome styling
 │   ├── test-theme-variables-all-platforms.html  # Interactive test page
 │   └── contrast-utility.js                  # Contrast checking utility
-├── docs/
-│   └── THEME_VARIABLE_NAMING_CONVENTION.md # Naming convention documentation
-└── THEME_VARIABLE_VERIFICATION.md          # This verification document
+└── docs/
+    ├── PLATFORM_INVENTORY.md               # Canonical platform inventory
+    ├── THEME_VARIABLE_NAMING_CONVENTION.md # Naming convention documentation
+    └── THEME_VARIABLE_VERIFICATION.md      # This verification document
 ```
 
 ## 🎨 Usage Examples

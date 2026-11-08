@@ -16,7 +16,8 @@
  * ssrf-guard (literal loopback/metadata IPs never need DNS).
  *
  * Rate-limit budget note (buckets are per-IP, per-hour, in-process):
- *   preview   ≤ 22 of 30 tokens used (validation + mocked-success paths)
+ *   preview   27 of 30 tokens used (validation + mocked-success paths,
+ *             including the url-mode badge grade/parity/single-flight checks)
  *   sitemap    6 of 5  — deliberately exceeds the bucket to prove the 429 shape
  *   screenshot 30 of 30 — deliberately exhausted to prove the 30/hr limit,
  *                        the per-platform billing of /api/screenshots, and 429
@@ -65,20 +66,29 @@ const FIXTURE_RESPONSE_HEADERS = {
 const OK_URL = 'https://example.test/page';
 const FAIL_URL = 'https://fail.example.test/page';
 const SSRF_URL = 'https://ssrf.example.test/page';
+// Resolves slowly so concurrent badge requests can be observed collapsing
+// into a single upstream fetch (the documented single-flight behaviour).
+const SLOW_URL = 'https://slow.example.test/page';
 
 const fetchCalls = [];
+let slowFetches = 0;
 
 /** Route table for the mocked fetchUrl. Unknown URLs reject like a network error. */
 function mockFetchUrl(url) {
   fetchCalls.push(url);
-  if (url === OK_URL) {
-    return Promise.resolve({
+  if (url === OK_URL || url === SLOW_URL) {
+    const result = {
       html: FIXTURE_HTML,
-      finalUrl: OK_URL,
+      finalUrl: url,
       redirectChain: [],
       responseHeaders: FIXTURE_RESPONSE_HEADERS,
       statusCode: 200,
-    });
+    };
+    if (url === SLOW_URL) {
+      slowFetches++;
+      return new Promise((resolve) => setTimeout(() => resolve(result), 75));
+    }
+    return Promise.resolve(result);
   }
   if (url === FAIL_URL) {
     return Promise.reject(new Error('mock: connection refused'));
@@ -114,6 +124,39 @@ require.cache[FETCHER_PATH].exports = {
   probeImage: mockProbeImage,
   fetchRenderedMetaTags: mockFetchRenderedMetaTags,
 };
+
+// What the badge should render for the fixture URL: run the fixture through
+// the REAL parse + score chain (only the fetch layer is mocked, and the mock
+// hands back exactly this html/probe), then pin the exact values in url-mode
+// assertions instead of pattern-matching a bare "/100".
+const { scoreAll } = require('../../src/scorer');
+const FIXTURE_SCORING = scoreAll(realFetcher.parseMetaTags(FIXTURE_HTML, OK_URL), {
+  url: 'https://cdn.example.test/og.png',
+  width: 1200,
+  height: 630,
+  contentType: 'image/png',
+  contentLength: 48120,
+  responseTime: 42,
+  cors: null,
+  statusCode: 200,
+});
+const EXPECTED_SCORE = FIXTURE_SCORING.overall.score;
+
+// Score→grade thresholds exactly as documented (README.md "Grade Colors",
+// docs/api.md badge section) — the contract the label=grade mode must render.
+const GRADE_BOUNDARIES = [
+  [97, 'A+'], [93, 'A'], [90, 'A-'],
+  [87, 'B+'], [83, 'B'], [80, 'B-'],
+  [77, 'C+'], [73, 'C'], [70, 'C-'],
+  [67, 'D+'], [63, 'D'], [60, 'D-'],
+];
+
+function gradeForScore(score) {
+  for (const [min, grade] of GRADE_BOUNDARIES) {
+    if (score >= min) return grade;
+  }
+  return 'F';
+}
 
 const { app } = require('../../src/server');
 
@@ -642,6 +685,15 @@ async function main() {
     assertEq(new Set(svgs).size, styles.length, 'each style has distinct SVG output');
   });
 
+  await test('GET /api/badge defaults to the flat style when style is omitted', async () => {
+    const omitted = await req('/api/badge.svg?score=85&platforms=25');
+    const flat = await req('/api/badge.svg?score=85&platforms=25&style=flat');
+    assertEq(omitted.status, 200, 'omitted status');
+    assertEq(flat.status, 200, 'flat status');
+    assertEq(omitted.text, flat.text, 'omitted style renders byte-identically to flat');
+    assert(flat.text.includes('<mask'), 'flat rounded-mask overlay present');
+  });
+
   await test('GET /api/badge supports score and grade labels', async () => {
     const score = await req('/api/badge.svg?score=85&platforms=25&label=score');
     assertEq(score.status, 200, 'score label status');
@@ -664,6 +716,43 @@ async function main() {
     assertEq(svg.headers.get('content-type'), 'image/svg+xml; charset=utf-8', '.svg content type');
     assertEq(alias.headers.get('cache-control'), 'public, max-age=3600, stale-while-revalidate=7200', 'alias cache header');
     assertEq(svg.headers.get('cache-control'), 'public, max-age=3600, stale-while-revalidate=7200', '.svg cache header');
+  });
+
+  await test('GET /api/badge renders the documented grade for every score boundary', async () => {
+    // Every threshold from README.md "Grade Colors", plus the value one below
+    // each boundary (which must fall through to the next grade down) and the
+    // extremes. Manual mode, so this costs no preview-bucket tokens.
+    const cases = [
+      [100, 'A+'], [97, 'A+'], [96, 'A'], [93, 'A'], [92, 'A-'], [90, 'A-'],
+      [89, 'B+'], [87, 'B+'], [86, 'B'], [83, 'B'], [82, 'B-'], [80, 'B-'],
+      [79, 'C+'], [77, 'C+'], [76, 'C'], [73, 'C'], [72, 'C-'], [70, 'C-'],
+      [69, 'D+'], [67, 'D+'], [66, 'D'], [63, 'D'], [62, 'D-'], [60, 'D-'],
+      [59, 'F'], [0, 'F'],
+    ];
+    for (const [score, grade] of cases) {
+      const res = await req(`/api/badge.svg?score=${score}&platforms=5&label=grade`);
+      assertEq(res.status, 200, `status for score=${score}`);
+      assert(res.text.includes(`>${grade}<`), `score=${score} must render ${grade}, got: ${res.text}`);
+    }
+  });
+
+  await test('GET /api/badge clamps manual scores outside 0-100 (docs/api.md)', async () => {
+    const low = await req('/api/badge.svg?score=-5&platforms=5');
+    assertEq(low.status, 200, 'low status');
+    assert(low.text.includes('>0/100<'), `negative score clamps to 0/100, got: ${low.text}`);
+    // In score mode the grade shows up as the documented F red.
+    assert(low.text.includes('fill="#e05d44"'), 'clamped 0 renders the F red');
+
+    const high = await req('/api/badge.svg?score=150&platforms=5');
+    assertEq(high.status, 200, 'high status');
+    assert(high.text.includes('>100/100<'), `oversized score clamps to 100/100, got: ${high.text}`);
+    assert(high.text.includes('fill="#4c1"'), 'clamped 100 renders the A+ green');
+
+    // Same clamping observed through label=grade (letter instead of colour).
+    const lowGrade = await req('/api/badge.svg?score=-5&platforms=5&label=grade');
+    assert(lowGrade.text.includes('>F<'), 'clamped 0 grades F');
+    const highGrade = await req('/api/badge.svg?score=150&platforms=5&label=grade');
+    assert(highGrade.text.includes('>A+<'), 'clamped 100 grades A+');
   });
 
   await test('GET /api/badge rejects incomplete manual inputs', async () => {
@@ -721,8 +810,44 @@ async function main() {
     assertEq(res.headers.get('cache-control'), 'public, max-age=3600, stale-while-revalidate=7200', 'cache header');
     assertEq(res.headers.get('x-ratelimit-remaining'), '999', 'rate-limit header');
     assert(res.text.startsWith('<svg'), 'SVG payload');
-    assert(res.text.includes('/100'), 'score text');
+    assert(res.text.includes('platform score'), 'label text present');
+    // The exact scored value, not just any N/100: the fixture page scores
+    // deterministically through the real parse+score chain.
+    assert(res.text.includes(`${EXPECTED_SCORE}/100`), `expected score ${EXPECTED_SCORE}/100, got: ${res.text}`);
     assert(fetchCalls.includes(OK_URL), 'downstream fetch happened for the url');
+  });
+
+  await test('GET /api/badge.svg url mode renders the grade letter for the scored result', async () => {
+    const res = await req(`/api/badge.svg?url=${encodeURIComponent(OK_URL)}&label=grade`);
+    assertEq(res.status, 200, 'status');
+    const expectedGrade = gradeForScore(EXPECTED_SCORE);
+    assert(res.text.includes(`>${expectedGrade}<`), `expected grade ${expectedGrade}, got: ${res.text}`);
+    assert(!res.text.includes('/100'), 'grade label omits the numeric score');
+  });
+
+  await test('GET /api/badge and /api/badge.svg return identical responses in url mode too', async () => {
+    const query = `url=${encodeURIComponent(OK_URL)}&style=flat-square`;
+    const alias = await req(`/api/badge?${query}`);
+    const svg = await req(`/api/badge.svg?${query}`);
+    assertEq(alias.status, 200, 'alias status');
+    assertEq(svg.status, 200, '.svg status');
+    assertEq(alias.text, svg.text, 'alias SVG body identical in url mode');
+    assertEq(alias.headers.get('content-type'), svg.headers.get('content-type'), 'same content type');
+    assertEq(alias.headers.get('cache-control'), svg.headers.get('cache-control'), 'same cache header');
+  });
+
+  await test('concurrent identical badge url requests are single-flight de-duplicated', async () => {
+    // Both paths, fired together while the (mocked) upstream fetch of
+    // SLOW_URL is still in flight — the handler must collapse them into one
+    // upstream fetch and answer both with the same SVG.
+    const [a, b] = await Promise.all([
+      req(`/api/badge?url=${encodeURIComponent(SLOW_URL)}`),
+      req(`/api/badge.svg?url=${encodeURIComponent(SLOW_URL)}`),
+    ]);
+    assertEq(a.status, 200, 'first status');
+    assertEq(b.status, 200, 'second status');
+    assertEq(a.text, b.text, 'both requests got the same SVG');
+    assertEq(slowFetches, 1, 'exactly one upstream fetch for the two requests');
   });
 
   await test('GET /api/badge url mode maps fetch failures to 502 and SSRF rejections to 400', async () => {

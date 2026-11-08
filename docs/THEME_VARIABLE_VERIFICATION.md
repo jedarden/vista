@@ -124,7 +124,9 @@ Comprehensive documentation created at `/docs/THEME_VARIABLE_NAMING_CONVENTION.m
 7. Migration guide
 8. Browser compatibility info
 
-**Evidence:** 500+ line comprehensive documentation covering all aspects.
+**Evidence:** Comprehensive documentation covering all aspects (the pattern,
+categories, the 20 alias namespaces, global tokens, usage, migration, and
+browser support).
 
 ### ✅ 5. Test variable switching between dark/light modes
 
@@ -329,7 +331,7 @@ document.documentElement.setAttribute('data-theme', 'light');
 
 | Requirement | Status | Evidence |
 |-------------|---------|----------|
-| CSS custom properties defined | ✅ COMPLETE | frames-theme.css lines 285-545 |
+| CSS custom properties defined | ✅ COMPLETE | frames-theme.css: global `--frame-*-global` tokens plus 20 platform alias namespaces, each with one `:root` and one `[data-theme='light']` block |
 | Variables for both themes | ✅ COMPLETE | All verified namespaces in :root and [data-theme='light'] |
 | Proper contrast ratios | ✅ ENFORCED | Automated test (`test/unit/wcag-contrast.test.js`); text-primary ≥4.5:1 in all namespaces, 4 ratcheted text-secondary violations listed there |
 | Naming convention documented | ✅ COMPLETE | THEME_VARIABLE_NAMING_CONVENTION.md |
